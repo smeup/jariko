@@ -99,6 +99,7 @@ private fun RContext.getDataDefinitions(
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val statementsNotResolved: MutableList<StatementContext> = LinkedList()
     val knownDataDefinitions = KnownDataDefinition.getInstance()
 
     fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
@@ -123,6 +124,36 @@ private fun RContext.getDataDefinitions(
                         it.dcl_c()
                             .toAst(conf)
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    }
+                    it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
+                        fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
+                    } -> {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
+                    }
+                    else -> null
+                }
+            }
+            .onFailure { e -> statementsNotResolved.add(it) }
+            .getOrNull()
+        }
+    )
+    // Third pass, everything, I mean everything but with statements not resolved
+    dataDefinitionProviders.addAll(statementsNotResolved
+        .mapNotNull {
+            kotlin.runCatching {
+                when {
+                    it.dspec() != null -> {
+                        it.dspec()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.dcl_c() != null -> {
+                        it.dcl_c()
+                                .toAst(conf)
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
