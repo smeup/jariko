@@ -1,7 +1,7 @@
-       /COPY QILEGEN,MULANG_D_D
      D A50_A81         S                   LIKE(£DBG_I_Fun)
      D A50_N81         S                   LIKE(£DBG_I_Num)
      D A50_V81         S                   LIKE(£DBG_O_Str)
+      /COPY QILEGEN,MULANG_D_D
 
      D* DS con overlay e campi definiti singolarmente
      C                   EVAL      A50_A81='Funzione'
