@@ -548,6 +548,22 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT12_A04_P13() {
+        val expected = listOf(
+            "CNT()"
+        )
+        assertEquals(expected, "smeup/T12_A04_P13".outputOf())
+    }
+
+    @Test
+    fun executeT12_A04_P14() {
+        val expected = listOf(
+            "CNT()"
+        )
+        assertEquals(expected, "smeup/T12_A04_P14".outputOf())
+    }
+
+    @Test
     fun executeT10_A20_P51() {
         val expected = listOf<String>("Res(21, -19, 20, 2, 20, -20)")
         assertEquals(expected, "smeup/T10_A20_P51".outputOf(configuration = smeupConfig))
