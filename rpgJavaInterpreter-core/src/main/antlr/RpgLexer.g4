@@ -1171,6 +1171,7 @@ CS_FactorContent: (~[\r\n' :]
 			|| (getCharPositionInLine()>=36 && getCharPositionInLine()<=49)
 	}?
 		)+;
+CS_FactorContentArrayIndexing: (CS_ResultContent | CS_FactorContent) WS* OPEN_PAREN (CS_ResultContent | CS_FactorContent) CLOSE_PAREN {setText(getText().replace(" ", ""));};
 CS_ResultContent: (~[\r\n' :]
 	{(getCharPositionInLine()>=50 && getCharPositionInLine()<=63)}?
 		)+ -> type(CS_FactorContent);

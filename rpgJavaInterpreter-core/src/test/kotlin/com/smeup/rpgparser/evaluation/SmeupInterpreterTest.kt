@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
@@ -545,5 +546,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT10_A45_P03() {
         val expected = listOf<String>("NUM(4)")
         assertEquals(expected, "smeup/T10_A45_P03".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT10_A20_P51() {
+        assertCanBeParsed("smeup/T10_A20_P51", printTree = true)
+        val expected = listOf<String>("Res(21, -19, 20, 2, 20, -20)")
+        assertEquals(expected, "smeup/T10_A20_P51".outputOf(configuration = smeupConfig))
     }
 }
