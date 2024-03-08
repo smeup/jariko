@@ -185,7 +185,12 @@ open class BaseCompileTimeInterpreter(
                     if (delegatedCompileTimeInterpreter != null) {
                         return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf)
                     } else {
-                        throw expression.error(message = e.message, cause = e)
+                        val errorsExisting = getAstCreationErrors().filter { it is AstResolutionError }.firstOrNull() { it.cause?.message == e.message }
+                        if (errorsExisting == null) {
+                            throw expression.error(message = e.message, cause = e)
+                        }
+
+                        throw e
                     }
                 }
             }
