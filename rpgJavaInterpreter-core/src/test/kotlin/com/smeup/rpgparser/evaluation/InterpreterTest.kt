@@ -2337,4 +2337,10 @@ Test 6
         )
         assertEquals(expected, "EVALVARSNUMS".outputOf())
     }
+
+    @Test
+    fun executeLIKEWITHCOPY() {
+        val expected = listOf("OK")
+        assertEquals(expected, "LIKEWITHCOPY".outputOf())
+    }
 }
