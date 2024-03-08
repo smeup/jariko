@@ -201,6 +201,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
+            is BlanksValue -> if (this.isBlank()) EQUAL else SMALLER
             else -> super.compareTo(other)
         }
 
