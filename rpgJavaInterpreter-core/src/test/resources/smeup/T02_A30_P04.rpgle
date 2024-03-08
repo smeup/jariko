@@ -8,6 +8,6 @@
      C                   EVAL      A30_AR4(04) = 'DDDDDDDDDDDDDDDDDDDD'
      C                   EVAL      A30_AR4(05) = 'EEEEEEEEEEEEEEEEEEEE'
      C                   EVAL      A30_AR4(06) = 'FFFFFFFFFFFFFFFFFFFF'
-     c                   EVAL      £DBG_Str=A30_AR4(01)+A30_AR4(02)+A30_AR4(03)
+     C                   EVAL      £DBG_Str=A30_AR4(01)+A30_AR4(02)+A30_AR4(03)
      C                                     +A30_AR4(04)+A30_AR4(05)+A30_AR4(06)
      C     £DBG_Str      DSPLY
