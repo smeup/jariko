@@ -1335,11 +1335,16 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
     val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+
+    val result = this.cspec_fixed_standard_parts().result
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+
     return CheckStmt(
         factor1,
         expression,
         startPosition ?: 1,
         this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+        dataDefinition,
         position
     )
 }
