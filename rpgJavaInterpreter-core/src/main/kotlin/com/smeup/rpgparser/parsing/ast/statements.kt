@@ -610,8 +610,9 @@ data class CheckStmt(
     val baseString: Expression,
     val start: Int = 1,
     val wrongCharPosition: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
@@ -633,6 +634,8 @@ data class CheckStmt(
             }
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
