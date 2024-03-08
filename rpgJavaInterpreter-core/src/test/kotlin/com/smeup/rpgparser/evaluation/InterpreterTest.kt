@@ -2339,8 +2339,14 @@ Test 6
     }
 
     @Test
-    fun executeLIKEWITHCOPY() {
+    fun executeLIKEWITHCOPY1() {
         val expected = listOf("OK")
-        assertEquals(expected, "LIKEWITHCOPY".outputOf())
+        assertEquals(expected, "LIKEWITHCOPY1".outputOf())
+    }
+
+    @Test
+    fun executeLIKEWITHCOPY2() {
+        val expected = listOf("OK")
+        assertEquals(expected, "LIKEWITHCOPY2".outputOf())
     }
 }
