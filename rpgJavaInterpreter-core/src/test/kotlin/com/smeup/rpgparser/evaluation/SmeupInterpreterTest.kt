@@ -570,4 +570,12 @@ open class SmeupInterpreterTest : AbstractTest() {
         )
         assertEquals(expected, "smeup/T12_A04_P17".outputOf())
     }
+
+    @Test
+    fun executeT10_A20_P47() {
+        val expected = listOf(
+            "A20_D7(53.33) A20_D8(.002) A20_D9(2) A20_D0(3)"
+        )
+        assertEquals(expected, "smeup/T10_A20_P47".outputOf())
+    }
 }
