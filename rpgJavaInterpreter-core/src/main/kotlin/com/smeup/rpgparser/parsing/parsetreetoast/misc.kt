@@ -1216,7 +1216,9 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     // TODO handle duration code after the :
     val target = this.cspec_fixed_standard_parts().result.text.split(":")
     val durationCode = if (target.size > 1) target[1].toDuration() else DurationInMSecs
-    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, durationCode, position)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(target.first(), position, conf)
+
+    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, durationCode, dataDefinition, position)
 }
 
 private fun String.toDuration(): DurationCode =
