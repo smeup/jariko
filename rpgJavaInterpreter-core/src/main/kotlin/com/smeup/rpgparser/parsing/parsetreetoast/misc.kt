@@ -1461,17 +1461,30 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    val mvrTarget: AssignableExpression? = this.csMVR()?.cspec_fixed_standard_parts()?.result?.text?.let {
-        DataRefExpr(ReferenceByName(it), position)
-    }
     return DivStmt(
         target = this.cspec_fixed_standard_parts().result.toAst(conf),
         halfAdjust = 'H' in extenders,
         factor1 = factor1,
         factor2 = factor2,
-        mvrTarget = mvrTarget,
+        mvrStatement = this.csMVR()?.toAst(conf),
         dataDefinition = dataDefinition,
         position = position
+    )
+}
+
+internal fun CsMVRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MvrStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val target = result?.let {
+        DataRefExpr(ReferenceByName(it), toPosition(conf.considerPosition))
+    }
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(
+        name = result,
+        position = toPosition(conf.considerPosition),
+        conf = conf
+    )
+    return MvrStmt(
+        target = target,
+        dataDefinition = dataDefinition
     )
 }
 
