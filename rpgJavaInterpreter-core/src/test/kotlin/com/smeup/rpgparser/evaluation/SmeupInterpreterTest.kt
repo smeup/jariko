@@ -562,4 +562,12 @@ open class SmeupInterpreterTest : AbstractTest() {
         )
         assertEquals(expected, "smeup/T12_A04_P14".outputOf())
     }
+
+    @Test
+    fun executeT04_A90_P05() {
+        val expected = listOf(
+            "Microsecondi(98085763813000) Secondi(98085763) Minuti(1634762) Ore(27246) Giorni(1135) Mesi(37) Anni(3)"
+        )
+        assertEquals(expected, "smeup/T04_A90_P05".outputOf())
+    }
 }
