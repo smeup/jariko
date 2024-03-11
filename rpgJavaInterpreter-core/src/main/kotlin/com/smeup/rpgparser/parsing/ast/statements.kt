@@ -1179,6 +1179,16 @@ data class DivStmt(
 }
 
 @Serializable
+data class MvrStmt(
+    val target: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
 data class AddStmt(
     val left: Expression?,
     val result: AssignableExpression,
