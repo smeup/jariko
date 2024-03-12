@@ -204,7 +204,7 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
 }
 
 internal fun String.indicatorIndex(): Int? {
-    val uCaseIndicatorString = this.toUpperCase()
+    val uCaseIndicatorString = this.uppercase()
     return when {
         uCaseIndicatorString.startsWith("*IN") ->
             this.substring("*IN".length).toIndicatorKey()
@@ -214,9 +214,9 @@ internal fun String.indicatorIndex(): Int? {
 
 internal fun String.dataWrapUpChoice(): DataWrapUpChoice? {
     val indicator = when {
-        this.toUpperCase().startsWith("*IN(") && this.endsWith(")") ->
-            this.toUpperCase().removePrefix("*IN(").removeSuffix(")")
-        this.toUpperCase().startsWith("*IN") -> this.substring("*IN".length)
+        this.uppercase().startsWith("*IN(") && this.endsWith(")") ->
+            this.uppercase().removePrefix("*IN(").removeSuffix(")")
+        this.uppercase().startsWith("*IN") -> this.substring("*IN".length)
         else -> null
     }
     return when (indicator) {
