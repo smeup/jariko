@@ -40,7 +40,7 @@ val EOF_PATTERN = Regex(""".{6}/EOF""", RegexOption.IGNORE_CASE)
  * to be managed during /COPY directive resolution and cannot be done after all /COPY directives
  * are resolved.
  */
-fun String.resolveEOFDirective(): String {
+internal fun String.resolveEOFDirective(): String {
     if (!this.contains(EOF_DIRECTIVE_KEYWORD, true)) {
         return this
     }
@@ -60,7 +60,7 @@ fun String.resolveEOFDirective(): String {
     return result
 }
 
-fun String.resolveCompilerDirectives(): String {
+internal fun String.resolveCompilerDirectives(): String {
 
     if (!containDirectives(this)) {
         return this
@@ -90,6 +90,9 @@ fun String.resolveCompilerDirectives(): String {
                 val code = matchResult?.groups?.get(1)?.value
                 if (code != null) {
                     useRow = isDefined(definitions, code)
+                } else {
+                    val exc = CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))
+                    throw AstCreatingException(this, exc).fireErrorEvent(null)
                 }
             }
             IF_NOT_DEFINED_PATTERN.matches(row) -> {
@@ -105,6 +108,9 @@ fun String.resolveCompilerDirectives(): String {
                 val code = matchResult?.groups?.get(1)?.value
                 if (code != null) {
                     useRow = !isDefined(definitions, code)
+                } else {
+                    val exc = CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
+                    throw AstCreatingException(this, exc).fireErrorEvent(null)
                 }
             }
             DEFINE_PATTERN.matches(row) -> {
@@ -113,6 +119,9 @@ fun String.resolveCompilerDirectives(): String {
                 val code = matchResult?.groups?.get(1)?.value
                 if (code != null) {
                     definitions.add(code.uppercase())
+                } else {
+                    val exc = CompilerDirectivesException("DEFINE directive without code value at line " + (index + 1))
+                    throw AstCreatingException(this, exc).fireErrorEvent(null)
                 }
             }
             UNDEFINE_PATTERN.matches(row) -> {
@@ -121,6 +130,9 @@ fun String.resolveCompilerDirectives(): String {
                 val code = matchResult?.groups?.get(1)?.value
                 if (code != null) {
                     definitions.remove(code.uppercase())
+                } else {
+                    val exc = CompilerDirectivesException("UNDEFINE directive without code value at line " + (index + 1))
+                    throw AstCreatingException(this, exc).fireErrorEvent(null)
                 }
             }
             ELSE_PATTERN.matches(row) -> {

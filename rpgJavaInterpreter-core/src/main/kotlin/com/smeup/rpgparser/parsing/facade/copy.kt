@@ -40,7 +40,7 @@ class Copy(val source: String) {
     }
 }
 
-fun String.includesCopy(
+internal fun String.includesCopy(
     findCopy: (copyId: CopyId) -> String? = {
         MainExecutionContext.getSystemInterface()!!.findCopy(it)!!.source
     },
