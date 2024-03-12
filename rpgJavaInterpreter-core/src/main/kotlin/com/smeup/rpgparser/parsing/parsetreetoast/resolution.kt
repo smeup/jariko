@@ -64,7 +64,13 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                         currentCu = currentCu.parent?.let { it as CompilationUnit }
                     }
                     if (!resolved) {
-                        kotlin.runCatching { dre.error("Data reference not resolved: ${dre.variable.name}") }
+                        /* Maybe is a procedure without parenthesis. */
+                        val procedureFound = cu.procedures?.firstOrNull() { it.procedureName == dre.variable.name }
+                        if (procedureFound != null) {
+                            procedureFound.resolve()
+                        } else {
+                            kotlin.runCatching { dre.error("Data reference not resolved: ${dre.variable.name}") }
+                        }
                     }
                 }
             }
