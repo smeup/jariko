@@ -665,7 +665,7 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
         this.SPLAT_ON() != null -> OnRefExpr(position)
         this.SPLAT_INDICATOR() != null -> {
             IndicatorExpr(
-                index = children[0].text.replace("*IN", "").toIndicatorKey(),
+                index = children[0].text.uppercase().replace("*IN", "").toIndicatorKey(),
                 position = position
             )
         }
