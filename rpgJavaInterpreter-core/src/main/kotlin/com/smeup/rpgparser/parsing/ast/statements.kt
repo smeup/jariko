@@ -1255,8 +1255,9 @@ data class SubStmt(
 @Serializable
 data class TimeStmt(
     val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
@@ -1278,6 +1279,8 @@ data class TimeStmt(
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
