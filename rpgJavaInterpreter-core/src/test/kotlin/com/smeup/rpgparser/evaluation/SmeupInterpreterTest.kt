@@ -530,6 +530,56 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT10_A45_P01() {
+        val expected = listOf<String>("NUM(0)")
+        assertEquals(expected, "smeup/T10_A45_P01".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT10_A45_P02() {
+        val expected = listOf<String>("NUM(4)")
+        assertEquals(expected, "smeup/T10_A45_P02".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT10_A45_P03() {
+        val expected = listOf<String>("NUM(4)")
+        assertEquals(expected, "smeup/T10_A45_P03".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT12_A04_P13() {
+        val expected = listOf(
+            "CNT()"
+        )
+        assertEquals(expected, "smeup/T12_A04_P13".outputOf())
+    }
+
+    @Test
+    fun executeT12_A04_P14() {
+        val expected = listOf(
+            "CNT()"
+        )
+        assertEquals(expected, "smeup/T12_A04_P14".outputOf())
+    }
+
+    @Test
+    fun executeT04_A90_P05() {
+        val expected = listOf(
+            "Microsecondi(98085763813000) Secondi(98085763) Minuti(1634762) Ore(27246) Giorni(1135) Mesi(37) Anni(3)"
+        )
+        assertEquals(expected, "smeup/T04_A90_P05".outputOf())
+    }
+
+    @Test
+    fun executeT04_A80_P05() {
+        val expected = listOf(
+            "A80_D1(hhmmss) A80_D2(hhmmssDDMMYY) A80_D3(hhmmssDDMMYYYY)"
+        )
+        assertEquals(expected, "smeup/T04_A80_P05".outputOf())
+    }
+
+    @Test
     fun executeT02_A30_P04() {
         val expected = listOf<String>("AAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDDDDDEEEEEEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFFFF")
         assertEquals(expected, "smeup/T02_A30_P04".outputOf())

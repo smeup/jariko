@@ -280,9 +280,10 @@ data class SubDurStmt(
     val target: AssignableExpression,
     val factor2: Expression,
     val durationCode: DurationCode,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
@@ -293,6 +294,8 @@ data class SubDurStmt(
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -610,8 +613,9 @@ data class CheckStmt(
     val baseString: Expression,
     val start: Int = 1,
     val wrongCharPosition: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
@@ -633,6 +637,8 @@ data class CheckStmt(
             }
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1249,8 +1255,9 @@ data class SubStmt(
 @Serializable
 data class TimeStmt(
     val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
@@ -1272,6 +1279,8 @@ data class TimeStmt(
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable

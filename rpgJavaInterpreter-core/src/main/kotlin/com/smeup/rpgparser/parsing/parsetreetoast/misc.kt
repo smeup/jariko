@@ -1094,7 +1094,11 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TimeStmt {
     val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return TimeStmt(annidatedReferenceExpression(name, toPosition(conf.considerPosition)), position)
+
+    val result = this.cspec_fixed_standard_parts().result
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+
+    return TimeStmt(annidatedReferenceExpression(name, toPosition(conf.considerPosition)), dataDefinition, position)
 }
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
@@ -1216,7 +1220,9 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     // TODO handle duration code after the :
     val target = this.cspec_fixed_standard_parts().result.text.split(":")
     val durationCode = if (target.size > 1) target[1].toDuration() else DurationInMSecs
-    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, durationCode, position)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(target.first(), position, conf)
+
+    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, durationCode, dataDefinition, position)
 }
 
 private fun String.toDuration(): DurationCode =
@@ -1335,11 +1341,16 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
     val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+
+    val result = this.cspec_fixed_standard_parts().result
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+
     return CheckStmt(
         factor1,
         expression,
         startPosition ?: 1,
         this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+        dataDefinition,
         position
     )
 }
