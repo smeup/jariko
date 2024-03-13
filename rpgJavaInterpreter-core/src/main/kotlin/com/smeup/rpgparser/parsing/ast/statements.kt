@@ -280,9 +280,10 @@ data class SubDurStmt(
     val target: AssignableExpression,
     val factor2: Expression,
     val durationCode: DurationCode,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
@@ -293,6 +294,8 @@ data class SubDurStmt(
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
