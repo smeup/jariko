@@ -5,6 +5,7 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
+import java.util.*
 
 // *IN01..*IN99 and *INLR *INRT
 @Serializable
@@ -98,7 +99,7 @@ fun String.toIndicatorKey(): IndicatorKey {
             require(IndicatorType.Predefined.range.contains(it.toInt()))
             it.toInt()
         }
-        else -> IndicatorType.valueOf(this).range.first
+        else -> IndicatorType.valueOf(this.uppercase()).range.first
     }
 }
 
