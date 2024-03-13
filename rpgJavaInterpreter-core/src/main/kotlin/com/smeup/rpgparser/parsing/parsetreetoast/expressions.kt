@@ -144,6 +144,11 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
     if (this.text.toUpperCase().startsWith("*ALL")) {
         return AllExpr(this.all().literal().toAst(conf), toPosition(conf.considerPosition))
     }
+
+    if (isFunctionWithoutParams(this.text)) {
+        return FunctionCall(ReferenceByName(this.text), listOf(), toPosition(conf.considerPosition))
+    }
+
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> ZeroExpr(toPosition(conf.considerPosition))
@@ -159,7 +164,6 @@ private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfigurat
     return when {
         this.text.indicatorIndex() != null -> IndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
-        isFunctionWithoutParams(this.text) -> FunctionCall(ReferenceByName(this.text), listOf())
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
 }
