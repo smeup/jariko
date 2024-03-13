@@ -185,12 +185,7 @@ open class BaseCompileTimeInterpreter(
                     if (delegatedCompileTimeInterpreter != null) {
                         return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf)
                     } else {
-                        val errorsExisting = getAstCreationErrors().filter { it is AstResolutionError }.firstOrNull() { it.cause?.message == e.message }
-                        if (errorsExisting == null) {
-                            throw expression.error(message = e.message, cause = e)
-                        }
-
-                        throw e
+                        throw expression.error(message = e.message, cause = e)
                     }
                 }
             }
@@ -233,6 +228,12 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
+                    it.dspec() != null -> {
+                        val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
+                        if (declName.equals(name, ignoreCase = true)) {
+                            return it.dspec().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).type
+                        }
+                    }
                     it.cspec_fixed() != null -> {
                         val type = it.cspec_fixed().findType(declName, conf)
                         if (type != null) return type
