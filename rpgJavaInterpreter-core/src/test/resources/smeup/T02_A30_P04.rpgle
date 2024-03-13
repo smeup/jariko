@@ -1,6 +1,6 @@
      D A30_C04         C                   CONST(6)
      D A30_AR4         S             20    DIM(A30_C04)
-     D £DBG_Str        S             150         VARYING
+     D £DBG_Str        S            150         VARYING
 
      C                   EVAL      A30_AR4(01) = 'AAAAAAAAAAAAAAAAAAAA'
      C                   EVAL      A30_AR4(02) = 'BBBBBBBBBBBBBBBBBBBB'
