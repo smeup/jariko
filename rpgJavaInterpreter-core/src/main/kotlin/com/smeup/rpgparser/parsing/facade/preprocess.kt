@@ -7,12 +7,11 @@ import java.io.BufferedReader
 import java.io.InputStream
 import kotlin.system.measureTimeMillis
 
-internal fun InputStream.preprocess(
+fun InputStream.preprocess(
     findCopy: (copyId: CopyId) -> String?,
     onStartInclusion: (copyId: CopyId, start: Int) -> Unit = { _: CopyId, _: Int -> },
     onEndInclusion: (end: Int) -> Unit = { _: Int -> },
-    beforeInclusion: (copyId: CopyId) -> Boolean = { true },
-    resolveDirectives: Boolean = true
+    beforeInclusion: (copyId: CopyId) -> Boolean = { true }
 ): String {
     val programName = getExecutionProgramNameWithNoExtension()
     MainExecutionContext.log(PreprocessingLogStart(programName = programName))
@@ -23,10 +22,7 @@ internal fun InputStream.preprocess(
             onStartInclusion = onStartInclusion,
             onEndInclusion = onEndInclusion,
             beforeInclusion = beforeInclusion
-        )
-        if (resolveDirectives) {
-            preprocessed = preprocessed.resolveCompilerDirectives()
-        }
+        ).resolveCompilerDirectives()
     }.apply {
         MainExecutionContext.log(
             PreprocessingLogEnd(
