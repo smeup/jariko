@@ -112,7 +112,11 @@ private fun moveaString(
             if (operationExtenter == null) {
                 interpreterCore.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
             } else {
-                StringValue(" ".repeat((realSize - value.type().size)))
+                val valueSize = when (val valueType = value.type()) {
+                    is StringType -> valueType.length
+                    else -> valueType.size
+                }
+                StringValue(" ".repeat((realSize - valueSize)))
             }
         newValue = newValue.concatenate(other).asString()
     }
