@@ -23,6 +23,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
+import com.strumenta.kolasu.model.tryToResolve
 
 /**
  * This is a very limited interpreter used at compile time, mainly
@@ -74,6 +75,10 @@ open class BaseCompileTimeInterpreter(
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
             is StringLiteral -> StringValue(expression.value)
+            is DataRefExpr -> if (expression.variable.tryToResolve(knownDataDefinitions))
+                return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
+                    else
+                TODO(expression.toString())
             else -> TODO(expression.toString())
         }
     }
@@ -228,6 +233,12 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
+                    it.dspec() != null -> {
+                        val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
+                        if (declName.equals(name, ignoreCase = true)) {
+                            return it.dspec().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).type
+                        }
+                    }
                     it.cspec_fixed() != null -> {
                         val type = it.cspec_fixed().findType(declName, conf)
                         if (type != null) return type
