@@ -233,6 +233,12 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
+                    it.dspec() != null -> {
+                        val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
+                        if (declName.equals(name, ignoreCase = true)) {
+                            return it.dspec().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).type
+                        }
+                    }
                     it.cspec_fixed() != null -> {
                         val type = it.cspec_fixed().findType(declName, conf)
                         if (type != null) return type
