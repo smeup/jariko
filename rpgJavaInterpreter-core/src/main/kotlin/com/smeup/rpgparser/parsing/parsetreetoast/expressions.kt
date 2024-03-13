@@ -164,7 +164,7 @@ private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfigurat
     }
 }
 
-fun RpgParser.IdentifierContext.isFunctionWithoutParams(referenceName: String): Boolean {
+private fun RpgParser.IdentifierContext.isFunctionWithoutParams(referenceName: String): Boolean {
     return runCatching {
         rContext().children.filterIsInstance<Dcl_prContext>()
                 .flatMap { it.children.filterIsInstance<PrBeginContext>() }
