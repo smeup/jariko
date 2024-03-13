@@ -292,12 +292,35 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT03_A10_P09_10() {
+    fun executeT03_A10_P09() {
         val expected = listOf(
-            "I(15)=0 I(15)=1 I(15)=0",
+            "I(15)=0 I(15)=1 I(15)=0"
+        )
+        assertEquals(expected, "smeup/T03_A10_P09".outputOf())
+    }
+
+    @Test
+    fun executeT03_A10_P10() {
+        val expected = listOf(
             "*IN(n)->000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
         )
-        assertEquals(expected, "smeup/T03_A10_P09-10".outputOf())
+        assertEquals(expected, "smeup/T03_A10_P10".outputOf())
+    }
+
+    @Test
+    fun executeT03_A10_P11() {
+        val expected = listOf(
+            "*INLR->1"
+        )
+        assertEquals(expected, "smeup/T03_A10_P11".outputOf())
+    }
+
+    @Test
+    fun executeT03_A10_P12() {
+        val expected = listOf(
+            "*IN35->1, *INLR->1"
+        )
+        assertEquals(expected, "smeup/T03_A10_P12".outputOf())
     }
 
     @Test

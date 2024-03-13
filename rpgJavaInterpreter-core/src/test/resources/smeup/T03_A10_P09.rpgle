@@ -15,12 +15,3 @@
      C                               +' I('+%CHAR($IND)+')='
      C                               +%CHAR(*IN($IND))
      C     £DBG_Str      DSPLY
-
-     D* Indicatori come array con indice n *IN(n)
-     C                   EVAL      £DBG_Str='*IN(n)->'
-     C                   EVAL      $IND=1
-     C                   DO        99
-     C                   EVAL      £DBG_Str=%TRIM(£DBG_Str)
-     C                               +%CHAR(*IN($IND))
-     C                   ENDDO
-     C     £DBG_Str      DSPLY
