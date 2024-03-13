@@ -23,6 +23,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
+import com.strumenta.kolasu.model.tryToResolve
 
 /**
  * This is a very limited interpreter used at compile time, mainly
@@ -74,6 +75,10 @@ open class BaseCompileTimeInterpreter(
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
             is StringLiteral -> StringValue(expression.value)
+            is DataRefExpr -> if (expression.variable.tryToResolve(knownDataDefinitions))
+                return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
+                    else
+                TODO(expression.toString())
             else -> TODO(expression.toString())
         }
     }
