@@ -1,7 +1,10 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.Dcl_prContext
+import com.smeup.rpgparser.RpgParser.Ds_nameContext
 import com.smeup.rpgparser.RpgParser.ExpressionContext
+import com.smeup.rpgparser.RpgParser.PrBeginContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
@@ -156,8 +159,18 @@ private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfigurat
     return when {
         this.text.indicatorIndex() != null -> IndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
+        isFunctionWithoutParams(this.text) -> FunctionCall(ReferenceByName(this.text), listOf())
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
+}
+
+fun RpgParser.IdentifierContext.isFunctionWithoutParams(referenceName: String): Boolean {
+    return runCatching {
+        rContext().children.filterIsInstance<Dcl_prContext>()
+                .flatMap { it.children.filterIsInstance<PrBeginContext>() }
+                .flatMap { it.children.filterIsInstance<Ds_nameContext>() }
+                .firstOrNull { it.text == referenceName }?.text
+    }.getOrNull() != null
 }
 
 internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), fieldName: String? = null): Expression {
