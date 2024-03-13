@@ -47,13 +47,16 @@ internal fun String.resolveEOFDirective(): String {
     // Split input text into rows
     val rows = this.lines()
     var result = ""
+    var useRow = true
     for (row in rows) {
         if (EOF_PATTERN.matches(row)) {
-            // Break loop if EOF found
-            break
+            useRow = false
+            result += row.transformToComment().plus("\n")
         } else {
-            if (row.length > 0) {
+            if (useRow) {
                 result += row.plus("\n")
+            } else {
+                result += row.transformToComment().plus("\n")
             }
         }
     }
@@ -71,106 +74,151 @@ internal fun String.resolveCompilerDirectives(): String {
     val definitions = mutableListOf<String>()
     var useRow = true
     var eofInvoked = false
+    var directiveRow = false
     // Split input text into rows
     val rows = this.lines()
 
     // Check each row against regex patterns
     for ((index, row) in rows.withIndex()) {
-        when {
-            IF_DEFINED_PATTERN.matches(row) -> {
-                // Control if IF_DEFINED is acceptable
-                val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
-                if (!acceptedLastCodes.any { it == lastCode }) {
+        // if eof invoked manage all remaining rows as comments
+        if (!eofInvoked) {
+            when {
+                IF_DEFINED_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    // Control if IF_DEFINED is acceptable
+                    val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
+                    if (!acceptedLastCodes.any { it == lastCode }) {
                         val exc = CompilerDirectivesException("Unexpected IF_DEFINED directive at line " + (index + 1))
                         throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
+
+                    lastCode = SYN_RELEVANT_DIRECTIVES.IF_DEFINED
+                    val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
+                    val code = matchResult?.groups?.get(1)?.value
+                    if (code != null) {
+                        useRow = isDefined(definitions, code)
+                    } else {
+                        val exc =
+                            CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
                 }
 
-                lastCode = SYN_RELEVANT_DIRECTIVES.IF_DEFINED
-                val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
-                val code = matchResult?.groups?.get(1)?.value
-                if (code != null) {
-                    useRow = isDefined(definitions, code)
-                } else {
-                    val exc = CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
-                }
-            }
-            IF_NOT_DEFINED_PATTERN.matches(row) -> {
-                // Control if IF_NOT_DEFINED is acceptable
-                val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
-                if (!acceptedLastCodes.any { it == lastCode }) {
-                    val exc = CompilerDirectivesException("Unexpected IF_NOT_DEFINED directive at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
+                IF_NOT_DEFINED_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    // Control if IF_NOT_DEFINED is acceptable
+                    val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
+                    if (!acceptedLastCodes.any { it == lastCode }) {
+                        val exc =
+                            CompilerDirectivesException("Unexpected IF_NOT_DEFINED directive at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
+
+                    lastCode = SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED
+                    val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
+                    val code = matchResult?.groups?.get(1)?.value
+                    if (code != null) {
+                        useRow = !isDefined(definitions, code)
+                    } else {
+                        val exc =
+                            CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
                 }
 
-                lastCode = SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED
-                val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
-                val code = matchResult?.groups?.get(1)?.value
-                if (code != null) {
-                    useRow = !isDefined(definitions, code)
-                } else {
-                    val exc = CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
-                }
-            }
-            DEFINE_PATTERN.matches(row) -> {
-                // Define directive is always acceptable
-                val matchResult = DEFINE_PATTERN.matchEntire(row)
-                val code = matchResult?.groups?.get(1)?.value
-                if (code != null) {
-                    definitions.add(code.uppercase())
-                } else {
-                    val exc = CompilerDirectivesException("DEFINE directive without code value at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
-                }
-            }
-            UNDEFINE_PATTERN.matches(row) -> {
-                // Undefine directive is always acceptable
-                val matchResult = UNDEFINE_PATTERN.matchEntire(row)
-                val code = matchResult?.groups?.get(1)?.value
-                if (code != null) {
-                    definitions.remove(code.uppercase())
-                } else {
-                    val exc = CompilerDirectivesException("UNDEFINE directive without code value at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
-                }
-            }
-            ELSE_PATTERN.matches(row) -> {
-                // Control if ELSE is acceptable
-                val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED, SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED)
-                if (!acceptedLastCodes.any { it == lastCode }) {
-                    val exc = CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
+                DEFINE_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    // Define directive is always acceptable
+                    val matchResult = DEFINE_PATTERN.matchEntire(row)
+                    val code = matchResult?.groups?.get(1)?.value
+                    if (code != null) {
+                        definitions.add(code.uppercase())
+                    } else {
+                        val exc =
+                            CompilerDirectivesException("DEFINE directive without code value at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
                 }
 
-                lastCode = SYN_RELEVANT_DIRECTIVES.ELSE
-                useRow = !useRow
-            }
-            ENDIF_PATTERN.matches(row) -> {
-                // Control if ENDIF is acceptable
-                val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED, SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED, SYN_RELEVANT_DIRECTIVES.ELSE)
-                if (!acceptedLastCodes.any { it == lastCode }) {
-                    val exc = CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1))
-                    throw AstCreatingException(this, exc).fireErrorEvent(null)
+                UNDEFINE_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    // Undefine directive is always acceptable
+                    val matchResult = UNDEFINE_PATTERN.matchEntire(row)
+                    val code = matchResult?.groups?.get(1)?.value
+                    if (code != null) {
+                        definitions.remove(code.uppercase())
+                    } else {
+                        val exc =
+                            CompilerDirectivesException("UNDEFINE directive without code value at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
                 }
 
-                lastCode = SYN_RELEVANT_DIRECTIVES.ENDIF
-                useRow = true
-            }
-            EOF_PATTERN.matches(row) -> {
-                eofInvoked = true
-                useRow = false
-            }
-            else -> {
-                if (useRow && row.length > 0) {
-                    result += row.plus("\n")
+                ELSE_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    // Control if ELSE is acceptable
+                    val acceptedLastCodes =
+                        listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED, SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED)
+                    if (!acceptedLastCodes.any { it == lastCode }) {
+                        val exc = CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
+
+                    lastCode = SYN_RELEVANT_DIRECTIVES.ELSE
+                    useRow = !useRow
+                }
+
+                ENDIF_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    // Control if ENDIF is acceptable
+                    val acceptedLastCodes = listOf(
+                        SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
+                        SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
+                        SYN_RELEVANT_DIRECTIVES.ELSE
+                    )
+                    if (!acceptedLastCodes.any { it == lastCode }) {
+                        val exc = CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1))
+                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                    }
+
+                    lastCode = SYN_RELEVANT_DIRECTIVES.ENDIF
+                    useRow = true
+                }
+
+                EOF_PATTERN.matches(row) -> {
+                    directiveRow = true
+                    eofInvoked = true
+                    useRow = false
+                }
+
+                else -> {
+                    directiveRow = false
                 }
             }
         }
-        // Exit loop if EOF invoked
-        if (eofInvoked) break
+
+        if (directiveRow || eofInvoked) {
+            // Comment directives row and all rows after an EOF directive
+            result += row.transformToComment().plus("\n")
+        } else if (useRow) {
+            result += row.plus("\n")
+        } else {
+            // Transform row in comment because declared as unused after directive resolution
+            result += row.transformToComment().plus("\n")
+        }
     }
     return result
+}
+
+private fun String.transformToComment(): String {
+    val newString: String
+    if (this.length >= 7) {
+        newString = this.substring(0, 6) + '*' + this.substring(7)
+    } else {
+        val padding = "       "
+        newString = this + padding.substring(0, 7 - this.length) + '*'
+    }
+    return newString
 }
 
 private fun containDirectives(inputString: String): Boolean {

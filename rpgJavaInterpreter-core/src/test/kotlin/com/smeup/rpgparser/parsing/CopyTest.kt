@@ -164,8 +164,7 @@ class CopyTest {
             findCopy = { copyId ->
                 File("$srcRoot/${copyId.key(CopyFileExtension.rpgle)}").readText(charset = Charsets.UTF_8)
                     .apply { copyDefinitions[copyId] = this }
-            },
-            resolveDirectives = false
+            }
         )
         absoluteLinesMatchingRelativeLine(pgm = pgm, copyDefinitions)
     }
@@ -175,18 +174,17 @@ class CopyTest {
         val preprocessed = pgm.byteInputStream().preprocess(
             findCopy = { copyId -> copyDefinitions[copyId] },
             onStartInclusion = { copyId, start -> copyBlocks.onStartCopyBlock(copyId, start) },
-            onEndInclusion = { end -> copyBlocks.onEndCopyBlock(end) },
-            resolveDirectives = false
+            onEndInclusion = { end -> copyBlocks.onEndCopyBlock(end) }
         )
         preprocessed.lines().forEachIndexed { index, expectedLineOfCode ->
             println("index: $index, expectedLineOfCode:$expectedLineOfCode")
-            if (!expectedLineOfCode.startsWith("**********")) {
+            if (expectedLineOfCode.length > 0 && !expectedLineOfCode.startsWith("**********")) {
                 val relativeLine = copyBlocks.relativeLine(index + 1)
                 println("relativeLine: $relativeLine")
                 val actualLineOfCode = relativeLine.second?.let { copyBlock ->
                     copyDefinitions[copyBlock.copyId]!!.lines()[relativeLine.first - 1]
                 } ?: pgm.lines()[relativeLine.first - 1]
-                if (!actualLineOfCode.contains("/COPY")) {
+                if (!actualLineOfCode.contains("/COPY") && !expectedLineOfCode.startsWith("      *")) {
                     println("expectedLineOfCode: $expectedLineOfCode, actualLineOfCode: $actualLineOfCode")
                     Assert.assertEquals(expectedLineOfCode, actualLineOfCode)
                 }
