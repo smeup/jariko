@@ -75,14 +75,10 @@ open class BaseCompileTimeInterpreter(
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
             is StringLiteral -> StringValue(expression.value)
-            is DataRefExpr -> {
-                expression.variable.tryToResolve(knownDataDefinitions)
-                if (expression.variable.referred != null) {
-                    return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
-                }
-
+            is DataRefExpr -> if (expression.variable.tryToResolve(knownDataDefinitions))
+                return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
+                    else
                 TODO(expression.toString())
-            }
             else -> TODO(expression.toString())
         }
     }
