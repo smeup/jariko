@@ -717,19 +717,11 @@ open class InternalInterpreter(
         // calculation of rest
         // NB. rest based on type of quotient
         if (statement.mvrStatement != null) {
-            val restType = when {
-                statement.mvrStatement.dataDefinition != null -> statement.mvrStatement.dataDefinition.type
-                statement.mvrStatement.target != null -> statement.mvrStatement.target.type()
-                else -> null
-            }
+            val restType = statement.mvrStatement.target?.type()
             require(restType is NumberType)
             val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
-            // rest = divident - (truncatedQuotient * divisor)
             val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            when {
-                statement.mvrStatement.dataDefinition != null -> assign(statement.mvrStatement.dataDefinition, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
-                statement.mvrStatement.target != null -> assign(statement.mvrStatement.target, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
-            }
+            assign(statement.mvrStatement.target, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
         }
         return if (statement.halfAdjust) {
             DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
