@@ -1160,7 +1160,7 @@ data class DivStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
-    val mvrTarget: AssignableExpression? = null,
+    val mvrStatement: MvrStmt? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
@@ -1179,6 +1179,16 @@ data class DivStmt(
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class MvrStmt(
+    val target: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable

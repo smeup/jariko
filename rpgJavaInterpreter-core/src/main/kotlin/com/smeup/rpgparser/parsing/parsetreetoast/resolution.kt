@@ -20,6 +20,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
@@ -30,10 +31,51 @@ import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    // TODO could they be also annidated?
-    this.allStatements(preserveCompositeStatement = true).filterIsInstance(StatementThatCanDefineData::class.java).forEach {
-        this.addInStatementDataDefinitions(it.dataDefinition())
+    this.allStatements(preserveCompositeStatement = true).forEach {
+        this.addInStatementDataDefinitions(scanInDepthStatementDataDefinition(it))
     }
+}
+
+private fun scanInDepthStatementDataDefinition(node: Node): List<InStatementDataDefinition> {
+    val list = mutableListOf<InStatementDataDefinition>()
+    return when {
+        node is CompositeStatement -> {
+            /* Is possible that the node is both CompositeStatement and StatementThatCanDefineData. */
+            if (node is StatementThatCanDefineData) {
+                list.addAll(node.dataDefinition())
+            }
+
+            if (node is SelectStmt) {
+                node.cases.forEach {
+                    list.addAllDistinct(scanInDepthStatementDataDefinition(it))
+                }
+            }
+
+            node.body.forEach {
+                list.addAllDistinct(scanInDepthStatementDataDefinition(it))
+            }
+            return list
+        }
+        node is StatementThatCanDefineData -> {
+            if (node is DivStmt) {
+                node.mvrStatement?.let { list.addAll(it.dataDefinition()) }
+            }
+            list.addAll(node.dataDefinition())
+            return list
+        }
+        else -> emptyList()
+    }
+}
+
+private fun MutableList<InStatementDataDefinition>.addAllDistinct(list: List<InStatementDataDefinition>): List<InStatementDataDefinition> {
+    list.forEach { item ->
+        run {
+            if (this.isEmpty() || this.any { it.name != item.name }) {
+                this.add(item)
+            }
+        }
+    }
+    return this
 }
 
 fun CompilationUnit.allStatements(preserveCompositeStatement: Boolean = false): List<Statement> {
