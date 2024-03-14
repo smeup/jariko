@@ -31,39 +31,8 @@ import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    this.allStatements(preserveCompositeStatement = true).forEach {
-        this.addInStatementDataDefinitions(scanInDepthStatementDataDefinition(it))
-    }
-}
-
-private fun scanInDepthStatementDataDefinition(node: Node): List<InStatementDataDefinition> {
-    val list = mutableListOf<InStatementDataDefinition>()
-    return when {
-        node is CompositeStatement -> {
-            /* Is possible that the node is both CompositeStatement and StatementThatCanDefineData. */
-            if (node is StatementThatCanDefineData) {
-                list.addAll(node.dataDefinition())
-            }
-
-            if (node is SelectStmt) {
-                node.cases.forEach {
-                    list.addAllDistinct(scanInDepthStatementDataDefinition(it))
-                }
-            }
-
-            node.body.forEach {
-                list.addAllDistinct(scanInDepthStatementDataDefinition(it))
-            }
-            return list
-        }
-        node is StatementThatCanDefineData -> {
-            if (node is DivStmt) {
-                node.mvrStatement?.let { list.addAll(it.dataDefinition()) }
-            }
-            list.addAll(node.dataDefinition())
-            return list
-        }
-        else -> emptyList()
+    this.allStatements(preserveCompositeStatement = true).filterIsInstance(StatementThatCanDefineData::class.java).forEach {
+        this.addInStatementDataDefinitions(it.dataDefinition())
     }
 }
 
