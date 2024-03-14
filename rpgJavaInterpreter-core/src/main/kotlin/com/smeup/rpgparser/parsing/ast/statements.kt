@@ -1163,7 +1163,7 @@ data class DivStmt(
     val mvrStatement: MvrStmt? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
     @Transient
     @Derived
     val dividend: Expression
@@ -1179,6 +1179,11 @@ data class DivStmt(
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    @Transient
+    @Derived
+    override val body: List<Statement>
+        get() = mvrStatement?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
