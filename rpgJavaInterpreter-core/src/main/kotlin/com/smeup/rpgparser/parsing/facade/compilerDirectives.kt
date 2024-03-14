@@ -35,7 +35,8 @@ val ENDIF_PATTERN = Regex(""".{6}/ENDIF""", RegexOption.IGNORE_CASE)
 val EOF_PATTERN = Regex(""".{6}/EOF""", RegexOption.IGNORE_CASE)
 
 /**
- * Resolve the EOF directive: after this directive, all rows are ignored until the end of the file.
+ * Resolve the EOF directive: after this directive, all rows are ignored until the end of the file
+ * and marked in the result string as comments.
  * The resolution of this directive is separated from other directives because EOF resolution has
  * to be managed during /COPY directive resolution and cannot be done after all /COPY directives
  * are resolved.
@@ -46,23 +47,29 @@ internal fun String.resolveEOFDirective(): String {
     }
     // Split input text into rows
     val rows = this.lines()
-    var result = ""
+    val result = StringBuffer()
     var useRow = true
     for (row in rows) {
         if (EOF_PATTERN.matches(row)) {
             useRow = false
-            result += row.transformToComment().plus("\n")
+            result.appendLine(row.transformToComment())
         } else {
             if (useRow) {
-                result += row.plus("\n")
+                result.appendLine(row)
             } else {
-                result += row.transformToComment().plus("\n")
+                result.appendLine(row.transformToComment())
             }
         }
     }
-    return result
+    return result.toString()
 }
 
+/*
+Receives an RPG source as string and resolves all embedded compile directives.
+The response is a string where all lines that should not be executed after resolving
+the compile directives are transformed into comment lines. The resolution of
+compilation directives must be performed after the resolution of /COPY directives.
+*/
 internal fun String.resolveCompilerDirectives(): String {
 
     if (!containDirectives(this)) {
@@ -70,7 +77,7 @@ internal fun String.resolveCompilerDirectives(): String {
     }
 
     var lastCode: SYN_RELEVANT_DIRECTIVES = SYN_RELEVANT_DIRECTIVES.NONE
-    var result = ""
+    val result = StringBuffer()
     val definitions = mutableListOf<String>()
     var useRow = true
     var eofInvoked = false
@@ -88,8 +95,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     // Control if IF_DEFINED is acceptable
                     val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
                     if (!acceptedLastCodes.any { it == lastCode }) {
-                        val exc = CompilerDirectivesException("Unexpected IF_DEFINED directive at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("Unexpected IF_DEFINED directive at line " + (index + 1)).fireErrorEvent(null)
                     }
 
                     lastCode = SYN_RELEVANT_DIRECTIVES.IF_DEFINED
@@ -98,9 +104,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     if (code != null) {
                         useRow = isDefined(definitions, code)
                     } else {
-                        val exc =
-                            CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1)).fireErrorEvent(null)
                     }
                 }
 
@@ -109,9 +113,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     // Control if IF_NOT_DEFINED is acceptable
                     val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
                     if (!acceptedLastCodes.any { it == lastCode }) {
-                        val exc =
-                            CompilerDirectivesException("Unexpected IF_NOT_DEFINED directive at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("Unexpected IF_NOT_DEFINED directive at line " + (index + 1)).fireErrorEvent(null)
                     }
 
                     lastCode = SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED
@@ -120,9 +122,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     if (code != null) {
                         useRow = !isDefined(definitions, code)
                     } else {
-                        val exc =
-                            CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1)).fireErrorEvent(null)
                     }
                 }
 
@@ -134,9 +134,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     if (code != null) {
                         definitions.add(code.uppercase())
                     } else {
-                        val exc =
-                            CompilerDirectivesException("DEFINE directive without code value at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("DEFINE directive without code value at line " + (index + 1)).fireErrorEvent(null)
                     }
                 }
 
@@ -148,9 +146,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     if (code != null) {
                         definitions.remove(code.uppercase())
                     } else {
-                        val exc =
-                            CompilerDirectivesException("UNDEFINE directive without code value at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("UNDEFINE directive without code value at line " + (index + 1)).fireErrorEvent(null)
                     }
                 }
 
@@ -160,8 +156,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     val acceptedLastCodes =
                         listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED, SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED)
                     if (!acceptedLastCodes.any { it == lastCode }) {
-                        val exc = CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1)).fireErrorEvent(null)
                     }
 
                     lastCode = SYN_RELEVANT_DIRECTIVES.ELSE
@@ -177,8 +172,7 @@ internal fun String.resolveCompilerDirectives(): String {
                         SYN_RELEVANT_DIRECTIVES.ELSE
                     )
                     if (!acceptedLastCodes.any { it == lastCode }) {
-                        val exc = CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1))
-                        throw AstCreatingException(this, exc).fireErrorEvent(null)
+                        throw CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1)).fireErrorEvent(null)
                     }
 
                     lastCode = SYN_RELEVANT_DIRECTIVES.ENDIF
@@ -199,15 +193,15 @@ internal fun String.resolveCompilerDirectives(): String {
 
         if (directiveRow || eofInvoked) {
             // Comment directives row and all rows after an EOF directive
-            result += row.transformToComment().plus("\n")
+            result.appendLine(row.transformToComment())
         } else if (useRow) {
-            result += row.plus("\n")
+            result.appendLine(row)
         } else {
             // Transform row in comment because declared as unused after directive resolution
-            result += row.transformToComment().plus("\n")
+            result.appendLine(row.transformToComment())
         }
     }
-    return result
+    return result.toString()
 }
 
 private fun String.transformToComment(): String {
