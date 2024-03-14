@@ -185,9 +185,9 @@ data class SelectStmt(
         get() {
             val result = mutableListOf<Statement>()
             cases.forEach { case ->
-                result.addAll(case.body.explode())
+                result.addAll(case.body.explode(preserveCompositeStatement = true))
             }
-            if (other?.body != null) result.addAll(other!!.body.explode())
+            if (other?.body != null) result.addAll(other!!.body.explode(preserveCompositeStatement = true))
             return result
         }
 }
