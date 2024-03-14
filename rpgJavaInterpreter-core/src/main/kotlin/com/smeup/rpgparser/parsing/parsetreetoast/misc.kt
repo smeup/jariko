@@ -1328,7 +1328,6 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val target = if (result.text.isNotBlank()) result.toAst(conf) else null
 
     val baseExpression = factor2.factorContent(0).toAst(conf)
-    // and  "B" is the start position to substring, if not specified it returns null
     val positionExpression =
         if (factor2.factorContent().size > 1) {
             factor2.factorContent(1).toAst(conf)
