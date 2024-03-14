@@ -31,13 +31,12 @@ import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    // TODO could they be also annidated?
     this.allStatements(preserveCompositeStatement = true).forEach {
-        this.addInStatementDataDefinitions(scanInDephStatementDataDefinition(it))
+        this.addInStatementDataDefinitions(scanInDepthStatementDataDefinition(it))
     }
 }
 
-private fun scanInDephStatementDataDefinition(node: Node): List<InStatementDataDefinition> {
+private fun scanInDepthStatementDataDefinition(node: Node): List<InStatementDataDefinition> {
     val list = mutableListOf<InStatementDataDefinition>()
     return when {
         node is CompositeStatement -> {
@@ -46,14 +45,14 @@ private fun scanInDephStatementDataDefinition(node: Node): List<InStatementDataD
                 list.addAll(node.dataDefinition())
             }
 
-            node.body.forEach {
-                if (it is StatementThatCanDefineData) {
-                    list.addAll(it.dataDefinition())
-                } else if (it.parent != null && it.parent is StatementThatCanDefineData) {
-                    list.addAll((it.parent as StatementThatCanDefineData).dataDefinition())
-                } else {
-                    list.addAll(scanInDephStatementDataDefinition(it))
+            if (node is SelectStmt) {
+                node.cases.forEach {
+                    list.addAllDistinct(scanInDepthStatementDataDefinition(it))
                 }
+            }
+
+            node.body.forEach {
+                list.addAllDistinct(scanInDepthStatementDataDefinition(it))
             }
             return list
         }
@@ -66,6 +65,17 @@ private fun scanInDephStatementDataDefinition(node: Node): List<InStatementDataD
         }
         else -> emptyList()
     }
+}
+
+private fun MutableList<InStatementDataDefinition>.addAllDistinct(list: List<InStatementDataDefinition>): List<InStatementDataDefinition> {
+    list.forEach { item ->
+        run {
+            if (this.isEmpty() || this.any { it.name != item.name }) {
+                this.add(item)
+            }
+        }
+    }
+    return this
 }
 
 fun CompilationUnit.allStatements(preserveCompositeStatement: Boolean = false): List<Statement> {
