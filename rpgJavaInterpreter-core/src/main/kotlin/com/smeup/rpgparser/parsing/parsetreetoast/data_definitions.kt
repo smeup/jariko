@@ -937,9 +937,13 @@ class FieldsList(val fields: List<FieldInfo>) {
             if (field.startOffset == null) {
                 if (field.overlayInfo == null) {
                     if (index > 0) {
-                        val prevField = fields[index - 1]
-                        if (prevField.endOffsetIncludingAllElement != null) {
-                            field.startOffset = prevField.endOffsetIncludingAllElement
+                        var step = index
+                        while (step > 0) {
+                            val prevField = fields[--step]
+                            if (prevField.endOffsetIncludingAllElement != null) {
+                                field.startOffset = prevField.endOffsetIncludingAllElement
+                                break
+                            }
                         }
                     }
                 }
