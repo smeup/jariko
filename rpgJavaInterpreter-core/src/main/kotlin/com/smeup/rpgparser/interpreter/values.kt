@@ -314,6 +314,10 @@ data class IntValue(val value: Long) : NumberValue() {
         return StringValue(render())
     }
 
+    override fun asBoolean(): BooleanValue {
+        return BooleanValue(value > 0)
+    }
+
     operator fun plus(other: IntValue) = IntValue(this.bigDecimal.plus(other.bigDecimal).longValueExact())
 
     operator fun minus(other: IntValue) = IntValue(this.bigDecimal.minus(other.bigDecimal).longValueExact())
