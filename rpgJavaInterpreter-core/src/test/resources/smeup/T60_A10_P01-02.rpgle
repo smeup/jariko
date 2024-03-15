@@ -26,3 +26,4 @@
      C                   IF        $OP=*OFF
      C                   CLOSE     MLNGT60V
      C                   ENDIF
+     C                   SETON                                        LR
