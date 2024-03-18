@@ -10,90 +10,96 @@ import java.util.*
 import com.smeup.rpgparser.interpreter.DecEdit.*
 
 internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit, padChar: Char = ' '): StringValue {
-    fun signumChar(empty: Boolean) = (if (this.value < ZERO) "-" else if (empty) "" else " ")
-    fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
-    fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
-    fun nrOfPunctuationsIn(t: NumberType): Int = commas(t) + points(t)
+
+    val t = (type as NumberType)
+    var wrkTotalLength = 0
+    val decValue = this.value
+    var retValue = ""
+
+    fun thousandSeparators(): Int {
+        val quotient = t.entireDigits / 3
+        val reminder = t.entireDigits % 3
+        val ts = if (reminder == 0) quotient - 1 else quotient
+        return if (ts < 0) 0 else ts
+    }
+
+    fun decimalSeparators() = if (t.decimalDigits > 0) 1 else 0
+
+    fun getWrkTotalLength(): Int {
+        return t.decimalDigits + t.entireDigits
+    }
+
+    fun getDecimalSeparator(): String {
+        return when (decedit) {
+            DOT, ZERO_DOT -> "."
+            COMMA, ZERO_COMMA -> ","
+            else -> ""
+        }
+    }
 
     fun standardDecimalFormat(type: NumberType, locale: Locale) =
-        DecimalFormat(decimalPattern(type), DecimalFormatSymbolsRepository.getSymbols(locale)).format(this.value.abs())
+        DecimalFormat(decimalPattern(type), DecimalFormatSymbolsRepository.getSymbols(locale)).format(decValue.abs())
 
-    // The functions below correspond to the EDITC parameter, one function per value
-    fun f1(decedit: DecEdit): String {
-        if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
+    fun getStandardFormat(): String {
         return when (decedit) {
             COMMA -> {
-                standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.ITALY)
             }
             ZERO_COMMA -> {
-                if (this.value.abs() < BigDecimal.ONE) {
+                if (decValue.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
                         append(standardDecimalFormat(type, Locale.ITALY))
-                    }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    }
                 } else {
-                    standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    standardDecimalFormat(type, Locale.ITALY)
                 }
             }
             ZERO_DOT -> {
-                if (this.value.abs() < BigDecimal.ONE) {
+                if (decValue.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
                         append(standardDecimalFormat(type, Locale.US))
-                    }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    }
                 } else {
-                    standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    standardDecimalFormat(type, Locale.US)
                 }
             }
             DOT -> {
-                standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.US)
             }
         }
     }
 
-    fun f2(decedit: DecEdit): String {
-        if (this.value.isZero()) {
-            return "".padStart(type.size + nrOfPunctuationsIn(type as NumberType))
-        } else {
-            return f1(decedit)
-        }
-    }
+    fun italianDecimalFormatWithNoThousandsSeparator(type: NumberType) =
+        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.italianSymbols).format(decValue.abs())
 
-    fun italianDecimalformatWithNoThounsandsSeparator(type: NumberType) =
-        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.italianSymbols).format(this.value.abs())
+    fun usDecimalFormatWithNoThousandsSeparator(type: NumberType) =
+        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.usSymbols).format(decValue.abs())
 
-    fun usDecimalformatWithNoThounsandsSeparator(type: NumberType) =
-        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.usSymbols).format(this.value.abs())
-
-    fun f3(decedit: DecEdit): String {
-        if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
+    fun getItalianFormat(): String {
         return when (decedit) {
             COMMA -> {
-                italianDecimalformatWithNoThounsandsSeparator(type)
-                    .padStart(type.size + points(type), padChar)
+                italianDecimalFormatWithNoThousandsSeparator(type)
             }
             ZERO_COMMA -> {
-                if (this.value.abs() < BigDecimal.ONE) {
+                if (decValue.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
                         append(standardDecimalFormat(type, Locale.ITALY))
                     }
-                    .padStart(type.size + points(type), padChar)
                 } else {
-                    italianDecimalformatWithNoThounsandsSeparator(type)
-                        .padStart(type.size + points(type), padChar)
+                    italianDecimalFormatWithNoThousandsSeparator(type)
                 }
             }
             ZERO_DOT -> {
-                if (this.value.abs() < BigDecimal.ONE) {
+                if (decValue.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
                         append(standardDecimalFormat(type, Locale.US))
                     }
-                    .padStart(type.size + points(type), padChar)
                 } else {
-                    usDecimalformatWithNoThounsandsSeparator(type)
-                        .padStart(type.size + points(type), padChar)
+                    usDecimalFormatWithNoThousandsSeparator(type)
                 }
             }
             DOT -> {
@@ -101,107 +107,536 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                     append("#")
                     append(decimalsFormatString(type))
                 }, DecimalFormatSymbolsRepository.usSymbols)
-                    .format(this.value.abs())
-                    .padStart(type.size + points(type), padChar)
+                    .format(decValue.abs())
             }
         }
     }
 
-    fun f4(decedit: DecEdit): String {
-        if (this.value.isZero()) {
-            return "".padStart(type.size + points(type as NumberType))
-        } else
-            return f3(decedit)
-    }
-
-    fun fA(decedit: DecEdit): String {
-        return if (this.value < ZERO) {
-            f1(decedit) + "CR"
-        } else {
-            f1(decedit)
+    fun removeLeadingZeros() {
+        if (decedit == DOT || decedit == COMMA) {
+            val workValue = retValue
+                var exec = false
+                for (i in 0 until workValue.length) {
+                    if (workValue[i] != '0') {
+                        retValue = workValue.substring(i)
+                        exec = true
+                        break
+                    }
+                }
+                if (!exec) {
+                    retValue = "0"
+                }
         }
     }
 
-    fun fB(decedit: DecEdit): String = fA(decedit)
+    // The functions below correspond to the EDITC parameter, one function per value
+    fun toBlank(c: Char) = if (c == '0') ' ' else c
 
-    fun fC(decedit: DecEdit): String {
-        return if (this.value < ZERO) {
-            f3(decedit) + "CR"
-        } else {
-            f3(decedit)
-        }
+    fun appendSign(cfgSign: String, cfgSignPosition: Boolean, cfgPadChar: Char) {
+            if (decValue < ZERO) {
+                if (cfgSignPosition) {
+                    retValue = cfgSign + retValue
+                } else {
+                    retValue += cfgSign
+                }
+            } else {
+                if (cfgSignPosition) {
+                    retValue = cfgPadChar.toString().repeat(cfgSign.length) + retValue
+                } else {
+                    retValue += cfgPadChar.toString().repeat(cfgSign.length)
+                }
+            }
     }
 
-    fun fD(decedit: DecEdit): String {
-        return if (this.value < ZERO) {
-            f3(decedit) + "CR"
-        } else {
-            f3(decedit)
-        }
+    fun removeDecimalSeparator() {
+        val decimalSeparator = getDecimalSeparator()
+        retValue = retValue.replace(decimalSeparator, "")
     }
 
-    fun fJ(decedit: DecEdit): String = f1(decedit) + signumChar(true)
+    fun addPadding(cfgPadChar: Char) {
+        retValue = retValue.padStart(wrkTotalLength, cfgPadChar)
+    }
 
-    fun fK(decedit: DecEdit): String = f2(decedit) + signumChar(true)
+    fun replaceZeroWithBlank() {
+        if (decValue.isZero())
+            retValue = " ".repeat(wrkTotalLength)
+    }
 
-    fun fL(decedit: DecEdit): String = f3(decedit) + signumChar(true)
+    fun f1(): String {
+        // parse to local format
+        retValue = getStandardFormat()
 
-    fun fM(decedit: DecEdit): String = f4(decedit) + signumChar(true)
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
 
-    fun fN(decedit: DecEdit): String = signumChar(false) + f1(decedit)
+        // suppress leading zeros
+        removeLeadingZeros()
 
-    fun fO(decedit: DecEdit): String = signumChar(false) + f2(decedit)
+        // padding start
+        addPadding(padChar)
 
-    fun fP(decedit: DecEdit): String = signumChar(false) + f3(decedit)
+        return retValue
+    }
 
-    fun fQ(decedit: DecEdit): String = signumChar(false) + f4(decedit)
+    fun f2(): String {
+        // parse to local format
+        retValue = getStandardFormat()
 
-    fun toBlnk(c: Char) = if (c == '0') ' ' else c
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun f3(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun f4(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fA(): String {
+        // parse to local format
+        retValue = getStandardFormat()
+
+        // get total length
+        val cfgSign = "CR"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun fB(): String {
+        // parse to local format
+        retValue = getStandardFormat()
+
+        // get total length
+        val cfgSign = "CR"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fC(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        val cfgSign = "CR"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun fD(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        val cfgSign = "CR"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fJ(): String {
+        // parse to local format
+        retValue = getStandardFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun fK(): String {
+        // parse to local format
+        retValue = getStandardFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fL(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun fM(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, false, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fN(): String {
+        // parse to local format
+        retValue = getStandardFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, true, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun fO(): String {
+        // parse to local format
+        retValue = getStandardFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += thousandSeparators()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, true, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fP(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, true, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        return retValue
+    }
+
+    fun fQ(): String {
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        val cfgSign = "-"
+        wrkTotalLength = getWrkTotalLength()
+        wrkTotalLength += decimalSeparators()
+        wrkTotalLength += cfgSign.length
+
+        // append sign
+        appendSign(cfgSign, true, padChar)
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
+
+    fun fX(): String {
+        if (decValue < ZERO) {
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format with negative values")
+        }
+
+        // parse to local format
+        retValue = getItalianFormat()
+
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+
+        // remove the decimal separator
+        removeDecimalSeparator()
+
+        // padding start
+        addPadding('0')
+
+        return retValue
+    }
 
     fun fY(): String {
-        var stringN = this.value.abs().unscaledValue().toString().trim()
-        return if (type.elementSize() <= 6) {
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+
+        var stringN = decValue.abs().unscaledValue().toString().trim()
+
+        val testLen =
+        if (decValue.isZero()) {
+            wrkTotalLength
+        } else {
+            stringN.length
+        }
+
+        if (testLen <= 2) {
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format with value length < 3")
+        } else if (testLen == 3) {
+            // "nn⁄n"
+            stringN = stringN.padStart(3, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 4) {
+            // "nn⁄nn"
+            stringN = stringN.padStart(4, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 5) {
+            // "nn⁄nn⁄n"
+            stringN = stringN.padStart(5, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 6) {
+            // "nn⁄nn⁄nn"
             stringN = stringN.padStart(6, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size + 2)
-        } else {
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 7) {
+            // "nnn⁄nn⁄nn"
+            stringN = stringN.padStart(7, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}${stringN[2]}/${stringN[3]}${stringN[4]}/${stringN[5]}${stringN[6]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 8) {
+            // "nnn⁄nn⁄nn"
             stringN = stringN.padStart(8, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size + 2)
-        }
-    }
-
-    fun handleInitialZero(decedit: DecEdit): String {
-        return if (this.value.isZero()) {
-            ""
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 9) {
+            // "nnn⁄nn⁄nnnn"
+            stringN = stringN.padStart(9, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}${stringN[2]}/${stringN[3]}${stringN[4]}/${stringN[5]}${stringN[6]}${stringN[7]}${stringN[8]}".padStart(wrkTotalLength + 2)
         } else {
-            f1(decedit).replace(".", "").replace(",", "").trim()
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format with value length > 9")
         }
+        return stringN
     }
 
-//    fun fX(decedit: DecEdit) = value.unscaledValue().abs().toString().padStart(type.size, '0')
-    fun fX(decedit: DecEdit) = handleInitialZero(decedit).padStart(type.size, '0')
+    fun fZ(): String {
+        // parse to local format
+        retValue = getItalianFormat()
 
-    fun fZ(decedit: DecEdit) = handleInitialZero(decedit).padStart(type.size)
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+
+        // remove the decimal separator
+        removeDecimalSeparator()
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding(padChar)
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
+        return retValue
+    }
 
     return when (format) {
-        "1" -> StringValue(f1(decedit))
-        "2" -> StringValue(f2(decedit))
-        "3" -> StringValue(f3(decedit))
-        "4" -> StringValue(f4(decedit))
-        "A" -> StringValue(fA(decedit))
-        "B" -> StringValue(fB(decedit))
-        "C" -> StringValue(fC(decedit))
-        "D" -> StringValue(fD(decedit))
-        "X" -> StringValue(fX(decedit))
-        "J" -> StringValue(fJ(decedit))
-        "K" -> StringValue(fK(decedit))
-        "L" -> StringValue(fL(decedit))
-        "M" -> StringValue(fM(decedit))
-        "N" -> StringValue(fN(decedit))
-        "O" -> StringValue(fO(decedit))
-        "P" -> StringValue(fP(decedit))
-        "Q" -> StringValue(fQ(decedit))
+        "1" -> StringValue(f1())
+        "2" -> StringValue(f2())
+        "3" -> StringValue(f3())
+        "4" -> StringValue(f4())
+        "A" -> StringValue(fA())
+        "B" -> StringValue(fB())
+        "C" -> StringValue(fC())
+        "D" -> StringValue(fD())
+        "X" -> StringValue(fX())
+        "J" -> StringValue(fJ())
+        "K" -> StringValue(fK())
+        "L" -> StringValue(fL())
+        "M" -> StringValue(fM())
+        "N" -> StringValue(fN())
+        "O" -> StringValue(fO())
+        "P" -> StringValue(fP())
+        "Q" -> StringValue(fQ())
         "Y" -> StringValue(fY())
-        "Z" -> StringValue(fZ(decedit))
+        "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }

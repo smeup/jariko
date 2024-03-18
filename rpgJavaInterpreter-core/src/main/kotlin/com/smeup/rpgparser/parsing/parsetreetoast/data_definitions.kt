@@ -23,8 +23,6 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.math.BigDecimal
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -72,7 +70,8 @@ private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
     return maxEnd
 }
 
-fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculateFieldInfos()): Int {
+internal fun RpgParser.Dcl_dsContext.elementSizeOf(knownDataDefinitions: Collection<DataDefinition>): Int {
+    val fieldsList = this.calculateFieldInfos(knownDataDefinitions)
     val toPosition = if (this.nameIsInFirstLine) {
         this.TO_POSITION().text
     } else {
@@ -88,6 +87,7 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculat
 
 internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.fs_keyword().mapNotNull { it.keyword_prefix() }
+
     val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
         Prefix(
             prefix = prefixContexts[0].prefix.text,
@@ -99,7 +99,8 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     val fileDefinition = FileDefinition(
         name = this.FS_RecordName().text.trim(),
         position = this.toPosition(conf.considerPosition),
-        prefix = prefix
+        prefix = prefix,
+        fileType = FileType.getByKeyword(this.FS_Type().text.trim())
     )
     val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
     if (rename.isNotEmpty()) {
@@ -117,8 +118,6 @@ internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = T
         justExtName = true
     )
 }
-
-// tony
 
 internal fun RpgParser.Dcl_dsContext.toAstWithParameters(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.keyword().mapNotNull { it.keyword_prefix() }
@@ -277,12 +276,21 @@ internal fun RpgParser.Parm_fixedContext.toAst(
 
 internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: List<DataDefinition>
+    knownDataDefinitions: List<DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>? = null
 ): DataDefinition {
 
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
-
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+        knownDataDefinitions = knownDataDefinitions,
+        // If we have a parent data definition we can use it to resolve the variable through the delegate
+        delegatedCompileTimeInterpreter = parentDataDefinitions?.let {
+            InjectableCompileTimeInterpreter(
+                it,
+                conf.compileTimeInterpreter
+            )
+        } ?: conf.compileTimeInterpreter
+    )
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -307,6 +315,7 @@ internal fun RpgParser.DspecContext.toAst(
     var compileTimeArray = false
     var varying = false
     var ascend: Boolean? = null
+    var static = false
 
     this.keyword().forEach {
         it.keyword_ascend()?.let {
@@ -332,6 +341,9 @@ internal fun RpgParser.DspecContext.toAst(
         }
         it.keyword_varying()?.let {
             varying = true
+        }
+        it.keyword_static()?.let {
+            static = true
         }
     }
 
@@ -401,16 +413,19 @@ internal fun RpgParser.DspecContext.toAst(
                 it.ascend = ascend
             }
         } else {
-            baseType
+            val el = compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt()
+            (baseType as ArrayType).copy(nElements = el)
         }
     } else {
         baseType
     }
     return DataDefinition(
-            this.ds_name().text,
-            type,
-            initializationValue = initializationValue,
-            position = this.toPosition(true))
+        name = this.ds_name().text,
+        type = type,
+        initializationValue = initializationValue,
+        position = this.toPosition(true),
+        static = static
+    )
 }
 
 internal fun RpgParser.DspecConstantContext.toAst(
@@ -699,11 +714,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
 }
 
-fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
+internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: Collection<DataDefinition>): FieldsList {
     val caughtErrors = mutableListOf<Throwable>()
     val fieldsList = FieldsList(this.parm_fixed().mapNotNull {
         kotlin.runCatching {
-            it.toFieldInfo()
+            it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
         }.onFailure {
             caughtErrors.add(it)
         }.getOrNull()
@@ -719,6 +734,7 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
     }
     fieldsList.considerFieldSequence()
     fieldsList.considerOverlays(this.name)
+    fieldsList.considerNotInOverlayFields()
     fieldsList.fields.filter { it.startOffset == null }.let {
         require(it.isEmpty()) { "Start offset not calculated for fields ${it.joinToString(separator = ", ") { it.name }}" }
     }
@@ -728,9 +744,14 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
     return fieldsList
 }
 
-private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
+private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
+
+    val isLike = this.keyword().map { keyword -> keyword.keyword_like() }.firstOrNull() != null
+    val keywordLike = if (isLike) this.keyword().first { it.keyword_like() != null }.keyword_like() else null
+    val like = if (isLike) keywordLike!!.simpleExpression().toAst(conf) as DataRefExpr else null
+
     // Set the SORTA order
     val descend = this.keyword().find { it.keyword_descend() != null } != null
 
@@ -765,10 +786,12 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val arraySizeDeclared = this.arraySizeDeclared(conf)
+    val varName = if (isLike) like!!.variable.name else this.name
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
+            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
+                ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type,
             arraySizeDeclared = this.arraySizeDeclared(conf),
             arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
@@ -931,17 +954,42 @@ class FieldsList(val fields: List<FieldInfo>) {
         }
     }
 
+    fun considerNotInOverlayFields() {
+        val declareDimElement = fields.filter { it.arraySizeDeclared != null }.firstOrNull()
+        if (declareDimElement != null) {
+            val totalArraySize = declareDimElement.arraySizeDeclared!! * declareDimElement.endOffset!!
+            var startOffsetIndex = totalArraySize
+            fields.forEachIndexed { index, field ->
+
+                if (field.startOffset == null) {
+                    if (field.overlayInfo == null) {
+                        field.startOffset = startOffsetIndex
+                    }
+                }
+                if (field.endOffset == null) {
+                    if (field.overlayInfo == null) {
+                        field.endOffset = (field.startOffset!! + field.elementSize!!)
+                        startOffsetIndex = field.endOffset!!
+                    }
+                }
+            }
+        }
+    }
+
     fun isNotEmpty() = fields.isNotEmpty()
 }
 
-internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+internal fun RpgParser.Dcl_dsContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: Collection<DataDefinition>
+): DataDefinition {
     val initializationValue: Expression? = null
     val size = this.declaredSize()
 
     // Calculating information about the DS and its fields is full of interdependecies
     // therefore we do that in steps
 
-    val fieldsList = calculateFieldInfos()
+    val fieldsList = calculateFieldInfos(knownDataDefinitions)
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
 
@@ -1008,17 +1056,35 @@ internal fun RpgParser.Dcl_dsContext.getKeywordExtName() = this.keyword().first 
 
 internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
 
+internal fun RpgParser.Dcl_dsContext.getKeywordPrefix() = this.keyword().firstOrNull { it.keyword_prefix() != null }?.keyword_prefix()
+
+internal fun RpgParser.Keyword_prefixContext.getPrefixName() = prefix.text
+
 internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>
 ): () -> DataDefinition {
     return {
         val keywordExtName = getKeywordExtName()
+        val keywordPrefix = getKeywordPrefix()
+
         val extName = keywordExtName.getExtName()
-        val dataDefinitions = fileDefinitions.filter { it.key.name == extName }.values.flatten()
+        val prefixName = keywordPrefix?.getPrefixName()
+
+        val dataDefinitions =
+            fileDefinitions.filter {
+                val nameMatches = it.key.name.uppercase() == extName.uppercase()
+                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
+                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
+                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+
+                nameMatches && (prefixIsNull || prefixMatches)
+            }.values.flatten()
+
         if (dataDefinitions.isEmpty()) {
             keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
         }
+
         var offset = 0
         val fields = dataDefinitions.map {
             FieldDefinition(

@@ -113,7 +113,7 @@ data class OccurableDataStructureType(val dataStructureType: DataStructureType, 
 @Serializable
 data class StringType(val length: Int, val varying: Boolean = false) : Type() {
     override val size: Int
-        get() = length
+        get() = if (varying) length + 2 else length // varying type get 2 additional bytes containing the size of the data
 
     /**
      * Creates an instance of StringType in according to [FeatureFlag.UnlimitedStringTypeFlag]
@@ -281,7 +281,7 @@ fun Expression.type(): Type {
             NumberType(BigDecimal.valueOf(this.value).precision(), decimalDigits = 0)
         }
         is RealLiteral -> {
-            NumberType(this.value.precision() - this.value.scale(), this.value.scale())
+            NumberType(this.precision - this.value.scale(), this.value.scale())
         }
         is ArrayAccessExpr -> {
             val type = this.array.type().asArray()

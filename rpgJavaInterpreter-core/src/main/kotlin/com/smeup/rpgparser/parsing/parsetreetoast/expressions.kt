@@ -1,6 +1,10 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.Dcl_prContext
+import com.smeup.rpgparser.RpgParser.Ds_nameContext
+import com.smeup.rpgparser.RpgParser.ExpressionContext
+import com.smeup.rpgparser.RpgParser.PrBeginContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
@@ -44,10 +48,34 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+        this.indicator() != null -> this.indicator().toAst(conf)
+        this.unaryExpression() != null -> this.unaryExpression().toAst(conf)
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
                 && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
         else -> todo(conf = conf)
+    }
+}
+
+internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    if (this.children.size > 0) {
+        return when {
+            this.children[0].text.equals("-") && this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf))
+            else -> todo(conf = conf)
+        }
+    }
+
+    return todo(conf = conf)
+}
+
+internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IndicatorExpr {
+    // manage *IN(
+    if (this.children[0].text.uppercase() == "*IN" && this.children[1].text == "(") {
+        val index: Expression = (this.children[2].getChild(0) as RpgParser.ExpressionContext).toAst(conf = conf)
+        return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
+    } else {
+        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN").toInt()
+        return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
     }
 }
 
@@ -71,7 +99,11 @@ internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConf
        children[n] = "'"
      */
     val stringContent = if (this.children.size > 3) {
-        this.children.asSequence().filter { it.text != "'" }.joinToString(separator = "")
+        if (children[0].text == "'" && children[this.children.size - 1].text == "'") {
+            this.children.subList(1, this.children.size - 1).joinToString(separator = "")
+        } else {
+            this.content?.text ?: ""
+        }
     } else {
         this.content?.text ?: ""
     }
@@ -81,36 +113,42 @@ internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConf
 internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): NumberLiteral {
     val position = this.toPosition(conf.considerPosition)
     require(this.NumberPart().isEmpty()) { "Number not empty $position" }
-    val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
-
-    // When assigning a value to a numeric field we could either use
-    // a comma or a dot as decimal separators
-
-    // TODO Rifattorizzare con literalToNumber(text, position)
-    return when {
-        text.contains('.') -> {
-            text.toRealLiteral(position, Locale.US)
-        }
-        text.contains(',') -> {
-            text.toRealLiteral(position, Locale.ITALIAN)
-        }
-        else -> IntLiteral(text.toLong(), position)
-    }
+    return literalToNumber(this.text, position)
 }
 
 fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
     val nf = NumberFormat.getNumberInstance(locale)
     val formatter = nf as DecimalFormat
     formatter.isParseBigDecimal = true
+    val bd = (formatter.parse(this) as BigDecimal)
+    // in case of zero precision returned by big decimal il always 1
+    val precision = if (bd.toDouble() == 0.0) {
+        this.replace(Regex("[^0-9]"), "").length
+    } else {
+        bd.precision()
+    }
+    return RealLiteral(value = bd, position = position, precision = precision)
+}
 
-    val bd = formatter.parse(this) as BigDecimal
-    return RealLiteral(bd, position)
+fun String.toIntLiteral(position: Position?): IntLiteral {
+    val value = this.toLong()
+    val precision = if (value == 0L) {
+        this.replace(Regex("[^0-9]"), "").length
+    } else {
+        BigDecimal(value).precision()
+    }
+    return IntLiteral(value = value, position = position, precision = precision)
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     if (this.text.toUpperCase().startsWith("*ALL")) {
         return AllExpr(this.all().literal().toAst(conf), toPosition(conf.considerPosition))
     }
+
+    if (isFunctionWithoutParams(this.text)) {
+        return FunctionCall(ReferenceByName(this.text), listOf(), toPosition(conf.considerPosition))
+    }
+
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> ZeroExpr(toPosition(conf.considerPosition))
@@ -128,6 +166,15 @@ private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfigurat
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
+}
+
+private fun RpgParser.IdentifierContext.isFunctionWithoutParams(referenceName: String): Boolean {
+    return runCatching {
+        rContext().children.filterIsInstance<Dcl_prContext>()
+                .flatMap { it.children.filterIsInstance<PrBeginContext>() }
+                .flatMap { it.children.filterIsInstance<Ds_nameContext>() }
+                .firstOrNull { it.text == referenceName }?.text
+    }.getOrNull() != null
 }
 
 internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), fieldName: String? = null): Expression {
@@ -174,10 +221,8 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
 }
 
 internal fun String.indicatorIndex(): Int? {
-    val uCaseIndicatorString = this.toUpperCase()
+    val uCaseIndicatorString = this.uppercase()
     return when {
-        uCaseIndicatorString.startsWith("*IN(") && this.endsWith(")") ->
-            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIndicatorKey()
         uCaseIndicatorString.startsWith("*IN") ->
             this.substring("*IN".length).toIndicatorKey()
         else -> null
@@ -186,9 +231,9 @@ internal fun String.indicatorIndex(): Int? {
 
 internal fun String.dataWrapUpChoice(): DataWrapUpChoice? {
     val indicator = when {
-        this.toUpperCase().startsWith("*IN(") && this.endsWith(")") ->
-            this.toUpperCase().removePrefix("*IN(").removeSuffix(")")
-        this.toUpperCase().startsWith("*IN") -> this.substring("*IN".length)
+        this.uppercase().startsWith("*IN(") && this.endsWith(")") ->
+            this.uppercase().removePrefix("*IN(").removeSuffix(")")
+        this.uppercase().startsWith("*IN") -> this.substring("*IN".length)
         else -> null
     }
     return when (indicator) {

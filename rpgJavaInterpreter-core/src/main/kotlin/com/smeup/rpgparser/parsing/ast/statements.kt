@@ -24,10 +24,11 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.ComparisonOperator
+import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
@@ -184,18 +185,66 @@ data class SelectStmt(
         get() {
             val result = mutableListOf<Statement>()
             cases.forEach { case ->
-                result.addAll(case.body.explode())
+                result.addAll(case.body.explode(preserveCompositeStatement = true))
             }
-            if (other?.body != null) result.addAll(other!!.body.explode())
+            if (other?.body != null) result.addAll(other!!.body.explode(preserveCompositeStatement = true))
             return result
         }
+}
+
+@Serializable
+data class CaseStmt(
+    var cases: List<CaseClause>,
+    var other: CaseOtherClause? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun execute(interpreter: InterpreterCore) {
+        for (case in this.cases) {
+            val result = interpreter.eval(case.condition)
+
+            interpreter.log { CasXXExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
+            if (result.asBoolean().value) {
+                executeSubProcedure(interpreter, case.function)
+                return
+            }
+        }
+        if (this.other != null) {
+            interpreter.log {
+                CasOtherExecutionLogEntry(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this.other!!
+                )
+            }
+            executeSubProcedure(interpreter, other!!.function)
+        }
+    }
+
+    private fun executeSubProcedure(interpreter: InterpreterCore, subProcedureName: String) {
+        val containingCU = this.ancestor(CompilationUnit::class.java)
+            ?: throw IllegalStateException("Not contained in a CU")
+        containingCU.subroutines.firstOrNull { subroutine ->
+            subroutine.name.equals(other = subProcedureName, ignoreCase = true)
+        }?.let { subroutine ->
+            ExecuteSubroutine(subroutine = ReferenceByName(subProcedureName, subroutine), position = subroutine.position).execute(interpreter)
+        }
+    }
 }
 
 @Serializable
 data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
+data class CaseOtherClause(override val position: Position? = null, val function: String) : Node(position)
+
+@Serializable
 data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+
+@Serializable
+data class CaseClause(val condition: Expression, override val position: Position? = null, val function: String) : Node(position)
 
 @Serializable
 data class EvalFlags(
@@ -231,9 +280,10 @@ data class SubDurStmt(
     val target: AssignableExpression,
     val factor2: Expression,
     val durationCode: DurationCode,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
@@ -244,6 +294,8 @@ data class SubDurStmt(
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -561,8 +613,9 @@ data class CheckStmt(
     val baseString: Expression,
     val start: Int = 1,
     val wrongCharPosition: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
@@ -584,6 +637,8 @@ data class CheckStmt(
             }
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -605,7 +660,20 @@ data class CallStmt(
         val callStatement = this
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
-        val program = interpreter.getSystemInterface().findProgram(programToCall)
+        val program: Program?
+        try {
+            program = interpreter.getSystemInterface().findProgram(programToCall)
+            if (errorIndicator != null) {
+                interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+            }
+        } catch (e: Exception) {
+            if (errorIndicator == null) {
+                throw e
+            }
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+            return
+        }
+
         require(program != null) {
             "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
@@ -658,6 +726,9 @@ data class CallStmt(
                             System.currentTimeMillis() - startTime
                         )
                     }
+                    if (errorIndicator != null) {
+                        interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+                    }
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 interpreter.log {
@@ -675,7 +746,9 @@ data class CallStmt(
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
-            interpreter.assign(this.params[index].param.referred!!, value)
+            if (this.params.size > index) {
+                interpreter.assign(this.params[index].param.referred!!, value)
+            }
         }
     }
 }
@@ -917,12 +990,23 @@ data class ClearStmt(
     override fun execute(interpreter: InterpreterCore) {
         return when (value) {
             is DataRefExpr -> {
-                val value = interpreter.assign(value, BlanksRefExpr())
+                val newValue: Value
+                /*
+                 If DataRef is referred to an OccurableDataStructureType read the
+                 last cursor position and assisgn it to new blanck object
+                 */
+                if (this.value.variable.referred?.type is OccurableDataStructureType) {
+                    val origValue = interpreter.eval(value) as OccurableDataStructValue
+                    newValue = interpreter.assign(value, BlanksRefExpr()) as OccurableDataStructValue
+                    newValue.pos(origValue.occurrence)
+                } else {
+                    newValue = interpreter.assign(value, BlanksRefExpr())
+                }
                 interpreter.log {
                     ClearStatemenExecutionLog(
                             interpreter.getInterpretationContext().currentProgramName,
                             this,
-                            value
+                            newValue
                     )
                 }
             }
@@ -1053,6 +1137,15 @@ data class MultStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val left: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val right: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.mult(this))
@@ -1067,16 +1160,40 @@ data class DivStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
-    val mvrTarget: AssignableExpression? = null,
+    val mvrStatement: MvrStmt? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val dividend: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val divisor: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.div(this))
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    @Transient
+    @Derived
+    override val body: List<Statement>
+        get() = mvrStatement?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class MvrStmt(
+    val target: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
@@ -1153,8 +1270,9 @@ data class SubStmt(
 @Serializable
 data class TimeStmt(
     val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
@@ -1176,6 +1294,8 @@ data class TimeStmt(
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1186,6 +1306,35 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
         response?.let { values.add(interpreter.eval(it)) }
         // TODO: receive input from systemInterface and assign value to response
         interpreter.getSystemInterface().display(interpreter.rawRender(values))
+    }
+}
+
+@Serializable
+data class DOWxxStmt(
+    val comparisonOperator: ComparisonOperator,
+    val factor1: Expression,
+    val factor2: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    override fun execute(interpreter: InterpreterCore) {
+        val startTime = System.currentTimeMillis()
+        try {
+            interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
+            while (comparisonOperator.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset).isVerified) {
+                interpreter.execute(body)
+            }
+        } catch (e: LeaveException) {
+            // nothing to do here
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DOWxxStatementExecutionLogEnd(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
+        }
     }
 }
 
@@ -1571,7 +1720,7 @@ data class ScanStmt(
     val leftLength: Int?,
     val right: Expression,
     val startPosition: Int,
-    val target: AssignableExpression,
+    val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -1588,13 +1737,16 @@ data class ScanStmt(
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+            target?.let { interpreter.assign(it, IntValue(0)) }
         } else {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            if (target.type().isArray()) {
-                val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
-                interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
-            } else {
-                interpreter.assign(target, occurrences[0])
+            target?.let {
+                if (it.type().isArray()) {
+                    val fullOccurrences = occurrences.resizeTo(it.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    interpreter.assign(it, ConcreteArrayValue(fullOccurrences, it.type().asArray().element))
+                } else {
+                    interpreter.assign(it, occurrences[0])
+                }
             }
         }
     }
@@ -1734,8 +1886,8 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
 
 @Serializable
 data class OpenStmt(
-    @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
@@ -1751,8 +1903,8 @@ data class OpenStmt(
 }
 @Serializable
 data class CloseStmt(
-    @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
@@ -1811,4 +1963,52 @@ data class XlateStmt(
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class ResetStmt(
+    val name: String,
+    override val position: Position? = null
+) : Statement(position) {
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataDefinition = interpreter.dataDefinitionByName(name)
+        require(dataDefinition != null) {
+            this.error("Data definition $name not found")
+        }
+        require(dataDefinition is DataDefinition) {
+            this.error("Data definition $name is not an instance of DataDefinition")
+        }
+        require(dataDefinition.defaultValue != null) {
+            this.error("Data definition $name has no default value")
+        }
+        interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
+    }
+}
+
+@Serializable
+data class ExfmtStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
+
+@Serializable
+data class ReadcStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
+
+@Serializable
+data class UnlockStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
 }

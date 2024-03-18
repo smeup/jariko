@@ -973,9 +973,9 @@ Test 6
 
     @Test
     fun executeBIFEDITC_J() {
-        assertEquals(listOf("x   123,456   123,456-  1,234.56X",
-            "x  1,234.56-       .00X",
-            "x  1,234.50X"),
+        assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
+            "x  1,234.56-       .00 X",
+            "x  1,234.50 X"),
             outputOf("BIFEDITC_J"))
     }
 
@@ -1104,7 +1104,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4", "1", "5", "0"), "SCANTEST".outputOf())
+        assertEquals(listOf("0", "4", "1", "5", "0", "0"), "SCANTEST".outputOf())
     }
 
     @Test
@@ -1268,6 +1268,11 @@ Test 6
     @Test
     fun executeReturn01() {
         assertEquals(listOf("Starting"), outputOf("RETURN01"))
+    }
+
+    @Test
+    fun executeReturn02() {
+        assertEquals(listOf("Starting"), outputOf("RETURN02"))
     }
 
     @Test
@@ -1876,6 +1881,33 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_T() {
+        assertEquals(
+            expected = listOf("33", "34"),
+            actual = "PROCEDURE_T".outputOf()
+        )
+    }
+
+    /**
+     * When I call a program that call procedure, the static variables not have to be reset
+     * */
+    @Test
+    fun executePROCEDURE_T_More_Times() {
+        // Initialize the configuration with a memory storage in order to keep the static variables
+        val configuration = Configuration(
+            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        )
+        assertEquals(
+            expected = listOf("33", "34"),
+            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+        )
+        assertEquals(
+            expected = listOf("35", "36"),
+            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
@@ -2195,5 +2227,126 @@ Test 6
     fun executeMIXED_CONDITIONS() {
         val expected = listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
         assertEquals(expected, "MIXED_CONDITIONS".outputOf())
+    }
+
+    @Test
+    fun executeRESET01() {
+        val expected = listOf("A1_OK", "A2_OK", "A3_OK", "N1_OK", "N2_OK", "N3_OK", "DS_OK", "DSA1_OK", "DSA2_OK")
+        assertEquals(expected, "RESET01".outputOf())
+    }
+
+    @Test
+    fun executeMOVEAIN() {
+        val expected = listOf(
+            "111000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000",
+            "001000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000")
+        assertEquals(expected, "MOVEAIN".outputOf())
+    }
+
+    @Test
+    fun executeINDIC01() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "INDIC01".outputOf())
+    }
+
+    @Test
+    fun executeINDIC02() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "INDIC02".outputOf())
+    }
+
+    @Test
+    fun executeINDIC03() {
+        val expected = listOf(
+            "*INKA(0) *IN01(1)",
+            "*INKA(1) *IN01(0)"
+        )
+        assertEquals(expected, "INDIC03".outputOf())
+    }
+
+    @Test
+    fun executeBIFCHECK() {
+        assertEquals(listOf("ok"), outputOf("BIFCHECK"))
+    }
+
+    @Test
+    fun executeDOWEQ() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWEQ".outputOf())
+    }
+
+    @Test
+    fun executeDOWNE() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWNE".outputOf())
+    }
+
+    @Test
+    fun executeDOWGT() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGT".outputOf())
+    }
+
+    @Test
+    fun executeDOWGE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGE".outputOf())
+    }
+
+    @Test
+    fun executeDOWLT() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWLT".outputOf())
+    }
+
+    @Test
+    fun executeDOWLE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWLE".outputOf())
+    }
+
+    @Test
+    fun executeNEGATION() {
+        val expected = listOf("-10", "10", "-10", "-10", "10", "-10", "-1.50", "1.50", "-1.50", "-1.50", "1.50", "-1.50")
+        assertEquals(expected, "NEGATION".outputOf())
+    }
+
+    @Test(expected = RuntimeException::class)
+    fun executeNEGATIONERR() {
+        val expected = listOf("")
+        assertEquals(expected, "NEGATIONERR".outputOf())
+    }
+
+    @Test
+    fun executeDEFINE03() {
+        val expected = listOf("1,2,3,4")
+        assertEquals(expected, "DEFINE03".outputOf())
+    }
+
+    @Test
+    fun executeEVALVARSNUMS() {
+        val expected = listOf(
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246"
+        )
+        assertEquals(expected, "EVALVARSNUMS".outputOf())
+    }
+
+    @Test
+    fun executeLIKEWITHCOPY1() {
+        val expected = listOf("OK")
+        assertEquals(expected, "LIKEWITHCOPY1".outputOf())
+    }
+
+    @Test
+    fun executeLIKEWITHCOPY2() {
+        val expected = listOf("OK")
+        assertEquals(expected, "LIKEWITHCOPY2".outputOf())
     }
 }

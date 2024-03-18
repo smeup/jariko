@@ -57,7 +57,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
         return plistParams?.params?.map {
-            val type = cu.getDataDefinition(it.param.name) {
+            val type = cu.getAnyDataDefinition(it.param.name) {
                 "Cannot resolve PARAM: ${it.param.name} in *ENTRY PLIST of the program: $name"
             }.type
             ProgramParam(it.param.name, type)
@@ -79,8 +79,23 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     }
 
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-        require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
-            "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
+        val expectedKeys = params().asSequence().map { it.name }.toSet()
+
+        if (expectedKeys.size <= params.size) {
+            require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
+                "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
+            }
+        } else {
+            require(params().asSequence().map { it.name }.toSet().all { it in expectedKeys }) {
+                "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
+            }
+
+            // Set not passed params to NullValue
+            params().forEach {
+                if (it.name !in params.keys) {
+                    params[it.name] = NullValue
+                }
+            }
         }
         this.systemInterface = systemInterface
         logHandlers.log(ProgramInterpretationLogStart(name, params))

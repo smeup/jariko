@@ -22,6 +22,7 @@ import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.require
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
@@ -60,9 +61,10 @@ abstract class AbstractDataDefinition(
             } else null
         }
         if (parsingFunction != null) {
-            Scope.Local
+            if (static) Scope.static(parsingFunction) else Scope.Local
         } else Scope.Program
-    }
+    },
+    @Transient open val static: Boolean = false
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -120,7 +122,7 @@ enum class ParamOption(val keyword: String) {
  * PREFIX node
  * */
 @Serializable
-data class Prefix(private val prefix: String, private val numCharsReplaced: Int?) {
+data class Prefix(internal val prefix: String, private val numCharsReplaced: Int?) {
 
     /**
      * Apply replacement rules and returns value converted
@@ -134,16 +136,29 @@ data class Prefix(private val prefix: String, private val numCharsReplaced: Int?
     }
 }
 
+enum class FileType(val keyword: String?) {
+    DB(null), VIDEO("C");
+
+    companion object {
+        fun getByKeyword(keyword: String): FileType {
+            return FileType.values().firstOrNull() {
+                it.keyword == keyword
+            } ?: DB
+        }
+    }
+}
+
 @Serializable
 data class FileDefinition private constructor(
     override val name: String,
     override val position: Position?,
     val prefix: Prefix?,
-    val justExtName: Boolean
+    val justExtName: Boolean,
+    val fileType: FileType
 ) : Node(position), Named {
     companion object {
-        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false): FileDefinition {
-            return FileDefinition(name.toUpperCase(), position, prefix, justExtName)
+        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false, fileType: FileType = FileType.DB): FileDefinition {
+            return FileDefinition(name.uppercase(), position, prefix, justExtName, fileType)
         }
     }
 
@@ -175,16 +190,23 @@ data class DataDefinition(
     override val position: Position? = null,
     override var const: Boolean = false,
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
-    var paramOptions: List<ParamOption> = mutableListOf()
+    var paramOptions: List<ParamOption> = mutableListOf(),
+    @Transient var defaultValue: Value? = null,
+    override val static: Boolean = false
 ) :
     AbstractDataDefinition(
-        name = name.apply { require(this.trim().isNotEmpty()) { "name cannot be empty" } },
+        name = name,
         type = type,
         position = position,
-        const = const) {
+        const = const,
+        static = static) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+
+    init {
+        this.require(name.trim().isNotEmpty(), { "name cannot be empty" })
+    }
 
     @Deprecated("The start offset should be calculated before defining the FieldDefinition")
     fun startOffset(fieldDefinition: FieldDefinition): Int {
@@ -762,6 +784,34 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     }
 }
 
-enum class Scope {
+enum class Visibility {
     Program, Static, Local
+}
+
+@Serializable
+class Scope {
+
+    val visibility: Visibility
+    val reference: String?
+
+    private constructor(visibility: Visibility, reference: String? = null) {
+        this.visibility = visibility
+        this.reference = reference
+    }
+
+    companion object {
+        /**
+         * Create a new program scope
+         * */
+        val Program = Scope(visibility = Visibility.Program)
+        /**
+         * Create a new local scope
+         * */
+        val Local = Scope(visibility = Visibility.Local)
+        /**
+         * Create a new static scope
+         * @param procedureName The procedure name
+         */
+        fun static(procedureName: String) = Scope(visibility = Visibility.Static, reference = procedureName)
+    }
 }

@@ -55,8 +55,15 @@ fragment DECIMAL_SEPARATOR : [.,];
 NUMBER : ([0-9]+(DECIMAL_SEPARATOR[0-9]*)?) | DECIMAL_SEPARATOR[0-9]+ ;
 SEMI : ';';
 COLON : ':';
-ID : ('*' {getCharPositionInLine()>7}? '*'? [a-zA-Z])?
-        [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]* ;
+ID : ({
+            _input.LA(-1) == 32 ||
+            _input.LA(-1) == '(' ||
+            _input.LA(-1) == '*' ||
+            _input.LA(-1) == '+' ||
+            _input.LA(-1) == '/' ||
+            _input.LA(-1) == '='
+      }? '*' {getCharPositionInLine()>7}? '*' ? [a-zA-Z])?
+      [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]*;
 NEWLINE : (('\r'? '\n')|'\r') -> skip;
 WS : [ \t] {getCharPositionInLine()>6}? [ \t]* -> skip ; // skip spaces, tabs
 
@@ -316,9 +323,9 @@ SPLAT_FILE: '*'[fF][iI][lL][eE];
 SPLAT_GETIN: '*'[gG][eE][tT][iI][nN];
 SPLAT_HIVAL: '*'[hH][iI][vV][aA][lL];
 SPLAT_INIT: '*'[iI][nN][iI][tT];
+SPLAT_ALL_INDICATORS: '*' [iI] [nN] [ ] [ ];
 SPLAT_INDICATOR : 	( '*' [iI] [nN] [0-9] [0-9]
-					| '*' [iI] [nN] [a-zA-Z] [a-zA-Z]
-					| '*' [iI] [nN] '(' [0-9] [0-9] ')' );
+					| '*' [iI] [nN] [a-zA-Z] [a-zA-Z] );
 SPLAT_INZSR: '*'[iI][nN][zZ][sS][rR];
 SPLAT_IN: '*'[iI][nN];
 SPLAT_INPUT: '*'[iI][nN][pP][uU][tT];
@@ -510,8 +517,8 @@ PLUS : '+' ;
 MINUS : '-' ;
 EXP : '**' ;
 ARRAY_REPEAT: {_input.LA(2) == ')' && _input.LA(-1) == '('}? '*' ;
-MULT_NOSPACE: {_input.LA(2) != 32}? '*';
-MULT: {_input.LA(2) == 32}? '*' ;
+MULT_NOSPACE: {_input.LA(2) != 32 || _input.LA(-1) != 32}? '*';
+MULT: {_input.LA(2) == 32 && _input.LA(-1) == 32}? '*' ;
 DIV : '/' ;
 
 // Assignment Operators
@@ -1032,6 +1039,7 @@ CS_Factor2_SPLAT_GETIN : SPLAT_GETIN {35+6<= getCharPositionInLine() && getCharP
 CS_Factor2_SPLAT_HIVAL : SPLAT_HIVAL {35+6<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_HIVAL);
 CS_Factor2_SPLAT_INIT : SPLAT_INIT {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_INIT);
 CS_Factor2_SPLAT_INDICATOR : SPLAT_INDICATOR {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_INDICATOR);
+CS_Factor2_SPLAT_ALL_INDICATORS : SPLAT_ALL_INDICATORS {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_ALL_INDICATORS);
 CS_Factor2_SPLAT_INZSR : SPLAT_INZSR {35+6<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_INZSR);
 CS_Factor2_SPLAT_IN : SPLAT_IN {35+3<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_IN);
 CS_Factor2_SPLAT_JOBRUN : SPLAT_JOBRUN {35+7<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_JOBRUN);
@@ -1163,6 +1171,7 @@ CS_FactorContent: (~[\r\n' :]
 			|| (getCharPositionInLine()>=36 && getCharPositionInLine()<=49)
 	}?
 		)+;
+CS_FactorContentArrayIndexing: (CS_ResultContent | CS_FactorContent) WS* OPEN_PAREN (CS_ResultContent | CS_FactorContent) CLOSE_PAREN {setText(getText().replaceAll("\\s", ""));};
 CS_ResultContent: (~[\r\n' :]
 	{(getCharPositionInLine()>=50 && getCharPositionInLine()<=63)}?
 		)+ -> type(CS_FactorContent);

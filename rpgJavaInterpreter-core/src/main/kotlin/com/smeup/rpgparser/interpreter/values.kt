@@ -201,6 +201,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
+            is BlanksValue -> if (this.isBlank()) EQUAL else SMALLER
             else -> super.compareTo(other)
         }
 
@@ -627,6 +628,22 @@ object BlanksValue : Value {
     }
 }
 
+object NullValue : Value {
+    override fun toString(): String {
+        return "NullValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return true
+    }
+
+    override fun copy(): NullValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(this.toString())
+    }
+}
+
 object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
@@ -675,9 +692,7 @@ object LowValValue : Value {
 
 object ZeroValue : Value {
 
-    override fun copy(): Value {
-        TODO("not implemented")
-    }
+    override fun copy() = this
 
     override fun toString(): String {
         return "ZeroValue"

@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import java.math.BigDecimal
 
 interface ISymbolTable {
@@ -39,6 +40,19 @@ interface ISymbolTable {
                 rootSymbolTable
             }
         }
+
+    /**
+     * Get the static symbol table for a procedure
+     * @param procedureName the name of the procedure
+     * @return the static symbol table for a procedure
+     */
+    fun getStaticSymbolTable(procedureName: String): ISymbolTable {
+        return MainExecutionContext.getAttributes().computeIfAbsent(
+            "ISymbolTable.staticSymbolTable.${procedureName.uppercase()}"
+        ) {
+            SymbolTable()
+        } as SymbolTable
+    }
 
     /**
      * @return true if SymbolTable contains a variable named dataName
