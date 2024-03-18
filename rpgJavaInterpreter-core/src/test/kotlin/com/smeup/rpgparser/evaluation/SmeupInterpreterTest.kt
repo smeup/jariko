@@ -75,7 +75,6 @@ open class SmeupInterpreterTest : AbstractTest() {
     @Test
     fun executeT02_A40_P5() {
         val expected = listOf("333,zz")
-        //assertASTCanBeProduced("smeup/T02_A40_P5", printTree = true)
         assertEquals(expected, "smeup/T02_A40_P5".outputOf())
     }
 
