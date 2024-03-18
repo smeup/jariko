@@ -1,5 +1,5 @@
 package com.smeup.rpgparser.smeup
 
-class MULANGT03IndicatorsTestCompiled : MULANGT03IndicatorsTest() {
+open class MULANGT02ConstAndDSpecTestCompiled : MULANGT02ConstAndDSpecTest() {
     override fun useCompiledVersion() = true
 }
