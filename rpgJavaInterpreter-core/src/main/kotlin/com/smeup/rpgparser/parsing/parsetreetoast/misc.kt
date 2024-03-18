@@ -1121,10 +1121,7 @@ internal fun Cspec_fixed_standard_partsContext.toDataDefinition(
     position: Position?,
     conf: ToAstConfiguration
 ): InStatementDataDefinition? {
-    val len = this.len.asInt()
-    if (len == null) {
-        return null
-    }
+    val len = this.len.asInt() ?: return null
     val decimals = this.decimalPositions.asInt()
     val initialValue = this.factor2Expression(conf)
     return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
