@@ -666,4 +666,10 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("PROVA")
         assertEquals(expected, "smeup/T02_A80_P02".outputOf())
     }
+
+    @Test
+    fun executeT10_A60_P10() {
+        val expected = listOf("CALL_1(          , 1, MULANGTB10:  chiamata 1                           )")
+        assertEquals(expected, "smeup/T10_A60_P10".outputOf())
+    }
 }
