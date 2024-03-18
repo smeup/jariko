@@ -9,9 +9,9 @@ import kotlin.test.BeforeTest
 
 /**
  * This is the base class for all the tests related to the MULANGT program.
- * For each MULANGTnn program we have MULANGTnnTestPurposesTest and MULANGTnnTestPurposesCompiledTest
+ * For each MULANGTnn program we have MULANGTnnPurposesTest and MULANGTnnPurposesTestCompiled.
  * @see MULANGT60VideoTest where nn is 60 and TestPurposes is Video
- * @see MULANGT60VideoCompiledTest see above
+ * @see MULANGT60VideoTestCompiled see above
  */
 abstract class MULANGTTest : AbstractTest() {
 
