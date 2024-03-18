@@ -1,5 +1,5 @@
 package com.smeup.rpgparser.smeup
 
-class MULANGT50FileAccessTestCompiled : MULANGT50FileAccessTest() {
+class MULANGT50FileAccess1TestCompiled : MULANGT50FileAccess1Test() {
     override fun useCompiledVersion() = true
 }
