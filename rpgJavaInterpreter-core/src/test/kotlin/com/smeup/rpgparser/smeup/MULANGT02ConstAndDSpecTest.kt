@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
-     * Data reference - Definizione variabile sia inline che in file
+     * Data reference - Definition both inline and file
      * @see #253
      */
     @Test
