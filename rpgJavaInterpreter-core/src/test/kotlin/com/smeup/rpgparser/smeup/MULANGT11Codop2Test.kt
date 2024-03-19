@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT11Codop2Test : MULANGTTest() {
     /**
-     * Monitoraggio e cattura errore
+     * MONITOR and error catching
      * @see #241
      */
     @Test
@@ -15,7 +15,7 @@ open class MULANGT11Codop2Test : MULANGTTest() {
     }
 
     /**
-     * Specifiche MONITOR annidiate
+     * Nested MONITOR statements
      * @see #241
      */
     @Test
@@ -25,7 +25,7 @@ open class MULANGT11Codop2Test : MULANGTTest() {
     }
 
     /**
-     * Specifiche MONITOR annidiate in IF, DO e SELECT
+     * MONITOR nested in IF, DO and SELECT
      * @see #241
      */
     @Test
@@ -35,7 +35,7 @@ open class MULANGT11Codop2Test : MULANGTTest() {
     }
 
     /**
-     * Specifiche IF, DO e SELECT in MONITOR
+     * IF, DO and SELECT in MONITOR
      * @see #241
      */
     @Test
