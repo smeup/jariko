@@ -468,6 +468,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT60_A10_P01_02() {
+        val expected = listOf<String>()
+        assertEquals(expected, "smeup/T60_A10_P01-02".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
     fun executeT10_A20_P35_38() {
         val expected = listOf<String>(
             "Res(21, 0, 0, 0, 0, 0)",
