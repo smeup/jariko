@@ -20,6 +20,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
@@ -30,10 +31,20 @@ import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    // TODO could they be also annidated?
     this.allStatements(preserveCompositeStatement = true).filterIsInstance(StatementThatCanDefineData::class.java).forEach {
         this.addInStatementDataDefinitions(it.dataDefinition())
     }
+}
+
+private fun MutableList<InStatementDataDefinition>.addAllDistinct(list: List<InStatementDataDefinition>): List<InStatementDataDefinition> {
+    list.forEach { item ->
+        run {
+            if (this.isEmpty() || this.any { it.name != item.name }) {
+                this.add(item)
+            }
+        }
+    }
+    return this
 }
 
 fun CompilationUnit.allStatements(preserveCompositeStatement: Boolean = false): List<Statement> {

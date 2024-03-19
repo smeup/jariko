@@ -185,9 +185,9 @@ data class SelectStmt(
         get() {
             val result = mutableListOf<Statement>()
             cases.forEach { case ->
-                result.addAll(case.body.explode())
+                result.addAll(case.body.explode(preserveCompositeStatement = true))
             }
-            if (other?.body != null) result.addAll(other!!.body.explode())
+            if (other?.body != null) result.addAll(other!!.body.explode(preserveCompositeStatement = true))
             return result
         }
 }
@@ -1160,10 +1160,10 @@ data class DivStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
-    val mvrTarget: AssignableExpression? = null,
+    val mvrStatement: MvrStmt? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
     @Transient
     @Derived
     val dividend: Expression
@@ -1179,6 +1179,21 @@ data class DivStmt(
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    @Transient
+    @Derived
+    override val body: List<Statement>
+        get() = mvrStatement?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class MvrStmt(
+    val target: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
