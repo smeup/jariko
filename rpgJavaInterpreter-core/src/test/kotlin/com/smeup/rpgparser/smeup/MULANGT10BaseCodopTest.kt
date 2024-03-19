@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT10BaseCodopTest : MULANGTTest() {
     /**
-     * Check con indicatore con verifica a buon fine
+     * Positive Check with indicator
      * @see #246
      */
     @Test
@@ -15,7 +15,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Check con indicatore con verifica non ok
+     * Negative Check with indicator
      * @see #246
      */
     @Test
@@ -25,7 +25,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Check con indicatore di errore
+     * Check with error indicator
      * @see #246
      */
     @Test
