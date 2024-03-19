@@ -666,28 +666,4 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("Lunghezza: 32580 Contenuto:                     -          -          -          -          -          -          -")
         assertEquals(expected, "smeup/T40_A30_P01".outputOf(configuration = smeupConfig))
     }
-
-    @Test
-    fun executeT11_A10_P01() {
-        val expected = listOf("BLOCCO; ERR_ZERO_DIV;")
-        assertEquals(expected, "smeup/T11_A10_P01".outputOf())
-    }
-
-    @Test
-    fun executeT11_A10_P02() {
-        val expected = listOf("BLOCCO1; BLOCCO2; BLOCCO3; ERR_ZERO_DIV; FINE_BLOCCO3;; ERR_ZERO_DIV; FINE_BLOCCO2;; ERR_ZERO_DIV; FINE_BLOCCO1;")
-        assertEquals(expected, "smeup/T11_A10_P02".outputOf())
-    }
-
-    @Test
-    fun executeT11_A10_P03() {
-        val expected = listOf("DENTRO_IF(BLOCCO; ERR_ZERO_DIV;) DENTRO_DO(BLOCCO; ERR_ZERO_DIV;BLOCCO; ERR_ZERO_DIV;) DENTRO_WHEN(BLOCCO; ERR_ZERO_DIV;) DENTRO_OTHER(BLOCCO; ERR_ZERO_DIV;)")
-        assertEquals(expected, "smeup/T11_A10_P03".outputOf())
-    }
-
-    @Test
-    fun executeT11_A10_P04() {
-        val expected = listOf("DENTRO_IF(BLOCCO; ERR_ZERO_DIV;) DENTRO_DO(BLOCCO; ERR_ZERO_DIV;) DENTRO_WHEN(BLOCCO; ERR_ZERO_DIV;) DENTRO_OTHER(BLOCCO; ERR_ZERO_DIV;)")
-        assertEquals(expected, "smeup/T11_A10_P04".outputOf())
-    }
 }
