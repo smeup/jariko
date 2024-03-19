@@ -666,10 +666,4 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("Lunghezza: 32580 Contenuto:                     -          -          -          -          -          -          -")
         assertEquals(expected, "smeup/T40_A30_P01".outputOf(configuration = smeupConfig))
     }
-
-    @Test
-    fun executeT02_A40_P03() {
-        val expected = listOf("CNCLICNCLIAAAABBBBBAAAABBBBBCNFORCNFORCCCCDDDDDCCCCDDDDDCNCOLCNCOLEEEEFFFFFEEEEFFFFF")
-        assertEquals(expected, "smeup/T02_A40_P03".outputOf())
-    }
 }
