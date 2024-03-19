@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
-     * Data reference - DS with 2 array defined with overlay
+     * Data reference - DS with 2 arrays defined with overlay
      * @see #247
      */
     @Test
