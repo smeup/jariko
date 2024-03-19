@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
-     * Data reference - Definizione in line e con prefix External DS
+     * Data reference - Inline definition and with prefix External DS
      * @see #254
      */
     @Test
