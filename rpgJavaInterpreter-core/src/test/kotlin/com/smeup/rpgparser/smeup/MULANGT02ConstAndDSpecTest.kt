@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
-     * I cannot calculate the size of DS5_FL1 from the overlaying fields as there are none
+     * Calculation the size of DS5_FL1 from the overlaying fields
      * @see #24
      */
     @Test
