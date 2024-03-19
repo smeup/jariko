@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT10BaseCodopTest : MULANGTTest() {
     /**
-     * DIV e MVR con indicatori
+     * DIV and MVR with indicators
      * @see #245
      */
     @Test
