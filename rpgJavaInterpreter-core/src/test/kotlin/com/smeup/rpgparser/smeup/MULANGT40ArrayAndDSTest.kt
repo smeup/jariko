@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT40ArrayAndDSTest : MULANGTTest() {
     /**
-     * Reset con definizione inline
+     * Reset with inline declaration
      * @see #242
      */
     @Test
