@@ -1070,13 +1070,25 @@ internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
 ): () -> DataDefinition {
     return {
         val keywordExtName = getKeywordExtName()
-        val extName = keywordExtName.getExtName()
         val keywordPrefix = getKeywordPrefix()
+
+        val extName = keywordExtName.getExtName()
         val prefixName = keywordPrefix?.getPrefixName()
-        val dataDefinitions = fileDefinitions.filter { it.key.name == extName && ((keywordPrefix == null && it.key.prefix == null) || (keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix && it.key.prefix!!.prefix == prefixName)) }.values.flatten()
+
+        val dataDefinitions =
+            fileDefinitions.filter {
+                val nameMatches = it.key.name.uppercase() == extName.uppercase()
+                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
+                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
+                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+
+                nameMatches && (prefixIsNull || prefixMatches)
+            }.values.flatten()
+
         if (dataDefinitions.isEmpty()) {
             keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
         }
+
         var offset = 0
         val fields = dataDefinitions.map {
             FieldDefinition(
