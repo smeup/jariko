@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
-     * Like define di una variabile precedentemente dichiara tramite un altro like define
+     * Definition with Like to a variable defined also with like.
      * @see #160
      */
     @Test
