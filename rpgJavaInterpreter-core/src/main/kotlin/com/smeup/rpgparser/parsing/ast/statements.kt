@@ -1719,7 +1719,7 @@ data class ScanStmt(
     val left: Expression,
     val leftLength: Int?,
     val right: Expression,
-    val startPosition: Int,
+    val startPosition: Expression?,
     val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -1727,13 +1727,15 @@ data class ScanStmt(
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
+
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
-        val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
+        val searchInto = interpreter.eval(right).asString().value.substring(start - 1)
         val occurrences = mutableListOf<Value>()
         var index = -1
         do {
             index = searchInto.indexOf(stringToSearch, index + 1)
-            if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
+            if (index >= 0) occurrences.add(IntValue((index + start).toLong()))
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
