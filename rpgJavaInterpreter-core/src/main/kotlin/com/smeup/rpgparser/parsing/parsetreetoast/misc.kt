@@ -1031,10 +1031,10 @@ internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     // what kind of expression is this
     val position = toPosition(conf.considerPosition)
 
-    if (text.contains('.')) {
-        return handleParsingOfTargets(text, position)
+    return if (text.contains('.')) {
+        handleParsingOfTargets(text, position)
     } else {
-        return annidatedReferenceExpression(text, position)
+        annidatedReferenceExpression(text, position)
     }
 }
 
@@ -1355,11 +1355,19 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
 
+    val eqIndicator = this.cspec_fixed_standard_parts().resultIndicator(2)?.text
+
+    val wrongCharExpression = when {
+        result != null && result.text.isNotBlank() -> result.toAst(conf)
+        !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
+        else -> null
+    }
+
     return CheckStmt(
         factor1,
         expression,
         startPosition ?: 1,
-        this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+        wrongCharExpression,
         dataDefinition,
         position
     )
