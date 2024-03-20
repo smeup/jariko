@@ -815,6 +815,62 @@ private constructor(val name: String, val fields: List<String>, override val pos
 }
 
 @Serializable
+data class MonitorStmt(
+    @SerialName("body")
+    val monitorBody: List<Statement>,
+    val onErrorClauses: List<OnErrorClause> = emptyList(),
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+
+    // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
+    // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
+    // ErrorEvent is fired more times
+    @Derived
+    @Transient
+    override val body: List<Statement> = mutableListOf<Statement>().apply {
+        addAll(monitorBody)
+        onErrorClauses.forEach { addAll(it.body) }
+    }
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+        // check if the annotation is just before the ELSE
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+
+        // Process the body statements
+        muteAttached.addAll(
+            acceptBody(monitorBody, mutes, this.position!!.start.line, this.position.end.line)
+        )
+
+        // Process the ON ERROR
+        onErrorClauses.forEach {
+            muteAttached.addAll(
+                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+            )
+        }
+
+        return muteAttached
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
+            MonitorExecutionLogEntry(
+                interpreter.getInterpretationContext().currentProgramName,
+                this
+            )
+        }
+
+        try {
+            interpreter.execute(this.monitorBody)
+        } catch (_: Exception) {
+            onErrorClauses.forEach {
+                interpreter.log { OnErrorExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, it) }
+                interpreter.execute(it.body)
+            }
+        }
+    }
+}
+
+@Serializable
 data class IfStmt(
     val condition: Expression,
     @SerialName("body")
@@ -888,6 +944,9 @@ data class IfStmt(
         }
     }
 }
+
+@Serializable
+data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
 data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
@@ -1061,7 +1120,7 @@ data class DefineStmt(
         } else {
             val inStatementDataDefinition =
                 containingCU.main.stmts
-                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .filterIsInstance<StatementThatCanDefineData>()
                     .filter { it != this }
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
@@ -1719,7 +1778,7 @@ data class ScanStmt(
     val left: Expression,
     val leftLength: Int?,
     val right: Expression,
-    val startPosition: Int,
+    val startPosition: Expression?,
     val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -1727,13 +1786,15 @@ data class ScanStmt(
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
+
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
-        val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
+        val searchInto = interpreter.eval(right).asString().value.substring(start - 1)
         val occurrences = mutableListOf<Value>()
         var index = -1
         do {
             index = searchInto.indexOf(stringToSearch, index + 1)
-            if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
+            if (index >= 0) occurrences.add(IntValue((index + start).toLong()))
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
@@ -1968,22 +2029,27 @@ data class XlateStmt(
 @Serializable
 data class ResetStmt(
     val name: String,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val dataDefinition = interpreter.dataDefinitionByName(name)
-        require(dataDefinition != null) {
-            this.error("Data definition $name not found")
+        when (val dataDefinition = interpreter.dataDefinitionByName(name)) {
+            null -> this.error("Data definition $name not found")
+            is DataDefinition -> {
+                require(dataDefinition.defaultValue != null) {
+                    this.error("Data definition $name has no default value")
+                }
+                interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
+            }
+            is InStatementDataDefinition -> {
+                interpreter.assign(dataDefinition, dataDefinition.type.blank())
+            }
+            else -> this.error("Data definition $name is not a valid instance of DataDefinition")
         }
-        require(dataDefinition is DataDefinition) {
-            this.error("Data definition $name is not an instance of DataDefinition")
-        }
-        require(dataDefinition.defaultValue != null) {
-            this.error("Data definition $name has no default value")
-        }
-        interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
