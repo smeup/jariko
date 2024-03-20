@@ -1031,10 +1031,10 @@ internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     // what kind of expression is this
     val position = toPosition(conf.considerPosition)
 
-    if (text.contains('.')) {
-        return handleParsingOfTargets(text, position)
+    return if (text.contains('.')) {
+        handleParsingOfTargets(text, position)
     } else {
-        return annidatedReferenceExpression(text, position)
+        annidatedReferenceExpression(text, position)
     }
 }
 
@@ -1121,10 +1121,7 @@ internal fun Cspec_fixed_standard_partsContext.toDataDefinition(
     position: Position?,
     conf: ToAstConfiguration
 ): InStatementDataDefinition? {
-    val len = this.len.asInt()
-    if (len == null) {
-        return null
-    }
+    val len = this.len.asInt() ?: return null
     val decimals = this.decimalPositions.asInt()
     val initialValue = this.factor2Expression(conf)
     return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
@@ -1316,20 +1313,30 @@ internal fun CsDELETEContext.toAst(conf: ToAstConfiguration): Statement {
 
 internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanStmt {
     val position = toPosition(conf.considerPosition)
+
     val (compareExpression, compareLength) = this.factor1Context().toIndexedExpression(conf)
-    val (baseExpression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+
+    val factor2 = this.cspec_fixed_standard_parts().factor2
+
+    val result = this.cspec_fixed_standard_parts().result
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
-    val result = this.cspec_fixed_standard_parts().result.text
-    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    val target = when {
-        result.isNotBlank() -> this.cspec_fixed_standard_parts()!!.result!!.toAst(conf)
-        else -> null
-    }
+    val target = if (result.text.isNotBlank()) result.toAst(conf) else null
+
+    val baseExpression = factor2.factorContent(0).toAst(conf)
+    val positionExpression =
+        if (factor2.factorContent().size > 1) {
+            factor2.factorContent(1).toAst(conf)
+        } else {
+            null
+        }
+
     return ScanStmt(
         left = compareExpression,
         leftLength = compareLength,
         right = baseExpression,
-        startPosition = startPosition ?: 1,
+        startPosition = positionExpression,
         target = target,
         rightIndicators = rightIndicators,
         dataDefinition = dataDefinition,
@@ -1345,11 +1352,19 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
 
+    val eqIndicator = this.cspec_fixed_standard_parts().resultIndicator(2)?.text
+
+    val wrongCharExpression = when {
+        result != null && result.text.isNotBlank() -> result.toAst(conf)
+        !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
+        else -> null
+    }
+
     return CheckStmt(
         factor1,
         expression,
         startPosition ?: 1,
-        this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+        wrongCharExpression,
         dataDefinition,
         position
     )
@@ -1378,8 +1393,6 @@ private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Ex
     if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
 
 private fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
-    fun String.isLiteral(): Boolean { return (startsWith('\'') && endsWith('\'')) }
-
     val baseStringTokens = this.split(":")
     val startPosition =
         when (baseStringTokens.size) {
@@ -1389,7 +1402,10 @@ private fun String.toIndexedExpression(position: Position?): Pair<Expression, In
         }
     val reference = baseStringTokens[0]
     return when {
-        reference.isLiteral() -> StringLiteral(reference.trim('\''), position)
+        reference.isStringLiteral() -> StringLiteral(reference.trim('\''), position)
+        reference.contains('(') && reference.endsWith(")") -> {
+            annidatedReferenceExpression(this, position)
+        }
         else -> DataRefExpr(ReferenceByName(reference), position)
     } to startPosition
 }
@@ -1940,6 +1956,7 @@ internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
+
     require(this.cspec_fixed_standard_parts().factor().text.isEmptyTrim()) {
         "RESET operation does not support factor1"
     }
@@ -1950,8 +1967,12 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     require(!result.isEmptyTrim()) {
         "RESET operation requires result"
     }
+
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+
     return ResetStmt(
         name = result,
+        dataDefinition = dataDefinition,
         position = position
     )
 }
@@ -2037,3 +2058,5 @@ private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat()
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
     }
 }
+
+private fun String.isStringLiteral(): Boolean = startsWith('\'') && endsWith('\'')

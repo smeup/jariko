@@ -1496,8 +1496,8 @@ csMULT:
 csMVR:
 	CS_FIXED
 	BlankIndicator
-	BlankFlag 
-	BlankIndicator
+	(BlankFlag | NoFlag)
+	(BlankIndicator | GeneralIndicator)
 	CS_BlankFactor
 	operation=OP_MVR
 	cspec_fixed_standard_parts;
