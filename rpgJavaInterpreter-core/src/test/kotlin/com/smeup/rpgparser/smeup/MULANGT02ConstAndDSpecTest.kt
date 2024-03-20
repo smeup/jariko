@@ -13,4 +13,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("CNCLICNCLIAAAABBBBBAAAABBBBBCNFORCNFORCCCCDDDDDCCCCDDDDDCNCOLCNCOLEEEEFFFFFEEEEFFFFF")
         assertEquals(expected, "smeup/T02_A40_P03".outputOf())
     }
+
+    /**
+     * Data reference - Inline definition
+     * @see #250
+     */
+    @Test
+    fun executeT02_A80_P01() {
+        val expected = listOf("ABCDEFGHIJ12345")
+        assertEquals(expected, "smeup/T02_A80_P01".outputOf())
+    }
 }
