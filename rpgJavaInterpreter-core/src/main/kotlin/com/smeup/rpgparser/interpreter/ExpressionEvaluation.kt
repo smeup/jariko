@@ -206,21 +206,19 @@ class ExpressionEvaluation(
 
     override fun eval(expression: CharExpr): Value {
         val value = expression.value.evalWith(this)
-        return if (expression.value is DivExpr) {
-            // are always return 10 decimal digits
-            // fill with 0 if necessary
-            if (value.asDecimal().value.scale() != 0) {
-                val numeDecimals = value.asDecimal().value.scale()
-                if (numeDecimals < 10) {
-                    StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - numeDecimals))
-                } else {
-                    StringValue(value.stringRepresentation(expression.format).trim())
-                }
-            } else {
-                StringValue(value.stringRepresentation(expression.format) + ".0000000000")
-            }
-        } else {
-            StringValue(value.stringRepresentation(expression.format))
+        val representation = value.stringRepresentation(expression.format)
+
+        if (expression.value !is DivExpr) {
+            return StringValue(representation)
+        }
+
+        // Decimals are always returned with 10 decimal digits
+        // fill with 0 if necessary
+        val numDecimals = value.asDecimal().value.scale()
+        return when {
+            numDecimals == 0 -> StringValue("$representation.0000000000")
+            numDecimals < 10 -> StringValue(representation + "0".repeat(10 - numDecimals))
+            else -> StringValue(representation.trim())
         }
     }
 

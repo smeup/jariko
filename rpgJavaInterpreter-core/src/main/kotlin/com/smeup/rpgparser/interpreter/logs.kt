@@ -411,6 +411,17 @@ class CasOtherExecutionLogEntry(programName: String, val other: CaseOtherClause,
     }
 }
 
+class MonitorExecutionLogEntry(programName: String, val statement: MonitorStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing MONITOR"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "MONITOR"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
 class IfExecutionLogEntry(programName: String, val statement: IfStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "executing IF"
@@ -438,6 +449,16 @@ class ElseExecutionLogEntry(programName: String, val statement: ElseClause, val 
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "ELSE"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class OnErrorExecutionLogEntry(programName: String, val statement: OnErrorClause) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing ON-ERROR"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "ON-ERROR"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
