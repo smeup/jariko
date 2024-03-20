@@ -1082,11 +1082,13 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     }
     val position = toPosition(conf.considerPosition)
     return PlistParam(
-        ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(
+        ReferenceByName(paramName),
+        this.cspec_fixed_standard_parts().toDataDefinition(
             paramName,
             position,
             conf
-        ), position,
+        ),
+        position,
         initializationValue
     )
 }
@@ -2037,12 +2039,26 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
             dataDefinitionMap[it.name] = it
             true
         } else {
-            it.require(dataDefinition.type == it.type) {
+            it.require(it.matchType(dataDefinition)) {
                 "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
             }
             false
         }
     }
+}
+
+internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
+    if (dataDefinition.type == this.type) {
+        return true
+    } else if (dataDefinition.type != this.type && dataDefinition.elementSize() == this.elementSize()) {
+        return when {
+            dataDefinition.type is StringType && this.type is DataStructureType -> true
+            dataDefinition.type is DataStructureType && this.type is StringType -> true
+            else -> false
+        }
+    }
+
+    return false
 }
 
 /**
