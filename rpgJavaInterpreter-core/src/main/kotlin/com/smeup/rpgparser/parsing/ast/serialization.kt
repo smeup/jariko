@@ -68,6 +68,7 @@ private val modules = SerializersModule {
         subclass(LeaveSrStmt::class)
         subclass(LeaveStmt::class)
         subclass(LookupStmt::class)
+        subclass(MonitorStmt::class)
         subclass(MoveAStmt::class)
         subclass(MoveLStmt::class)
         subclass(MoveStmt::class)
