@@ -1,4 +1,4 @@
-     D £DBG_Str        S             50          VARYING
+     D £DBG_Str        S             150         VARYING
      D A60_D1          S             10
      D A60_D2          S              2  0
      D A60_D3          DS
