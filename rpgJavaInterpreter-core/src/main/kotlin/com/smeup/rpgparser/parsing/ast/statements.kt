@@ -815,6 +815,62 @@ private constructor(val name: String, val fields: List<String>, override val pos
 }
 
 @Serializable
+data class MonitorStmt(
+    @SerialName("body")
+    val monitorBody: List<Statement>,
+    val onErrorClauses: List<OnErrorClause> = emptyList(),
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+
+    // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
+    // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
+    // ErrorEvent is fired more times
+    @Derived
+    @Transient
+    override val body: List<Statement> = mutableListOf<Statement>().apply {
+        addAll(monitorBody)
+        onErrorClauses.forEach { addAll(it.body) }
+    }
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+        // check if the annotation is just before the ELSE
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+
+        // Process the body statements
+        muteAttached.addAll(
+            acceptBody(monitorBody, mutes, this.position!!.start.line, this.position.end.line)
+        )
+
+        // Process the ON ERROR
+        onErrorClauses.forEach {
+            muteAttached.addAll(
+                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+            )
+        }
+
+        return muteAttached
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
+            MonitorExecutionLogEntry(
+                interpreter.getInterpretationContext().currentProgramName,
+                this
+            )
+        }
+
+        try {
+            interpreter.execute(this.monitorBody)
+        } catch (_: Exception) {
+            onErrorClauses.forEach {
+                interpreter.log { OnErrorExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, it) }
+                interpreter.execute(it.body)
+            }
+        }
+    }
+}
+
+@Serializable
 data class IfStmt(
     val condition: Expression,
     @SerialName("body")
@@ -888,6 +944,9 @@ data class IfStmt(
         }
     }
 }
+
+@Serializable
+data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
 data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
@@ -1061,7 +1120,7 @@ data class DefineStmt(
         } else {
             val inStatementDataDefinition =
                 containingCU.main.stmts
-                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .filterIsInstance<StatementThatCanDefineData>()
                     .filter { it != this }
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)

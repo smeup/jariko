@@ -56,6 +56,12 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
+        this.monitorstatement() != null -> this.monitorstatement().let {
+            it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
+                stmt = it.toAst(conf = conf),
+                conf = conf
+            )
+        }
         else -> todo(message = "Missing composite statement implementation for this block: ${this.text}", conf = conf)
     }
 }
@@ -358,6 +364,18 @@ internal fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOther
     TODO("OtherContext.toAst with $conf")
 }
 
+internal fun RpgParser.MonitorstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MonitorStmt {
+    val position = toPosition(conf.considerPosition)
+    val statements = this.statement().mapNotNull {
+        it.toAst(conf)
+    }
+    val onErrorClauses = this.onError().mapNotNull {
+        it.toAst(conf)
+    }
+
+    return MonitorStmt(statements, onErrorClauses, position)
+}
+
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
     val position = toPosition(conf.considerPosition)
     return if (this.beginif().fixedexpression != null) {
@@ -385,6 +403,12 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
             position
         )
     }
+}
+
+internal fun RpgParser.OnErrorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OnErrorClause {
+    val body = this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+    val position = toPosition(conf.considerPosition)
+    return OnErrorClause(body, position)
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
