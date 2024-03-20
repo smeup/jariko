@@ -2029,22 +2029,27 @@ data class XlateStmt(
 @Serializable
 data class ResetStmt(
     val name: String,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val dataDefinition = interpreter.dataDefinitionByName(name)
-        require(dataDefinition != null) {
-            this.error("Data definition $name not found")
+        when (val dataDefinition = interpreter.dataDefinitionByName(name)) {
+            null -> this.error("Data definition $name not found")
+            is DataDefinition -> {
+                require(dataDefinition.defaultValue != null) {
+                    this.error("Data definition $name has no default value")
+                }
+                interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
+            }
+            is InStatementDataDefinition -> {
+                interpreter.assign(dataDefinition, dataDefinition.type.blank())
+            }
+            else -> this.error("Data definition $name is not a valid instance of DataDefinition")
         }
-        require(dataDefinition is DataDefinition) {
-            this.error("Data definition $name is not an instance of DataDefinition")
-        }
-        require(dataDefinition.defaultValue != null) {
-            this.error("Data definition $name has no default value")
-        }
-        interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable

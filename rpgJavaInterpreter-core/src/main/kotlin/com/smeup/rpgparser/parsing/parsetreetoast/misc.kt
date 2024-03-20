@@ -1956,6 +1956,7 @@ internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
+
     require(this.cspec_fixed_standard_parts().factor().text.isEmptyTrim()) {
         "RESET operation does not support factor1"
     }
@@ -1966,8 +1967,12 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     require(!result.isEmptyTrim()) {
         "RESET operation requires result"
     }
+
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+
     return ResetStmt(
         name = result,
+        dataDefinition = dataDefinition,
         position = position
     )
 }
