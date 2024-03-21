@@ -2054,6 +2054,8 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
         return when {
             dataDefinition.type is StringType && this.type is DataStructureType -> true
             dataDefinition.type is DataStructureType && this.type is StringType -> true
+            dataDefinition.type is BooleanType && this.type is StringType -> true
+            dataDefinition.type is StringType && this.type is BooleanType -> true
             else -> false
         }
     }
