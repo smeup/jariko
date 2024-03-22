@@ -250,7 +250,7 @@ data class `NumberType`(val entireDigits: Int, val decimalDigits: Int, val rpgTy
                 return resultDigits && rpgType == other.rpgType
             }
 
-            return resultDigits;
+            return resultDigits
         } else {
             false
         }
