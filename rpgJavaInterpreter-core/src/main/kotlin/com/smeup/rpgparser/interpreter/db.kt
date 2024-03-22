@@ -125,7 +125,7 @@ fun FileMetadata.toReloadMetadata(): com.smeup.dbnative.model.FileMetadata {
         name = this.name,
         tableName = this.tableName,
         fields = fields.map {
-            Field(it.fieldName)
+            Field(it.fieldName, numeric = it.type.isNumeric())
         },
         fileKeys = accessFields
     )
