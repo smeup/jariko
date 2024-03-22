@@ -1983,25 +1983,25 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 // TODO
-internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MockStatement {
+internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return ExfmtStmt(position)
 }
 
 // TODO
-internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MockStatement {
+internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return ReadcStmt(position)
 }
 
 // TODO
-internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MockStatement {
+internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return UnlockStmt(position)
 }
 
 // TODO
-internal fun CsFEODContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MockStatement {
+internal fun CsFEODContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return FeodStmt(position)
 }
