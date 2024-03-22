@@ -193,7 +193,7 @@ infix fun Long.log(base: Int): Double {
 }
 
 @Serializable
-data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
+data class `NumberType`(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
 
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
 
@@ -240,6 +240,19 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
             return type.entireDigits <= this.entireDigits && type.decimalDigits <= this.decimalDigits
         } else {
             return false
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is NumberType) {
+            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                return resultDigits && rpgType == other.rpgType
+            }
+
+            return resultDigits;
+        } else {
+            false
         }
     }
 }
