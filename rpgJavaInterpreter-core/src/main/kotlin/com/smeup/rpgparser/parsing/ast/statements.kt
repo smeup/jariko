@@ -2078,3 +2078,12 @@ data class UnlockStmt(
         // TODO
     }
 }
+
+@Serializable
+data class FeodStmt(
+        override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
