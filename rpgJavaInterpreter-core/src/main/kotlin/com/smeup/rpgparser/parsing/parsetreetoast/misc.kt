@@ -2048,19 +2048,16 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 }
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
-    if (dataDefinition.type == this.type) {
-        return true
-    } else if (dataDefinition.type != this.type && dataDefinition.elementSize() == this.elementSize()) {
-        return when {
-            dataDefinition.type is StringType && this.type is DataStructureType -> true
-            dataDefinition.type is DataStructureType && this.type is StringType -> true
-            dataDefinition.type is BooleanType && this.type is StringType -> true
-            dataDefinition.type is StringType && this.type is BooleanType -> true
-            else -> false
+    return when {
+        dataDefinition.type == this.type -> true
+        dataDefinition.elementSize() == this.elementSize() -> {
+            dataDefinition.type is StringType && this.type is DataStructureType ||
+            dataDefinition.type is DataStructureType && this.type is StringType ||
+            dataDefinition.type is BooleanType && this.type is StringType ||
+            dataDefinition.type is StringType && this.type is BooleanType
         }
+        else -> false
     }
-
-    return false
 }
 
 /**
