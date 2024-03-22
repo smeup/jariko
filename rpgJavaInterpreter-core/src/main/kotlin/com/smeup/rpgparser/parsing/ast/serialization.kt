@@ -39,6 +39,12 @@ private val modules = SerializersModule {
         subclass(FieldDefinition::class)
         subclass(DataDefinition::class)
     }
+    polymorphic(MockStatement::class) {
+        subclass(ExfmtStmt::class)
+        subclass(ReadcStmt::class)
+        subclass(UnlockStmt::class)
+        subclass(FeodStmt::class)
+    }
     polymorphic(Statement::class) {
         subclass(AddStmt::class)
         subclass(CabStmt::class)
@@ -60,7 +66,6 @@ private val modules = SerializersModule {
         subclass(DOWxxStmt::class)
         subclass(EvalStmt::class)
         subclass(ExecuteSubroutine::class)
-        subclass(FeodStmt::class)
         subclass(ForStmt::class)
         subclass(GotoStmt::class)
         subclass(IfStmt::class)
@@ -84,10 +89,7 @@ private val modules = SerializersModule {
         subclass(ReadPreviousEqualStmt::class)
         subclass(ReadStmt::class)
         subclass(ResetStmt::class)
-        subclass(ExfmtStmt::class)
-        subclass(ReadcStmt::class)
         subclass(ReturnStmt::class)
-        subclass(UnlockStmt::class)
         subclass(ScanStmt::class)
         subclass(SelectStmt::class)
         subclass(CaseStmt::class)

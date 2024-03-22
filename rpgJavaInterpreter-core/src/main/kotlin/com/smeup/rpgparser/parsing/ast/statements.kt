@@ -85,6 +85,11 @@ abstract class Statement(
     abstract fun execute(interpreter: InterpreterCore)
 }
 
+@Serializable
+abstract class MockStatement (
+    @Transient override val position: Position? = null,
+) : Statement(position) { }
+
 interface CompositeStatement {
     val body: List<Statement>
 }
@@ -2055,35 +2060,27 @@ data class ResetStmt(
 @Serializable
 data class ExfmtStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : MockStatement(position) {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class ReadcStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : MockStatement(position) {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class UnlockStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : MockStatement(position) {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class FeodStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : MockStatement(position) {
+    override fun execute(interpreter: InterpreterCore) { }
 }
