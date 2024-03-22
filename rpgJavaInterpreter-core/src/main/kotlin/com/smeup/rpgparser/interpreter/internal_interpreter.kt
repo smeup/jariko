@@ -411,7 +411,12 @@ open class InternalInterpreter(
                         MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
                     }
                 }
-                statement.execute(this)
+
+                if (statement is MockStatement) {
+                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement
+                } else {
+                    statement.execute(this)
+                }
             }
         } catch (e: ControlFlowException) {
             throw e

@@ -135,6 +135,15 @@ class ExpressionEvaluation(
             left is ArrayValue && right is ArrayValue -> {
                 sum(left, right, expression.position)
             }
+            left is StringValue && right is DataStructValue -> {
+                if (left.varying) {
+                    val s = left.value.trimEnd() + right.value
+                    StringValue(s)
+                } else {
+                    val s = left.value + right.value
+                    StringValue(s)
+                }
+            }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
             }

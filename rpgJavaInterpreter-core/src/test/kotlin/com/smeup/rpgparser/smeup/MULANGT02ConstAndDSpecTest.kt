@@ -73,4 +73,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ABCDEFGHIJ123.00000")
         assertEquals(expected, "smeup/T02_A80_P05".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Inline variable with specification in D (boolean)
+     * @see #253, in addition to issue
+     */
+    @Test
+    fun executeT02_A80_P06() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/T02_A80_P06".outputOf())
+    }
 }
