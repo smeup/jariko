@@ -85,6 +85,9 @@ abstract class Statement(
     abstract fun execute(interpreter: InterpreterCore)
 }
 
+/**
+ * For statements with this interface there isn't execution but will be called the callback `onMockStatement`.
+ */
 interface MockStatement
 
 interface CompositeStatement {

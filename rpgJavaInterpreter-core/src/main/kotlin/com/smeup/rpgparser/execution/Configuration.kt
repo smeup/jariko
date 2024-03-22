@@ -164,6 +164,10 @@ data class JarikoCallback(
     var onCallPgmError: (errorEvent: ErrorEvent) -> Unit = { },
     var logInfo: ((channel: String, message: String) -> Unit)? = null,
     var channelLoggingEnabled: ((channel: String) -> Boolean)? = null,
+    /**
+     * This is called for those statements mocked.
+     * @param mockStatement "Statement" where is get its name for the `println`.
+     */
     var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock: ${it.javaClass.simpleName}") }
 )
 
