@@ -193,7 +193,7 @@ infix fun Long.log(base: Int): Double {
 }
 
 @Serializable
-data class `NumberType`(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
+data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
 
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
 
