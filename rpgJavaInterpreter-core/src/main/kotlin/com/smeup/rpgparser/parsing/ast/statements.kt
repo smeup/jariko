@@ -85,6 +85,11 @@ abstract class Statement(
     abstract fun execute(interpreter: InterpreterCore)
 }
 
+/**
+ * For statements with this interface there isn't execution but will be called the callback `onMockStatement`.
+ */
+interface MockStatement
+
 interface CompositeStatement {
     val body: List<Statement>
 }
@@ -2055,26 +2060,27 @@ data class ResetStmt(
 @Serializable
 data class ExfmtStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class ReadcStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class UnlockStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
+data class FeodStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }

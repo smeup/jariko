@@ -45,6 +45,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * LIKE define of field from file
+     * @see #255
+     */
+    @Test
+    fun executeT02_A50_P10() {
+        val expected = listOf("A50_A10(AAA) A50_B10(BBB)")
+        assertEquals(expected, "smeup/T02_A50_P10".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Data reference - Definition both inline and file
      * @see #253
      */
