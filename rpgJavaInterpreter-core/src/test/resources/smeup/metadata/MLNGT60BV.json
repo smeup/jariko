@@ -1,0 +1,39 @@
+{"name": "MLNGT60BV",
+  "tableName": "MULANGTF",
+  "recordFormat": "",
+  "fields": [
+    { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN54",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN63",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "SHDEAR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "S$OPZI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "X$FLD1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":50, "varying":false}}
+  , { "fieldName": "*IN92",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN93",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN94",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN96",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "RRN01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":4, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "£RASDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "£PDSNP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "£PDSJN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "£PDSNU",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "*IN60",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "W$MESV",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":76, "varying":false}}
+  ], "accessFields": []}

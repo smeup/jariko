@@ -2057,8 +2057,20 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 }
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
+    fun Type.matchType(other: Any?): Boolean {
+        if (this is NumberType && other is NumberType) {
+            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                return resultDigits && rpgType == other.rpgType
+            }
+            return resultDigits
+        } else {
+            return this == other
+        }
+    }
+
     return when {
-        dataDefinition.type == this.type -> true
+        dataDefinition.type.matchType(this.type) -> true
         dataDefinition.elementSize() == this.elementSize() -> {
             dataDefinition.type is StringType && this.type is DataStructureType ||
             dataDefinition.type is DataStructureType && this.type is StringType ||
