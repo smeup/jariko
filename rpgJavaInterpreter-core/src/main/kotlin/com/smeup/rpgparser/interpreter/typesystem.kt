@@ -242,19 +242,6 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
             return false
         }
     }
-
-    override fun equals(other: Any?): Boolean {
-        return if (other is NumberType) {
-            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
-            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
-                return resultDigits && rpgType == other.rpgType
-            }
-
-            return resultDigits
-        } else {
-            false
-        }
-    }
 }
 
 @Serializable
