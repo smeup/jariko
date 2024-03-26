@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 open class MULANGT12LoopFlowGotoTest : MULANGTTest() {
     /**
-     * DO- Operation not implemented
+     * If followed by Do
      * @see #263
      */
     @Test
