@@ -65,3 +65,20 @@ fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): 
         else -> error("$this ActivationGroupType is not yet handled")
     }
 }
+
+fun DataDefinition.resizeStringSize(newSize: Int): Unit {
+    require(this.initializationValue is StringLiteral)
+    require(this.defaultValue is StringValue)
+
+    val initializationValue: StringLiteral = this.initializationValue
+    val defaultValue: StringValue = this.defaultValue as StringValue
+    this.type = StringType(newSize, true)
+    if (initializationValue.value.length >= newSize) {
+        initializationValue.value = initializationValue.value.substring(0, newSize)
+        defaultValue.value = defaultValue.value.substring(0, newSize)
+    } else {
+        initializationValue.value = initializationValue.value.padEnd(newSize)
+        defaultValue.value = defaultValue.value.padEnd(newSize)
+    }
+    defaultValue.varying = false
+}

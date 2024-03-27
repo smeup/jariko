@@ -824,6 +824,16 @@ open class InternalInterpreter(
                 }
                 return assign(target.array as AssignableExpression, array)
             }
+            is LenExpr -> {
+                require((target.value as? DataRefExpr)?.variable?.referred is DataDefinition)
+                val dataDefinition: DataDefinition = (target.value as DataRefExpr).variable.referred!! as DataDefinition
+
+                when {
+                    dataDefinition.type is StringType -> dataDefinition.resizeStringSize(value.asInt().value.toInt())
+                    else -> TODO("Implements redefinition of ${dataDefinition.type.javaClass.name}")
+                }
+                return value;
+            }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
