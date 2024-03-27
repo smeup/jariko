@@ -832,7 +832,7 @@ open class InternalInterpreter(
                     dataDefinition.type is StringType -> dataDefinition.resizeStringSize(value.asInt().value.toInt())
                     else -> TODO("Implements redefinition of ${dataDefinition.type.javaClass.name}")
                 }
-                return value;
+                return value
             }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {

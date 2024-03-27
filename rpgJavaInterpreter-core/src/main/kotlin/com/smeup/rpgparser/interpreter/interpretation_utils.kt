@@ -66,7 +66,7 @@ fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): 
     }
 }
 
-fun DataDefinition.resizeStringSize(newSize: Int): Unit {
+fun DataDefinition.resizeStringSize(newSize: Int) {
     require(this.initializationValue is StringLiteral)
     require(this.defaultValue is StringValue)
 
