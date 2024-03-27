@@ -1126,11 +1126,15 @@ data class DefineStmt(
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance<StatementThatCanDefineData>()
-                    .filter { it != this }
+                    // Since that DefineStmt is a particular case of DefineDataStmt, we need to filter it out
+                    // in order to avoid stack overflow
+                    // The previous filter "it != this" went wrong if we had more than one DefineStmt
+                    // with originalName not resolved
+                    .filter { it !is DefineStmt }
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name == originalName } ?: return emptyList()
+                    .find { it.name.uppercase() == originalName.uppercase() } ?: throw this.error("Data reference $originalName not found")
 
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
