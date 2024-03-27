@@ -66,7 +66,13 @@ fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): 
     }
 }
 
-fun DataDefinition.resizeStringSize(newSize: Int) {
+/**
+ * This function provides the resizing of a variable defined like String.
+ * For example: `%LEN(<variable's name>) in `EVAL` like this
+ *     C                   EVAL      %LEN(VAR) = 5
+ * changes the previous size declaration of `VAR` to a new size.
+ */
+internal fun DataDefinition.resizeStringSize(newSize: Int) {
     require(this.initializationValue is StringLiteral)
     require(this.defaultValue is StringValue)
 
