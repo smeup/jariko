@@ -183,7 +183,7 @@ data class FileDefinition private constructor(
 @Serializable
 data class DataDefinition(
     override val name: String,
-    @SerialName(value = "dataDefType") override val type: Type,
+    @SerialName(value = "dataDefType") override var type: Type,
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
@@ -202,7 +202,7 @@ data class DataDefinition(
         static = static) {
 
     override fun isArray() = type is ArrayType
-    fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+    fun isCompileTimeArray() = type is ArrayType && (type as ArrayType).compileTimeArray()
 
     init {
         this.require(name.trim().isNotEmpty(), { "name cannot be empty" })

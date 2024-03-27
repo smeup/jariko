@@ -75,7 +75,7 @@ interface AbstractStringValue : Value {
 }
 
 @Serializable
-data class StringValue(var value: String, val varying: Boolean = false) : AbstractStringValue {
+data class StringValue(var value: String, var varying: Boolean = false) : AbstractStringValue {
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
