@@ -29,6 +29,7 @@ import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
@@ -830,7 +831,7 @@ open class InternalInterpreter(
 
                 when {
                     dataDefinition.type is StringType -> dataDefinition.resizeStringSize(value.asInt().value.toInt())
-                    else -> TODO("Implements redefinition of ${dataDefinition.type.javaClass.name}")
+                    else -> target.todo("Implements redefinition of ${dataDefinition.type.javaClass.name}")
                 }
                 return value
             }
