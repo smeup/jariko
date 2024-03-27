@@ -1105,18 +1105,9 @@ data class DefineStmt(
     val newVarName: String,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
-
-    @Transient
-    private var inStatementDataDefinitions: List<InStatementDataDefinition>? = null
-
     override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (inStatementDataDefinitions != null) {
-            return inStatementDataDefinitions!!
-        }
         val containingCU = this.ancestor(CompilationUnit::class.java)
-            ?: return emptyList<InStatementDataDefinition>().apply {
-                inStatementDataDefinitions = this
-            }
+            ?: return emptyList()
 
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
         // If definition was not found as a 'standalone' 'D spec' declaration,
@@ -1124,30 +1115,29 @@ data class DefineStmt(
         containingCU.dataDefinitions.forEach {
             it.fields.forEach {
                 if (it.name == originalName) {
-                    return listOf(InStatementDataDefinition(newVarName, it.type, position)).apply { inStatementDataDefinitions = this }
+                    return listOf(InStatementDataDefinition(newVarName, it.type, position))
                 }
             }
         }
 
         if (originalDataDefinition != null) {
-            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position)).apply { inStatementDataDefinitions = this }
+            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
+            if (!this.resolvingFromStatementsCanDefineData()) {
+                // if this function returns false means a recursion happened
+                throw Error("Data reference $originalName not resolved")
+            }
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance<StatementThatCanDefineData>()
+                    .filter { it != this }
                     .asSequence()
                     .filter { this != it }
-                    .map {
-                        if (it is DefineStmt) {
-                            if (!addDefineStmtCaller(it)) {
-                                throw Error("Data reference $originalName not resolved")
-                            }
-                        }
-                        it.dataDefinition()
-                    }
+                    .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
                     .find { it.name.uppercase() == originalName.uppercase() } ?: throw Error("Data reference $originalName not resolved")
-            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position)).apply { inStatementDataDefinitions = this }
+            this.resolved()
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
 
@@ -1156,11 +1146,18 @@ data class DefineStmt(
     }
 }
 
-private fun addDefineStmtCaller(defineStmt: DefineStmt): Boolean {
-    val defineStmtCallers = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.defineStmtCallers") {
+private fun DefineStmt.resolvingFromStatementsCanDefineData(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.resolvingFromStatementsCanDefineData") {
         mutableSetOf<DefineStmt>()
     } as MutableSet<DefineStmt>
-    return defineStmtCallers.add(defineStmt)
+    return stack.add(this)
+}
+
+private fun DefineStmt.resolved(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.resolvingFromStatementsCanDefineData") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.remove(this)
 }
 
 interface WithRightIndicators {
