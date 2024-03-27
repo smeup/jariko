@@ -416,6 +416,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR13ShouldNotThrowStackOverflowError() {
         executeSourceLineTest(pgm = "ERROR13", throwableConsumer = {
+            it.printStackTrace()
             assertTrue(
                 message = "java.lang.StackOverflowError should not be present",
                 actual = it.message!!.indexOf("java.lang.StackOverflowError") == -1
