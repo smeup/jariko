@@ -30,6 +30,7 @@ import java.math.RoundingMode
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
+import kotlin.math.roundToLong
 import kotlin.math.sqrt
 
 class ExpressionEvaluation(
@@ -647,6 +648,17 @@ class ExpressionEvaluation(
             is UnlimitedStringValue ->
                 IntValue(cleanNumericString(value.value).asLong())
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
+        }
+
+    override fun eval(expression: InthExpr): Value =
+        when (val value = expression.value.evalWith(this)) {
+            is StringValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            is DecimalValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            is UnlimitedStringValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            else -> throw UnsupportedOperationException("I do not know how to handle $value with %INTH")
         }
 
     override fun eval(expression: RemExpr): Value {
