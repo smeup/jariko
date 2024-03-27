@@ -1134,8 +1134,7 @@ data class DefineStmt(
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name.uppercase() == originalName.uppercase() } ?: throw this.error("Data reference $originalName not found")
-
+                    .find { it.name.uppercase() == originalName.uppercase() } ?: throw Error("Data reference $originalName not found")
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
