@@ -1105,9 +1105,18 @@ data class DefineStmt(
     val newVarName: String,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+
+    @Transient
+    private var inStatementDataDefinitions: List<InStatementDataDefinition>? = null
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (inStatementDataDefinitions != null) {
+            return inStatementDataDefinitions!!
+        }
         val containingCU = this.ancestor(CompilationUnit::class.java)
-            ?: return emptyList()
+            ?: return emptyList<InStatementDataDefinition>().apply {
+                inStatementDataDefinitions = this
+            }
 
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
         // If definition was not found as a 'standalone' 'D spec' declaration,
@@ -1115,33 +1124,43 @@ data class DefineStmt(
         containingCU.dataDefinitions.forEach {
             it.fields.forEach {
                 if (it.name == originalName) {
-                    return listOf(InStatementDataDefinition(newVarName, it.type, position))
+                    return listOf(InStatementDataDefinition(newVarName, it.type, position)).apply { inStatementDataDefinitions = this }
                 }
             }
         }
 
         if (originalDataDefinition != null) {
-            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
+            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position)).apply { inStatementDataDefinitions = this }
         } else {
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance<StatementThatCanDefineData>()
-                    // Since that DefineStmt is a particular case of DefineDataStmt, we need to filter it out
-                    // in order to avoid stack overflow
-                    // The previous filter "it != this" went wrong if we had more than one DefineStmt
-                    // with originalName not resolved
-                    .filter { it !is DefineStmt }
                     .asSequence()
-                    .map(StatementThatCanDefineData::dataDefinition)
+                    .filter { this != it }
+                    .map {
+                        if (it is DefineStmt) {
+                            if (!addDefineStmtCaller(it)) {
+                                throw Error("Data reference $originalName not resolved")
+                            }
+                        }
+                        it.dataDefinition()
+                    }
                     .flatten()
-                    .find { it.name.uppercase() == originalName.uppercase() } ?: throw Error("Data reference $originalName not found")
-            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
+                    .find { it.name.uppercase() == originalName.uppercase() } ?: throw Error("Data reference $originalName not resolved")
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position)).apply { inStatementDataDefinitions = this }
         }
     }
 
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+}
+
+private fun addDefineStmtCaller(defineStmt: DefineStmt): Boolean {
+    val defineStmtCallers = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.defineStmtCallers") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return defineStmtCallers.add(defineStmt)
 }
 
 interface WithRightIndicators {
