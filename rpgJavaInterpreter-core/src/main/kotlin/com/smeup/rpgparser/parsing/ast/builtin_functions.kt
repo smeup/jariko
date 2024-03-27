@@ -159,10 +159,16 @@ data class SubarrExpr(
 // %LEN
 @Serializable
 data class LenExpr(var value: Expression, override val position: Position? = null) :
-    Expression(position) {
+    AssignableExpression(position) {
+
     override fun render(): String {
         return "%LEN(${this.value.render()})"
     }
+
+    override fun size(): Int {
+        TODO("Not yet implemented")
+    }
+
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 

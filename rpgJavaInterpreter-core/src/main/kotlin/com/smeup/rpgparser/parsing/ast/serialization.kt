@@ -134,7 +134,6 @@ private val modules = SerializersModule {
         subclass(HiValExpr::class)
         subclass(IntExpr::class)
         subclass(IntLiteral::class)
-        subclass(LenExpr::class)
         subclass(LessEqualThanExpr::class)
         subclass(LessThanExpr::class)
         subclass(LogicalAndExpr::class)
@@ -178,6 +177,7 @@ private val modules = SerializersModule {
         subclass(QualifiedAccessExpr::class)
         subclass(SubstExpr::class)
         subclass(SubarrExpr::class)
+        subclass(LenExpr::class)
     }
     polymorphic(Directive::class) {
         subclass(ActivationGroupDirective::class)
