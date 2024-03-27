@@ -317,9 +317,14 @@ elseClause:
 ;
 
 casestatement:
-	csCASxx*
-	csCASother?
-	casestatementend
+    (
+        csCASxx+
+        csCASother?
+        casestatementend
+    ) | (
+        csCASother
+        casestatementend
+    )
 ;
 
 csCASxx:
