@@ -25,6 +25,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import org.junit.Assert
 import java.io.StringReader
+import kotlin.test.DefaultAsserter.assertTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -412,6 +413,22 @@ class JarikoCallbackTest : AbstractTest() {
         executePgmCallBackTest("ERROR12", SourceReferenceType.Program, "ERROR12", listOf(7))
     }
 
+    @Test
+    fun executeERROR13ShouldNotThrowStackOverflowError() {
+        executeSourceLineTest(pgm = "ERROR13", throwableConsumer = {
+            it.printStackTrace()
+            assertTrue(
+                message = "java.lang.StackOverflowError should not be present",
+                actual = it.message!!.indexOf("java.lang.StackOverflowError") == -1
+            )
+        })
+    }
+
+    @Test
+    fun executeERROR13CallBackTest() {
+        executePgmCallBackTest("ERROR13", SourceReferenceType.Program, "ERROR13", listOf(9, 10))
+    }
+
     /**
      * This test simulates what a precompiler might do throws the use of the beforeParsing callback
      * In ERROR01.rpgle I will comment C specification to avoid a division by zero errors
@@ -517,7 +534,7 @@ class JarikoCallbackTest : AbstractTest() {
      * Verify that the sourceLine is properly set in case of error.
      * ErrorEvent must contain a reference of an absolute line of the source code
      * */
-    private fun executeSourceLineTest(pgm: String) {
+    private fun executeSourceLineTest(pgm: String, throwableConsumer: (Throwable) -> Unit = {}) {
         lateinit var lines: List<String>
         val errorEvents = mutableListOf<ErrorEvent>()
         val configuration = Configuration().apply {
@@ -535,6 +552,7 @@ class JarikoCallbackTest : AbstractTest() {
         }.onSuccess {
             Assert.fail("$pgm must exit with error")
         }.onFailure {
+            throwableConsumer(it)
             errorEvents.forEach {
                 Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
             }

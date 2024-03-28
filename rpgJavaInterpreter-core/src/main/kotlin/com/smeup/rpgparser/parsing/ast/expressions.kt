@@ -58,7 +58,7 @@ data class RealLiteral(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 @Serializable
-data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position) {
+data class StringLiteral(var value: String, override val position: Position? = null) : Expression(position) {
     override fun render() = "\"$value\""
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }

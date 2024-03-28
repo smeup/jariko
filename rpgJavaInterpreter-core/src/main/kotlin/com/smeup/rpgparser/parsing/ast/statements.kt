@@ -85,6 +85,11 @@ abstract class Statement(
     abstract fun execute(interpreter: InterpreterCore)
 }
 
+/**
+ * For statements with this interface there isn't execution but will be called the callback `onMockStatement`.
+ */
+interface MockStatement
+
 interface CompositeStatement {
     val body: List<Statement>
 }
@@ -1118,6 +1123,10 @@ data class DefineStmt(
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
+            if (!this.enterInStack()) {
+                // This check is necessary to avoid infinite recursion
+                throw Error("Data reference $originalName not resolved")
+            }
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance<StatementThatCanDefineData>()
@@ -1125,8 +1134,8 @@ data class DefineStmt(
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name == originalName } ?: return emptyList()
-
+                    .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+            this.exitFromStack()
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
@@ -1134,6 +1143,27 @@ data class DefineStmt(
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+}
+
+/**
+ * Receiver wants to enter in call stack
+ * @return false if the receiver cannot enter
+ */
+private fun DefineStmt.enterInStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.add(this)
+}
+
+/**
+ * Receiver will exit from call stack
+ * */
+private fun DefineStmt.exitFromStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.remove(this)
 }
 
 interface WithRightIndicators {
@@ -2055,26 +2085,27 @@ data class ResetStmt(
 @Serializable
 data class ExfmtStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class ReadcStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
 data class UnlockStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        // TODO
-    }
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
+data class FeodStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }

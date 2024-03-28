@@ -30,6 +30,7 @@ import java.math.RoundingMode
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
+import kotlin.math.roundToLong
 import kotlin.math.sqrt
 
 class ExpressionEvaluation(
@@ -134,6 +135,15 @@ class ExpressionEvaluation(
             }
             left is ArrayValue && right is ArrayValue -> {
                 sum(left, right, expression.position)
+            }
+            left is StringValue && right is DataStructValue -> {
+                if (left.varying) {
+                    val s = left.value.trimEnd() + right.value
+                    StringValue(s)
+                } else {
+                    val s = left.value + right.value
+                    StringValue(s)
+                }
             }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
@@ -638,6 +648,17 @@ class ExpressionEvaluation(
             is UnlimitedStringValue ->
                 IntValue(cleanNumericString(value.value).asLong())
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
+        }
+
+    override fun eval(expression: InthExpr): Value =
+        when (val value = expression.value.evalWith(this)) {
+            is StringValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            is DecimalValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            is UnlimitedStringValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            else -> throw UnsupportedOperationException("I do not know how to handle $value with %INTH")
         }
 
     override fun eval(expression: RemExpr): Value {
