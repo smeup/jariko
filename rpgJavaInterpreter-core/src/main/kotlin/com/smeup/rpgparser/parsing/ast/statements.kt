@@ -1123,8 +1123,8 @@ data class DefineStmt(
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
-            if (!this.resolvingFromStatementsCanDefineData()) {
-                // if this function returns false means a recursion happened
+            if (!this.enterInStack()) {
+                // This check is necessary to avoid infinite recursion
                 throw Error("Data reference $originalName not resolved")
             }
             val inStatementDataDefinition =
@@ -1132,11 +1132,10 @@ data class DefineStmt(
                     .filterIsInstance<StatementThatCanDefineData>()
                     .filter { it != this }
                     .asSequence()
-                    .filter { this != it }
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name.uppercase() == originalName.uppercase() } ?: throw Error("Data reference $originalName not resolved")
-            this.resolved()
+                    .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+            this.exitFromStack()
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
@@ -1146,15 +1145,22 @@ data class DefineStmt(
     }
 }
 
-private fun DefineStmt.resolvingFromStatementsCanDefineData(): Boolean {
-    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.resolvingFromStatementsCanDefineData") {
+/**
+ * Receiver wants to enter in call stack
+ * @return false if the receiver cannot enter
+ */
+private fun DefineStmt.enterInStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
         mutableSetOf<DefineStmt>()
     } as MutableSet<DefineStmt>
     return stack.add(this)
 }
 
-private fun DefineStmt.resolved(): Boolean {
-    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.resolvingFromStatementsCanDefineData") {
+/**
+ * Receiver will exit from call stack
+ * */
+private fun DefineStmt.exitFromStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
         mutableSetOf<DefineStmt>()
     } as MutableSet<DefineStmt>
     return stack.remove(this)
