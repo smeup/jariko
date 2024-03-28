@@ -1123,6 +1123,10 @@ data class DefineStmt(
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
+            if (!this.enterInStack()) {
+                // This check is necessary to avoid infinite recursion
+                throw Error("Data reference $originalName not resolved")
+            }
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance<StatementThatCanDefineData>()
@@ -1130,8 +1134,8 @@ data class DefineStmt(
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name == originalName } ?: return emptyList()
-
+                    .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+            this.exitFromStack()
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
@@ -1139,6 +1143,27 @@ data class DefineStmt(
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+}
+
+/**
+ * Receiver wants to enter in call stack
+ * @return false if the receiver cannot enter
+ */
+private fun DefineStmt.enterInStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.add(this)
+}
+
+/**
+ * Receiver will exit from call stack
+ * */
+private fun DefineStmt.exitFromStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.remove(this)
 }
 
 interface WithRightIndicators {

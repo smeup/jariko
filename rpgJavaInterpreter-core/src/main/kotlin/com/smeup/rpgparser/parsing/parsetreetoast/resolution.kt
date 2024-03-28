@@ -31,9 +31,19 @@ import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    this.allStatements(preserveCompositeStatement = true).filterIsInstance(StatementThatCanDefineData::class.java).forEach {
-        this.addInStatementDataDefinitions(it.dataDefinition())
-    }
+    this.allStatements(preserveCompositeStatement = true)
+        .filterIsInstance<StatementThatCanDefineData>()
+        .forEach { statementThatCanDefineData ->
+            kotlin.runCatching {
+                this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
+            }.onFailure { error ->
+                if (statementThatCanDefineData is Node) {
+                    kotlin.runCatching {
+                        statementThatCanDefineData.error("Error while creating data definition from statement: $statementThatCanDefineData", error)
+                    }
+                } else throw error
+            }
+        }
 }
 
 private fun MutableList<InStatementDataDefinition>.addAllDistinct(list: List<InStatementDataDefinition>): List<InStatementDataDefinition> {
