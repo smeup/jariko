@@ -65,3 +65,29 @@ fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): 
         else -> error("$this ActivationGroupType is not yet handled")
     }
 }
+
+/**
+ * This function provides the resizing of a variable defined like String, changing the varying to not varying.
+ * In addition, truncates the previous string if the target size is shorter, or add spaces if is longer.
+ * Throws an `IllegalArgumentException` if the `initializationValue` isn't `StringLiteral` or `defaultValue` isn't `StringValue`.
+ *
+ * For example: `%LEN(<variable's name>) in `EVAL` like this:
+ *     C                   EVAL      %LEN(VAR) = 5
+ * changes the previous size declaration of `VAR` to a new size.
+ */
+internal fun DataDefinition.resizeStringSize(newSize: Int) {
+    require(this.initializationValue is StringLiteral)
+    require(this.defaultValue is StringValue)
+
+    val initializationValue: StringLiteral = this.initializationValue
+    val defaultValue: StringValue = this.defaultValue as StringValue
+    this.type = StringType(newSize, false)
+    if (initializationValue.value.length >= newSize) {
+        initializationValue.value = initializationValue.value.substring(0, newSize)
+        defaultValue.value = defaultValue.value.substring(0, newSize)
+    } else {
+        initializationValue.value = initializationValue.value.padEnd(newSize)
+        defaultValue.value = defaultValue.value.padEnd(newSize)
+    }
+    defaultValue.varying = false
+}

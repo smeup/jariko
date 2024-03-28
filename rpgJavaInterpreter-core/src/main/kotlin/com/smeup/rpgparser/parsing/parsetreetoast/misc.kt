@@ -1673,6 +1673,7 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         )
         is SubstTargetContext -> this.bif_subst().toAst(conf)
         is SubarrTargetContext -> this.bif_subarr().toAst(conf)
+        is LenTargetContext -> this.bif_len().toAst(conf)
         is QualifiedTargetContext -> QualifiedAccessExpr(
             DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
             ReferenceByName(this.getFieldName()),

@@ -179,6 +179,7 @@ private val modules = SerializersModule {
         subclass(QualifiedAccessExpr::class)
         subclass(SubstExpr::class)
         subclass(SubarrExpr::class)
+        subclass(LenExpr::class)
     }
     polymorphic(Directive::class) {
         subclass(ActivationGroupDirective::class)

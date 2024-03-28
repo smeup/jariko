@@ -43,4 +43,14 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         val expected = listOf("Min(219120.00000) Cen(219132.00000)")
         assertEquals(expected, "smeup/T15_A30_P07".outputOf())
     }
+
+    /**
+     * %LEN near EVAL
+     * @see #261
+     */
+    @Test
+    fun executeT15_A80_P09() {
+        val expected = listOf("1(10 - North York) 2(5 - North) 3(15 - North          )")
+        assertEquals(expected, "smeup/T15_A80_P09".outputOf())
+    }
 }
