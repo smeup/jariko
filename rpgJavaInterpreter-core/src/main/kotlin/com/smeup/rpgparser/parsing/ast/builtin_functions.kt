@@ -207,6 +207,17 @@ data class IntExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %INTH
+@Serializable
+data class InthExpr(
+    var value: Expression,
+    override val position: Position? = null
+) :
+    Expression(position) {
+    override fun render(): String = this.value.render()
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %SQRT
 @Serializable
 data class SqrtExpr(var value: Expression, override val position: Position? = null) :
