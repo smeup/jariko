@@ -75,7 +75,7 @@ interface AbstractStringValue : Value {
 }
 
 @Serializable
-data class StringValue(var value: String, val varying: Boolean = false) : AbstractStringValue {
+data class StringValue(var value: String, var varying: Boolean = false) : AbstractStringValue {
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -201,6 +201,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
+            is BlanksValue -> if (this.isBlank()) EQUAL else SMALLER
             else -> super.compareTo(other)
         }
 
@@ -311,6 +312,10 @@ data class IntValue(val value: Long) : NumberValue() {
 
     override fun asString(): StringValue {
         return StringValue(render())
+    }
+
+    override fun asBoolean(): BooleanValue {
+        return BooleanValue(value > 0)
     }
 
     operator fun plus(other: IntValue) = IntValue(this.bigDecimal.plus(other.bigDecimal).longValueExact())
@@ -621,6 +626,22 @@ object BlanksValue : Value {
     }
 
     override fun copy(): BlanksValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(this.toString())
+    }
+}
+
+object NullValue : Value {
+    override fun toString(): String {
+        return "NullValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return true
+    }
+
+    override fun copy(): NullValue = this
 
     override fun asString(): StringValue {
         return StringValue(this.toString())

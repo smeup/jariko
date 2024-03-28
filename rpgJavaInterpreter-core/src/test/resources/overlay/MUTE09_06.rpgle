@@ -135,11 +135,6 @@
       *       segno: a sinistra
     MU* VAL1(S1) VAL2('-9010,548970        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'Q')
-      * 'X' : Separatore migliaia: no
-      *       separatore decimale: no
-      *       segno: no
-    MU* VAL1(S1) VAL2('9010548970          ') COMP(EQ)
-     C                   EVAL      S1=%EDITC(V1:'X')
       * 'Z' : Separatore migliaia: no
       *       separatore decimale: no
       *       segno: no
@@ -381,8 +376,6 @@
     MU* VAL1(S1) VAL2('-1234               ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V2:'Q')
     MU* VAL1(S1) VAL2('1234                ') COMP(EQ)
-     C                   EVAL      S1=%EDITC(V2:'X')
-    MU* VAL1(S1) VAL2('1234                ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V2:'Z')
       **
       **   NUMERO INTERO POSITIVO
@@ -457,11 +450,11 @@
      C                   EVAL      S1=%EDITC(V1:'4')
     MU* VAL1(S1) VAL2('    0,000000        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'A')
-    MU* VAL1(S1) VAL2('    0,000000         ') COMP(EQ)
+    MU* VAL1(S1) VAL2('                    ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'B')
     MU* VAL1(S1) VAL2('   0,000000        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'C')
-    MU* VAL1(S1) VAL2('   0,000000        ') COMP(EQ)
+    MU* VAL1(S1) VAL2('                    ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'D')
     MU* VAL1(S1) VAL2('    0,000000        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'J')

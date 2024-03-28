@@ -178,13 +178,13 @@ class CopyTest {
         )
         preprocessed.lines().forEachIndexed { index, expectedLineOfCode ->
             println("index: $index, expectedLineOfCode:$expectedLineOfCode")
-            if (!expectedLineOfCode.startsWith("**********")) {
+            if (expectedLineOfCode.length > 0 && !expectedLineOfCode.startsWith("**********")) {
                 val relativeLine = copyBlocks.relativeLine(index + 1)
                 println("relativeLine: $relativeLine")
                 val actualLineOfCode = relativeLine.second?.let { copyBlock ->
                     copyDefinitions[copyBlock.copyId]!!.lines()[relativeLine.first - 1]
                 } ?: pgm.lines()[relativeLine.first - 1]
-                if (!actualLineOfCode.contains("/COPY")) {
+                if (!actualLineOfCode.contains("/COPY") && !expectedLineOfCode.startsWith("      *")) {
                     println("expectedLineOfCode: $expectedLineOfCode, actualLineOfCode: $actualLineOfCode")
                     Assert.assertEquals(expectedLineOfCode, actualLineOfCode)
                 }
@@ -435,6 +435,11 @@ class CopyTest {
     @Test @Ignore
     fun includeSameCopyIncludedTwice() {
         testCpyInclusion("TSTCPY07", "I am copy with .api extension")
+    }
+
+    @Test
+    fun `includeCP§01`() {
+        testCpyInclusion("TSTCPY08", "Hi I am QILEGEN,CP§01")
     }
 
     @Test

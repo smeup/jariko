@@ -29,6 +29,7 @@ import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
@@ -67,7 +68,13 @@ class InterpreterStatus(
     var lastDBFile: DBFile? = null
     val dbFileMap = DBFileMap()
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
-    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable[abstractDataDefinition]
+    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
+        val tmpValue = symbolTable[abstractDataDefinition]
+        if (tmpValue is NullValue) {
+            throw IllegalArgumentException("Void value for ${abstractDataDefinition.name}")
+        }
+        return tmpValue
+    }
 }
 
 open class InternalInterpreter(
@@ -130,13 +137,11 @@ open class InternalInterpreter(
 
     override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    override operator fun get(data: AbstractDataDefinition): Value {
-        return globalSymbolTable[data]
-    }
+    override operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
 
     override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
-    operator fun set(data: AbstractDataDefinition, value: Value) {
+    open operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
             "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
         }
@@ -206,7 +211,7 @@ open class InternalInterpreter(
         val start = System.currentTimeMillis()
         MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
         // TODO verify if these values should be reinitialised or not
-        compilationUnit.fileDefinitions.forEach {
+        compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
             status.dbFileMap.add(it)
         }
 
@@ -215,6 +220,7 @@ open class InternalInterpreter(
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
         if (reinitialization || globalSymbolTable.isEmpty()) {
+            beforeInitialization()
             compilationUnit.allDataDefinitions.forEach {
                 var value: Value? = null
                 if (it is DataDefinition) {
@@ -273,7 +279,14 @@ open class InternalInterpreter(
                 if (value != null) {
                     set(it, coerce(value, it.type))
                     if (it is DataDefinition) {
-                        it.defaultValue = globalSymbolTable[it].copy()
+                        try {
+                            val tmpValue = globalSymbolTable[it]
+                            if (tmpValue !is NullValue) {
+                                it.defaultValue = tmpValue.copy()
+                            }
+                        } catch (exc: IllegalArgumentException) {
+                            it.defaultValue = null
+                        }
                     }
                     executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                 }
@@ -349,13 +362,17 @@ open class InternalInterpreter(
                 }
             }
         }.onFailure {
-            if (!MainExecutionContext.getProgramStack().isEmpty()) {
-                MainExecutionContext.getProgramStack().peek().cu.source?.apply {
-                    System.err.println(it.message)
-                    System.err.println(this.dumpSource())
+            if (it is ReturnException) {
+                status.returnValue = it.returnValue
+            } else {
+                if (!MainExecutionContext.getProgramStack().isEmpty()) {
+                    MainExecutionContext.getProgramStack().peek().cu.source?.apply {
+                        System.err.println(it.message)
+                        System.err.println(this.dumpSource())
+                    }
                 }
+                throw it
             }
-            throw it
         }
     }
 
@@ -371,18 +388,14 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        try {
-            var i = 0
-            while (i < statements.size) {
-                try {
-                    executeWithMute(statements[i++])
-                } catch (e: GotoException) {
-                    i = e.indexOfTaggedStatement(statements)
-                    if (i < 0 || i >= statements.size) throw e
-                }
+        var i = 0
+        while (i < statements.size) {
+            try {
+                executeWithMute(statements[i++])
+            } catch (e: GotoException) {
+                i = e.indexOfTaggedStatement(statements)
+                if (i < 0 || i >= statements.size) throw e
             }
-        } catch (e: ReturnException) {
-            status.returnValue = e.returnValue
         }
     }
 
@@ -399,7 +412,12 @@ open class InternalInterpreter(
                         MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
                     }
                 }
-                statement.execute(this)
+
+                if (statement is MockStatement) {
+                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement
+                } else {
+                    statement.execute(this)
+                }
             }
         } catch (e: ControlFlowException) {
             throw e
@@ -683,15 +701,10 @@ open class InternalInterpreter(
 
     override fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        require(statement.target is DataRefExpr)
-        val rightValue: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(eval(statement.factor1).render())
-        } else {
-            BigDecimal(get(statement.target.variable.referred!!).render())
-        }
-        val leftValue = BigDecimal(eval(statement.factor2).render())
+        val rightValue = BigDecimal(eval(statement.left).render())
+        val leftValue = BigDecimal(eval(statement.right).render())
         val result = rightValue.multiply(leftValue)
-        val type = statement.target.variable.referred!!.type
+        val type = statement.target.type()
         require(type is NumberType)
         return if (statement.halfAdjust) {
             DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
@@ -702,25 +715,19 @@ open class InternalInterpreter(
 
     override fun div(statement: DivStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        require(statement.target is DataRefExpr)
-        val dividend: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(eval(statement.factor1).render())
-        } else {
-            BigDecimal(get(statement.target.variable.referred!!).render())
-        }
-        val divisor = BigDecimal(eval(statement.factor2).render())
+        val dividend = BigDecimal(eval(statement.dividend).render())
+        val divisor = BigDecimal(eval(statement.divisor).render())
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
-        val type = statement.target.variable.referred!!.type
+        val type = statement.target.type()
         require(type is NumberType)
         // calculation of rest
         // NB. rest based on type of quotient
-        if (statement.mvrTarget != null) {
-            val restType = statement.mvrTarget.type()
+        if (statement.mvrStatement != null) {
+            val restType = statement.mvrStatement.target?.type()
             require(restType is NumberType)
             val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
-            // rest = divident - (truncatedQuotient * divisor)
             val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            assign(statement.mvrTarget, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
+            assign(statement.mvrStatement.target, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
         }
         return if (statement.halfAdjust) {
             DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
@@ -818,6 +825,16 @@ open class InternalInterpreter(
                 }
                 return assign(target.array as AssignableExpression, array)
             }
+            is LenExpr -> {
+                require((target.value as? DataRefExpr)?.variable?.referred is DataDefinition)
+                val dataDefinition: DataDefinition = (target.value as DataRefExpr).variable.referred!! as DataDefinition
+
+                when {
+                    dataDefinition.type is StringType -> dataDefinition.resizeStringSize(value.asInt().value.toInt())
+                    else -> target.todo("Implements redefinition of ${dataDefinition.type.javaClass.name}")
+                }
+                return value
+            }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
@@ -832,8 +849,9 @@ open class InternalInterpreter(
                 return value
             }
             is IndicatorExpr -> {
+                val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
-                indicators[target.index] = coercedValue.asBoolean()
+                indicators[index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is GlobalIndicatorExpr -> {
@@ -961,30 +979,22 @@ open class InternalInterpreter(
         }
     }
 
-    // Memory slice context attribute name must to be also string representation of MemorySliceId
-    private fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
-
     /**
      * @return an instance of MemorySliceMgr, return null to disable serialization/deserialization
      * of symboltable
      * */
     open fun getMemorySliceMgr(): MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
 
-    private fun afterInitialization(initialValues: Map<String, Value>) {
-        getMemorySliceId()?.let { memorySliceId ->
-            getMemorySliceMgr()?.let {
-                MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(
-                    memorySliceId = memorySliceId,
-                    symbolTable = globalSymbolTable,
-                    initSymbolTableEntry = { dataDefinition, storedValue ->
-                        // initial values have not to be overwritten
-                        if (!initialValues.containsKey(dataDefinition.name)) {
-                            globalSymbolTable[dataDefinition] = storedValue
-                        }
-                    }
-                )
-            }
-        }
+    /**
+     * This function is called before the initialization of the interpreter.
+     * */
+    open fun beforeInitialization() {}
+
+    /**
+     * This function is called after the initialization of the interpreter.
+     * */
+    open fun afterInitialization(initialValues: Map<String, Value>) {
+        globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues)
     }
 
     private fun isExitingInRTMode(): Boolean {
@@ -1004,7 +1014,7 @@ open class InternalInterpreter(
     // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
     // could make failing RpgProgram.execute.
     // The failure depends on whether that the initialvalues are searched in symboltable
-    fun doSomethingAfterExecution() {
+    open fun doSomethingAfterExecution() {
         val exitingRT = isExitingInRTMode()
         MainExecutionContext.getAttributes()[getMemorySliceId()?.getAttributeKey()]?.let {
             (it as MemorySlice).persist = exitingRT
@@ -1043,4 +1053,41 @@ internal fun Position.relative(): StatementReference {
     val programName = if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
     val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
     return this.relative(programName, copyBlocks)
+}
+
+/**
+ * Memory slice context attribute name must to be also string representation of MemorySliceId
+ * */
+internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
+
+/**
+ * Restores the symbol table from a memory slice.
+ *
+ * This function is used to restore the state of the symbol table from a previously saved memory slice.
+ * This is useful in scenarios where the state of the symbol table needs to be preserved across different
+ * executions of the same program, for example in case of stateful programs.
+ *
+ * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
+ * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
+ * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
+ */
+internal fun ISymbolTable.restoreFromMemorySlice(
+    memorySliceId: MemorySliceId?,
+    memorySliceMgr: MemorySliceMgr?,
+    initialValues: Map<String, Value> = emptyMap()
+) {
+    memorySliceId?.let { myMemorySliceId ->
+        memorySliceMgr?.let {
+            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
+                memorySliceId = memorySliceId,
+                symbolTable = this,
+                initSymbolTableEntry = { dataDefinition, storedValue ->
+                    // initial values have not to be overwritten
+                    if (!initialValues.containsKey(dataDefinition.name)) {
+                        this[dataDefinition] = storedValue
+                    }
+                }
+            )
+        }
+    }
 }

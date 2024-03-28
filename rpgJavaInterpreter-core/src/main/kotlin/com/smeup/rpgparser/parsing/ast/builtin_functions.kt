@@ -50,6 +50,17 @@ data class ScanExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %CHECK
+@Serializable
+data class CheckExpr(
+    var value: Expression,
+    val source: Expression,
+    val start: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %XLATE
 @Serializable
 data class TranslateExpr(
@@ -148,10 +159,16 @@ data class SubarrExpr(
 // %LEN
 @Serializable
 data class LenExpr(var value: Expression, override val position: Position? = null) :
-    Expression(position) {
+    AssignableExpression(position) {
+
     override fun render(): String {
         return "%LEN(${this.value.render()})"
     }
+
+    override fun size(): Int {
+        TODO("Not yet implemented")
+    }
+
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -182,6 +199,17 @@ data class DecExpr(
 // %INT
 @Serializable
 data class IntExpr(
+    var value: Expression,
+    override val position: Position? = null
+) :
+    Expression(position) {
+    override fun render(): String = this.value.render()
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %INTH
+@Serializable
+data class InthExpr(
     var value: Expression,
     override val position: Position? = null
 ) :

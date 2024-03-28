@@ -85,6 +85,11 @@ abstract class Statement(
     abstract fun execute(interpreter: InterpreterCore)
 }
 
+/**
+ * For statements with this interface there isn't execution but will be called the callback `onMockStatement`.
+ */
+interface MockStatement
+
 interface CompositeStatement {
     val body: List<Statement>
 }
@@ -185,18 +190,66 @@ data class SelectStmt(
         get() {
             val result = mutableListOf<Statement>()
             cases.forEach { case ->
-                result.addAll(case.body.explode())
+                result.addAll(case.body.explode(preserveCompositeStatement = true))
             }
-            if (other?.body != null) result.addAll(other!!.body.explode())
+            if (other?.body != null) result.addAll(other!!.body.explode(preserveCompositeStatement = true))
             return result
         }
+}
+
+@Serializable
+data class CaseStmt(
+    var cases: List<CaseClause>,
+    var other: CaseOtherClause? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun execute(interpreter: InterpreterCore) {
+        for (case in this.cases) {
+            val result = interpreter.eval(case.condition)
+
+            interpreter.log { CasXXExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
+            if (result.asBoolean().value) {
+                executeSubProcedure(interpreter, case.function)
+                return
+            }
+        }
+        if (this.other != null) {
+            interpreter.log {
+                CasOtherExecutionLogEntry(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this.other!!
+                )
+            }
+            executeSubProcedure(interpreter, other!!.function)
+        }
+    }
+
+    private fun executeSubProcedure(interpreter: InterpreterCore, subProcedureName: String) {
+        val containingCU = this.ancestor(CompilationUnit::class.java)
+            ?: throw IllegalStateException("Not contained in a CU")
+        containingCU.subroutines.firstOrNull { subroutine ->
+            subroutine.name.equals(other = subProcedureName, ignoreCase = true)
+        }?.let { subroutine ->
+            ExecuteSubroutine(subroutine = ReferenceByName(subProcedureName, subroutine), position = subroutine.position).execute(interpreter)
+        }
+    }
 }
 
 @Serializable
 data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
+data class CaseOtherClause(override val position: Position? = null, val function: String) : Node(position)
+
+@Serializable
 data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+
+@Serializable
+data class CaseClause(val condition: Expression, override val position: Position? = null, val function: String) : Node(position)
 
 @Serializable
 data class EvalFlags(
@@ -232,9 +285,10 @@ data class SubDurStmt(
     val target: AssignableExpression,
     val factor2: Expression,
     val durationCode: DurationCode,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
@@ -245,6 +299,8 @@ data class SubDurStmt(
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -562,8 +618,9 @@ data class CheckStmt(
     val baseString: Expression,
     val start: Int = 1,
     val wrongCharPosition: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
@@ -585,6 +642,8 @@ data class CheckStmt(
             }
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -692,7 +751,9 @@ data class CallStmt(
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
-            interpreter.assign(this.params[index].param.referred!!, value)
+            if (this.params.size > index) {
+                interpreter.assign(this.params[index].param.referred!!, value)
+            }
         }
     }
 }
@@ -755,6 +816,62 @@ private constructor(val name: String, val fields: List<String>, override val pos
     override fun execute(interpreter: InterpreterCore) {
         // TODO Add logging as for PlistStmt
         interpreter.getKlists()[name] = fields
+    }
+}
+
+@Serializable
+data class MonitorStmt(
+    @SerialName("body")
+    val monitorBody: List<Statement>,
+    val onErrorClauses: List<OnErrorClause> = emptyList(),
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+
+    // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
+    // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
+    // ErrorEvent is fired more times
+    @Derived
+    @Transient
+    override val body: List<Statement> = mutableListOf<Statement>().apply {
+        addAll(monitorBody)
+        onErrorClauses.forEach { addAll(it.body) }
+    }
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+        // check if the annotation is just before the ELSE
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+
+        // Process the body statements
+        muteAttached.addAll(
+            acceptBody(monitorBody, mutes, this.position!!.start.line, this.position.end.line)
+        )
+
+        // Process the ON ERROR
+        onErrorClauses.forEach {
+            muteAttached.addAll(
+                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+            )
+        }
+
+        return muteAttached
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
+            MonitorExecutionLogEntry(
+                interpreter.getInterpretationContext().currentProgramName,
+                this
+            )
+        }
+
+        try {
+            interpreter.execute(this.monitorBody)
+        } catch (_: Exception) {
+            onErrorClauses.forEach {
+                interpreter.log { OnErrorExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, it) }
+                interpreter.execute(it.body)
+            }
+        }
     }
 }
 
@@ -832,6 +949,9 @@ data class IfStmt(
         }
     }
 }
+
+@Serializable
+data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
 data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
@@ -1003,15 +1123,19 @@ data class DefineStmt(
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
+            if (!this.enterInStack()) {
+                // This check is necessary to avoid infinite recursion
+                throw Error("Data reference $originalName not resolved")
+            }
             val inStatementDataDefinition =
                 containingCU.main.stmts
-                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .filterIsInstance<StatementThatCanDefineData>()
                     .filter { it != this }
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name == originalName } ?: return emptyList()
-
+                    .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+            this.exitFromStack()
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
@@ -1019,6 +1143,27 @@ data class DefineStmt(
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+}
+
+/**
+ * Receiver wants to enter in call stack
+ * @return false if the receiver cannot enter
+ */
+private fun DefineStmt.enterInStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.add(this)
+}
+
+/**
+ * Receiver will exit from call stack
+ * */
+private fun DefineStmt.exitFromStack(): Boolean {
+    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>
+    return stack.remove(this)
 }
 
 interface WithRightIndicators {
@@ -1081,6 +1226,15 @@ data class MultStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val left: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val right: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.mult(this))
@@ -1095,16 +1249,40 @@ data class DivStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
-    val mvrTarget: AssignableExpression? = null,
+    val mvrStatement: MvrStmt? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val dividend: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val divisor: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.div(this))
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    @Transient
+    @Derived
+    override val body: List<Statement>
+        get() = mvrStatement?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class MvrStmt(
+    val target: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
@@ -1181,8 +1359,9 @@ data class SubStmt(
 @Serializable
 data class TimeStmt(
     val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
@@ -1204,6 +1383,8 @@ data class TimeStmt(
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1214,6 +1395,35 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
         response?.let { values.add(interpreter.eval(it)) }
         // TODO: receive input from systemInterface and assign value to response
         interpreter.getSystemInterface().display(interpreter.rawRender(values))
+    }
+}
+
+@Serializable
+data class DOWxxStmt(
+    val comparisonOperator: ComparisonOperator,
+    val factor1: Expression,
+    val factor2: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    override fun execute(interpreter: InterpreterCore) {
+        val startTime = System.currentTimeMillis()
+        try {
+            interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
+            while (comparisonOperator.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset).isVerified) {
+                interpreter.execute(body)
+            }
+        } catch (e: LeaveException) {
+            // nothing to do here
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DOWxxStatementExecutionLogEnd(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
+        }
     }
 }
 
@@ -1598,31 +1808,36 @@ data class ScanStmt(
     val left: Expression,
     val leftLength: Int?,
     val right: Expression,
-    val startPosition: Int,
-    val target: AssignableExpression,
+    val startPosition: Expression?,
+    val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
+
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
-        val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
+        val searchInto = interpreter.eval(right).asString().value.substring(start - 1)
         val occurrences = mutableListOf<Value>()
         var index = -1
         do {
             index = searchInto.indexOf(stringToSearch, index + 1)
-            if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
+            if (index >= 0) occurrences.add(IntValue((index + start).toLong()))
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+            target?.let { interpreter.assign(it, IntValue(0)) }
         } else {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            if (target.type().isArray()) {
-                val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
-                interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
-            } else {
-                interpreter.assign(target, occurrences[0])
+            target?.let {
+                if (it.type().isArray()) {
+                    val fullOccurrences = occurrences.resizeTo(it.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    interpreter.assign(it, ConcreteArrayValue(fullOccurrences, it.type().asArray().element))
+                } else {
+                    interpreter.assign(it, occurrences[0])
+                }
             }
         }
     }
@@ -1844,20 +2059,53 @@ data class XlateStmt(
 @Serializable
 data class ResetStmt(
     val name: String,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val dataDefinition = interpreter.dataDefinitionByName(name)
-        require(dataDefinition != null) {
-            this.error("Data definition $name not found")
+        when (val dataDefinition = interpreter.dataDefinitionByName(name)) {
+            null -> this.error("Data definition $name not found")
+            is DataDefinition -> {
+                require(dataDefinition.defaultValue != null) {
+                    this.error("Data definition $name has no default value")
+                }
+                interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
+            }
+            is InStatementDataDefinition -> {
+                interpreter.assign(dataDefinition, dataDefinition.type.blank())
+            }
+            else -> this.error("Data definition $name is not a valid instance of DataDefinition")
         }
-        require(dataDefinition is DataDefinition) {
-            this.error("Data definition $name is not an instance of DataDefinition")
-        }
-        require(dataDefinition.defaultValue != null) {
-            this.error("Data definition $name has no default value")
-        }
-        interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class ExfmtStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
+data class ReadcStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
+data class UnlockStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
+data class FeodStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
 }

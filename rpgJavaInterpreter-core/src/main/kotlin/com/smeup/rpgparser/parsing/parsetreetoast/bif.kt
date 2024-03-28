@@ -31,6 +31,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_lookup() != null -> this.bif_lookup().toAst(conf)
         this.bif_xlate() != null -> this.bif_xlate().toAst(conf)
         this.bif_scan() != null -> this.bif_scan().toAst(conf)
+        this.bif_check() != null -> this.bif_check().toAst(conf)
         this.bif_trim() != null -> this.bif_trim().toAst(conf)
         this.bif_trimr() != null -> this.bif_trimr().toAst(conf)
         this.bif_triml() != null -> this.bif_triml().toAst(conf)
@@ -47,6 +48,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_equal() != null -> this.bif_equal().toAst(conf)
         this.bif_abs() != null -> this.bif_abs().toAst(conf)
         this.bif_int() != null -> this.bif_int().toAst(conf)
+        this.bif_inth() != null -> this.bif_inth().toAst(conf)
         this.bif_editw() != null -> this.bif_editw().toAst(conf)
         this.bif_rem() != null -> this.bif_rem().toAst(conf)
         this.bif_replace() != null -> this.bif_replace().toAst(conf)
@@ -132,6 +134,12 @@ internal fun RpgParser.Bif_intContext.toAst(conf: ToAstConfiguration = ToAstConf
         toPosition(conf.considerPosition))
 }
 
+internal fun RpgParser.Bif_inthContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InthExpr {
+    return InthExpr(
+        this.expression().toAst(conf),
+        toPosition(conf.considerPosition))
+}
+
 internal fun RpgParser.Bif_sqrtContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SqrtExpr {
     return SqrtExpr(
             this.expression().toAst(conf),
@@ -209,6 +217,15 @@ internal fun RpgParser.Bif_scanContext.toAst(conf: ToAstConfiguration = ToAstCon
         source = this.source.toAst(conf),
         start = this.start?.toAst(conf),
         length = this.length?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_checkContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CheckExpr {
+    return CheckExpr(
+        value = this.comparator.toAst(conf),
+        source = this.base.toAst(conf),
+        start = this.start?.toAst(conf),
         toPosition(conf.considerPosition)
     )
 }

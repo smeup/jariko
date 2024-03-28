@@ -27,9 +27,10 @@ import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
-import java.time.temporal.ChronoUnit
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
+import kotlin.math.roundToLong
 import kotlin.math.sqrt
 
 class ExpressionEvaluation(
@@ -135,6 +136,15 @@ class ExpressionEvaluation(
             left is ArrayValue && right is ArrayValue -> {
                 sum(left, right, expression.position)
             }
+            left is StringValue && right is DataStructValue -> {
+                if (left.varying) {
+                    val s = left.value.trimEnd() + right.value
+                    StringValue(s)
+                } else {
+                    val s = left.value + right.value
+                    StringValue(s)
+                }
+            }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
             }
@@ -206,21 +216,19 @@ class ExpressionEvaluation(
 
     override fun eval(expression: CharExpr): Value {
         val value = expression.value.evalWith(this)
-        return if (expression.value is DivExpr) {
-            // are always return 10 decimal digits
-            // fill with 0 if necessary
-            if (value.asDecimal().value.scale() != 0) {
-                val numeDecimals = value.asDecimal().value.scale()
-                if (numeDecimals < 10) {
-                    StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - numeDecimals))
-                } else {
-                    StringValue(value.stringRepresentation(expression.format).trim())
-                }
-            } else {
-                StringValue(value.stringRepresentation(expression.format) + ".0000000000")
-            }
-        } else {
-            StringValue(value.stringRepresentation(expression.format))
+        val representation = value.stringRepresentation(expression.format)
+
+        if (expression.value !is DivExpr) {
+            return StringValue(representation)
+        }
+
+        // Decimals are always returned with 10 decimal digits
+        // fill with 0 if necessary
+        val numDecimals = value.asDecimal().value.scale()
+        return when {
+            numDecimals == 0 -> StringValue("$representation.0000000000")
+            numDecimals < 10 -> StringValue(representation + "0".repeat(10 - numDecimals))
+            else -> StringValue(representation.trim())
         }
     }
 
@@ -325,6 +333,28 @@ class ExpressionEvaluation(
         val result = source.indexOf(value, startIndex)
         return IntValue(if (result == -1) 0 else result.toLong() + 1)
     }
+    override fun eval(expression: CheckExpr): Value {
+        var startpos = 0
+        if (expression.start != null) {
+            startpos = expression.start.evalWith(this).asInt().value.toInt()
+            if (startpos > 0) {
+                startpos -= 1
+            }
+        }
+        val comparator = expression.value.evalWith(this).asString().value
+        val base = expression.source.evalWith(this).asString().value.toCharArray()
+
+        var result = 0
+        for (i in startpos until base.size) {
+            val currChar = base[i]
+            if (!comparator.contains(currChar)) {
+                result = i + 1
+                break
+            }
+        }
+
+        return IntValue(result.toLong())
+    }
 
     override fun eval(expression: SubstExpr): Value {
         val length = if (expression.length != null) expression.length.evalWith(this).asInt().value.toInt() else 0
@@ -418,7 +448,17 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
-    override fun eval(expression: IndicatorExpr) = interpreterStatus.indicator(expression.index)
+
+    override fun eval(expression: NegationExpr): DecimalValue {
+        val value = expression.value1.evalWith(this).asDecimal().value
+        return DecimalValue(-value)
+    }
+
+    override fun eval(expression: IndicatorExpr): BooleanValue {
+        // if index is passed through expression, it means that it is a dynamic indicator
+        val runtimeIndex = expression.indexExpression?.evalWith(this)?.asInt()?.value?.toInt() ?: expression.index
+        return interpreterStatus.indicator(runtimeIndex)
+    }
     override fun eval(expression: FunctionCall): Value {
         val functionToCall = expression.function.name
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
@@ -610,6 +650,17 @@ class ExpressionEvaluation(
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
         }
 
+    override fun eval(expression: InthExpr): Value =
+        when (val value = expression.value.evalWith(this)) {
+            is StringValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            is DecimalValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            is UnlimitedStringValue ->
+                IntValue(value.value.toDouble().roundToLong())
+            else -> throw UnsupportedOperationException("I do not know how to handle $value with %INTH")
+        }
+
     override fun eval(expression: RemExpr): Value {
         val n = evalAsLong(expression.dividend)
         val m = evalAsLong(expression.divisor)
@@ -676,8 +727,13 @@ class ExpressionEvaluation(
     override fun eval(expression: AssignmentExpr) =
         throw RuntimeException("AssignmentExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: GlobalIndicatorExpr) =
-        throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
+    override fun eval(expression: GlobalIndicatorExpr): Value {
+        val value = StringBuilder()
+        for (i in IndicatorType.Predefined.range) {
+            value.append(if (interpreterStatus.indicators[i] == null) "0" else if (interpreterStatus.indicators[i]!!.value) "1" else "0")
+        }
+        return StringValue(value.toString())
+    }
 
     override fun eval(expression: ParmsExpr): Value {
         return IntValue(interpreterStatus.params.toLong())

@@ -44,6 +44,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                     conf = conf
                 )
             }
+        this.casestatement() != null -> this.casestatement().toAst(conf)
         this.begindo() != null -> this.begindo()
             .let {
                 it.csDO().cspec_fixed_standard_parts().validate(
@@ -52,10 +53,48 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                 )
             }
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
+        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
-        else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
+        this.monitorstatement() != null -> this.monitorstatement().let {
+            it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
+                stmt = it.toAst(conf = conf),
+                conf = conf
+            )
+        }
+        else -> todo(message = "Missing composite statement implementation for this block: ${this.text}", conf = conf)
     }
+}
+
+internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
+    val comparison = when {
+        this.csDOWEQ() != null -> ComparisonOperator.EQ
+        this.csDOWNE() != null -> ComparisonOperator.NE
+        this.csDOWGT() != null -> ComparisonOperator.GT
+        this.csDOWGE() != null -> ComparisonOperator.GE
+        this.csDOWLT() != null -> ComparisonOperator.LT
+        this.csDOWLE() != null -> ComparisonOperator.LE
+        else -> todo(conf = conf)
+    }
+    val factor2 = when {
+        this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2
+        this.csDOWNE() != null -> this.csDOWNE().cspec_fixed_standard_parts().factor2
+        this.csDOWGT() != null -> this.csDOWGT().cspec_fixed_standard_parts().factor2
+        this.csDOWGE() != null -> this.csDOWGE().cspec_fixed_standard_parts().factor2
+        this.csDOWLT() != null -> this.csDOWLT().cspec_fixed_standard_parts().factor2
+        this.csDOWLE() != null -> this.csDOWLE().cspec_fixed_standard_parts().factor2
+        else -> todo(conf = conf)
+    }
+
+    val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
+
+    return DOWxxStmt(
+        comparisonOperator = comparison,
+        factor1 = this.factor1.content.toAst(conf = conf),
+        factor2 = factor2Ast,
+        position = toPosition(conf.considerPosition),
+        body = blockContext.statement().map { it.toAst(conf) }
+    )
 }
 
 internal fun RpgParser.ForstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ForStmt {
@@ -184,6 +223,37 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     }
 }
 
+internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
+    val casClauses = this.csCASxx().map { it.toAst(conf) }
+    val otherClause = if (this.csCASother() != null) this.csCASother().toAst() else null
+    return CaseStmt(
+        cases = casClauses,
+        other = otherClause,
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.CsCASxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseClause {
+    val (comparison, factor2) = this.getCondition()
+    val function = this.getFunction()
+    val condition = LogicalCondition(comparison.asExpression(this.factor1, factor2, conf))
+    val position = toPosition(conf.considerPosition)
+    return CaseClause(
+        condition,
+        position,
+        function
+    )
+}
+
+internal fun RpgParser.CsCASotherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseOtherClause {
+    val function = this.csCAS().cspec_fixed_standard_parts().resultType().text
+    val position = toPosition(conf.considerPosition)
+    return CaseOtherClause(
+        position,
+        function
+    )
+}
+
 @Serializable
 data class LogicalCondition(val expression: Expression) : Expression() {
     val ands = mutableListOf<LogicalCondition>()
@@ -257,6 +327,28 @@ internal fun RpgParser.CsWHENxxContext.getCondition() =
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
+internal fun RpgParser.CsCASxxContext.getCondition() =
+    when {
+        this.csCASEQ() != null -> ComparisonOperator.EQ to this.csCASEQ().cspec_fixed_standard_parts().factor2
+        this.csCASNE() != null -> ComparisonOperator.NE to this.csCASNE().cspec_fixed_standard_parts().factor2
+        this.csCASGE() != null -> ComparisonOperator.GE to this.csCASGE().cspec_fixed_standard_parts().factor2
+        this.csCASGT() != null -> ComparisonOperator.GT to this.csCASGT().cspec_fixed_standard_parts().factor2
+        this.csCASLE() != null -> ComparisonOperator.LE to this.csCASLE().cspec_fixed_standard_parts().factor2
+        this.csCASLT() != null -> ComparisonOperator.LT to this.csCASLT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No valid WhenXX condition")
+    }
+
+internal fun RpgParser.CsCASxxContext.getFunction() =
+    when {
+        this.csCASEQ() != null -> this.csCASEQ().cspec_fixed_standard_parts().resultType().text
+        this.csCASNE() != null -> this.csCASNE().cspec_fixed_standard_parts().resultType().text
+        this.csCASGE() != null -> this.csCASGE().cspec_fixed_standard_parts().resultType().text
+        this.csCASGT() != null -> this.csCASGT().cspec_fixed_standard_parts().resultType().text
+        this.csCASLE() != null -> this.csCASLE().cspec_fixed_standard_parts().resultType().text
+        this.csCASLT() != null -> this.csCASLT().cspec_fixed_standard_parts().resultType().text
+        else -> throw RuntimeException("No valid WhenXX condition")
+    }
+
 internal fun RpgParser.CsIFxxContext.getCondition() =
     when {
         this.csIFEQ() != null -> ComparisonOperator.EQ to this.csIFEQ().cspec_fixed_standard_parts().factor2
@@ -270,6 +362,18 @@ internal fun RpgParser.CsIFxxContext.getCondition() =
 
 internal fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
     TODO("OtherContext.toAst with $conf")
+}
+
+internal fun RpgParser.MonitorstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MonitorStmt {
+    val position = toPosition(conf.considerPosition)
+    val statements = this.statement().mapNotNull {
+        it.toAst(conf)
+    }
+    val onErrorClauses = this.onError().mapNotNull {
+        it.toAst(conf)
+    }
+
+    return MonitorStmt(statements, onErrorClauses, position)
 }
 
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
@@ -299,6 +403,12 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
             position
         )
     }
+}
+
+internal fun RpgParser.OnErrorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OnErrorClause {
+    val body = this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+    val position = toPosition(conf.considerPosition)
+    return OnErrorClause(body, position)
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {

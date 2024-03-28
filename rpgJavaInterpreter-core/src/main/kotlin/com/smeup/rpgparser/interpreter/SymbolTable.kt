@@ -26,10 +26,10 @@ class SymbolTable : ISymbolTable {
     override var parentSymbolTable: ISymbolTable? = null
 
     override operator fun get(data: AbstractDataDefinition): Value {
-        return when (data.scope) {
-            Scope.Program -> (programSymbolTable as SymbolTable).getLocal(data)
-            Scope.Local -> getLocal(data)
-            Scope.Static -> TODO()
+        return when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).getLocal(data)
+            Visibility.Local -> getLocal(data)
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).getLocal(data)
         }
     }
 
@@ -79,14 +79,14 @@ class SymbolTable : ISymbolTable {
     }
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
-        return names[dataName.toUpperCase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.toUpperCase()] }
+        return names[dataName.uppercase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
-        return when (data.scope) {
-            Scope.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
-            Scope.Local -> setLocal(data, value)
-            Scope.Static -> TODO()
+        return when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
+            Visibility.Local -> setLocal(data, value)
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).setLocal(data, value)
         }
     }
 
@@ -100,8 +100,30 @@ class SymbolTable : ISymbolTable {
         require(data.type.canBeAssigned(value)) {
             "Value $value cannot be assigned to data: $data"
         }
-        names[data.name.toUpperCase()] = data
-        return values.put(data, value.forType(data.type))
+
+        if (data is FieldDefinition) {
+            val containerValue = get(data.container)
+            if (data.container.isArray()) {
+                throw IllegalStateException("We do not yet handle an array container")
+            } else if (data.declaredArrayInLine != null) {
+                ProjectedArrayValue.forData(containerValue as DataStructValue, data).container.set(data, value.forType(data.type))
+                return ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+            } else {
+                // Should be always a DataStructValue
+                if (containerValue is DataStructValue) {
+                    containerValue.set(data, value.forType(data.type))
+                    return coerce(containerValue[data], data.type)
+                } else if (containerValue is OccurableDataStructValue) {
+                    containerValue.value().set(data, value.forType(data.type))
+                    return coerce(containerValue.value()[data], data.type)
+                } else {
+                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+                }
+            }
+        } else {
+            names[data.name.uppercase()] = data
+            return values.put(data, value.forType(data.type))
+        }
     }
 
     override fun getValues(): Map<AbstractDataDefinition, Value> {

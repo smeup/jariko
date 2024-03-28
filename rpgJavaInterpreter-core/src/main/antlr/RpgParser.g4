@@ -317,19 +317,39 @@ elseClause:
 ;
 
 casestatement:
-	((CS_FIXED
+    (
+        csCASxx+
+        csCASother?
+        casestatementend
+    ) | (
+        csCASother
+        casestatementend
+    )
+;
+
+csCASxx:
+    CS_FIXED
 	cspec_continuedIndicators*
-	cs_controlLevel 
-	indicatorsOff=onOffIndicatorsFlag indicators=cs_indicators factor1=factor)
-	(csCASEQ
+	cs_controlLevel
+	indicatorsOff=onOffIndicatorsFlag indicators=cs_indicators factor1=factor
+	 (csCASEQ
 	| csCASNE
 	| csCASLE
 	| csCASLT
 	| csCASGE
-	| csCASGT
-	| csCAS))+
-	casestatementend
+	| csCASGT)
 ;
+
+csCASother:
+	(CS_FIXED
+	cspec_continuedIndicators*
+	cs_controlLevel
+	indicatorsOff=onOffIndicatorsFlag indicators=cs_indicators factor1=factor
+	csCAS
+	)
+	| (op_other FREE_SEMI free_linecomments? )
+;
+
 casestatementend:
 	CS_FIXED
 	cspec_continuedIndicators*
@@ -1481,8 +1501,8 @@ csMULT:
 csMVR:
 	CS_FIXED
 	BlankIndicator
-	BlankFlag 
-	BlankIndicator
+	(BlankFlag | NoFlag)
+	(BlankIndicator | GeneralIndicator)
 	CS_BlankFactor
 	operation=OP_MVR
 	cspec_fixed_standard_parts;
@@ -1722,7 +1742,7 @@ factorContent:
 CS_FactorContent | literal;
 
 resultType:	
-   CS_FactorContent (COLON (constant=symbolicConstants))?  | CS_BlankFactor;
+   (CS_FactorContentArrayIndexing | CS_FactorContent) (COLON (constant=symbolicConstants))?  | CS_BlankFactor;
 cs_fixed_comments:CS_FixedComments;		
 //cs_fixed_x2: CS_OperationAndExtendedFactor2 C2_FACTOR2_CONT* C2_FACTOR2 C_EOL;
 cspec_fixed_x2:
@@ -2581,6 +2601,7 @@ SPLAT_ALL
    | SPLAT_HIVAL
    | SPLAT_INIT
    | SPLAT_INDICATOR
+   | SPLAT_ALL_INDICATORS
    | SPLAT_INZSR
    | SPLAT_IN
    | SPLAT_JOBRUN
@@ -2643,7 +2664,9 @@ target:
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
     | bif_subarr #subarrTarget
+    | bif_len #lenTarget
     | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget
     | indic=SPLAT_INDICATOR #indicatorTarget
+    | base=SPLAT_IN OPEN_PAREN index=expression CLOSE_PAREN #indexedIndicatorTarget
     | SPLAT_IN #globalIndicatorTarget
     ;
