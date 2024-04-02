@@ -1,8 +1,7 @@
 name: Deploy to internal smeup nexus
 on:
   push:
-    branches: #['master', 'develop']
-      - feat/add-reusable-workflow
+    branches: ['master', 'develop']
   workflow_dispatch:
 jobs:
   build:
