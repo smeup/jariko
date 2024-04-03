@@ -1929,6 +1929,13 @@ Test 6
     }
 
     @Test
+    fun executeAPIPGM4() {
+        assertEquals(
+            expected = listOf("HI, FRIEND"),
+            actual = outputOf("APIPGM4"))
+    }
+
+    @Test
     open fun executeDSOVERL() {
         assertEquals(
             expected = "AAAA,BBBB".split(","),
