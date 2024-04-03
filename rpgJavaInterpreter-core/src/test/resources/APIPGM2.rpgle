@@ -2,7 +2,7 @@
       * MSG is already defined in APIVARS but does not must cause a conflict
      D  MSG            S             50
       *
-      /COPY APIVARS
+      /API APIVARS
       *
      C                   EVAL      MSG = 'Hello world'
      C     MSG           DSPLY
