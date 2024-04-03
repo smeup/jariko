@@ -62,7 +62,7 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
             apiDescriptors = api.compilationUnit.apiDescriptors?.let {
                 this.apiDescriptors?.plus(it)
             } ?: this.apiDescriptors,
-            procedures = this.procedures.let { it ?: listOf() }.includeWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
+            procedures = this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
         )
     }
 }
@@ -93,7 +93,7 @@ private fun Api.validate(): Api {
     return this
 }
 
-private fun List<CompilationUnit>.includeWithoutDuplicates(from: List<CompilationUnit>): List<CompilationUnit> {
+private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<CompilationUnit>): List<CompilationUnit> {
     return this.mapIndexed { i, procedure ->
         if (procedure.isFakeProcedure) {
             from.firstOrNull { it.procedureName == procedure.procedureName } ?: procedure
