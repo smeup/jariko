@@ -73,4 +73,13 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("CALL_1(          , 1, MULANGTB10:  chiamata 1                           )")
         assertEquals(expected, "smeup/T10_A60_P10".outputOf())
     }
+
+    /**
+     * Call with parameters (100.000 iterations)
+     */
+    @Test
+    fun executeT10_A60_P03() {
+        val expected = listOf("CALL(MULANGT10 , 1, MULANGTB10: MULANGT10 chiamata 1                  )")
+        assertEquals(expected, "smeup/T10_A60_P03".outputOf())
+    }
 }

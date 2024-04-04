@@ -17,4 +17,15 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/T04_A80_P05".outputOf())
     }
+
+    /**
+     * SUBDUR with time difference (100.000 iterations)
+     */
+    @Test
+    fun executeT04_A90_P03() {
+        val expected = listOf(
+            "Microsecondi(21763813000) Millisecondi(21763813) Secondi(21763) Minuti(362) Ore(6)"
+        )
+        assertEquals(expected, "smeup/T04_A90_P03".outputOf())
+    }
 }
