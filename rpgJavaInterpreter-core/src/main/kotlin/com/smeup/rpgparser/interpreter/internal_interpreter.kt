@@ -29,6 +29,7 @@ import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
@@ -749,7 +750,16 @@ open class InternalInterpreter(
                 }
                 return assign(target.array as AssignableExpression, array)
             }
+            is LenExpr -> {
+                require((target.value as? DataRefExpr)?.variable?.referred is DataDefinition)
+                val dataDefinition: DataDefinition = (target.value as DataRefExpr).variable.referred!! as DataDefinition
 
+                when {
+                    dataDefinition.type is StringType -> dataDefinition.resizeStringSize(value.asInt().value.toInt())
+                    else -> target.todo("Implements redefinition of ${dataDefinition.type.javaClass.name}")
+                }
+                return value
+            }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {

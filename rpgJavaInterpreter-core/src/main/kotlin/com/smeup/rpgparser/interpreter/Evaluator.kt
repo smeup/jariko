@@ -72,6 +72,7 @@ interface Evaluator {
     fun eval(expression: AbsExpr): Value
     fun eval(expression: EditwExpr): Value
     fun eval(expression: IntExpr): Value
+    fun eval(expression: InthExpr): Value
     fun eval(expression: RemExpr): Value
     fun eval(expression: QualifiedAccessExpr): Value
     fun eval(expression: ReplaceExpr): Value
