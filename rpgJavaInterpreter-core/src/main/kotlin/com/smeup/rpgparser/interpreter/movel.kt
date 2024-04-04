@@ -69,15 +69,19 @@ fun move(
     value: Expression,
     interpreterCore: InterpreterCore
 ): Value {
-    if (value !is FigurativeConstantRef) {
-        if (value.type() is ArrayType) {
-            throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVE/MOVE(P) statement")
-        }
-        val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
-        if (target.type() is ArrayType) {
+    if (value is FigurativeConstantRef) return interpreterCore.assign(target, interpreterCore.eval(value))
+
+    val valueType = value.type()
+    if (valueType is ArrayType) {
+        throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVE/MOVE(P) statement")
+    }
+
+    val valueToMove = valueToString(interpreterCore.eval(value), valueType)
+    return when (val targetType = target.type()) {
+        is ArrayType -> {
             // for each element of array apply move
-            val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
-            val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
+            val arrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+            val valueToApplyMoveElementType = targetType.element
             arrayValue.elements.forEachIndexed { index, el ->
                 arrayValue.setElement(
                     index + 1, stringToValue(
@@ -91,19 +95,19 @@ fun move(
                     )
                 )
             }
-            return interpreterCore.assign(target, arrayValue)
-        } else {
-            val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
-            return interpreterCore.assign(
+
+            interpreterCore.assign(target, arrayValue)
+        }
+        else -> {
+            val valueToApplyMove = valueToString(interpreterCore.eval(target), targetType)
+            interpreterCore.assign(
                 target,
                 stringToValue(
                     move(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                    target.type()
+                    targetType
                 )
             )
         }
-    } else {
-        return interpreterCore.assign(target, interpreterCore.eval(value))
     }
 }
 
@@ -113,16 +117,20 @@ private fun movel(
     valueToApplyMoveType: Type,
     withClear: Boolean = false
 ): String {
-    return if (valueToMove.length <= valueToApplyMove.length) {
-        var result: String = valueToApplyMove
-        if (withClear) {
-            result = clear(result, valueToApplyMoveType)
+    val canContainValue = valueToMove.length <= valueToApplyMove.length
+    return when {
+        canContainValue -> {
+            var result = valueToApplyMove
+            if (withClear) {
+                result = clear(result, valueToApplyMoveType)
+            }
+            // overwrite valueToMove from left to right to valueToApplyMove
+            valueToMove + result.substring(valueToMove.length)
         }
-        // overwrite valueToMove from left to right to valueToApplyMove
-        valueToMove + result.substring(valueToMove.length)
-    } else {
-        // overwrite valueToMove to valueToApplyMove
-        valueToMove.substring(0, valueToApplyMove.length)
+        else -> {
+            // overwrite valueToMove to valueToApplyMove
+            valueToMove.substring(0, valueToApplyMove.length)
+        }
     }
 }
 
@@ -132,16 +140,20 @@ private fun move(
     valueToApplyMoveType: Type,
     withClear: Boolean = false
 ): String {
-    return if (valueToMove.length <= valueToApplyMove.length) {
-        var result: String = valueToApplyMove
-        if (withClear) {
-            result = clear(result, valueToApplyMoveType)
+    val canContainValue = valueToMove.length <= valueToApplyMove.length
+    return when {
+        canContainValue -> {
+            var result = valueToApplyMove
+            if (withClear) {
+                result = clear(result, valueToApplyMoveType)
+            }
+            // overwrite valueToMove from left to right to valueToApplyMove
+            result.substring(0, result.length - valueToMove.length) + valueToMove
         }
-        // overwrite valueToMove from left to right to valueToApplyMove
-        result.substring(0, result.length - valueToMove.length) + valueToMove
-    } else {
-        // overwrite valueToMove to valueToApplyMove
-        valueToMove.substring(valueToMove.length - valueToApplyMove.length)
+        else -> {
+            // overwrite valueToMove to valueToApplyMove
+            valueToMove.substring(valueToMove.length - valueToApplyMove.length)
+        }
     }
 }
 
@@ -181,34 +193,28 @@ private fun valueToString(value: Value, type: Type): String {
 }
 
 private fun stringToValue(value: String, type: Type): Value {
-    when (type) {
+    return when (type) {
         is StringType -> {
-            return if (type.varying) {
-                StringValue(value, true)
-            } else {
-                var newValue = value
-                if (value.length < type.length) {
+            if (!type.varying) {
+                val newValue = if (value.length < type.length) {
                     // fill with blank space
-                    newValue += " ".repeat(type.length - value.length)
-                }
+                    value + " ".repeat(type.length - value.length)
+                } else value
                 StringValue(newValue, false)
-            }
+            } else StringValue(value, true)
         }
-
-        is CharacterType -> return StringValue(value)
-
+        is CharacterType -> StringValue(value)
         is NumberType -> {
-            return if (type.integer) {
-                // integer
-                IntValue(value.toLong())
-            } else {
+            if (!type.integer) {
                 // decimal
                 val integerPart = value.substring(0, type.entireDigits)
                 val decimalPart = value.substring(type.entireDigits, value.length)
                 DecimalValue(BigDecimal("$integerPart.$decimalPart"))
+            } else {
+                // integer
+                IntValue(value.toLong())
             }
         }
-
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }

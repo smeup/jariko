@@ -2,10 +2,10 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
+fun movea(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
     return when (target) {
         is DataRefExpr -> {
-            moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
+            moveaFullArray(operationExtender, target, valueExpression, 1, interpreterCore)
         }
         is GlobalIndicatorExpr -> {
             interpreterCore.assign(target, interpreterCore.eval(valueExpression))
@@ -21,7 +21,7 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.eval(target.index) as IntValue).value.toInt(), interpreterCore)
+            moveaFullArray(operationExtender, target.array as DataRefExpr, valueExpression, (interpreterCore.eval(target.index) as IntValue).value.toInt(), interpreterCore)
         }
     }
 }
@@ -31,21 +31,24 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
     require(targetType is ArrayType || targetType is StringType) {
         "Result must be an Array or a String"
     }
-    return if (value is FigurativeConstantRef) {
-        interpreterCore.assign(target, interpreterCore.eval(value))
-    } else {
-        val type = if (targetType is ArrayType) {
-            targetType.element
-        } else {
-            targetType
-        }
-        val computedValue = when (type) {
-            is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
-            is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
-            else -> TODO()
-        }
-        interpreterCore.assign(target, computedValue)
+
+    if (value is FigurativeConstantRef) {
+        return interpreterCore.assign(target, interpreterCore.eval(value))
     }
+
+    val type = if (targetType is ArrayType) {
+        targetType.element
+    } else {
+        targetType
+    }
+
+    val computedValue = when (type) {
+        is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
+        is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
+        else -> TODO()
+    }
+
+    return interpreterCore.assign(target, computedValue)
 }
 
 private fun moveaNumber(
@@ -56,21 +59,17 @@ private fun moveaNumber(
     value: Expression
 ): ConcreteArrayValue {
     val newValue = interpreterCore.toArray(value)
-    val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
-    val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
+    val targetArray = interpreterCore[target.variable.referred!!].asArray()
+    val targetType = target.type()
+    val arrayValue = createArrayValue(baseType(targetType), targetType.numberOfElements()) {
         if (it < (startIndex - 1)) {
-            targetArray.getElement(it + 1)
-        } else {
-            val newValueIndex = it - startIndex + 1
-            if (newValueIndex < newValue.elements.size) {
-                newValue.elements[newValueIndex]
-            } else {
-                if (operationExtenter == null) {
-                    targetArray.getElement(it + 1)
-                } else {
-                    IntValue.ZERO
-                }
-            }
+            return@createArrayValue targetArray.getElement(it + 1)
+        }
+        val newValueIndex = it - startIndex + 1
+        when {
+            newValueIndex < newValue.elements.size -> newValue.elements[newValueIndex]
+            operationExtenter == null -> targetArray.getElement(it + 1)
+            else -> IntValue.ZERO
         }
     }
     return arrayValue
@@ -99,48 +98,51 @@ private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue 
     }
 
 private fun moveaString(
-    operationExtenter: String?,
+    operationExtender: String?,
     target: DataRefExpr,
     startIndex: Int,
     interpreterCore: InterpreterCore,
     value: Expression
 ): Value {
-    val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
+    val targetType = target.type()
+    val realSize = targetType.elementSize() * (targetType.numberOfElements() - startIndex + 1)
     var newValue = valueFromSourceExpression(interpreterCore, value).takeFirst(realSize).asString()
+
     if (newValue.value.length < realSize) {
-        val other =
-            if (operationExtenter == null) {
-                interpreterCore.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
-            } else {
+        val other = when (operationExtender) {
+            null -> interpreterCore[target.variable.referred!!].takeLast((realSize - newValue.value.length))
+            else -> {
                 val valueSize = when (val valueType = value.type()) {
                     is StringType -> valueType.length
                     else -> valueType.size
                 }
-                StringValue(" ".repeat((realSize - valueSize)))
-            }
-        newValue = newValue.concatenate(other).asString()
-    }
-    if (target.type() is ArrayType) {
-        return createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
-            if (it < (startIndex - 1)) {
-                interpreterCore.get(target.variable.referred!!).asArray().getElement(it + 1)
-            } else {
-                val index = it - startIndex + 1
-                val startValue = (index * target.type().elementSize()) + 1
-                newValue.take(startValue, startValue + target.type().elementSize() - 1)
+                StringValue(" ".repeat(realSize - valueSize))
             }
         }
-    } else {
-        return newValue
+
+        newValue = newValue.concatenate(other).asString()
+    }
+
+    return when (targetType) {
+        is ArrayType -> createArrayValue(baseType(targetType), targetType.numberOfElements()) {
+            if (it < (startIndex - 1)) {
+                return@createArrayValue interpreterCore[target.variable.referred!!].asArray().getElement(it + 1)
+            }
+            val index = it - startIndex + 1
+            val startValue = (index * targetType.elementSize()) + 1
+            newValue.take(startValue, startValue + targetType.elementSize() - 1)
+        }
+        else -> newValue
     }
 }
 
 private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExpression: Expression): Value {
-    return if (valueExpression is ArrayAccessExpr) {
-        val arrayValueRaw = interpreterCore.eval(valueExpression.array) as ArrayValue
-        val index = (interpreterCore.eval(valueExpression.index) as NumberValue).bigDecimal.toInt()
-        arrayValueRaw.concatenateElementsFrom(index)
-    } else {
-        interpreterCore.eval(valueExpression)
+    return when (valueExpression) {
+        is ArrayAccessExpr -> {
+            val arrayValueRaw = interpreterCore.eval(valueExpression.array) as ArrayValue
+            val index = (interpreterCore.eval(valueExpression.index) as NumberValue).bigDecimal.toInt()
+            arrayValueRaw.concatenateElementsFrom(index)
+        }
+        else -> interpreterCore.eval(valueExpression)
     }
 }

@@ -50,7 +50,7 @@ fun sortA(value: Value, arrayType: ArrayType) {
                 .sortedBy { sortedValues.indexOf(it.value) }
                 .associate { it.toPair() }
 
-            var containerValue = StringBuilder()
+            val containerValue = StringBuilder()
             sortedMap.keys.forEach { key ->
                 containerValue.append(elements[key - 1])
             }

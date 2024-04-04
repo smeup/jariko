@@ -236,10 +236,10 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() = entireDigits + decimalDigits
 
     override fun canBeAssigned(type: Type): Boolean {
-        if (type is NumberType) {
-            return type.entireDigits <= this.entireDigits && type.decimalDigits <= this.decimalDigits
+        return if (type is NumberType) {
+            type.entireDigits <= this.entireDigits && type.decimalDigits <= this.decimalDigits
         } else {
-            return false
+            false
         }
     }
 }

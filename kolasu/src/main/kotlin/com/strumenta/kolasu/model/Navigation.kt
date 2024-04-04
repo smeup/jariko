@@ -1,11 +1,9 @@
 package com.strumenta.kolasu.model
 
 fun <T : Node> Node.ancestor(klass: Class<T>): T? {
-    if (this.parent != null) {
-        if (klass.isInstance(this.parent)) {
-            return this.parent as T
-        }
-        return this.parent!!.ancestor(klass)
+    this.parent ?: return null
+    return when {
+        klass.isInstance(this.parent) -> this.parent as T
+        else -> this.parent!!.ancestor(klass)
     }
-    return null
 }
