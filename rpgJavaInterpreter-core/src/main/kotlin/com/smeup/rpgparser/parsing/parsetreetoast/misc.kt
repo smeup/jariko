@@ -359,7 +359,6 @@ private fun getFakeProcedures(
             apiDescriptors = null,
             procedureName = it.key,
             proceduresParamsDataDefinitions = it.value,
-            isFakeProcedure = true
         )
     }
 }
@@ -457,7 +456,6 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         apiDescriptors = null,
         procedures = null,
         procedureName = procedureName,
-        isFakeProcedure = false,
         proceduresParamsDataDefinitions
     ).apply { MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.pop() }
 }

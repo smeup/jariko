@@ -94,8 +94,8 @@ private fun Api.validate(): Api {
 }
 
 private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<CompilationUnit>): List<CompilationUnit> {
-    return this.mapIndexed { i, procedure ->
-        if (procedure.isFakeProcedure) {
+    return this.map { procedure ->
+        if (procedure.isFakeProcedure()) {
             from.firstOrNull { it.procedureName == procedure.procedureName } ?: procedure
         } else {
             procedure
