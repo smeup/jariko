@@ -162,7 +162,7 @@ class CopyTest {
         val copyDefinitions = mutableMapOf<CopyId, String>()
         pgm.byteInputStream().preprocess(
             findCopy = { copyId ->
-                File("$srcRoot/${copyId.key(CopyFileExtension.rpgle)}").readText(charset = Charsets.UTF_8)
+                File("$srcRoot/${copyId.key(CopyFileExtension.RPGLE)}").readText(charset = Charsets.UTF_8)
                     .apply { copyDefinitions[copyId] = this }
             }
         )

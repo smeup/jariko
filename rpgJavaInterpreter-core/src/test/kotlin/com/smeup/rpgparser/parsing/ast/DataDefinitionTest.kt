@@ -141,7 +141,7 @@ open class DataDefinitionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(DummySystemInterface)
-        interpreter.simplyInitialize(cu, emptyMap())
+        interpreter.initialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
         assertEquals(200, dataDefinition.numberOfElements())
     }
@@ -150,7 +150,7 @@ open class DataDefinitionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(DummySystemInterface)
-        interpreter.simplyInitialize(cu, emptyMap())
+        interpreter.initialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
         assertEquals(1050, dataDefinition.elementSize())
     }

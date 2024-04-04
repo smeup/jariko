@@ -35,34 +35,40 @@ class DBFileMap {
      * Register a FileDefinition and create relative DBFile object for access to database with Reload library
      */
     fun add(fileDefinition: FileDefinition) {
+        if (byFileName.containsKey(fileDefinition.name)) return
 
-        if (!byFileName.containsKey(fileDefinition.name)) {
-            val jarikoMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name)
-            require(jarikoMetadata != null)
-            val dbFile = MainExecutionContext.getDBFileFactory()?.open(
-                fileName = fileDefinition.name,
-                fileMetadata = jarikoMetadata.toReloadMetadata()
-            )
+        val jarikoMetadata =
+            MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name)
+        require(jarikoMetadata != null)
+        val dbFile = MainExecutionContext.getDBFileFactory()?.open(
+            fileName = fileDefinition.name,
+            fileMetadata = jarikoMetadata.toReloadMetadata()
+        )
 
-            dbFile?.let {
-                val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
-                // dbFile not null
-                // I consider fileDefinition.name, fileDefinition.internalFormatName and jarikoMetadata.recordFormat as alias of fileDefinition.name
-                byFileName[fileDefinition.name] = enrichedDBFile
-                fileDefinition.internalFormatName?.let { internalFormatName ->
-                    byInternalFormatName[internalFormatName] = enrichedDBFile
-                }
-                byFormatName[jarikoMetadata.recordFormat] = enrichedDBFile
+        dbFile?.let {
+            val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
+            // dbFile not null
+            // I consider fileDefinition.name, fileDefinition.internalFormatName and jarikoMetadata.recordFormat as alias of fileDefinition.name
+            byFileName[fileDefinition.name] = enrichedDBFile
+            fileDefinition.internalFormatName?.let { internalFormatName ->
+                byInternalFormatName[internalFormatName] = enrichedDBFile
             }
+            byFormatName[jarikoMetadata.recordFormat] = enrichedDBFile
         }
     }
-    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat] ?: byInternalFormatName[nameOrFormat]
+
+    operator fun get(nameOrFormat: String): EnrichedDBFile? =
+        byFileName[nameOrFormat] ?: byFormatName[nameOrFormat] ?: byInternalFormatName[nameOrFormat]
 }
 
 /**
  * DBFile wrapper needed to add further information to DBFile
  * */
-data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition: FileDefinition, val jarikoMetadata: FileMetadata) : DBFile {
+data class EnrichedDBFile(
+    private val dbFile: DBFile,
+    private val fileDefinition: FileDefinition,
+    val jarikoMetadata: FileMetadata
+) : DBFile {
 
     // All files are opened by default when defined in F specs.
     var open = true
@@ -125,10 +131,9 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
  * Converts a value in string as required by reload, type currently is used in HyVal LowVal conversion
  * */
 fun Value.asString(type: Type): String {
-    return if (this is HiValValue || this is LowValValue) {
-        coerce(this, type).asString().value
-    } else {
-        this.asString().value
+    return when (this) {
+        is HiValValue, is LowValValue -> coerce(this, type).asString().value
+        else -> this.asString().value
     }
 }
 

@@ -66,7 +66,11 @@ abstract class AbstractDataDefinition(
     },
     @Transient open val static: Boolean = false
 ) : Node(position), Named {
+    val normalizedName: String
+        get() = name.uppercase()
+
     fun numberOfElements() = type.numberOfElements()
+
     open fun elementSize() = type.elementSize()
 
     fun accept(mutes: MutesMap, start: Int, end: Int):

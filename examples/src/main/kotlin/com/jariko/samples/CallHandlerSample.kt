@@ -74,7 +74,7 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
     override fun findCopy(copyId: CopyId): Copy? {
     // runCatching is wanted because endpoint could not have my program
         return runCatching {
-            val pgmUrl = URL("$endpoint/${copyId.key(CopyFileExtension.rpgle)}")
+            val pgmUrl = URL("$endpoint/${copyId.key(CopyFileExtension.RPGLE)}")
             pgmUrl.openStream().use {
                 println("Loading $copyId from $pgmUrl")
                 Copy.fromInputStream(it)

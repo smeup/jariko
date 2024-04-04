@@ -39,18 +39,19 @@ class ArraySearchingParameters(
         val (indices, remainingIndices) = if (withRightIndicators.lo != null) {
             Pair(zeroBasedStartingIndex downTo 0, lastIndex downTo zeroBasedStartingIndex + 1)
         } else {
-            Pair(zeroBasedStartingIndex..lastIndex, 0..zeroBasedStartingIndex - 1)
+            Pair(zeroBasedStartingIndex..lastIndex, 0 until zeroBasedStartingIndex)
         }
         searchIn(indices, searchedArray, valueToSearch, foundIndexes)
         if (withRightIndicators.eq != null && foundIndexes.eq == -1 && (zeroBasedStartingIndex == 1 || zeroBasedStartingIndex == lastIndex)) {
             searchIn(remainingIndices, searchedArray, valueToSearch, foundIndexes)
         }
-        return if (!foundIndexes.found()) NotFound else FoundAtIndex(
-            foundIndexes.foundIndex() + 1,
-            foundIndexes.hiBooleanValue(),
-            foundIndexes.loBooleanValue(),
-            foundIndexes.eqBooleanValue()
-        )
+        return if (foundIndexes.found())
+            FoundAtIndex(
+                foundIndexes.foundIndex() + 1,
+                foundIndexes.hiBooleanValue(),
+                foundIndexes.loBooleanValue(),
+                foundIndexes.eqBooleanValue()
+            ) else NotFound
     }
 
     private fun searchIn(
@@ -61,20 +62,18 @@ class ArraySearchingParameters(
     ) {
         for (i in idx) {
             val comparison = compare(searchedArray[i], valueToSearch, charset)
-            if (withRightIndicators.eq != null) {
-                if (comparison == EQUAL) {
+            when {
+                withRightIndicators.eq != null && comparison == EQUAL -> {
                     foundIndexes.eq = i
                     break
                 }
-            }
-            if (withRightIndicators.lo != null) {
-                if (comparison == SMALLER) {
+
+                withRightIndicators.lo != null && comparison == SMALLER -> {
                     foundIndexes.lo = i
                     break
                 }
-            }
-            if (withRightIndicators.hi != null) {
-                if (comparison == GREATER) {
+
+                withRightIndicators.hi != null && comparison == GREATER -> {
                     foundIndexes.hi = i
                     break
                 }
@@ -84,12 +83,9 @@ class ArraySearchingParameters(
 }
 
 fun LookupStmt.arraySearchingParameters(interpreterCore: InterpreterCore, charset: Charset) =
-    // ArrayValue...
-    if (right is DataRefExpr) {
-        ArraySearchingParameters(interpreterCore.eval(right).asArray(), 1, rightIndicators, charset, null)
-    } else {
-        // ... or ArrayAccessExpr (ie. factor2(index) )
-        val arrayAccessExpr = (right as ArrayAccessExpr)
+    if (right !is DataRefExpr) {
+        // ArrayAccessExpr (ie. factor2(index) )
+        val arrayAccessExpr = right as ArrayAccessExpr
         val indexExpression = arrayAccessExpr.index
         val oneBasedIndex = interpreterCore.eval(indexExpression).asInt().value.toInt()
         val dataRef = if (indexExpression is DataRefExpr) indexExpression else null
@@ -100,6 +96,9 @@ fun LookupStmt.arraySearchingParameters(interpreterCore: InterpreterCore, charse
             charset,
             dataRef
         )
+    } else {
+        // ArrayValue
+        ArraySearchingParameters(interpreterCore.eval(right).asArray(), 1, rightIndicators, charset, null)
     }
 
 fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Charset) {
@@ -118,10 +117,10 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
 }
 
 class FoundIndexes(var hi: Int, var lo: Int, var eq: Int) {
-    fun found(): Boolean = hi >= 0 || lo >= 0 || eq >= 0
-    fun hiBooleanValue() = if (hi >= 0) BooleanValue.TRUE else BooleanValue.FALSE
-    fun loBooleanValue() = if (lo >= 0) BooleanValue.TRUE else BooleanValue.FALSE
-    fun eqBooleanValue() = if (eq >= 0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun found(): Boolean = arrayOf(hi, lo, eq).any { it >= 0 }
+    fun hiBooleanValue() = (hi >= 0).asValue()
+    fun loBooleanValue() = (lo >= 0).asValue()
+    fun eqBooleanValue() = (eq >= 0).asValue()
     fun foundIndex(): Int = when {
         eq >= 0 -> eq
         hi >= 0 -> hi

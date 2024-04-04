@@ -100,6 +100,7 @@ open class InternalInterpreter(
     }
 
     private var interpretationContext: InterpretationContext = DummyInterpretationContext
+
     override fun getInterpretationContext(): InterpretationContext {
         return interpretationContext
     }
@@ -118,9 +119,7 @@ open class InternalInterpreter(
     private fun logsEnabled() = logHandlers.isNotEmpty()
 
     private val status = InterpreterStatus(globalSymbolTable, indicators)
-    override fun getStatus(): InterpreterStatus {
-        return status
-    }
+    override fun getStatus(): InterpreterStatus = status
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
@@ -128,9 +127,7 @@ open class InternalInterpreter(
         if (logsEnabled()) doLog(logEntry())
     }
 
-    private fun doLog(entry: LogEntry) {
-        logHandlers.log(entry)
-    }
+    private fun doLog(entry: LogEntry) = logHandlers.log(entry)
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
@@ -147,164 +144,53 @@ open class InternalInterpreter(
 
         when (data) {
             // Field are stored within the Data Structure definition
-            is FieldDefinition -> {
-                val ds = data.parent as DataDefinition
-                if (data.declaredArrayInLine != null) {
-                    val dataStructValue = get(ds.name) as DataStructValue
-                    var startOffset = data.startOffset
-                    val size = data.endOffset - data.startOffset
-
-                    // for (i in 1..data.declaredArrayInLine!!) {
-                    // If the size of the arrays are different
-                    val maxElements = min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
-                    for (i in 1..maxElements) {
-                        // Added coerce
-                        val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
-                        dataStructValue.setSubstring(startOffset, startOffset + size,
-                                data.type.asArray().element.toDataStructureValue(valueToAssign))
-                        startOffset += data.stepSize
-                    }
-                } else {
-                    when (val containerValue = get(ds.name)) {
-                        is ArrayValue -> {
-                            val valuesToAssign = value as ArrayValue
-                            require(containerValue.arrayLength() == valuesToAssign.arrayLength())
-                            // The container value is an array of datastructurevalues
-                            // we assign to each data structure the corresponding field value
-                            for (i in 1..containerValue.arrayLength()) {
-                                val dataStructValue = containerValue.getElement(i) as DataStructValue
-                                dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
-                            }
-                        }
-                        is DataStructValue -> {
-                            containerValue.set(data, value)
-                        }
-                        is OccurableDataStructValue -> {
-                            containerValue.value().set(data, value)
-                        }
-                        else -> TODO()
-                    }
-                }
-            }
+            is FieldDefinition -> data.set(value)
             else -> {
                 log {
-                    var previous: Value? = null
-                    if (data.name in globalSymbolTable) {
-                        previous = globalSymbolTable[data.name]
-                    }
+                    val previous = if (data.name in globalSymbolTable) globalSymbolTable[data.name] else null
                     AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous)
                 }
                 // deny reassignment if data is a constant
-                globalSymbolTable.set(data, coerce(value, data.type))?.let {
+                val newValue = coerce(value, data.type)
+                globalSymbolTable.set(data, newValue)?.let {
                     if (data.const) error("${data.name} is a const and cannot be assigned")
                 }
             }
         }
     }
 
-    private fun initialize(
+    fun initialize(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
         val start = System.currentTimeMillis()
         MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
+
         // TODO verify if these values should be reinitialised or not
-        compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
-            status.dbFileMap.add(it)
-        }
+        compilationUnit.fileDefinitions
+            .filter { it.fileType == FileType.DB }
+            .forEach {
+                status.dbFileMap.add(it)
+            }
 
-        var index = 0
         // Assigning initial values received from outside and consider INZ clauses
-        // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
+        // SymbolTable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
-        if (reinitialization || globalSymbolTable.isEmpty()) {
-            beforeInitialization()
-            compilationUnit.allDataDefinitions.forEach {
-                var value: Value? = null
-                if (it is DataDefinition) {
-                    value = when {
-                        it.name in initialValues -> {
-                            val initialValue = initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
-                                require(initialValue.assignableTo(it.type)) {
-                                    "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
-                                }
-                            }
-                            initialValue
-                        }
-                        it.initializationValue != null -> eval(it.initializationValue)
-                        it.isCompileTimeArray() -> toArrayValue(
-                            compilationUnit.compileTimeArray(index++),
-                            (it.type as ArrayType)
-                        )
-                        else -> blankValue(it)
-                    }
-                    if (it.name !in initialValues) {
-                        blankValue(it)
-                        it.fields.forEach { field ->
-                            if (field.initializationValue != null) {
-                                val fieldValue = coerce(eval(field.initializationValue), field.type)
-                                (value as DataStructValue).set(field, fieldValue)
-                            }
-                        }
-                    }
-                } else if (it is InStatementDataDefinition) {
-                    value = if (it.parent is PlistParam) {
-                        when (it.name) {
-                            in initialValues -> initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
-                                it.type.blank()
-                            } else {
-                                null
-                            }
-                        }
-                    } else {
-                        // TODO check this during the process of revision of DB access
-                        if (it.type is KListType) null else it.type.blank()
-                    }
-                }
-                // Fix issue on CTDATA
-                val ctdata = compilationUnit.compileTimeArray(it.name)
-                if (ctdata.name == it.name) {
-                    value = toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
-                            (it.type as ArrayType))
-                    set(it, value)
-                }
+        compilationUnit.reinitialize(initialValues, reinitialization)
 
-                if (value != null) {
-                    set(it, coerce(value, it.type))
-                    if (it is DataDefinition) {
-                        try {
-                            val tmpValue = globalSymbolTable[it]
-                            if (tmpValue !is NullValue) {
-                                it.defaultValue = tmpValue.copy()
-                            }
-                        } catch (exc: IllegalArgumentException) {
-                            it.defaultValue = null
-                        }
-                    }
-                    executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
-                }
-            }
-        } else {
-            initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
-                set(def, coerce(iv.value, def.type))
-            }
-        }
-        MainExecutionContext.log(SymbolTableIniLogEnd(
-            programName = interpretationContext.currentProgramName,
-            elapsed = System.currentTimeMillis() - start
-        ))
-        MainExecutionContext.log(SymbolTableLoadLogStart(programName = interpretationContext.currentProgramName))
-        MainExecutionContext.log(SymbolTableLoadLogEnd(
-            programName = interpretationContext.currentProgramName,
-            elapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
+        MainExecutionContext.log(
+            SymbolTableIniLogEnd(
+                programName = interpretationContext.currentProgramName,
+                elapsed = System.currentTimeMillis() - start
+            )
         )
+        MainExecutionContext.log(SymbolTableLoadLogStart(programName = interpretationContext.currentProgramName))
+        MainExecutionContext.log(
+            SymbolTableLoadLogEnd(
+                programName = interpretationContext.currentProgramName,
+                elapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
+            )
         )
     }
 
@@ -314,25 +200,22 @@ open class InternalInterpreter(
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
         val lines = arrayType.compileTimeRecordsPerLine ?: compileTimeArray.lines.size
-        val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
+        val element = arrayType.element
+        val list: MutableList<Value> =
+            compileTimeArray.lines.chunkAs(lines, element.size)
                 .map {
                     // force rpgle to zoned if is number type
-                    val elementType = if (arrayType.element is NumberType) {
-                        arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
+                    val elementType = if (element is NumberType) {
+                        element.copy(rpgType = RpgType.ZONED.rpgType)
                     } else {
-                        arrayType.element
+                        element
                     }
                     coerce(StringValue(it), elementType)
                 }
-                .resizeTo(arrayType.nElements, arrayType.element.blank())
+                .resizeTo(arrayType.nElements, element.blank())
                 .toMutableList()
 
-        return ConcreteArrayValue(l, arrayType.element)
-    }
-
-    fun simplyInitialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
-        initialize(compilationUnit, initialValues)
+        return ConcreteArrayValue(list, arrayType.element)
     }
 
     private fun configureLogHandlers() {
@@ -346,32 +229,41 @@ open class InternalInterpreter(
     ) {
         kotlin.runCatching {
             configureLogHandlers()
-
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
             execINZSR(compilationUnit)
+
             if (compilationUnit.minTimeOut == null) {
                 execute(compilationUnit.main.stmts)
-            } else {
-                val elapsedTime = measureTimeMillis {
-                    execute(compilationUnit.main.stmts)
-                }
-                if (elapsedTime > compilationUnit.minTimeOut!!) {
-                    throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
-                }
+                return@runCatching
             }
+
+            val elapsedTime = measureTimeMillis {
+                execute(compilationUnit.main.stmts)
+            }
+            val exceedsMinTimeOut = elapsedTime > compilationUnit.minTimeOut!!
+            if (!exceedsMinTimeOut) return@runCatching
+
+            throw InterpreterTimeoutException(
+                interpretationContext.currentProgramName,
+                elapsedTime,
+                compilationUnit.minTimeOut!!
+            )
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue
-            } else {
-                if (!MainExecutionContext.getProgramStack().isEmpty()) {
-                    MainExecutionContext.getProgramStack().peek().cu.source?.apply {
-                        System.err.println(it.message)
-                        System.err.println(this.dumpSource())
-                    }
-                }
-                throw it
+                return
             }
+
+            val programStack = MainExecutionContext.getProgramStack()
+            if (programStack.isNotEmpty()) {
+                programStack.peek().cu.source?.apply {
+                    System.err.println(it.message)
+                    System.err.println(this.dumpSource())
+                }
+            }
+
+            throw it
         }
     }
 
@@ -399,7 +291,8 @@ open class InternalInterpreter(
     }
 
     @Deprecated(message = "No longer used")
-    open fun fireOnEnterPgmCallBackFunction() {}
+    open fun fireOnEnterPgmCallBackFunction() {
+    }
 
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
@@ -444,7 +337,8 @@ open class InternalInterpreter(
     }
 
     private fun Throwable.fireErrorEvent(position: Position?): Throwable {
-        val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
+        val errorEvent =
+            ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
         errorEvent.pushRuntimeErrorEvent()
         MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
         return this
@@ -452,24 +346,40 @@ open class InternalInterpreter(
 
     // I use a chain of names, so I am sure that this attribute name depends on program stack too
     private fun prevStmtAttributeMame(): String {
-        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }}"
+        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${
+            MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }
+        }"
     }
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
-        if (!MainExecutionContext.getProgramStack().empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) {
+        if (!MainExecutionContext.getProgramStack()
+                .empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()
+        ) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
             copyBlocks.observeTransitions(
                 from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
                 to = currentStatementLine,
-                onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
-                onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }
+                onEnter = { copyBlock ->
+                    MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(
+                        copyBlock.copyId
+                    )
+                },
+                onExit = { copyBlock ->
+                    MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(
+                        copyBlock.copyId
+                    )
+                }
             )
             MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit, line: String) {
+    private fun executeMutes(
+        muteAnnotations: MutableList<MuteAnnotation>,
+        compilationUnit: CompilationUnit,
+        line: String
+    ) {
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -505,18 +415,22 @@ open class InternalInterpreter(
                         )
                     )
                 }
+
                 is MuteTypeAnnotation -> {
                     // Skip
                 }
+
                 is MuteTimeoutAnnotation -> {
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteTimeoutAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
                             it.timeout,
-                            line)
+                            line
+                        )
                     )
                 }
+
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
                     log { MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, message) }
@@ -529,6 +443,7 @@ open class InternalInterpreter(
                         )
                     )
                 }
+
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
         }
@@ -631,7 +546,8 @@ open class InternalInterpreter(
                     dataDefinitionByName(name)
                 }?.apply {
                     assign(this, StringValue(field.value))
-                } ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
+                }
+                    ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
         } else {
             status.lastFound = false
@@ -689,10 +605,12 @@ open class InternalInterpreter(
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
+
             else -> expression.evalWith(expressionEvaluation)
         }
         if (expression !is StringLiteral && expression !is IntLiteral &&
-            expression !is DataRefExpr && expression !is BlanksRefExpr) {
+            expression !is DataRefExpr && expression !is BlanksRefExpr
+        ) {
             log { ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value) }
         }
         return value
@@ -726,7 +644,10 @@ open class InternalInterpreter(
             require(restType is NumberType)
             val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
             val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            assign(statement.mvrStatement.target, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
+            assign(
+                statement.mvrStatement.target,
+                DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN))
+            )
         }
         return if (statement.halfAdjust) {
             DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
@@ -765,6 +686,7 @@ open class InternalInterpreter(
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
             }
+
             is ArrayAccessExpr -> {
                 val arrayValue = eval(target.array) as ArrayValue
                 val targetType = target.array.type()
@@ -791,6 +713,7 @@ open class InternalInterpreter(
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
+
             is SubstExpr -> {
                 val oldValue = eval(target.string).asString().value
                 val length = if (target.length != null) eval(target.length).asInt().value.toInt() else null
@@ -805,11 +728,13 @@ open class InternalInterpreter(
 
                 return assign(target.string as AssignableExpression, newValue)
             }
+
             is SubarrExpr -> {
                 require(value is ArrayValue)
                 // replace portion of array with another array
                 val start: Int = eval(target.start).asInt().value.toInt()
-                val numberOfElement: Int? = if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
+                val numberOfElement: Int? =
+                    if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
                 val array: ArrayValue = eval(target.array).asArray().copy()
                 val to: Int = if (numberOfElement == null) {
                     array.arrayLength()
@@ -824,12 +749,14 @@ open class InternalInterpreter(
                 }
                 return assign(target.array as AssignableExpression, array)
             }
+
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
                         container[target.field.referred!!]
                         container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
                     }
+
                     is OccurableDataStructValue -> {
                         container.value()[target.field.referred!!]
                         container.value().set(target.field.referred!!, coerce(value, target.field.referred!!.type))
@@ -837,12 +764,14 @@ open class InternalInterpreter(
                 }
                 return value
             }
+
             is IndicatorExpr -> {
                 val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
                 indicators[index] = coercedValue.asBoolean()
                 return coercedValue
             }
+
             is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
@@ -858,6 +787,7 @@ open class InternalInterpreter(
                     coercedValue
                 }
             }
+
             else -> TODO(target.toString())
         }
     }
@@ -876,12 +806,14 @@ open class InternalInterpreter(
                     assign(target, eval(value))
                 }
             }
+
             PLUS_ASSIGNMENT ->
                 if (target is DataRefExpr && value is IntLiteral) {
                     increment(target.variable.referred!!, value.value)
                 } else {
                     assign(target, eval(PlusExpr(target, value)))
                 }
+
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
@@ -957,7 +889,8 @@ open class InternalInterpreter(
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
                 return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
-                    interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
+                    interpretationContext.currentProgramName, associatedActivationGroup
+                )?.assignedName ?: activationGroup
             }
         }
     }
@@ -997,7 +930,8 @@ open class InternalInterpreter(
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
         return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
-            interpretationContext.currentProgramName) ?: exitRT
+            interpretationContext.currentProgramName
+        ) ?: exitRT
     }
 
     // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
@@ -1023,7 +957,152 @@ open class InternalInterpreter(
             compilationUnit.subroutines.firstOrNull { subroutine ->
                 subroutine.name.equals(other = name, ignoreCase = true)
             }?.let { subroutine ->
-                ExecuteSubroutine(subroutine = ReferenceByName(name, subroutine), position = subroutine.position).execute(this)
+                ExecuteSubroutine(
+                    subroutine = ReferenceByName(name, subroutine),
+                    position = subroutine.position
+                ).execute(this)
+            }
+        }
+    }
+
+    private fun FieldDefinition.set(value: Value) {
+        val parentDataDefinition = this.parent as DataDefinition
+        val parentValue = get(parentDataDefinition.name)
+
+        if (this.declaredArrayInLine != null) {
+            val dataStructValue = parentValue as DataStructValue
+            var startOffset = this.startOffset
+            val size = this.endOffset - this.startOffset
+
+            // for (i in 1..data.declaredArrayInLine!!) {
+            // If the size of the arrays are different
+            val valueArray = value.asArray()
+            val maxElements = min(valueArray.arrayLength(), this.declaredArrayInLine!!)
+            for (i in 1..maxElements) {
+                // Added coerce
+                val arrayType = this.type.asArray().element
+                val valueToAssign = coerce(valueArray.getElement(i), arrayType)
+                dataStructValue.setSubstring(
+                    startOffset, startOffset + size,
+                    arrayType.toDataStructureValue(valueToAssign)
+                )
+                startOffset += this.stepSize
+            }
+
+            return
+        }
+
+        this.setCompoundParentValue(parentValue, value)
+    }
+
+    private fun FieldDefinition.setCompoundParentValue(parentValue: Value, newValue: Value) {
+        when (parentValue) {
+            is ArrayValue -> {
+                val valuesToAssign = newValue as ArrayValue
+                val containerLength = parentValue.arrayLength()
+                require(containerLength == valuesToAssign.arrayLength())
+                // The container value is an array of DataStructureValues
+                // we assign to each data structure the corresponding field value
+                for (i in 1..containerLength) {
+                    val dataStructValue = parentValue.getElement(i) as DataStructValue
+                    dataStructValue.setSingleField(this, valuesToAssign.getElement(i))
+                }
+            }
+
+            is DataStructValue -> parentValue.set(this, newValue)
+            is OccurableDataStructValue -> parentValue.value().set(this, newValue)
+            else -> TODO()
+        }
+    }
+
+    private fun CompilationUnit.reinitialize(
+        initialValues: Map<String, Value>,
+        shouldReInitialize: Boolean
+    ) {
+        val needsReInit = shouldReInitialize || globalSymbolTable.isEmpty()
+        if (!needsReInit) {
+            initialValues.forEach { iv ->
+                val def = this.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
+                set(def, coerce(iv.value, def.type))
+            }
+            return
+        }
+
+        beforeInitialization()
+
+        var compileTimeArraysCount = 0
+        this.allDataDefinitions.forEach {
+            var value = when (it) {
+                is DataDefinition -> {
+                    val currentValue = when {
+                        it.name in initialValues -> {
+                            val initialValue = initialValues[it.name]
+                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                require(initialValue.assignableTo(it.type)) {
+                                    "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                }
+                            }
+                            initialValue
+                        }
+                        it.initializationValue != null -> eval(it.initializationValue)
+                        it.isCompileTimeArray() -> toArrayValue(
+                            this.compileTimeArray(compileTimeArraysCount++),
+                            it.type as ArrayType
+                        )
+                        else -> blankValue(it)
+                    }
+
+                    if (it.name !in initialValues) {
+                        blankValue(it)
+                        it.fields.filter { field -> field.initializationValue != null }.forEach { field ->
+                            val initValue = eval(field.initializationValue!!)
+                            val fieldValue = coerce(initValue, field.type)
+                            val dataStructure = currentValue as DataStructValue
+                            dataStructure.set(field, fieldValue)
+                        }
+                    }
+
+                    currentValue
+                }
+
+                is InStatementDataDefinition -> {
+                    when {
+                        it.parent is PlistParam -> {
+                            when {
+                                it.name in initialValues -> initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                (it.parent as PlistParam).dataDefinition().isNotEmpty() -> it.type.blank()
+                                else -> null
+                            }
+                        }
+                        it.type !is KListType -> it.type.blank()
+                        else -> {
+                            // TODO check this during the process of revision of DB access
+                            null
+                        }
+                    }
+                }
+
+                else -> null
+            }
+
+            // Fix issue on CTDATA
+            val ctdata = this.compileTimeArray(it.name)
+            if (ctdata.name == it.name) {
+                value = toArrayValue(ctdata, (it.type as ArrayType))
+                set(it, value)
+            }
+
+            value?.let { actualValue ->
+                set(it, coerce(actualValue, it.type))
+                if (it is DataDefinition) {
+                    val computedValue = globalSymbolTable[it]
+                    if (computedValue !is NullValue) {
+                        it.defaultValue = computedValue.copy()
+                    }
+                }
+                executeMutes(it.muteAnnotations, this, "(data definition)")
             }
         }
     }
@@ -1039,13 +1118,14 @@ fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
  * @return An instance of StatementReference related to position.
  * */
 internal fun Position.relative(): StatementReference {
-    val programName = if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
+    val programStack = MainExecutionContext.getProgramStack()
+    val programName = if (programStack.empty()) null else programStack.peek().name
+    val copyBlocks = programName?.let { programStack.peek().cu.copyBlocks }
     return this.relative(programName, copyBlocks)
 }
 
 /**
- * Memory slice context attribute name must to be also string representation of MemorySliceId
+ * Memory slice context attribute name must be also string representation of MemorySliceId
  * */
 internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
 
@@ -1065,18 +1145,17 @@ internal fun ISymbolTable.restoreFromMemorySlice(
     memorySliceMgr: MemorySliceMgr?,
     initialValues: Map<String, Value> = emptyMap()
 ) {
-    memorySliceId?.let { myMemorySliceId ->
-        memorySliceMgr?.let {
-            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
-                memorySliceId = memorySliceId,
-                symbolTable = this,
-                initSymbolTableEntry = { dataDefinition, storedValue ->
-                    // initial values have not to be overwritten
-                    if (!initialValues.containsKey(dataDefinition.name)) {
-                        this[dataDefinition] = storedValue
-                    }
-                }
-            )
+    memorySliceId ?: return
+    memorySliceMgr ?: return
+
+    MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = memorySliceMgr.associate(
+        memorySliceId = memorySliceId,
+        symbolTable = this,
+        initSymbolTableEntry = { dataDefinition, storedValue ->
+            // initial values have not to be overwritten
+            if (!initialValues.containsKey(dataDefinition.name)) {
+                this[dataDefinition] = storedValue
+            }
         }
-    }
+    )
 }

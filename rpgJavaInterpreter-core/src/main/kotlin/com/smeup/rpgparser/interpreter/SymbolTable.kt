@@ -34,24 +34,23 @@ class SymbolTable : ISymbolTable {
     }
 
     private fun getLocal(data: AbstractDataDefinition): Value {
-        if (data is FieldDefinition) {
-            val containerValue = get(data.container)
-            return if (data.container.isArray()) {
-                TODO("We do not yet handle an array container")
-            } else if (data.declaredArrayInLine != null) {
-                ProjectedArrayValue.forData(containerValue as DataStructValue, data)
-            } else {
-                // Should be always a DataStructValue
-                if (containerValue is DataStructValue) {
-                    return coerce(containerValue[data], data.type)
-                } else if (containerValue is OccurableDataStructValue) {
-                    return coerce(containerValue.value()[data], data.type)
-                } else {
-                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
-                }
-            }
+        if (data !is FieldDefinition)
+            return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
+
+        val containerValue = get(data.container)
+        if (data.container.isArray()) {
+            TODO("We do not yet handle an array container")
         }
-        return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
+        if (data.declaredArrayInLine != null) {
+            return ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+        }
+
+        // Should be always a DataStructValue
+        return when (containerValue) {
+            is DataStructValue -> coerce(containerValue[data], data.type)
+            is OccurableDataStructValue -> coerce(containerValue.value()[data], data.type)
+            else -> throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+        }
     }
 
     override operator fun get(dataName: String): Value {
@@ -61,25 +60,35 @@ class SymbolTable : ISymbolTable {
         }
         // We did not find a top-level declaration with that name,
         // looking among fields
-        for (topLevelValue in values) {
-            if (topLevelValue.key is DataDefinition) {
-                val field = (topLevelValue.key as DataDefinition).fields.firstOrNull {
-                    it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
-                }
-                if (field != null) {
-                    return if (topLevelValue.key.type is ArrayValue) {
-                        TODO("We do not yet handle top level values of array type")
-                    } else {
-                        (topLevelValue.value as DataStructValue)[field]
-                    }
-                }
+        val dataDefinitions = values
+            .entries
+            .filter { it.key is DataDefinition }
+
+        for (topLevelValue in dataDefinitions) {
+            val currentDefinition = topLevelValue.key as DataDefinition
+            val field = currentDefinition.fields.firstOrNull {
+                it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
             }
+
+            // If field not found then skip this iteration
+            if (field == null) continue
+
+            if (currentDefinition.type is ArrayType) {
+                TODO("We do not yet handle top level values of array type")
+            }
+
+            // Field found and supported, return value
+            val struct = (topLevelValue.value as DataStructValue)
+            return struct[field]
         }
+
         throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
-        return names[dataName.uppercase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
+        val normalizedDataName = dataName.uppercase()
+        return names[normalizedDataName]
+            ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[normalizedDataName] }
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
@@ -101,28 +110,37 @@ class SymbolTable : ISymbolTable {
             "Value $value cannot be assigned to data: $data"
         }
 
-        if (data is FieldDefinition) {
-            val containerValue = get(data.container)
-            if (data.container.isArray()) {
-                throw IllegalStateException("We do not yet handle an array container")
-            } else if (data.declaredArrayInLine != null) {
-                ProjectedArrayValue.forData(containerValue as DataStructValue, data).container.set(data, value.forType(data.type))
-                return ProjectedArrayValue.forData(containerValue as DataStructValue, data)
-            } else {
-                // Should be always a DataStructValue
-                if (containerValue is DataStructValue) {
-                    containerValue.set(data, value.forType(data.type))
-                    return coerce(containerValue[data], data.type)
-                } else if (containerValue is OccurableDataStructValue) {
-                    containerValue.value().set(data, value.forType(data.type))
-                    return coerce(containerValue.value()[data], data.type)
-                } else {
-                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
-                }
-            }
-        } else {
-            names[data.name.uppercase()] = data
+        if (data !is FieldDefinition) {
+            names[data.normalizedName] = data
             return values.put(data, value.forType(data.type))
+        }
+
+        if (data.container.isArray()) {
+            throw IllegalStateException("We do not yet handle an array container")
+        }
+
+        val containerValue = get(data.container)
+        if (data.declaredArrayInLine != null) {
+            ProjectedArrayValue.forData(containerValue as DataStructValue, data).container.set(
+                data,
+                value.forType(data.type)
+            )
+            return ProjectedArrayValue.forData(containerValue, data)
+        }
+
+        // Should be always a DataStructValue
+        return when (containerValue) {
+            is DataStructValue -> {
+                containerValue.set(data, value.forType(data.type))
+                coerce(containerValue[data], data.type)
+            }
+
+            is OccurableDataStructValue -> {
+                containerValue.value().set(data, value.forType(data.type))
+                coerce(containerValue.value()[data], data.type)
+            }
+
+            else -> throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
         }
     }
 

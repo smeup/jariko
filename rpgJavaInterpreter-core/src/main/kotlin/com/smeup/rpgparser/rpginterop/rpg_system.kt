@@ -44,7 +44,10 @@ interface RpgProgramFinder {
 class SourceProgramFinder : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), nameOrSource)
+            return RpgProgram.fromInputStream(
+                ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)),
+                nameOrSource
+            )
         }
         return null
     }
@@ -85,57 +88,30 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     private fun File.notifyFound() = foundProgram.invoke(this.toPath())
 
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
-        // TODO
-        // refactor to avoid code duplication and a better handle of
-        // new SourceProgram extensions
         val file = File(prefix() + nameAndSuffix(nameOrSource))
 
-        // InputStream from '.rpgle' program
-        if (nameOrSource.endsWith(SourceProgram.RPGLE.extension) && file.exists()) {
-            file.notifyFound()
-            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.RPGLE)
-        }
-
-        // InputStream from '.sqlrpgle' program
-        if (nameOrSource.endsWith(SourceProgram.SQLRPGLE.extension) && file.exists()) {
-            file.notifyFound()
-            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.SQLRPGLE)
-        }
-
-        // InputStream from '.bin' program
-        if (nameOrSource.endsWith(SourceProgram.BINARY.extension) && file.exists()) {
-            file.notifyFound()
-            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.BINARY)
+        val availableSourcePrograms = SourceProgram.values()
+        if (file.exists()) {
+            availableSourcePrograms
+                .find { nameOrSource.endsWith(it.extension) }
+                ?.let {
+                    file.notifyFound()
+                    return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, it)
+                }
         }
 
         // No extension, should be '.rpgle' or '.sqlrpgle' or '.bin'
-        if (!nameOrSource.endsWith(SourceProgram.RPGLE.extension) &&
-            !nameOrSource.endsWith(SourceProgram.SQLRPGLE.extension) &&
-            !nameOrSource.endsWith(SourceProgram.BINARY.extension)) {
-            var anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.RPGLE.extension}")
-            if (anonymouosFile.exists()) {
-                anonymouosFile.notifyFound()
-                return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.RPGLE)
-            } else {
-                anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.SQLRPGLE.extension}")
-                if (anonymouosFile.exists()) {
-                    anonymouosFile.notifyFound()
-                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.SQLRPGLE)
-                } else {
-                    anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.BINARY.extension}")
-                    if (anonymouosFile.exists()) {
-                        anonymouosFile.notifyFound()
-                        return RpgProgram.fromInputStream(
-                            FileInputStream(anonymouosFile),
-                            nameOrSource,
-                            SourceProgram.BINARY
-                        )
-                    } else {
-                        return null
-                    }
+        if (availableSourcePrograms.none { nameOrSource.endsWith(it.extension) }) {
+            availableSourcePrograms
+                .map { sourceProgram -> Pair(sourceProgram, File("${prefix()}$nameOrSource.${sourceProgram.extension}")) }
+                .find { (_, file) -> file.exists() }
+                ?.let { (sourceProgram, file) ->
+                    file.notifyFound()
+                    val inputStream = FileInputStream(file)
+                    return RpgProgram.fromInputStream(inputStream, nameOrSource, sourceProgram)
                 }
-            }
         }
+
         return null
     }
 
@@ -154,14 +130,15 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         // If name 'ABC' or 'ABC.rpgle' assume 'ABC.rpgle'
         // If name 'ABC.bin' assume 'ABC.bin'
         if (name.endsWith(SourceProgram.RPGLE.extension) ||
-            name.endsWith(SourceProgram.BINARY.extension)) {
+            name.endsWith(SourceProgram.BINARY.extension)
+        ) {
             return name
         }
         return "$name.${SourceProgram.RPGLE.extension}"
     }
 
     override fun toString(): String {
-        val path = if (directory == null) "" else directory.absolutePath.toString()
+        val path = directory?.absolutePath?.toString() ?: ""
         return "directory: $path "
     }
 
@@ -289,7 +266,7 @@ open class RpgSystem {
 }
 
 enum class CopyFileExtension {
-    rpgle, api, tab
+    RPGLE, API, TAB
 }
 
 /**
@@ -299,11 +276,12 @@ enum class CopyFileExtension {
  * */
 fun CopyId.toFile(dir: File?): File? {
     // first of all search by known extension
-    val fileFoundByKnownExtensions = CopyFileExtension.values().find { File(dir, this.key(it)).exists() }?.let { File(dir, this.key(it)) }
+    val fileFoundByKnownExtensions =
+        CopyFileExtension.values().find { File(dir, this.key(it)).exists() }?.let { File(dir, this.key(it)) }
     return fileFoundByKnownExtensions
-        // after that I search for the first file by ignoring the extensions
+    // after that I search for the first file by ignoring the extensions
         ?: dir?.let {
-            val copyRelativePath = Paths.get(this.key(CopyFileExtension.rpgle).replace("\\..+$".toRegex(), ""))
+            val copyRelativePath = Paths.get(this.key(CopyFileExtension.RPGLE).replace("\\..+$".toRegex(), ""))
             it.toPath().resolve(copyRelativePath.parent?.toString() ?: "").toFile().listFiles { _, name ->
                 name.replace("\\..+$".toRegex(), "") == copyRelativePath.fileName.toString()
             }?.firstOrNull()
@@ -312,4 +290,5 @@ fun CopyId.toFile(dir: File?): File? {
 
 private fun ApiId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
 
-private fun ApiId.toFileApiDescriptor(dir: File?, sourceProgram: SourceProgram) = File(dir, this.apiDescriptorKey(sourceProgram))
+private fun ApiId.toFileApiDescriptor(dir: File?, sourceProgram: SourceProgram) =
+    File(dir, this.apiDescriptorKey(sourceProgram))
