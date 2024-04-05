@@ -1127,14 +1127,17 @@ data class DefineStmt(
                 // This check is necessary to avoid infinite recursion
                 throw Error("Data reference $originalName not resolved")
             }
-            val inStatementDataDefinition =
-                containingCU.main.stmts
-                    .filterIsInstance<StatementThatCanDefineData>()
-                    .filter { it != this }
-                    .asSequence()
-                    .map(StatementThatCanDefineData::dataDefinition)
-                    .flatten()
-                    .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+            /* Checking if the context is main or subroutine, to execute the right search about the InStatementsDataDefinition. */
+            val inStatementDataDefinition = when (this.parent) {
+                is Subroutine -> {
+                    (this.parent as Subroutine).stmts.findInStatementDataDefinition(originalName, this)
+                }
+                is MainBody -> {
+                    containingCU.main.stmts.findInStatementDataDefinition(originalName, this)
+                }
+                else -> throw Error("Data reference $originalName not resolved")
+            }
+
             this.exitFromStack()
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
@@ -1143,6 +1146,18 @@ data class DefineStmt(
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+}
+
+/**
+ * From a list of Statements, finds an inline definition (InStatementDataDefinition) based of `originalName`.
+ */
+private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition {
+    return this.filterIsInstance<StatementThatCanDefineData>()
+                .filter { it != contextToExclude }
+                .asSequence()
+                .map(StatementThatCanDefineData::dataDefinition)
+                .flatten()
+                .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
 }
 
 /**
