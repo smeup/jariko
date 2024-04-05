@@ -1936,6 +1936,13 @@ Test 6
     }
 
     @Test
+    fun executeAPIPGM5() {
+        assertEquals(
+            expected = listOf("Hello there!", "General Kenobi"),
+            actual = outputOf("APIPGM5"))
+    }
+
+    @Test
     open fun executeDSOVERL() {
         assertEquals(
             expected = "AAAA,BBBB".split(","),
