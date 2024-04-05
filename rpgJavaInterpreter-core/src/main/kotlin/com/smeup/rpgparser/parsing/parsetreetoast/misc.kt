@@ -358,7 +358,7 @@ private fun getFakeProcedures(
             position = null,
             apiDescriptors = null,
             procedureName = it.key,
-            proceduresParamsDataDefinitions = it.value,
+            proceduresParamsDataDefinitions = it.value
         )
     }
 }
