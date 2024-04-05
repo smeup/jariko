@@ -86,7 +86,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     /**
      * ###################
-     * ATOMIC TEST SECTION.
+     * ATOMIC TEST SECTION
      * ###################
      */
 
@@ -99,6 +99,4 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("A50_A3(       ) A50_A4(       )")
         assertEquals(expected, "smeup/MU025002".outputOf(configuration = smeupConfig))
     }
-
-
 }
