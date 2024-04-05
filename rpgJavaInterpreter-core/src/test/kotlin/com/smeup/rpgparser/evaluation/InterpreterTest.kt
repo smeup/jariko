@@ -1931,7 +1931,7 @@ Test 6
     @Test
     fun executeAPIPGM4() {
         assertEquals(
-            expected = listOf("HI, FRIEND"),
+            expected = listOf("Hello there!", "General Kenobi"),
             actual = outputOf("APIPGM4"))
     }
 
