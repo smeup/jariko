@@ -83,4 +83,22 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("1")
         assertEquals(expected, "smeup/T02_A80_P06".outputOf())
     }
+
+    /**
+     * ###################
+     * ATOMIC TEST SECTION.
+     * ###################
+     */
+
+    /**
+     * Definition with Like to a variable defined also with like.
+     * @see #160
+     */
+    @Test
+    fun executeMU025002() {
+        val expected = listOf("A50_A3(       ) A50_A4(       )")
+        assertEquals(expected, "smeup/MU025002".outputOf(configuration = smeupConfig))
+    }
+
+
 }
