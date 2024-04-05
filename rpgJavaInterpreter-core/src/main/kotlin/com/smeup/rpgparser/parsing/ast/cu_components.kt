@@ -94,6 +94,10 @@ data class CompilationUnit(
             return _allDataDefinitions
         }
 
+    /**
+     * This returns `true` if this procedure is fake by its empty lists for file definition,
+     *  data definition, subroutines, compile time arrays and directive.
+     */
     fun isFakeProcedure(): Boolean {
         return !this.procedureName.isNullOrBlank() &&
                 this.fileDefinitions.isEmpty() &&
