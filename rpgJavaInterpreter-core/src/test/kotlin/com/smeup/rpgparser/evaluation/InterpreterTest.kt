@@ -1924,7 +1924,7 @@ Test 6
     @Test
     fun executeAPIPGM3() {
         assertEquals(
-            expected = listOf("3"),
+            expected = listOf("3", "6"),
             actual = outputOf("APIPGM3"))
     }
 
