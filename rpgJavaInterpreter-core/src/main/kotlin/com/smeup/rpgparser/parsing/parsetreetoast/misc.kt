@@ -246,20 +246,18 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
     checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
-    // If none of 'rpg procedures', add only any 'fake procedures'.
-    // If any 'rpg procedures' exists, add any 'fake procedures' too.
-    val fakeProcedures = getFakeProcedures(rContext = this,
+    val prototypeProcedures = getPrototypeProcedures(rContext = this,
         conf = conf,
         dataDefinitions = dataDefinitions,
         procedures = procedures
     )
 
     if (null == procedures) {
-        if (!fakeProcedures.isEmpty()) {
-            procedures = fakeProcedures
+        if (!prototypeProcedures.isEmpty()) {
+            procedures = prototypeProcedures
         }
     } else {
-        (procedures as ArrayList).addAll(fakeProcedures)
+        (procedures as ArrayList).addAll(prototypeProcedures)
     }
 
     return CompilationUnit(
@@ -285,16 +283,14 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }.postProcess()
 }
 
-private fun getFakeProcedures(
+private fun getPrototypeProcedures(
     rContext: RContext,
     conf: ToAstConfiguration,
     dataDefinitions: List<DataDefinition>,
     procedures: List<CompilationUnit>?
 ): List<CompilationUnit> {
     /*
-     * If any of the 'non rpgle standard' procedures (only prototype definition 'PR' and missing
-     *  the procedure implementation) should be the 'doped java procedure' case.
-     * Needed to create a 'fake procedure' to be able to get 'ProcedureParameterDataDefinition'.
+     * Could be prototype procedures definition. The construction is performed:
      * 1. filtering by procedures without concrete implementation;
      * 2. preparing fake procedure
      */
