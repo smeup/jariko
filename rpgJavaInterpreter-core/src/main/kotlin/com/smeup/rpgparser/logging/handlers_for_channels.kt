@@ -24,7 +24,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
 class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    val logger = LogManager.getLogger(EXPRESSION_LOGGER)
+    private val logger = LogManager.getLogger(LogChannel.EXPRESSION.getPropertyName())
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -45,7 +45,7 @@ class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
 }
 
 class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    private val logger = LogManager.getLogger(PERFORMANCE_LOGGER)
+    private val logger = LogManager.getLogger(LogChannel.PERFORMANCE.getPropertyName())
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -53,7 +53,6 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
     }
 
     override fun handle(logEntry: LogEntry) {
-
         if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is SubroutineExecutionLogEnd -> logger.fireLogInfo(render(logEntry))
@@ -75,8 +74,8 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
 }
 
 class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    val logger = LogManager.getLogger(STATEMENT_LOGGER)
-    var inLoop: Int = 0
+    private val logger = LogManager.getLogger(LogChannel.STATEMENT.getPropertyName())
+    private var inLoop: Int = 0
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -84,7 +83,6 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
     }
 
     override fun handle(logEntry: LogEntry) {
-
         if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is RpgLoadLogStart -> logger.fireLogInfo(render(logEntry))
@@ -164,7 +162,7 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
 }
 
 class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    val logger = LogManager.getLogger(DATA_LOGGER)
+    private val logger = LogManager.getLogger(LogChannel.DATA.getPropertyName())
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -181,7 +179,7 @@ class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
 }
 
 class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    val logger = LogManager.getLogger(LOOP_LOGGER)
+    val logger = LogManager.getLogger(LogChannel.LOOP.getPropertyName())
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -203,7 +201,7 @@ class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
 }
 
 class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    val logger = LogManager.getLogger(RESOLUTION_LOGGER)
+    private val logger = LogManager.getLogger(LogChannel.RESOLUTION.getPropertyName())
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -223,7 +221,7 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
 }
 
 class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    private val logger = LogManager.getLogger(PARSING_LOGGER)
+    private val logger = LogManager.getLogger(LogChannel.PARSING)
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -248,7 +246,7 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
 }
 
 class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    private val logger = LogManager.getLogger(ERROR_LOGGER)
+    private val logger = LogManager.getLogger(LogChannel.ERROR.getPropertyName())
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -256,7 +254,6 @@ class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), In
     }
 
     override fun handle(logEntry: LogEntry) {
-
         if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is ErrorEventLogEntry -> logger.fireLogInfo(render(logEntry))

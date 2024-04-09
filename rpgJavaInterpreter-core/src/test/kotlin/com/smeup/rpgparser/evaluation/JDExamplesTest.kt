@@ -748,7 +748,7 @@ open class JDExamplesTest : AbstractTest() {
                 "U\$SVARSK" to StringValue("SOCKET".padEnd(50) + "127.0.0.1"),
                 returnStatus to StringValue(" ")
         )
-        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER, DATA_LOGGER))
+        val si = CollectorSystemInterface(consoleLoggingConfiguration(LogChannel.STATEMENT, LogChannel.EXPRESSION, LogChannel.DATA))
         si.printOutput = true
         si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
                 ProgramParam("addr", StringType(10)),

@@ -26,25 +26,25 @@ fun consoleVerboseConfiguration(): LoggingConfiguration {
     val props = Properties()
     props.setProperty("logger.data.separator", "\t")
     props.setProperty("logger.date.pattern", "HH:mm:ss.SSS")
-    props.setProperty("$DATA_LOGGER.level", "all")
-    props.setProperty("$DATA_LOGGER.output", "console")
-    props.setProperty("$LOOP_LOGGER.level", "all")
-    props.setProperty("$LOOP_LOGGER.output", "console")
+    props.setProperty("${LogChannel.DATA.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.DATA.getPropertyName()}.output", "console")
+    props.setProperty("${LogChannel.LOOP.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.LOOP.getPropertyName()}.output", "console")
 
-    props.setProperty("$EXPRESSION_LOGGER.level", "all")
-    props.setProperty("$EXPRESSION_LOGGER.output", "console")
+    props.setProperty("${LogChannel.EXPRESSION.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.EXPRESSION.getPropertyName()}.output", "console")
 
-    props.setProperty("$STATEMENT_LOGGER.level", "all")
-    props.setProperty("$STATEMENT_LOGGER.output", "console")
+    props.setProperty("${LogChannel.STATEMENT.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.STATEMENT.getPropertyName()}.output", "console")
 
-    props.setProperty("$PERFORMANCE_LOGGER.level", "all")
-    props.setProperty("$PERFORMANCE_LOGGER.output", "console")
+    props.setProperty("${LogChannel.PERFORMANCE.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.PERFORMANCE.getPropertyName()}.output", "console")
 
-    props.setProperty("$RESOLUTION_LOGGER.level", "all")
-    props.setProperty("$RESOLUTION_LOGGER.output", "console")
+    props.setProperty("${LogChannel.RESOLUTION.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.RESOLUTION.getPropertyName()}.output", "console")
 
-    props.setProperty("$ERROR_LOGGER.level", "all")
-    props.setProperty("$ERROR_LOGGER.output", "console")
+    props.setProperty("${LogChannel.ERROR.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.ERROR.getPropertyName()}.output", "console")
     return LoggingConfiguration(props)
 }
 
