@@ -1130,10 +1130,12 @@ data class DefineStmt(
             /* Checking if the context is main or subroutine, to execute the right search about the InStatementsDataDefinition. */
             val inStatementDataDefinition = when (this.parent) {
                 is Subroutine -> {
-                    (this.parent as Subroutine).stmts.findInStatementDataDefinition(originalName, this)
+                    this.findInLocalScope(originalName)
+                        ?: this.findInGlobalScope(containingCU, originalName)
+                        ?: throw Error("Data reference $originalName not resolved")
                 }
                 is MainBody -> {
-                    containingCU.main.stmts.findInStatementDataDefinition(originalName, this)
+                    this.findInGlobalScope(containingCU, originalName) ?: throw Error("Data reference $originalName not resolved")
                 }
                 else -> throw Error("Data reference $originalName not resolved")
             }
@@ -1146,18 +1148,33 @@ data class DefineStmt(
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+
+    private fun findInGlobalScope(cu: CompilationUnit, search: String): InStatementDataDefinition? {
+        var inStatementDataDefinition = cu.main.stmts.findInStatementDataDefinition(originalName, this)
+        if (inStatementDataDefinition == null) {
+            inStatementDataDefinition = cu.subroutines.firstNotNullOf {
+                it.stmts.findInStatementDataDefinition(search, this)
+            }
+        }
+
+        return inStatementDataDefinition
+    }
+
+    private fun findInLocalScope(search: String): InStatementDataDefinition? {
+        return (this.parent as Subroutine).stmts.findInStatementDataDefinition(search, this)
+    }
 }
 
 /**
  * From a list of Statements, finds an inline definition (InStatementDataDefinition) based of `originalName`.
  */
-private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition {
+private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition? {
     return this.filterIsInstance<StatementThatCanDefineData>()
                 .filter { !contextToExclude.getStack().contains(it) }
                 .asSequence()
                 .map(StatementThatCanDefineData::dataDefinition)
                 .flatten()
-                .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+                .firstOrNull { it.name == originalName }
 }
 
 /**
