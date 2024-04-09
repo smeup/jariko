@@ -1153,7 +1153,7 @@ data class DefineStmt(
  */
 private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition {
     return this.filterIsInstance<StatementThatCanDefineData>()
-                .filter { it != contextToExclude }
+                .filter { !contextToExclude.getStack().contains(it) }
                 .asSequence()
                 .map(StatementThatCanDefineData::dataDefinition)
                 .flatten()
@@ -1179,6 +1179,12 @@ private fun DefineStmt.exitFromStack(): Boolean {
         mutableSetOf<DefineStmt>()
     } as MutableSet<DefineStmt>
     return stack.remove(this)
+}
+
+private fun DefineStmt.getStack(): List<DefineStmt> {
+    return (MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+        mutableSetOf<DefineStmt>()
+    } as MutableSet<DefineStmt>).toList()
 }
 
 interface WithRightIndicators {
