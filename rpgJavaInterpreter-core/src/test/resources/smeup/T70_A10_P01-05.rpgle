@@ -45,6 +45,44 @@
      C                   EVAL      £DBG_Str='NOT_PRINT'
      C     £DBG_Str      DSPLY
       /ENDIF
+      *
+      * Test nested
+      *
+      /UNDEFINE DEFINE_1
+      /UNDEFINE DEFINE_2
+      /IF NOT DEFINED(DEFINE_1)
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /IF NOT DEFINED(DEFINE_2)
+      /DEFINE DEFINE_2
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+     C                   EVAL      £DBG_Str='NOT_PRINT'
+     C     £DBG_Str      DSPLY
+      /ENDIF
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+     C                   EVAL      £DBG_Str='NOT_PRINT'
+     C     £DBG_Str      DSPLY
+      /ENDIF
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      / IF NOT DEFINED(DEFINE_2)
+     C                   EVAL      £DBG_Str='NOT_PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /IF NOT DEFINED(DEFINE_1)
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+     C                   EVAL      £DBG_Str='NOT_PRINT'
+     C     £DBG_Str      DSPLY
+      /ENDIF
+      /ENDIF
      C                   EVAL      £DBG_Str='PRINT'
      C     £DBG_Str      DSPLY
       *

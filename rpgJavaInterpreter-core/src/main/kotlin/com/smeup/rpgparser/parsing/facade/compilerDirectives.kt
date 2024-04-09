@@ -1,7 +1,8 @@
 package com.smeup.rpgparser.parsing.facade
 
 /**
- * Directives that can be used only under certain conditions (for example, an ELSE must always follow an IF)."
+ * Directives that can be used only under certain conditions (for example, an ELSE must always follow an IF
+ * at the same nesting level)."
  */
 enum class SYN_RELEVANT_DIRECTIVES {
     NONE,
@@ -82,6 +83,7 @@ internal fun String.resolveCompilerDirectives(): String {
     var directiveRow = false
     // Split input text into rows
     val rows = this.lines()
+    var ifLevel = 0
 
     // Check each row against regex patterns
     for ((index, row) in rows.withIndex()) {
@@ -90,17 +92,12 @@ internal fun String.resolveCompilerDirectives(): String {
             when {
                 IF_DEFINED_PATTERN.matches(row) -> {
                     directiveRow = true
-                    // Control if IF_DEFINED is acceptable
-                    val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
-                    if (!acceptedLastCodes.any { it == lastCode }) {
-                        throw CompilerDirectivesException("Unexpected IF_DEFINED directive at line " + (index + 1))
-                    }
-
                     lastCode = SYN_RELEVANT_DIRECTIVES.IF_DEFINED
                     val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
                         useRow = isDefined(definitions, code)
+                        ifLevel++
                     } else {
                         throw CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))
                     }
@@ -108,17 +105,12 @@ internal fun String.resolveCompilerDirectives(): String {
 
                 IF_NOT_DEFINED_PATTERN.matches(row) -> {
                     directiveRow = true
-                    // Control if IF_NOT_DEFINED is acceptable
-                    val acceptedLastCodes = listOf(SYN_RELEVANT_DIRECTIVES.NONE, SYN_RELEVANT_DIRECTIVES.ENDIF)
-                    if (!acceptedLastCodes.any { it == lastCode }) {
-                        throw CompilerDirectivesException("Unexpected IF_NOT_DEFINED directive at line " + (index + 1))
-                    }
-
                     lastCode = SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED
                     val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
                         useRow = !isDefined(definitions, code)
+                        ifLevel++
                     } else {
                         throw CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
                     }
@@ -152,9 +144,15 @@ internal fun String.resolveCompilerDirectives(): String {
                     directiveRow = true
                     // Control if ELSE is acceptable
                     val acceptedLastCodes =
-                        listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED, SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED)
+                        listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
+                               SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
+                               SYN_RELEVANT_DIRECTIVES.ENDIF
+                               )
                     if (!acceptedLastCodes.any { it == lastCode }) {
                         throw CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1))
+                    }
+                    if (ifLevel == 0) {
+                        throw CompilerDirectivesException("ELSE directive at line " + (index + 1) + " not assignable to a previous IF")
                     }
 
                     lastCode = SYN_RELEVANT_DIRECTIVES.ELSE
@@ -167,12 +165,17 @@ internal fun String.resolveCompilerDirectives(): String {
                     val acceptedLastCodes = listOf(
                         SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
                         SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
-                        SYN_RELEVANT_DIRECTIVES.ELSE
+                        SYN_RELEVANT_DIRECTIVES.ELSE,
+                        SYN_RELEVANT_DIRECTIVES.ENDIF,
                     )
                     if (!acceptedLastCodes.any { it == lastCode }) {
                         throw CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1))
                     }
+                    if (ifLevel == 0) {
+                        throw CompilerDirectivesException("ENDIF directive at line " + (index + 1) + " that not close a previous IF")
+                    }
 
+                    ifLevel--
                     lastCode = SYN_RELEVANT_DIRECTIVES.ENDIF
                     useRow = true
                 }

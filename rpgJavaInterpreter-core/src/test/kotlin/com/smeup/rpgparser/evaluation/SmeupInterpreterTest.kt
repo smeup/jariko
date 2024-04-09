@@ -5,6 +5,7 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -12,6 +13,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.assertFails
 
 open class SmeupInterpreterTest : AbstractTest() {
 
@@ -430,6 +432,35 @@ open class SmeupInterpreterTest : AbstractTest() {
         println(outputOf)
         assertTrue(outputOf.all { it.equals("PRINT") })
     }
+
+    @Test
+    fun executeMU701006() {
+        val outputOf = "smeup/MU701006".outputOf()
+        println(outputOf)
+        assertTrue(outputOf.all { it.equals("PRINT") })
+    }
+
+    @Test
+    fun executeMU701007() {
+        assertFails{
+            "smeup/MU701007".outputOf()
+        }.printStackTrace()
+    }
+
+    @Test
+    fun executeMU701008() {
+        assertFails{
+            "smeup/MU701008".outputOf()
+        }.printStackTrace()
+    }
+
+    @Test
+    fun executeMU701009() {
+        assertFails{
+            "smeup/MU701009".outputOf()
+        }.printStackTrace()
+    }
+
 
     @Test
     fun executeT10_A60_P09() {
