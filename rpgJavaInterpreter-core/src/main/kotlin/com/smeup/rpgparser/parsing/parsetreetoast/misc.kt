@@ -246,18 +246,18 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
     checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
-    val prototypeProcedures = getPrototypeProcedures(rContext = this,
+    val procerurePrototypes = getProcerurePrototypes(rContext = this,
         conf = conf,
         dataDefinitions = dataDefinitions,
         procedures = procedures
     )
 
     if (null == procedures) {
-        if (!prototypeProcedures.isEmpty()) {
-            procedures = prototypeProcedures
+        if (!procerurePrototypes.isEmpty()) {
+            procedures = procerurePrototypes
         }
     } else {
-        (procedures as ArrayList).addAll(prototypeProcedures)
+        (procedures as ArrayList).addAll(procerurePrototypes)
     }
 
     return CompilationUnit(
@@ -283,7 +283,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }.postProcess()
 }
 
-private fun getPrototypeProcedures(
+private fun getProcerurePrototypes(
     rContext: RContext,
     conf: ToAstConfiguration,
     dataDefinitions: List<DataDefinition>,

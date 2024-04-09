@@ -98,7 +98,7 @@ data class CompilationUnit(
      * This returns `true` if this procedure is a prototype by its empty lists for file definition,
      *  data definition, subroutines, compile time arrays and directive.
      */
-    fun isPrototypeProcedure(): Boolean {
+    fun isProcedurePrototype(): Boolean {
         return !this.procedureName.isNullOrBlank() &&
                 this.fileDefinitions.isEmpty() &&
                 this.dataDefinitions.isEmpty() &&
