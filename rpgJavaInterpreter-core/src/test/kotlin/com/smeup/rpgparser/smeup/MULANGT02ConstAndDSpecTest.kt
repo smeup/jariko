@@ -99,4 +99,15 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("A50_A3(       ) A50_A4(       )")
         assertEquals(expected, "smeup/MU025002".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Data definition with `Z` RPG type and resolution of inline definition,
+     *  from DEFINE that uses *LIKE, from data definition of a subroutine defined in main.
+     * @see #269
+     */
+    @Test
+    fun executeMU025014() {
+        val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
+        assertEquals(expected, "smeup/MU025014".outputOf(configuration = smeupConfig))
+    }
 }
