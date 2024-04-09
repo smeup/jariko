@@ -34,7 +34,7 @@ open class ParseTreeToAstError(message: String, cause: Throwable? = null) : Ille
 class AstResolutionError(message: String, cause: Throwable? = null) : ParseTreeToAstError(message, cause)
 
 internal fun Throwable.fireErrorEvent(position: Position?): Throwable {
-    /* Ignoring duplicate message. This could be caused by a retry of construction of one data definition, failed at the first time. */
+    /* Ignoring duplicate messages. This could be caused by a retry of construction of one data definition, failed at the first time. */
     if (!getAstCreationErrors().any { it.message.equals(this.message) }) {
         getAstCreationErrors().add(this)
         val programNameToCopyBlocks = getProgramNameToCopyBlocks()
