@@ -4,8 +4,8 @@
      D* Jariko must fire an ErrorEvent for each error
      V* ==============================================================
      D £40TDS          DS                  INZ
-     D  £40TIN                         Z
-     D  £40TFI                         Z
+     D  £40TIN                         E
+     D  £40TFI                         E
 
      D B£FIND        E DS                  EXTNAME(B£FIND0F)
      D XOGG            S                   LIKE(B1TIP2)
