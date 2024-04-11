@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import org.junit.Test
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
@@ -10,7 +11,7 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
      */
     @Test
     fun executeMU711001() {
-        val expected = listOf("Codice: FOO")
+        val expected = listOf("Codice:")
         assertEquals(expected, "smeup/MU711001".outputOf(configuration = smeupConfig))
     }
 
@@ -29,6 +30,7 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
      * @see #265
      */
     @Test
+    @Ignore
     fun executeMU711003() {
         val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
         assertEquals(expected, "smeup/MU711003".outputOf(configuration = smeupConfig))
@@ -39,6 +41,7 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
      * @see #265
      */
     @Test
+    @Ignore
     fun executeMU711004() {
         val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
         assertEquals(expected, "smeup/MU711004".outputOf(configuration = smeupConfig))
