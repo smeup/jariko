@@ -34,19 +34,16 @@ open class ParseTreeToAstError(message: String, cause: Throwable? = null) : Ille
 class AstResolutionError(message: String, cause: Throwable? = null) : ParseTreeToAstError(message, cause)
 
 internal fun Throwable.fireErrorEvent(position: Position?): Throwable {
-    /* Ignoring duplicate messages. This could be caused by a retry of construction of one data definition, failed at the first time. */
-    if (!getAstCreationErrors().any { it.message.equals(this.message) }) {
-        getAstCreationErrors().add(this)
-        val programNameToCopyBlocks = getProgramNameToCopyBlocks()
-        val sourceReference = position?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
-        val errorEvent = ErrorEvent(
-            error = this,
-            errorEventSource = ErrorEventSource.Parser,
-            absoluteLine = position?.start?.line,
-            sourceReference = sourceReference
-        )
-        MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
-    }
+    getAstCreationErrors().add(this)
+    val programNameToCopyBlocks = getProgramNameToCopyBlocks()
+    val sourceReference = position?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
+    val errorEvent = ErrorEvent(
+        error = this,
+        errorEventSource = ErrorEventSource.Parser,
+        absoluteLine = position?.start?.line,
+        sourceReference = sourceReference
+    )
+    MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
 
     return this
 }

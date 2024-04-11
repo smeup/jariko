@@ -132,23 +132,6 @@ private fun RContext.getDataDefinitions(
                     } -> {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
                     }
-                    it.dcl_ds() != null && knownDataDefinitions[it.dcl_ds().name] == null -> {
-                        kotlin.runCatching {
-                            try {
-                                it.dcl_ds()
-                                    .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
-                                    .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                                // these errors can be caught because they don't introduce sneaky errors
-                            } catch (e: CannotRetrieveDataStructureElementSizeException) {
-                                null
-                            } catch (e: ParseTreeToAstError) {
-                                null
-                            } catch (e: Exception) {
-                                null
-                                throw e.fireErrorEvent(it.dcl_ds().toPosition(conf.considerPosition))
-                            }
-                        }.getOrNull()
-                    }
                     else -> null
                 }
             }.getOrNull()
