@@ -35,6 +35,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Definition with both Like and Overlay.
+     * @see #266
+     */
+    @Test
+    fun executeT02_A40_P11() {
+        val expected = listOf("CNCLICNCLICNFORCNFORCNCOLCNCOL")
+        assertEquals(expected, "smeup/T02_A40_P11".outputOf())
+    }
+
+    /**
      * Definition with Like to a variable defined also with like.
      * @see #160
      */
@@ -89,6 +99,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * ATOMIC TEST SECTION
      * ###################
      */
+
+    /**
+     * Definition with both Like and Overlay.
+     * @see #266
+     */
+    @Test
+    fun executeMU024011() {
+        val expected = listOf("CNCLICNCLICNFORCNFORCNCOLCNCOL")
+        assertEquals(expected, "smeup/MU024011".outputOf(configuration = smeupConfig))
+    }
 
     /**
      * Definition with Like to a variable defined also with like.
