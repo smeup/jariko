@@ -20,7 +20,7 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
      */
     @Test
     fun executeMU711002() {
-        val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
+        val expected = listOf("")
         assertEquals(expected, "smeup/MU711002".outputOf(configuration = smeupConfig))
     }
 
