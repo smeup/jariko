@@ -1,8 +1,6 @@
 package com.smeup.rpgparser.logging
 
-import com.smeup.rpgparser.interpreter.InterpreterLogHandler
-import com.smeup.rpgparser.interpreter.LogEntry
-import com.smeup.rpgparser.interpreter.LoggingConfiguration
+import com.smeup.rpgparser.interpreter.*
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Appender
@@ -33,14 +31,7 @@ enum class LogChannel {
 }
 
 abstract class LogHandler(val level: LogLevel, val sep: String) {
-    // as this method is for registration only, I think it is incorrect to extract the extension as well
-    fun extractFilename(name: String): String {
-        return name.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
-    }
-
-    open fun render(logEntry: LogEntry): String {
-        return "NOT IMPLEMENTED"
-    }
+    abstract fun render(renderer: LazyLogEntry): String
 }
 
 fun loadLogConfiguration(configFile: File): LoggingConfiguration {

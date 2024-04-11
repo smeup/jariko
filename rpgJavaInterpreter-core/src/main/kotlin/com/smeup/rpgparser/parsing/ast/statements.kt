@@ -23,6 +23,7 @@ import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.ILoggable
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
@@ -43,6 +44,10 @@ interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
 }
 
+interface LoopStatement {
+    val loopSubject: String
+}
+
 enum class AssignmentOperator(val text: String) {
     NORMAL_ASSIGNMENT("="),
     PLUS_ASSIGNMENT("+="),
@@ -56,8 +61,15 @@ enum class AssignmentOperator(val text: String) {
 abstract class Statement(
     @Transient override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
-) : Node(position) {
-    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {
+) : Node(position), ILoggable {
+    override val loggableEntityName: String
+        get() = "STMT"
+
+    open fun accept(
+        mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+        start: Int = 0,
+        end: Int
+    ): MutableList<MuteAnnotationResolved> {
 
         // List of mutes successfully attached to the statements
         val mutesAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
@@ -68,20 +80,28 @@ abstract class Statement(
         }
 
         muteToProcess.forEach { (line, mute) ->
-            this.muteAnnotations.add(mute.toAst(
-                    position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
+            this.muteAnnotations.add(
+                mute.toAst(
+                    position = pos(line, this.position!!.start.column, line, this.position!!.end.column)
+                )
             )
             mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))
         }
 
         return mutesAttached
     }
+
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
 
     var indicatorCondition: IndicatorCondition? = null
     var continuedIndicators: HashMap<IndicatorKey, ContinuedIndicator> = HashMap<IndicatorKey, ContinuedIndicator>()
 
-    @Throws(ControlFlowException::class, IllegalArgumentException::class, NotImplementedError::class, RuntimeException::class)
+    @Throws(
+        ControlFlowException::class,
+        IllegalArgumentException::class,
+        NotImplementedError::class,
+        RuntimeException::class
+    )
     abstract fun execute(interpreter: InterpreterCore)
 }
 
@@ -108,29 +128,21 @@ fun List<Statement>.explode(preserveCompositeStatement: Boolean = false): List<S
 }
 
 @Serializable
-data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position) {
+data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) :
+    Statement(position) {
+    override val loggableEntityName: String
+        get() = "EXSR"
+
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log {
-            SubroutineExecutionLogStart(
-                    interpreter.getInterpretationContext().currentProgramName,
-                    subroutine.referred!!
-            )
-        }
-        val elapsed = measureTimeMillis {
-            try {
-                interpreter.execute(subroutine.referred!!.stmts)
-            } catch (e: LeaveSrException) {
-                // Nothing to do here
-            } catch (e: GotoException) {
-                if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
-            }
-        }
-        interpreter.log {
-            SubroutineExecutionLogEnd(
-                    interpreter.getInterpretationContext().currentProgramName,
-                    subroutine.referred!!,
-                    elapsed
-            )
+        val programName = interpreter.getInterpretationContext().currentProgramName
+        val logSource = LogSourceData(programName, subroutine.referred!!.position.line())
+        interpreter.renderLog(LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!))
+        try {
+            interpreter.execute(subroutine.referred!!.stmts)
+        } catch (e: LeaveSrException) {
+            // Nothing to do here
+        } catch (e: GotoException) {
+            if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
         }
     }
 }
@@ -142,20 +154,26 @@ data class SelectStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "SELECT"
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+    override fun accept(
+        mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+        start: Int,
+        end: Int
+    ): MutableList<MuteAnnotationResolved> {
 
         val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         cases.forEach {
             muteAttached.addAll(
-                    acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
             )
         }
 
         if (other != null) {
             muteAttached.addAll(
-                    acceptBody(other!!.body, mutes, other!!.position!!.start.line, other!!.position!!.end.line)
+                acceptBody(other!!.body, mutes, other!!.position!!.start.line, other!!.position!!.end.line)
             )
         }
 
@@ -168,19 +186,12 @@ data class SelectStmt(
         for (case in this.cases) {
             val result = interpreter.eval(case.condition)
 
-            interpreter.log { SelectCaseExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
             if (result.asBoolean().value) {
                 interpreter.execute(case.body)
                 return
             }
         }
         if (this.other != null) {
-            interpreter.log {
-                SelectOtherExecutionLogEntry(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this.other!!
-                )
-            }
             interpreter.execute(this.other!!.body)
         }
     }
@@ -204,6 +215,8 @@ data class CaseStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CASE"
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
@@ -211,19 +224,12 @@ data class CaseStmt(
         for (case in this.cases) {
             val result = interpreter.eval(case.condition)
 
-            interpreter.log { CasXXExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
             if (result.asBoolean().value) {
                 executeSubProcedure(interpreter, case.function)
                 return
             }
         }
         if (this.other != null) {
-            interpreter.log {
-                CasOtherExecutionLogEntry(
-                    interpreter.getInterpretationContext().currentProgramName,
-                    this.other!!
-                )
-            }
             executeSubProcedure(interpreter, other!!.function)
         }
     }
@@ -234,22 +240,31 @@ data class CaseStmt(
         containingCU.subroutines.firstOrNull { subroutine ->
             subroutine.name.equals(other = subProcedureName, ignoreCase = true)
         }?.let { subroutine ->
-            ExecuteSubroutine(subroutine = ReferenceByName(subProcedureName, subroutine), position = subroutine.position).execute(interpreter)
+            ExecuteSubroutine(
+                subroutine = ReferenceByName(subProcedureName, subroutine),
+                position = subroutine.position
+            ).execute(interpreter)
         }
     }
 }
 
 @Serializable
-data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) :
+    Node(position), CompositeStatement
 
 @Serializable
 data class CaseOtherClause(override val position: Position? = null, val function: String) : Node(position)
 
 @Serializable
-data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+data class SelectCase(
+    val condition: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Node(position), CompositeStatement
 
 @Serializable
-data class CaseClause(val condition: Expression, override val position: Position? = null, val function: String) : Node(position)
+data class CaseClause(val condition: Expression, override val position: Position? = null, val function: String) :
+    Node(position)
 
 @Serializable
 data class EvalFlags(
@@ -267,15 +282,18 @@ data class EvalStmt(
     override val position: Position? = null
 ) :
     Statement(position) {
+    override val loggableEntityName: String
+        get() = "EVAL"
+
     override fun execute(interpreter: InterpreterCore) {
-            // Should I assign it one by one?
-            val result = if (target.type().isArray() &&
-                    target.type().asArray().element.canBeAssigned(expression.type()) && expression.type() !is ArrayType) {
-                interpreter.assignEachElement(target, expression, operator)
-            } else {
-                interpreter.assign(target, expression, operator)
-            }
-        interpreter.log { EvaluationLogEntry(interpreter.getInterpretationContext().currentProgramName, this, result) }
+        // Should I assign it one by one?
+        if (target.type().isArray() &&
+            target.type().asArray().element.canBeAssigned(expression.type()) && expression.type() !is ArrayType
+        ) {
+            interpreter.assignEachElement(target, expression, operator)
+        } else {
+            interpreter.assign(target, expression, operator)
+        }
     }
 }
 
@@ -289,6 +307,9 @@ data class SubDurStmt(
     override val position: Position? = null
 ) :
     Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "SUBDUR"
+
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
@@ -296,6 +317,7 @@ data class SubDurStmt(
                 val subtrahend = factor2
                 interpreter.assign(target, interpreter.eval(DiffExpr(minuend, subtrahend, durationCode)))
             }
+
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
     }
@@ -312,9 +334,11 @@ data class MoveStmt(
     override val position: Position? = null
 ) :
     Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "MOVE"
+
     override fun execute(interpreter: InterpreterCore) {
-        val value = move(operationExtender, target, expression, interpreter)
-        interpreter.log { MoveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
+        move(operationExtender, target, expression, interpreter)
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
@@ -329,15 +353,16 @@ data class MoveAStmt(
     override val position: Position? = null
 ) :
     Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "MOVEA"
+
     override fun execute(interpreter: InterpreterCore) {
-        val value = movea(operationExtender, target, expression, interpreter)
-        interpreter.log {
-            MoveAStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value)
-        }
+        movea(operationExtender, target, expression, interpreter)
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
+
 @Serializable
 data class MoveLStmt(
     val operationExtender: String?,
@@ -346,6 +371,9 @@ data class MoveLStmt(
     var expression: Expression,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "MOVEL"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -354,8 +382,7 @@ data class MoveLStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        val value = movel(operationExtender, target, expression, interpreter)
-        interpreter.log { MoveLStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
+        movel(operationExtender, target, expression, interpreter)
     }
 }
 
@@ -363,8 +390,7 @@ data class MoveLStmt(
 abstract class AbstractReadEqualStmt(
     @Transient open val searchArg: Expression? = null, // Factor1
     @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
-    private val logPref: String
+    @Transient override val position: Position? = null
 
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
@@ -373,31 +399,12 @@ abstract class AbstractReadEqualStmt(
             null -> emptyList()
             else -> searchArg!!.createKList(dbFile.jarikoMetadata, interpreter)
         }
-        interpreter.log {
-            ReadEqualLogStart(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                statement = this,
-                logPref = logPref,
-                kList = kList
-            )
+
+        val result = when (searchArg) {
+            null -> read(dbFile)
+            else -> read(dbFile, kList)
         }
-        val result: Result
-        val elapsed = measureTimeMillis {
-            result = when (searchArg) {
-                null -> read(dbFile)
-                else -> read(dbFile, kList)
-            }
-            interpreter.fillDataFrom(dbFile, result.record)
-        }
-        interpreter.log {
-            ReadEqualLogEnd(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                statement = this,
-                logPref = logPref,
-                result = result,
-                elapsed = elapsed
-            )
-        }
+        interpreter.fillDataFrom(dbFile, result.record)
     }
 
     abstract fun read(dbFile: DBFile, kList: List<String>? = null): Result
@@ -406,32 +413,12 @@ abstract class AbstractReadEqualStmt(
 @Serializable
 abstract class AbstractReadStmt(
     @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
-    private val logPref: String
+    @Transient override val position: Position? = null
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log {
-            ReadLogStart(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                statement = this,
-                logPref = logPref
-            )
-        }
-        val result: Result
-        val elapsed = measureTimeMillis {
-            val dbFile = interpreter.dbFile(name, this)
-            result = readOp(dbFile)
-            interpreter.fillDataFrom(dbFile, result.record)
-        }
-        interpreter.log {
-            ReadLogEnd(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                this,
-                logPref = logPref,
-                result = result,
-                elapsed = elapsed
-            )
-        }
+        val dbFile = interpreter.dbFile(name, this)
+        val result = readOp(dbFile)
+        interpreter.fillDataFrom(dbFile, result.record)
     }
 
     abstract fun readOp(dbFile: DBFile): Result
@@ -440,47 +427,20 @@ abstract class AbstractReadStmt(
 @Serializable
 abstract class AbstractStoreStmt(
     @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
-    private val logPref: String
+    @Transient override val position: Position? = null
 ) : Statement(position) {
 
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         val record = Record()
-        val result: Result
-        val elapsed = measureTimeMillis {
-            interpreter.log {
-                StoreLogStart(
-                    programName = interpreter.getInterpretationContext().currentProgramName,
-                    statement = this,
-                    logPref = "$logPref CREATE RECORD"
-                )
-            }
-            dbFile.fileMetadata.fields.forEach { field ->
-                interpreter.dataDefinitionByName(field.name)?.let { dataDefinition ->
-                    RecordField(field.name, interpreter[dataDefinition].asString().value)
-                }?.apply {
-                    record.add(this)
-                } ?: error("Not found in SymbolTable dbFieldName: ${field.name}")
-            }
-            interpreter.log {
-                StoreLogStart(
-                    programName = interpreter.getInterpretationContext().currentProgramName,
-                    statement = this,
-                    logPref = "$logPref STORE"
-                )
-            }
-            result = store(dbFile, record)
+        dbFile.fileMetadata.fields.forEach { field ->
+            interpreter.dataDefinitionByName(field.name)?.let { dataDefinition ->
+                RecordField(field.name, interpreter[dataDefinition].asString().value)
+            }?.apply {
+                record.add(this)
+            } ?: error("Not found in SymbolTable dbFieldName: ${field.name}")
         }
-        interpreter.log {
-            StoreLogEnd(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                statement = this,
-                logPref = logPref,
-                result = result,
-                elapsed = elapsed
-            )
-        }
+        store(dbFile, record)
     }
 
     abstract fun store(dbFile: DBFile, record: Record): Result
@@ -492,30 +452,11 @@ abstract class AbstractSetStmt(
     @Transient open val searchArg: Expression = StringLiteral(""), // Factor1
     @Transient open val name: String = "", // Factor 2
     @Transient override val position: Position? = null,
-    private val logPref: String = ""
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         val kList: List<String> = searchArg.createKList(dbFile.jarikoMetadata, interpreter)
-        interpreter.log {
-            SetLogStart(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                statement = this,
-                kList = kList,
-                logPref = logPref
-            )
-        }
-        val elapsed = measureTimeMillis {
-            interpreter.getStatus().lastFound = set(dbFile, kList)
-        }
-        interpreter.log {
-            SetLogEnd(
-                programName = interpreter.getInterpretationContext().currentProgramName,
-                statement = this,
-                logPref = logPref,
-                elapsed = elapsed
-            )
-        }
+        interpreter.getStatus().lastFound = set(dbFile, kList)
     }
 
     abstract fun set(dbFile: DBFile, kList: List<String>): Boolean
@@ -527,7 +468,10 @@ data class ChainStmt(
     override val searchArg: Expression, // Factor1
     override val name: String, // Factor 2
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg, name, position, "CHAIN") {
+) : AbstractReadEqualStmt(searchArg, name, position) {
+    override val loggableEntityName: String
+        get() = "CHAIN"
+
     override fun read(dbFile: DBFile, kList: List<String>?): Result = dbFile.chain(kList!!)
 }
 
@@ -536,7 +480,9 @@ data class ReadEqualStmt(
     override val searchArg: Expression?,
     override val name: String,
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position, logPref = "READE") {
+) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position) {
+    override val loggableEntityName: String
+        get() = "READE"
 
     override fun read(dbFile: DBFile, kList: List<String>?): Result {
         return if (kList == null) {
@@ -552,7 +498,9 @@ data class ReadPreviousEqualStmt(
     override val searchArg: Expression?,
     override val name: String,
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position, logPref = "READPE") {
+) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position) {
+    override val loggableEntityName: String
+        get() = "READPE"
 
     override fun read(dbFile: DBFile, kList: List<String>?): Result {
         return if (kList == null) {
@@ -564,27 +512,46 @@ data class ReadPreviousEqualStmt(
 }
 
 @Serializable
-data class ReadStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position, "READ") {
+data class ReadStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position) {
+    override val loggableEntityName: String
+        get() = "READ"
+
     override fun readOp(dbFile: DBFile) = dbFile.read()
 }
 
 @Serializable
-data class ReadPreviousStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position, "READP") {
+data class ReadPreviousStmt(override val name: String, override val position: Position?) :
+    AbstractReadStmt(name, position) {
+    override val loggableEntityName: String
+        get() = "READP"
+
     override fun readOp(dbFile: DBFile) = dbFile.readPrevious()
 }
 
 @Serializable
-data class WriteStmt(override val name: String, override val position: Position?) : AbstractStoreStmt(name = name, position = position, logPref = "WRITE") {
+data class WriteStmt(override val name: String, override val position: Position?) :
+    AbstractStoreStmt(name = name, position = position) {
+    override val loggableEntityName: String
+        get() = "WRITE"
+
     override fun store(dbFile: DBFile, record: Record) = dbFile.write(record)
 }
 
 @Serializable
-data class UpdateStmt(override val name: String, override val position: Position?) : AbstractStoreStmt(name = name, position = position, logPref = "UPDATE") {
+data class UpdateStmt(override val name: String, override val position: Position?) :
+    AbstractStoreStmt(name = name, position = position) {
+    override val loggableEntityName: String
+        get() = "UPDATE"
+
     override fun store(dbFile: DBFile, record: Record) = dbFile.update(record)
 }
 
 @Serializable
-data class DeleteStmt(override val name: String, override val position: Position?) : AbstractStoreStmt(name = name, position = position, logPref = "DELETE") {
+data class DeleteStmt(override val name: String, override val position: Position?) :
+    AbstractStoreStmt(name = name, position = position) {
+    override val loggableEntityName: String
+        get() = "DELETE"
+
     override fun store(dbFile: DBFile, record: Record) = dbFile.delete(record)
 }
 
@@ -596,9 +563,11 @@ data class SetllStmt(
 ) : AbstractSetStmt(
     searchArg = searchArg,
     name = name,
-    position = position,
-    logPref = "SETLL"
+    position = position
 ) {
+    override val loggableEntityName: String
+        get() = "SETLL"
+
     override fun set(dbFile: DBFile, kList: List<String>) = dbFile.setll(kList)
 }
 
@@ -607,7 +576,9 @@ data class SetgtStmt(
     override val searchArg: Expression,
     override val name: String,
     override val position: Position?
-) : AbstractSetStmt(searchArg = searchArg, name = name, position = position, logPref = "SETGT") {
+) : AbstractSetStmt(searchArg = searchArg, name = name, position = position) {
+    override val loggableEntityName: String
+        get() = "SETGT"
 
     override fun set(dbFile: DBFile, kList: List<String>) = dbFile.setgt(kList)
 }
@@ -621,6 +592,9 @@ data class CheckStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CHECK"
+
     override fun execute(interpreter: InterpreterCore) {
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
@@ -653,6 +627,9 @@ data class CallStmt(
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CALL"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         return params.mapNotNull() {
             it.dataDefinition
@@ -660,9 +637,6 @@ data class CallStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { CallExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this) }
-        val startTime = System.currentTimeMillis()
-        val callStatement = this
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program: Program?
@@ -706,7 +680,8 @@ data class CallStmt(
                 if (it.initializationValue != null) {
                     interpreter.assign(
                         interpreter.dataDefinitionByName(it.param.name)!!,
-                        interpreter.eval(it.initializationValue))
+                        interpreter.eval(it.initializationValue)
+                    )
                 }
             }
             require(program.params().size > index) {
@@ -724,25 +699,11 @@ data class CallStmt(
                     callProgramHandler?.handleCall?.invoke(programToCall, interpreter.getSystemInterface(), params)
                         ?: program.execute(interpreter.getSystemInterface(), params)
                 }.apply {
-                    interpreter.log {
-                        CallEndLogEntry(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            callStatement,
-                            System.currentTimeMillis() - startTime
-                        )
-                    }
                     if (errorIndicator != null) {
                         interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
                     }
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
-                interpreter.log {
-                    CallEndLogEntry(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        callStatement,
-                        System.currentTimeMillis() - startTime
-                    )
-                }
                 if (errorIndicator == null) {
                     throw e
                 }
@@ -764,13 +725,14 @@ data class CallPStmt(
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CALLP"
 
     override fun dataDefinition(): List<InStatementDataDefinition> {
         return emptyList()
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { CallPExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this) }
         val startTime = System.currentTimeMillis()
         val callStatement = this
         try {
@@ -778,33 +740,39 @@ data class CallPStmt(
                 val expressionEvaluation = ExpressionEvaluation(interpreter.getSystemInterface(), LocalizationContext(), interpreter.getStatus())
                 expressionEvaluation.eval(functionCall)
             }.apply {
-                interpreter.log {
-                    CallPEndLogEntry(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        callStatement,
-                        System.currentTimeMillis() - startTime
-                    )
-                }
+
             }
         } catch (e: Exception) { // TODO Catch a more specific exception?
-            interpreter.log {
-                CallPEndLogEntry(
-                    interpreter.getInterpretationContext().currentProgramName,
-                    callStatement,
-                    System.currentTimeMillis() - startTime
-                )
-            }
             if (errorIndicator == null) {
                 throw e
             }
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
         }
+//        try {
+//            kotlin.run {
+//                val expressionEvaluation = ExpressionEvaluation(
+//                    interpreter.getSystemInterface(),
+//                    LocalizationContext(),
+//                    interpreter.getStatus()
+//                )
+//                expressionEvaluation.eval(functionCall)
+//            }
+//        } catch (e: Exception) { // TODO Catch a more specific exception?
+//            if (errorIndicator == null) {
+//                throw e
+//            }
+//            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+//        }
     }
 }
 
 @Serializable
 data class KListStmt
-private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
+private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position),
+    StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "KLIST"
+
     companion object {
         operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
             return KListStmt(name.uppercase(Locale.getDefault()), fields, position)
@@ -826,8 +794,10 @@ data class MonitorStmt(
     val onErrorClauses: List<OnErrorClause> = emptyList(),
     override val position: Position? = null
 ) : Statement(position), CompositeStatement {
+    override val loggableEntityName: String
+        get() = "MONITOR"
 
-    // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
+    // Since this property is a collection built up from multiple parts, this annotation
     // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
     // ErrorEvent is fired more times
     @Derived
@@ -837,7 +807,11 @@ data class MonitorStmt(
         onErrorClauses.forEach { addAll(it.body) }
     }
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+    override fun accept(
+        mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+        start: Int,
+        end: Int
+    ): MutableList<MuteAnnotationResolved> {
         // check if the annotation is just before the ELSE
         val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
@@ -857,18 +831,10 @@ data class MonitorStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log {
-            MonitorExecutionLogEntry(
-                interpreter.getInterpretationContext().currentProgramName,
-                this
-            )
-        }
-
         try {
             interpreter.execute(this.monitorBody)
         } catch (_: Exception) {
             onErrorClauses.forEach {
-                interpreter.log { OnErrorExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, it) }
                 interpreter.execute(it.body)
             }
         }
@@ -884,6 +850,8 @@ data class IfStmt(
     val elseClause: ElseClause? = null,
     override val position: Position? = null
 ) : Statement(position), CompositeStatement {
+    override val loggableEntityName: String
+        get() = "IF"
 
     // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
     // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
@@ -896,26 +864,30 @@ data class IfStmt(
         elseClause?.body?.let { addAll(it) }
     }
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+    override fun accept(
+        mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+        start: Int,
+        end: Int
+    ): MutableList<MuteAnnotationResolved> {
         // check if the annotation is just before the ELSE
         val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Process the body statements
         muteAttached.addAll(
-                acceptBody(thenBody, mutes, this.position!!.start.line, this.position.end.line)
+            acceptBody(thenBody, mutes, this.position!!.start.line, this.position.end.line)
         )
 
         // Process the ELSE IF
         elseIfClauses.forEach {
             muteAttached.addAll(
-                    acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
             )
         }
 
         // Process the ELSE
         if (elseClause != null) {
             muteAttached.addAll(
-                    acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
+                acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
             )
         }
 
@@ -924,26 +896,17 @@ data class IfStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val condition = interpreter.eval(condition)
-        interpreter.log { IfExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this, condition) }
         if (condition.asBoolean().value) {
             interpreter.execute(this.thenBody)
         } else {
             for (elseIfClause in elseIfClauses) {
                 val c = interpreter.eval(elseIfClause.condition)
-                interpreter.log { ElseIfExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, elseIfClause, c) }
                 if (c.asBoolean().value) {
                     interpreter.execute(elseIfClause.body)
                     return
                 }
             }
             if (elseClause != null) {
-                interpreter.log {
-                    ElseExecutionLogEntry(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            elseClause,
-                            condition
-                    )
-                }
                 interpreter.execute(elseClause.body)
             }
         }
@@ -951,16 +914,26 @@ data class IfStmt(
 }
 
 @Serializable
-data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position),
+    CompositeStatement
 
 @Serializable
-data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position),
+    CompositeStatement
 
 @Serializable
-data class ElseIfClause(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+data class ElseIfClause(
+    val condition: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Node(position), CompositeStatement
 
 @Serializable
-data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
+data class SetStmt(
+    val valueSet: ValueSet,
+    val indicators: List<AssignableExpression>,
+    override val position: Position? = null
+) : Statement(position) {
     enum class ValueSet {
         ON,
         OFF
@@ -978,6 +951,9 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
 
 @Serializable
 data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "RETURN"
+
     override fun execute(interpreter: InterpreterCore) {
         // set the RT indicator always on
         interpreter.getIndicators()[IndicatorType.RT.name.toIndicatorKey()] = BooleanValue.TRUE
@@ -993,13 +969,16 @@ data class PlistStmt(
     val isEntry: Boolean,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "PLIST"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val allDataDefinitions = params.mapNotNull { it.dataDefinition }
         // We do not want params in plist to shadow existing data definitions
         // They are implicit data definitions only when explicit data definitions are not present
         val filtered = allDataDefinitions.filter { paramDataDef ->
             val containingCU = this.ancestor(CompilationUnit::class.java)
-                    ?: throw IllegalStateException("Not contained in a CU")
+                ?: throw IllegalStateException("Not contained in a CU")
             containingCU.dataDefinitions.none { it.name == paramDataDef.name }
         }
         return filtered
@@ -1008,15 +987,7 @@ data class PlistStmt(
     override fun execute(interpreter: InterpreterCore) {
         params.forEach {
             if (interpreter.getGlobalSymbolTable().contains(it.param.name)) {
-                val value = interpreter.getGlobalSymbolTable()[it.param.name]
-                interpreter.log {
-                    ParamListStatemenExecutionLog(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            this,
-                            it.param.name,
-                            value
-                    )
-                }
+                interpreter.getGlobalSymbolTable()[it.param.name]
             }
         }
     }
@@ -1044,6 +1015,9 @@ data class ClearStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CLEAR"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -1052,7 +1026,7 @@ data class ClearStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        return when (value) {
+        when (value) {
             is DataRefExpr -> {
                 val newValue: Value
                 /*
@@ -1064,36 +1038,18 @@ data class ClearStmt(
                     newValue = interpreter.assign(value, BlanksRefExpr()) as OccurableDataStructValue
                     newValue.pos(origValue.occurrence)
                 } else {
-                    newValue = interpreter.assign(value, BlanksRefExpr())
-                }
-                interpreter.log {
-                    ClearStatemenExecutionLog(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            this,
-                            newValue
-                    )
+                    interpreter.assign(value, BlanksRefExpr())
                 }
             }
+
             is IndicatorExpr -> {
-                val value = interpreter.assign(value, BlanksRefExpr())
-                interpreter.log {
-                    ClearStatemenExecutionLog(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            this,
-                            value
-                    )
-                }
+                interpreter.assign(value, BlanksRefExpr())
             }
+
             is ArrayAccessExpr -> {
-                val value = interpreter.assign(value, BlanksRefExpr())
-                interpreter.log {
-                    ClearStatemenExecutionLog(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        value
-                    )
-                }
+                interpreter.assign(value, BlanksRefExpr())
             }
+
             else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
         }
     }
@@ -1105,6 +1061,9 @@ data class DefineStmt(
     val newVarName: String,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "DEFINE"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
@@ -1132,9 +1091,11 @@ data class DefineStmt(
                 is Subroutine -> {
                     (this.parent as Subroutine).stmts.findInStatementDataDefinition(originalName, this)
                 }
+
                 is MainBody -> {
                     containingCU.main.stmts.findInStatementDataDefinition(originalName, this)
                 }
+
                 else -> throw Error("Data reference $originalName not resolved")
             }
 
@@ -1151,13 +1112,16 @@ data class DefineStmt(
 /**
  * From a list of Statements, finds an inline definition (InStatementDataDefinition) based of `originalName`.
  */
-private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition {
+private fun List<Statement>.findInStatementDataDefinition(
+    originalName: String,
+    contextToExclude: DefineStmt
+): InStatementDataDefinition {
     return this.filterIsInstance<StatementThatCanDefineData>()
-                .filter { it != contextToExclude }
-                .asSequence()
-                .map(StatementThatCanDefineData::dataDefinition)
-                .flatten()
-                .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
+        .filter { it != contextToExclude }
+        .asSequence()
+        .map(StatementThatCanDefineData::dataDefinition)
+        .flatten()
+        .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
 }
 
 /**
@@ -1203,6 +1167,9 @@ data class CompStmt(
     val rightIndicators: WithRightIndicators,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators {
+    override val loggableEntityName: String
+        get() = "COMP"
+
     override fun execute(interpreter: InterpreterCore) {
         when (interpreter.compareExpressions(left, right, interpreter.getLocalizationContext().charset)) {
             GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
@@ -1219,7 +1186,10 @@ data class ZAddStmt(
     var expression: Expression,
     override val position: Position? = null
 ) :
-        Statement(position), StatementThatCanDefineData {
+    Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "ZADD"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -1241,12 +1211,13 @@ data class MultStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
-    @Transient
+    override val loggableEntityName: String
+        get() = "MULT"
+
     @Derived
     val left: Expression
         get() = factor1 ?: target
 
-    @Transient
     @Derived
     val right: Expression
         get() = factor2
@@ -1268,12 +1239,13 @@ data class DivStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), CompositeStatement, StatementThatCanDefineData {
-    @Transient
+    override val loggableEntityName: String
+        get() = "DIV"
+
     @Derived
     val dividend: Expression
         get() = factor1 ?: target
 
-    @Transient
     @Derived
     val divisor: Expression
         get() = factor2
@@ -1284,7 +1256,6 @@ data class DivStmt(
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 
-    @Transient
     @Derived
     override val body: List<Statement>
         get() = mvrStatement?.let { listOf(it) } ?: emptyList()
@@ -1296,8 +1267,11 @@ data class MvrStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "MVR"
+
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
-    override fun execute(interpreter: InterpreterCore) { }
+    override fun execute(interpreter: InterpreterCore) {}
 }
 
 @Serializable
@@ -1308,6 +1282,9 @@ data class AddStmt(
     val right: Expression,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "ADD"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -1331,6 +1308,9 @@ data class ZSubStmt(
     var expression: Expression,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "ZSUB"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -1355,6 +1335,9 @@ data class SubStmt(
     val right: Expression,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "SUB"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -1377,6 +1360,9 @@ data class TimeStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "TIME"
+
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
@@ -1392,9 +1378,11 @@ data class TimeStmt(
                         }
                         interpreter.assign(value, IntValue(timestampFormatted.toLong()))
                     }
+
                     else -> throw UnsupportedOperationException("TIME Statement only supports Timestamp or Integer data type")
                 }
             }
+
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
     }
@@ -1403,7 +1391,11 @@ data class TimeStmt(
 }
 
 @Serializable
-data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position) {
+data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) :
+    Statement(position) {
+    override val loggableEntityName: String
+        get() = "DISPLAY"
+
     override fun execute(interpreter: InterpreterCore) {
         val values = mutableListOf<Value>()
         factor1?.let { values.add(interpreter.eval(it)) }
@@ -1420,24 +1412,27 @@ data class DOWxxStmt(
     val factor2: Expression,
     override val body: List<Statement>,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, LoopStatement {
+    override val loggableEntityName: String
+        get() = "DOWxx"
+
+    override val loopSubject: String
+        get() = ""
+
     override fun execute(interpreter: InterpreterCore) {
-        val startTime = System.currentTimeMillis()
         try {
-            interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
-            while (comparisonOperator.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset).isVerified) {
+            while (comparisonOperator.verify(
+                    factor1,
+                    factor2,
+                    interpreter,
+                    interpreter.getLocalizationContext().charset
+                ).isVerified
+            ) {
+                interpreter.notifyIteration()
                 interpreter.execute(body)
             }
         } catch (e: LeaveException) {
             // nothing to do here
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                DOWxxStatementExecutionLogEnd(
-                    interpreter.getInterpretationContext().currentProgramName,
-                    this,
-                    elapsed
-                )
-            }
         }
     }
 }
@@ -1450,9 +1445,18 @@ data class DoStmt(
     val startLimit: Expression = IntLiteral(1),
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData, LoopStatement {
+    override val loggableEntityName: String
+        get() = "DO"
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+    override val loopSubject: String
+        get() = ""
+
+    override fun accept(
+        mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+        start: Int,
+        end: Int
+    ): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
         return acceptBody(body, mutes, start, end)
     }
@@ -1461,15 +1465,14 @@ data class DoStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
-        val startTime = System.currentTimeMillis()
         val endLimitExpression = endLimit
         val endLimit: () -> Long = interpreter.optimizedIntExpression(endLimitExpression)
         if (index == null) {
             var myIterValue = interpreter.eval(startLimit).asInt().value
             try {
-                interpreter.log { DoStatemenExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
                 while (myIterValue <= endLimit()) {
                     try {
+                        interpreter.notifyIteration()
                         interpreter.execute(body)
                     } catch (e: IterException) {
                         // nothing to do here
@@ -1477,26 +1480,8 @@ data class DoStmt(
                     loopCounter++
                     myIterValue++
                 }
-                interpreter.log {
-                    val elapsed = System.currentTimeMillis() - startTime
-                    DoStatemenExecutionLogEnd(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            this,
-                            elapsed,
-                            loopCounter
-                    )
-                }
             } catch (e: LeaveException) {
                 // nothing to do here
-                interpreter.log {
-                    val elapsed = System.currentTimeMillis() - startTime
-                    DoStatemenExecutionLogEnd(
-                            interpreter.getInterpretationContext().currentProgramName,
-                            this,
-                            elapsed,
-                            loopCounter
-                    )
-                }
             }
         } else {
             interpreter.assign(index, startLimit)
@@ -1522,35 +1507,22 @@ data class DowStmt(
     val endExpression: Expression,
     override val body: List<Statement>,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, LoopStatement {
+    override val loggableEntityName: String
+        get() = "DOW"
+
+    override val loopSubject: String
+        get() = ""
+
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
-        val startTime = System.currentTimeMillis()
         try {
-            interpreter.log { DowStatemenExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
             while (interpreter.eval(endExpression).asBoolean().value) {
+                interpreter.notifyIteration()
                 interpreter.execute(body)
                 loopCounter++
             }
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                DowStatemenExecutionLogEnd(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        elapsed,
-                        loopCounter
-                )
-            }
-        } catch (e: LeaveException) {
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                DowStatemenExecutionLogEnd(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        elapsed,
-                        loopCounter
-                )
-            }
+        } catch (_: LeaveException) {
         }
     }
 }
@@ -1560,65 +1532,61 @@ data class DouStmt(
     val endExpression: Expression,
     override val body: List<Statement>,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, LoopStatement {
+    override val loggableEntityName: String
+        get() = "DOU"
+
+    override val loopSubject: String
+        get() = ""
+
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
-        val startTime = System.currentTimeMillis()
         try {
-            interpreter.log { DouStatemenExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
             do {
+                interpreter.notifyIteration()
                 interpreter.execute(body)
                 loopCounter++
             } while (!interpreter.eval(endExpression).asBoolean().value)
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                DouStatemenExecutionLogEnd(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        elapsed,
-                        loopCounter
-                )
-            }
-        } catch (e: LeaveException) {
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                DouStatemenExecutionLogEnd(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        elapsed,
-                        loopCounter
-                )
-            }
+        } catch (_: LeaveException) {
         }
     }
 }
 
 @Serializable
 data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "LEAVESR"
+
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { LeaveSrStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this) }
         throw LeaveSrException()
     }
 }
 
 @Serializable
 data class LeaveStmt(override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "LEAVE"
+
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { LeaveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this) }
         throw LeaveException()
     }
 }
 
 @Serializable
 data class IterStmt(override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "ITER"
+
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { IterStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this) }
         throw IterException()
     }
 }
 
 @Serializable
 data class OtherStmt(override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "OTHER"
+
     override fun execute(interpreter: InterpreterCore) {
         TODO("Not yet implemented")
     }
@@ -1626,9 +1594,14 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 
 @Serializable
 data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "TAG"
+
     companion object {
-        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.uppercase(Locale.getDefault()), position)
+        operator fun invoke(tag: String, position: Position? = null): TagStmt =
+            TagStmt(tag.uppercase(Locale.getDefault()), position)
     }
+
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
@@ -1636,6 +1609,9 @@ data class TagStmt private constructor(val tag: String, override val position: P
 
 @Serializable
 data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "GOTO"
+
     override fun execute(interpreter: InterpreterCore) {
         throw GotoException(tag)
     }
@@ -1650,8 +1626,12 @@ data class CabStmt(
     val rightIndicators: WithRightIndicators,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators {
+    override val loggableEntityName: String
+        get() = "CAB"
+
     override fun execute(interpreter: InterpreterCore) {
-        val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset)
+        val comparisonResult =
+            comparison.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset)
         when (comparisonResult.comparison) {
             GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
@@ -1669,7 +1649,14 @@ data class ForStmt(
     val downward: Boolean = false,
     override val body: List<Statement>,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, LoopStatement {
+    override val loggableEntityName: String
+        get() = "FOR"
+
+    // TODO: Add Loop subject
+    override val loopSubject: String
+        get() = ""
+
     fun iterDataDefinition(): AbstractDataDefinition {
         if (init is AssignmentExpr) {
             if ((init as AssignmentExpr).target is DataRefExpr) {
@@ -1682,19 +1669,21 @@ data class ForStmt(
         }
     }
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+    override fun accept(
+        mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+        start: Int,
+        end: Int
+    ): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
         return acceptBody(body, mutes, start, end)
     }
 
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
-        val startTime = System.currentTimeMillis()
 
         interpreter.eval(init)
         val iterVar = iterDataDefinition()
         try {
-            interpreter.log { ForStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
             var step = interpreter.eval(byValue).asInt().value
             if (downward) {
                 step *= -1
@@ -1702,6 +1691,7 @@ data class ForStmt(
             while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
                 try {
                     interpreter.execute(body)
+                    interpreter.notifyIteration()
                 } catch (e: IterException) {
                     // nothing to do here
                 }
@@ -1709,26 +1699,8 @@ data class ForStmt(
                 interpreter.increment(iterVar, step)
                 loopCounter++
             }
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                ForStatementExecutionLogEnd(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        elapsed,
-                        loopCounter
-                )
-            }
         } catch (e: LeaveException) {
             // leaving
-            interpreter.log {
-                val elapsed = System.currentTimeMillis() - startTime
-                ForStatementExecutionLogEnd(
-                        interpreter.getInterpretationContext().currentProgramName,
-                        this,
-                        elapsed,
-                        loopCounter
-                )
-            }
         }
     }
 }
@@ -1739,6 +1711,9 @@ data class ForStmt(
 */
 @Serializable
 data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "SORTA"
+
     override fun execute(interpreter: InterpreterCore) {
         sortA(
             value = interpreter.eval(target),
@@ -1757,6 +1732,8 @@ data class CatStmt(
     override val position: Position? = null,
     val operationExtender: String? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CAT"
 
     override fun execute(interpreter: InterpreterCore) {
         val factor1: String = if (left != null) {
@@ -1800,7 +1777,6 @@ data class CatStmt(
         }
 
         interpreter.assign(target, StringValue(result))
-        interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
@@ -1813,6 +1789,9 @@ data class LookupStmt(
     val rightIndicators: WithRightIndicators,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators {
+    override val loggableEntityName: String
+        get() = "LOOKUP"
+
     override fun execute(interpreter: InterpreterCore) {
         lookUp(this, interpreter, interpreter.getLocalizationContext().charset)
     }
@@ -1829,6 +1808,8 @@ data class ScanStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "SCAN"
 
     override fun execute(interpreter: InterpreterCore) {
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
@@ -1848,7 +1829,8 @@ data class ScanStmt(
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             target?.let {
                 if (it.type().isArray()) {
-                    val fullOccurrences = occurrences.resizeTo(it.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    val fullOccurrences =
+                        occurrences.resizeTo(it.type().numberOfElements(), IntValue.ZERO).toMutableList()
                     interpreter.assign(it, ConcreteArrayValue(fullOccurrences, it.type().asArray().element))
                 } else {
                     interpreter.assign(it, occurrences[0])
@@ -1868,6 +1850,9 @@ data class XFootStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "XFOOT"
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -1901,8 +1886,10 @@ data class SubstStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
-    override fun execute(interpreter: InterpreterCore) {
+    override val loggableEntityName: String
+        get() = "SUBST"
 
+    override fun execute(interpreter: InterpreterCore) {
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
 
         /**
@@ -1946,6 +1933,8 @@ data class OccurStmt(
     val errorIndicator: IndicatorKey?,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "OCCUR"
 
     init {
         require(operationExtender == null) {
@@ -1997,16 +1986,21 @@ data class OpenStmt(
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "OPEN"
+
     init {
         require(operationExtender == null) {
             "Operation extender not supported"
         }
     }
+
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         dbFile.open = true
     }
 }
+
 @Serializable
 data class CloseStmt(
     val name: String = "", // Factor 2
@@ -2014,12 +2008,15 @@ data class CloseStmt(
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "CLOSE"
 
     init {
         require(operationExtender == null) {
             "Operation extender not supported"
         }
     }
+
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         dbFile.open = false
@@ -2049,6 +2046,9 @@ data class XlateStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "XLATE"
+
     override fun execute(interpreter: InterpreterCore) {
         val originalChars = interpreter.eval(from).asString().value
         val newChars = interpreter.eval(to).asString().value
@@ -2077,6 +2077,8 @@ data class ResetStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "RESET"
 
     override fun execute(interpreter: InterpreterCore) {
         when (val dataDefinition = interpreter.dataDefinitionByName(name)) {
@@ -2087,9 +2089,11 @@ data class ResetStmt(
                 }
                 interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
             }
+
             is InStatementDataDefinition -> {
                 interpreter.assign(dataDefinition, dataDefinition.type.blank())
             }
+
             else -> this.error("Data definition $name is not a valid instance of DataDefinition")
         }
     }
@@ -2101,26 +2105,38 @@ data class ResetStmt(
 data class ExfmtStmt(
     override val position: Position? = null
 ) : Statement(position), MockStatement {
-    override fun execute(interpreter: InterpreterCore) { }
+    override val loggableEntityName: String
+        get() = "EXFMT"
+
+    override fun execute(interpreter: InterpreterCore) {}
 }
 
 @Serializable
 data class ReadcStmt(
     override val position: Position? = null
 ) : Statement(position), MockStatement {
-    override fun execute(interpreter: InterpreterCore) { }
+    override val loggableEntityName: String
+        get() = "READC"
+
+    override fun execute(interpreter: InterpreterCore) {}
 }
 
 @Serializable
 data class UnlockStmt(
     override val position: Position? = null
 ) : Statement(position), MockStatement {
-    override fun execute(interpreter: InterpreterCore) { }
+    override val loggableEntityName: String
+        get() = "UNLOCK"
+
+    override fun execute(interpreter: InterpreterCore) {}
 }
 
 @Serializable
 data class FeodStmt(
     override val position: Position? = null
 ) : Statement(position), MockStatement {
-    override fun execute(interpreter: InterpreterCore) { }
+    override val loggableEntityName: String
+        get() = "FEOD"
+
+    override fun execute(interpreter: InterpreterCore) {}
 }

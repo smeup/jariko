@@ -165,8 +165,8 @@ object MainExecutionContext {
     /**
      * Logs entries
      */
-    fun log(logEntry: LogEntry) {
-        context.get()?.log(logEntry)
+    fun log(renderer: LazyLogEntry) {
+        context.get()?.renderLog(renderer)
     }
 
     /***
@@ -209,8 +209,8 @@ data class Context(
         systemInterface.getAllLogHandlers()
     }
 
-    fun log(logEntry: LogEntry) {
-        logHandlers.log(logEntry)
+    fun renderLog(renderer: LazyLogEntry) {
+        logHandlers.renderLog(renderer)
     }
 }
 

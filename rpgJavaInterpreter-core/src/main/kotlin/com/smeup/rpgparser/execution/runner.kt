@@ -156,7 +156,8 @@ fun getProgram(
         if (systemInterface is JavaSystemInterface) {
             systemInterface.rpgSystem.addProgramFinders(programFinders)
             programFinders.forEach {
-                systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
+                val logSource = LogSourceData(it.toString(), "")
+                systemInterface.getAllLogHandlers().renderLog(LazyLogEntry.produceResolution(logSource))
             }
         } else {
             // for compatibility with other system interfaces using singleton instance

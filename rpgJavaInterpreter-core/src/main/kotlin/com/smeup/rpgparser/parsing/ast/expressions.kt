@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.ILoggableExpression
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -26,7 +27,10 @@ import kotlinx.serialization.Transient
 import java.math.BigDecimal
 
 @Serializable
-abstract class Expression(@Transient override val position: Position? = null) : Node(position) {
+abstract class Expression(@Transient override val position: Position? = null) : Node(position), ILoggableExpression {
+    override val loggableEntityName: String
+        get() = "EXPRESSION"
+    
     open fun render(): String = this.javaClass.simpleName
     abstract fun evalWith(evaluator: Evaluator): Value
 }

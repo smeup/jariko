@@ -273,12 +273,12 @@ class LoggingTest : AbstractTest() {
         }
     }
 
-    private fun createAssignmentLogEntry(): AssignmentLogEntry {
-        return AssignmentLogEntry(
-            programName = programName,
-            data = DataDefinition(name = varName, type = StringType(7)),
-            value = StringValue(varValue),
-            previous = null
+    private fun createAssignmentLogEntry(): LazyLogEntry {
+        val logSource = LogSourceData(programName, "")
+        return LazyLogEntry.produceAssignment(
+            logSource,
+            DataDefinition(name = varName, type = StringType(7)),
+            StringValue(varValue)
         )
     }
 }

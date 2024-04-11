@@ -62,7 +62,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }.type
             ProgramParam(it.param.name, type)
         }
-        ?: emptyList()
+            ?: emptyList()
     }
 
     init {
@@ -98,7 +98,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
         }
         this.systemInterface = systemInterface
-        logHandlers.log(ProgramInterpretationLogStart(name, params))
+        val logSource = LogSourceData(name, "")
+        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
         val changedInitialValues: List<Value>
         val elapsed = measureTimeMillis {
             interpreter.setInterpretationContext(object : InterpretationContext {
@@ -152,7 +153,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             interpreter.doSomethingAfterExecution()
             MainExecutionContext.getProgramStack().pop()
         }
-        logHandlers.log(ProgramInterpretationLogEnd(name, elapsed))
+        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
+        logHandlers.renderLog(LazyLogEntry.producePerformance(logSource, "INTERPRETATION", elapsed))
         return changedInitialValues
     }
 

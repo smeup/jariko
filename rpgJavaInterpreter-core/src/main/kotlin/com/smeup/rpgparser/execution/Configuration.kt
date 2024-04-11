@@ -155,7 +155,7 @@ data class JarikoCallback(
         // logging configuration, the error event must be shown as before, else we run the risk to miss very helpful information
         MainExecutionContext.getSystemInterface()?.apply {
             if (getAllLogHandlers().isErrorChannelConfigured()) {
-                MainExecutionContext.log(ErrorEventLogEntry(errorEvent = errorEvent))
+                MainExecutionContext.log(LazyLogEntry.produceError(errorEvent))
             } else {
                 System.err.println(errorEvent)
             }

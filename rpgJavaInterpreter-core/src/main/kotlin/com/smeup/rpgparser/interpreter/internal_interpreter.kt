@@ -21,12 +21,12 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.facade.relative
-import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
@@ -82,6 +82,20 @@ open class InternalInterpreter(
     private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
 
+    object LoggingContext {
+        var subject: String = ""
+        var iterations: Long = 0
+
+        fun reset() {
+            subject = ""
+            iterations = 0
+        }
+    }
+
+    override fun notifyIteration() {
+        LoggingContext.iterations += 1
+    }
+
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
     }
@@ -125,12 +139,12 @@ open class InternalInterpreter(
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override fun log(logEntry: () -> LogEntry) {
-        if (logsEnabled()) doLog(logEntry())
+    override fun renderLog(renderer: LazyLogEntry) {
+        if (logsEnabled()) doLog(renderer)
     }
 
-    private fun doLog(entry: LogEntry) {
-        logHandlers.log(entry)
+    private fun doLog(renderer: LazyLogEntry) {
+        logHandlers.renderLog(renderer)
     }
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
@@ -187,14 +201,16 @@ open class InternalInterpreter(
                     }
                 }
             }
+
             else -> {
-                log {
-                    var previous: Value? = null
-                    if (data.name in globalSymbolTable) {
-                        previous = globalSymbolTable[data.name]
-                    }
-                    AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous)
+                var previous: Value? = null
+                if (data.name in globalSymbolTable) {
+                    previous = globalSymbolTable[data.name]
                 }
+
+                val logSource = LogSourceData(this.interpretationContext.currentProgramName, data.startLine())
+                renderLog(LazyLogEntry.produceData(logSource, data, value, previous))
+                renderLog(LazyLogEntry.produceAssignment(logSource, data, value))
                 // deny reassignment if data is a constant
                 globalSymbolTable.set(data, coerce(value, data.type))?.let {
                     if (data.const) error("${data.name} is a const and cannot be assigned")
@@ -209,7 +225,12 @@ open class InternalInterpreter(
         reinitialization: Boolean = true
     ) {
         val start = System.currentTimeMillis()
-        MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
+        val logSource =
+            LogSourceData(programName = interpretationContext.currentProgramName, line = compilationUnit.startLine())
+
+        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "START"))
+        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "START"))
+
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
             status.dbFileMap.add(it)
@@ -297,16 +318,21 @@ open class InternalInterpreter(
                 set(def, coerce(iv.value, def.type))
             }
         }
-        MainExecutionContext.log(SymbolTableIniLogEnd(
-            programName = interpretationContext.currentProgramName,
-            elapsed = System.currentTimeMillis() - start
-        ))
-        MainExecutionContext.log(SymbolTableLoadLogStart(programName = interpretationContext.currentProgramName))
-        MainExecutionContext.log(SymbolTableLoadLogEnd(
-            programName = interpretationContext.currentProgramName,
-            elapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
-        )
-        )
+
+        val initElapsed = System.currentTimeMillis() - start
+
+        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "END"))
+        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "END"))
+        renderLog(LazyLogEntry.producePerformance(logSource, "SYMTBLINI", initElapsed))
+
+        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "START"))
+        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "START"))
+
+        val loadElapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
+
+        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "END"))
+        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "END"))
+        renderLog(LazyLogEntry.producePerformance(logSource, "SYMTBLLOAD", loadElapsed))
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -403,7 +429,13 @@ open class InternalInterpreter(
     open fun fireOnEnterPgmCallBackFunction() {}
 
     private fun executeWithMute(statement: Statement) {
-        log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
+        val logSource = LogSourceData(
+            programName = this.interpretationContext.currentProgramName,
+            line = statement.position.line()
+        )
+
+        renderLog(LazyLogEntry.produceLine(logSource))
+
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
                 statement.position?.let { fireCopyObservingCallback(it.start.line) }
@@ -416,7 +448,7 @@ open class InternalInterpreter(
                 if (statement is MockStatement) {
                     MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement
                 } else {
-                    statement.execute(this)
+                    executeWithLogging(statement, logSource)
                 }
             }
         } catch (e: ControlFlowException) {
@@ -473,6 +505,10 @@ open class InternalInterpreter(
     private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit, line: String) {
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
+            val logSource = LogSourceData(
+                this.interpretationContext.currentProgramName,
+                it.startLine()
+            )
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression = when (it.comparison) {
@@ -491,7 +527,8 @@ open class InternalInterpreter(
                         "Expected BooleanValue, but found $value"
                     }
 
-                    log { MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value) }
+                    renderLog(LazyLogEntry.produceMute(it, logSource, value))
+
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteComparisonAnnotationExecuted(
@@ -515,12 +552,13 @@ open class InternalInterpreter(
                         MuteTimeoutAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
                             it.timeout,
-                            line)
+                            line
+                        )
                     )
                 }
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
-                    log { MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, message) }
+                    renderLog(LazyLogEntry.produceMute(it, logSource, message))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteFailAnnotationExecuted(
@@ -692,10 +730,20 @@ open class InternalInterpreter(
             }
             else -> expression.evalWith(expressionEvaluation)
         }
-        if (expression !is StringLiteral && expression !is IntLiteral &&
-            expression !is DataRefExpr && expression !is BlanksRefExpr) {
-            log { ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value) }
-        }
+
+        val logSource = LogSourceData(
+            this.interpretationContext.currentProgramName,
+            expression.startLine()
+        )
+
+//        if (expression !is StringLiteral && expression !is IntLiteral &&
+//            expression !is DataRefExpr && expression !is BlanksRefExpr
+//        ) {
+//            renderLog(LazyLogEntry.produceEval(logSource, expression, value))
+//        }
+
+        expression.produceExpressionLogRenderer(logSource, expression, value)?.let { renderLog(it) }
+
         return value
     }
 
@@ -781,14 +829,10 @@ open class InternalInterpreter(
                 val elementType = (targetType as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
-                log {
-                    AssignmentOfElementLogEntry(
-                        this.interpretationContext.currentProgramName,
-                        target.array,
-                        index,
-                        evaluatedValue
-                    )
-                }
+
+                val logSource = LogSourceData(interpretationContext.currentProgramName, target.array.startLine())
+                renderLog(LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value))
+
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
@@ -1038,6 +1082,29 @@ open class InternalInterpreter(
             }
         }
     }
+
+    private fun executeWithLogging(statement: Statement, source: LogSourceData) {
+        LoggingContext.subject = statement.loggableEntityName
+
+        renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "START"))
+
+        if (statement is LoopStatement) {
+            LazyLogEntry.produceLoopStart(source, statement.loopSubject)
+        }
+
+        val executionTime = measureTimeMillis {
+            statement.execute(this)
+        }
+
+        if (statement is LoopStatement) {
+            LazyLogEntry.produceLoopEnd(source, statement.loopSubject, LoggingContext.iterations)
+        }
+
+        renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "END"))
+        renderLog(LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime))
+
+        LoggingContext.reset()
+    }
 }
 
 fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
@@ -1090,4 +1157,24 @@ internal fun ISymbolTable.restoreFromMemorySlice(
             )
         }
     }
+}
+
+private fun ILoggableExpression.produceExpressionLogRenderer(
+    source: LogSourceData,
+    expression: Expression,
+    value: Value
+): LazyLogEntry? {
+    val metadata = ExpressionLogMetadata(expression, value)
+
+    val actualSource = when {
+        metadata.expression.position != null -> source.projectLine(metadata.expression.startLine())
+        metadata.expression.parent != null && metadata.expression.parent!!.position != null -> source.projectLine(
+            metadata.expression.parent!!.startLine()
+        )
+
+        else -> source
+    }
+
+    val entry = LogEntry(actualSource, this.loggableEntityName, "EVAL")
+    return this.getExpressionLogRenderer(entry, metadata)
 }
