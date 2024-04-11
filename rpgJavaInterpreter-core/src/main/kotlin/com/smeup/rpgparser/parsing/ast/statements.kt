@@ -738,7 +738,11 @@ data class CallPStmt(
         val callStatement = this
         try {
             kotlin.run {
-                val expressionEvaluation = ExpressionEvaluation(interpreter.getSystemInterface(), LocalizationContext(), interpreter.getStatus())
+                val expressionEvaluation = ExpressionEvaluation(
+                    interpreter.getSystemInterface(),
+                    LocalizationContext(),
+                    interpreter.getStatus()
+                )
                 expressionEvaluation.eval(functionCall)
             }.apply {
 
@@ -1670,21 +1674,18 @@ data class ForStmt(
     override val loggableEntityName: String
         get() = "FOR"
 
-    // TODO: Add Loop subject
     override val loopSubject: String
-        get() =
-            if (init is AssignmentExpr) {
+        get() {
+            return if (init is AssignmentExpr) {
                 val assignment = init as AssignmentExpr
                 if (assignment.target is DataRefExpr) {
                     val target = assignment.target as DataRefExpr
                     target.variable.referred?.name ?: ""
-                }
-                else ""
+                } else ""
             } else ""
+        }
 
-    private var _iterations: Long = 0
-    override val iterations: Long
-        get() = _iterations
+    override var iterations: Long = 0
 
     fun iterDataDefinition(): AbstractDataDefinition {
         if (init is AssignmentExpr) {
@@ -1720,7 +1721,7 @@ data class ForStmt(
             while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
                 try {
                     interpreter.execute(body)
-                    ++_iterations
+                    ++iterations
                 } catch (e: IterException) {
                     // nothing to do here
                 }
