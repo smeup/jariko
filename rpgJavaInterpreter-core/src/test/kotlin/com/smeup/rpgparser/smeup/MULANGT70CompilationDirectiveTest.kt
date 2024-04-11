@@ -19,6 +19,16 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
      * @see #265
      */
     @Test
+    fun executeMU711002() {
+        val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
+        assertEquals(expected, "smeup/MU711002".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data definition under dependencies.
+     * @see #265
+     */
+    @Test
     fun executeMU711003() {
         val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
         assertEquals(expected, "smeup/MU711003".outputOf(configuration = smeupConfig))
