@@ -40,6 +40,7 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
@@ -77,25 +78,14 @@ class InterpreterStatus(
     }
 }
 
+object LoggingContext {
+    val timeUsageByStatement = HashMap<String, Long>()
+}
+
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
-
-    object LoggingContext {
-        var subject: String = ""
-        var iterations: Long = 0
-
-        fun reset() {
-            subject = ""
-            iterations = 0
-        }
-    }
-
-    override fun notifyIteration() {
-        LoggingContext.iterations += 1
-    }
-
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
     }
@@ -175,8 +165,10 @@ open class InternalInterpreter(
                     for (i in 1..maxElements) {
                         // Added coerce
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
-                        dataStructValue.setSubstring(startOffset, startOffset + size,
-                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                        dataStructValue.setSubstring(
+                            startOffset, startOffset + size,
+                            data.type.asArray().element.toDataStructureValue(valueToAssign)
+                        )
                         startOffset += data.stepSize
                     }
                 } else {
@@ -191,12 +183,15 @@ open class InternalInterpreter(
                                 dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
                             }
                         }
+
                         is DataStructValue -> {
                             containerValue.set(data, value)
                         }
+
                         is OccurableDataStructValue -> {
                             containerValue.value().set(data, value)
                         }
+
                         else -> TODO()
                     }
                 }
@@ -248,7 +243,7 @@ open class InternalInterpreter(
                     value = when {
                         it.name in initialValues -> {
                             val initialValue = initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                ?: throw RuntimeException("Initial values for ${it.name} not found")
                             if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
                                 require(initialValue.assignableTo(it.type)) {
                                     "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
@@ -256,11 +251,13 @@ open class InternalInterpreter(
                             }
                             initialValue
                         }
+
                         it.initializationValue != null -> eval(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(index++),
                             (it.type as ArrayType)
                         )
+
                         else -> blankValue(it)
                     }
                     if (it.name !in initialValues) {
@@ -277,6 +274,7 @@ open class InternalInterpreter(
                         when (it.name) {
                             in initialValues -> initialValues[it.name]
                                 ?: throw RuntimeException("Initial values for ${it.name} not found")
+
                             else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
                                 it.type.blank()
                             } else {
@@ -292,8 +290,9 @@ open class InternalInterpreter(
                 val ctdata = compilationUnit.compileTimeArray(it.name)
                 if (ctdata.name == it.name) {
                     value = toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
-                            (it.type as ArrayType))
+                        compilationUnit.compileTimeArray(it.name),
+                        (it.type as ArrayType)
+                    )
                     set(it, value)
                 }
 
@@ -383,10 +382,26 @@ open class InternalInterpreter(
                 val elapsedTime = measureTimeMillis {
                     execute(compilationUnit.main.stmts)
                 }
+
                 if (elapsedTime > compilationUnit.minTimeOut!!) {
-                    throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+                    throw InterpreterTimeoutException(
+                        interpretationContext.currentProgramName,
+                        elapsedTime,
+                        compilationUnit.minTimeOut!!
+                    )
                 }
             }
+
+            val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
+            val logEntry = LogEntry(logSource, LogChannel.PERFORMANCE.getPropertyName(), "RECAP")
+            val message = "Execution time is distributed as following:\n" +
+                    LoggingContext
+                        .timeUsageByStatement
+                        .toList()
+                        .sortedBy { it.second }
+                        .joinToString(separator = "\n") { "${it.first}: ${it.second}ms" }
+
+            renderLog(LazyLogEntry.produceMessage(logEntry, message))
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue
@@ -426,7 +441,8 @@ open class InternalInterpreter(
     }
 
     @Deprecated(message = "No longer used")
-    open fun fireOnEnterPgmCallBackFunction() {}
+    open fun fireOnEnterPgmCallBackFunction() {
+    }
 
     private fun executeWithMute(statement: Statement) {
         val logSource = LogSourceData(
@@ -477,7 +493,8 @@ open class InternalInterpreter(
     }
 
     private fun Throwable.fireErrorEvent(position: Position?): Throwable {
-        val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
+        val errorEvent =
+            ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
         errorEvent.pushRuntimeErrorEvent()
         MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
         return this
@@ -485,24 +502,40 @@ open class InternalInterpreter(
 
     // I use a chain of names, so I am sure that this attribute name depends on program stack too
     private fun prevStmtAttributeMame(): String {
-        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }}"
+        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${
+            MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }
+        }"
     }
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
-        if (!MainExecutionContext.getProgramStack().empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) {
+        if (!MainExecutionContext.getProgramStack()
+                .empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()
+        ) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
             copyBlocks.observeTransitions(
                 from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
                 to = currentStatementLine,
-                onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
-                onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }
+                onEnter = { copyBlock ->
+                    MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(
+                        copyBlock.copyId
+                    )
+                },
+                onExit = { copyBlock ->
+                    MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(
+                        copyBlock.copyId
+                    )
+                }
             )
             MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit, line: String) {
+    private fun executeMutes(
+        muteAnnotations: MutableList<MuteAnnotation>,
+        compilationUnit: CompilationUnit,
+        line: String
+    ) {
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             val logSource = LogSourceData(
@@ -543,9 +576,11 @@ open class InternalInterpreter(
                         )
                     )
                 }
+
                 is MuteTypeAnnotation -> {
                     // Skip
                 }
+
                 is MuteTimeoutAnnotation -> {
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -556,6 +591,7 @@ open class InternalInterpreter(
                         )
                     )
                 }
+
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
                     renderLog(LazyLogEntry.produceMute(it, logSource, message))
@@ -568,6 +604,7 @@ open class InternalInterpreter(
                         )
                     )
                 }
+
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
         }
@@ -670,7 +707,8 @@ open class InternalInterpreter(
                     dataDefinitionByName(name)
                 }?.apply {
                     assign(this, StringValue(field.value))
-                } ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
+                }
+                    ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
         } else {
             status.lastFound = false
@@ -728,6 +766,7 @@ open class InternalInterpreter(
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
+
             else -> expression.evalWith(expressionEvaluation)
         }
 
@@ -775,7 +814,10 @@ open class InternalInterpreter(
             require(restType is NumberType)
             val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
             val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            assign(statement.mvrStatement.target, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
+            assign(
+                statement.mvrStatement.target,
+                DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN))
+            )
         }
         return if (statement.halfAdjust) {
             DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
@@ -814,6 +856,7 @@ open class InternalInterpreter(
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
             }
+
             is ArrayAccessExpr -> {
                 val arrayValue = eval(target.array) as ArrayValue
                 val targetType = target.array.type()
@@ -836,6 +879,7 @@ open class InternalInterpreter(
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
+
             is SubstExpr -> {
                 val oldValue = eval(target.string).asString().value
                 val length = if (target.length != null) eval(target.length).asInt().value.toInt() else null
@@ -850,11 +894,13 @@ open class InternalInterpreter(
 
                 return assign(target.string as AssignableExpression, newValue)
             }
+
             is SubarrExpr -> {
                 require(value is ArrayValue)
                 // replace portion of array with another array
                 val start: Int = eval(target.start).asInt().value.toInt()
-                val numberOfElement: Int? = if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
+                val numberOfElement: Int? =
+                    if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
                 val array: ArrayValue = eval(target.array).asArray().copy()
                 val to: Int = if (numberOfElement == null) {
                     array.arrayLength()
@@ -869,6 +915,7 @@ open class InternalInterpreter(
                 }
                 return assign(target.array as AssignableExpression, array)
             }
+
             is LenExpr -> {
                 require((target.value as? DataRefExpr)?.variable?.referred is DataDefinition)
                 val dataDefinition: DataDefinition = (target.value as DataRefExpr).variable.referred!! as DataDefinition
@@ -879,12 +926,14 @@ open class InternalInterpreter(
                 }
                 return value
             }
+
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
                         container[target.field.referred!!]
                         container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
                     }
+
                     is OccurableDataStructValue -> {
                         container.value()[target.field.referred!!]
                         container.value().set(target.field.referred!!, coerce(value, target.field.referred!!.type))
@@ -892,12 +941,14 @@ open class InternalInterpreter(
                 }
                 return value
             }
+
             is IndicatorExpr -> {
                 val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
                 indicators[index] = coercedValue.asBoolean()
                 return coercedValue
             }
+
             is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
@@ -913,6 +964,7 @@ open class InternalInterpreter(
                     coercedValue
                 }
             }
+
             else -> TODO(target.toString())
         }
     }
@@ -931,12 +983,14 @@ open class InternalInterpreter(
                     assign(target, eval(value))
                 }
             }
+
             PLUS_ASSIGNMENT ->
                 if (target is DataRefExpr && value is IntLiteral) {
                     increment(target.variable.referred!!, value.value)
                 } else {
                     assign(target, eval(PlusExpr(target, value)))
                 }
+
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
@@ -1012,7 +1066,8 @@ open class InternalInterpreter(
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
                 return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
-                    interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
+                    interpretationContext.currentProgramName, associatedActivationGroup
+                )?.assignedName ?: activationGroup
             }
         }
     }
@@ -1052,7 +1107,8 @@ open class InternalInterpreter(
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
         return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
-            interpretationContext.currentProgramName) ?: exitRT
+            interpretationContext.currentProgramName
+        ) ?: exitRT
     }
 
     // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
@@ -1078,32 +1134,48 @@ open class InternalInterpreter(
             compilationUnit.subroutines.firstOrNull { subroutine ->
                 subroutine.name.equals(other = name, ignoreCase = true)
             }?.let { subroutine ->
-                ExecuteSubroutine(subroutine = ReferenceByName(name, subroutine), position = subroutine.position).execute(this)
+                ExecuteSubroutine(
+                    subroutine = ReferenceByName(name, subroutine),
+                    position = subroutine.position
+                ).execute(this)
             }
         }
     }
 
     private fun executeWithLogging(statement: Statement, source: LogSourceData) {
-        LoggingContext.subject = statement.loggableEntityName
-
-        renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "START"))
+        if (statement is CompositeStatement) {
+            renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "START"))
+        } else {
+            renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "EXEC"))
+        }
 
         if (statement is LoopStatement) {
-            LazyLogEntry.produceLoopStart(source, statement.loopSubject)
+            renderLog(LazyLogEntry.produceLoopStart(source, statement.loggableEntityName, statement.loopSubject))
         }
 
         val executionTime = measureTimeMillis {
             statement.execute(this)
         }
 
+        val timeUsageEntry = LoggingContext.timeUsageByStatement.getOrPut(statement.loggableEntityName) { 0 }
+        LoggingContext.timeUsageByStatement.set(statement.loggableEntityName, timeUsageEntry + executionTime)
+
         if (statement is LoopStatement) {
-            LazyLogEntry.produceLoopEnd(source, statement.loopSubject, LoggingContext.iterations)
+            renderLog(
+                LazyLogEntry.produceLoopEnd(
+                    source,
+                    statement.loggableEntityName,
+                    statement.loopSubject,
+                    statement.iterations
+                )
+            )
         }
 
-        renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "END"))
-        renderLog(LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime))
+        if (statement is CompositeStatement) {
+            renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "END"))
+        }
 
-        LoggingContext.reset()
+        renderLog(LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime))
     }
 }
 
@@ -1117,7 +1189,8 @@ fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
  * @return An instance of StatementReference related to position.
  * */
 internal fun Position.relative(): StatementReference {
-    val programName = if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
+    val programName =
+        if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
     val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
     return this.relative(programName, copyBlocks)
 }

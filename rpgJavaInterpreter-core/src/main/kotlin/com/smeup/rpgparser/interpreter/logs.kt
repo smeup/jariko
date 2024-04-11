@@ -140,7 +140,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             statementName: String,
             action: String
         ): LazyLogEntry {
-            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), action)
+            val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
             return LazyLogEntry(entry) {
                 statementName
             }
@@ -166,14 +166,14 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return LazyLogEntry(entry) { "" }
         }
 
-        fun produceLoopStart(source: LogSourceData, subject: String): LazyLogEntry {
+        fun produceLoopStart(source: LogSourceData, entity: String, subject: String): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "START")
-            return LazyLogEntry(entry) { subject }
+            return LazyLogEntry(entry) { "$entity $subject" }
         }
 
-        fun produceLoopEnd(source: LogSourceData, subject: String, iterations: Long): LazyLogEntry {
+        fun produceLoopEnd(source: LogSourceData, entity: String, subject: String, iterations: Long): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "END")
-            return LazyLogEntry(entry) { "$subject $iterations" }
+            return LazyLogEntry(entry) { "$entity $subject $iterations" }
         }
     }
 

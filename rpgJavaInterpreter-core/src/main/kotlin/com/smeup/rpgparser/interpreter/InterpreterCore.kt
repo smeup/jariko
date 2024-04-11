@@ -67,7 +67,6 @@ interface InterpreterCore {
     fun optimizedIntExpression(expression: Expression): () -> Long
     fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean
     fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value
-    fun notifyIteration()
 }
 
 internal fun ErrorEvent.pushRuntimeErrorEvent() {

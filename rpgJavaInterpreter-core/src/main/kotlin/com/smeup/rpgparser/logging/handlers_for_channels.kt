@@ -111,7 +111,7 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
 }
 
 class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    private val logger = LogManager.getLogger(LogChannel.PARSING)
+    private val logger = LogManager.getLogger(LogChannel.PARSING.getPropertyName())
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {

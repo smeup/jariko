@@ -46,6 +46,7 @@ interface StatementThatCanDefineData {
 
 interface LoopStatement {
     val loopSubject: String
+    val iterations: Long
 }
 
 enum class AssignmentOperator(val text: String) {
@@ -1416,6 +1417,10 @@ data class DOWxxStmt(
     override val loggableEntityName: String
         get() = "DOWxx"
 
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
+
     override val loopSubject: String
         get() = ""
 
@@ -1428,7 +1433,7 @@ data class DOWxxStmt(
                     interpreter.getLocalizationContext().charset
                 ).isVerified
             ) {
-                interpreter.notifyIteration()
+                ++_iterations
                 interpreter.execute(body)
             }
         } catch (e: LeaveException) {
@@ -1448,6 +1453,10 @@ data class DoStmt(
 ) : Statement(position), CompositeStatement, StatementThatCanDefineData, LoopStatement {
     override val loggableEntityName: String
         get() = "DO"
+
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
 
     override val loopSubject: String
         get() = ""
@@ -1472,7 +1481,7 @@ data class DoStmt(
             try {
                 while (myIterValue <= endLimit()) {
                     try {
-                        interpreter.notifyIteration()
+                        ++_iterations
                         interpreter.execute(body)
                     } catch (e: IterException) {
                         // nothing to do here
@@ -1514,11 +1523,15 @@ data class DowStmt(
     override val loopSubject: String
         get() = ""
 
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
+
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
         try {
             while (interpreter.eval(endExpression).asBoolean().value) {
-                interpreter.notifyIteration()
+                ++_iterations
                 interpreter.execute(body)
                 loopCounter++
             }
@@ -1539,11 +1552,15 @@ data class DouStmt(
     override val loopSubject: String
         get() = ""
 
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
+
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
         try {
             do {
-                interpreter.notifyIteration()
+                ++_iterations
                 interpreter.execute(body)
                 loopCounter++
             } while (!interpreter.eval(endExpression).asBoolean().value)
@@ -1655,7 +1672,19 @@ data class ForStmt(
 
     // TODO: Add Loop subject
     override val loopSubject: String
-        get() = ""
+        get() =
+            if (init is AssignmentExpr) {
+                val assignment = init as AssignmentExpr
+                if (assignment.target is DataRefExpr) {
+                    val target = assignment.target as DataRefExpr
+                    target.variable.referred?.name ?: ""
+                }
+                else ""
+            } else ""
+
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
 
     fun iterDataDefinition(): AbstractDataDefinition {
         if (init is AssignmentExpr) {
@@ -1691,7 +1720,7 @@ data class ForStmt(
             while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
                 try {
                     interpreter.execute(body)
-                    interpreter.notifyIteration()
+                    ++_iterations
                 } catch (e: IterException) {
                     // nothing to do here
                 }
