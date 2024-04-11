@@ -44,7 +44,6 @@ internal fun Throwable.fireErrorEvent(position: Position?): Throwable {
         sourceReference = sourceReference
     )
     MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
-
     return this
 }
 
