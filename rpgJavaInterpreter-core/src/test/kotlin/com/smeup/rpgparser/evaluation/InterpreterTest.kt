@@ -1915,6 +1915,34 @@ Test 6
     }
 
     @Test
+    fun executeAPIPGM2() {
+        assertEquals(
+            expected = listOf("Hello world"),
+            actual = outputOf("APIPGM2"))
+    }
+
+    @Test
+    fun executeAPIPGM3() {
+        assertEquals(
+            expected = listOf("3", "6"),
+            actual = outputOf("APIPGM3"))
+    }
+
+    @Test
+    fun executeAPIPGM4() {
+        assertEquals(
+            expected = listOf("Hello there!", "General Kenobi"),
+            actual = outputOf("APIPGM4"))
+    }
+
+    @Test
+    fun executeAPIPGM5() {
+        assertEquals(
+            expected = listOf("Hello there!", "General Kenobi"),
+            actual = outputOf("APIPGM5"))
+    }
+
+    @Test
     open fun executeDSOVERL() {
         assertEquals(
             expected = "AAAA,BBBB".split(","),

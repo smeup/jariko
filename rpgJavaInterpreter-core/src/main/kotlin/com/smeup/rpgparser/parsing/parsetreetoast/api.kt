@@ -61,7 +61,8 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
             position = this.position,
             apiDescriptors = api.compilationUnit.apiDescriptors?.let {
                 this.apiDescriptors?.plus(it)
-            } ?: this.apiDescriptors
+            } ?: this.apiDescriptors,
+            procedures = this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
         )
     }
 }
@@ -90,4 +91,14 @@ private fun <F, D : Node> Map<F, List<D>>.include(map: Map<F, List<D>>): Map<F, 
 private fun Api.validate(): Api {
     require(compilationUnit.main.stmts.isEmpty()) { "The APIs containing statements are not handled yet" }
     return this
+}
+
+private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<CompilationUnit>): List<CompilationUnit> {
+    return this.map { procedure ->
+        if (procedure.isProcedurePrototype()) {
+            from.firstOrNull { it.procedureName == procedure.procedureName } ?: procedure
+        } else {
+            procedure
+        }
+    }
 }
