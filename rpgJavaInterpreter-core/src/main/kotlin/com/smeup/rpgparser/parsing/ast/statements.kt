@@ -734,40 +734,18 @@ data class CallPStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        val startTime = System.currentTimeMillis()
-        val callStatement = this
-        try {
-            kotlin.run {
-                val expressionEvaluation = ExpressionEvaluation(
-                    interpreter.getSystemInterface(),
-                    LocalizationContext(),
-                    interpreter.getStatus()
-                )
-                expressionEvaluation.eval(functionCall)
-            }.apply {
-
-            }
-        } catch (e: Exception) { // TODO Catch a more specific exception?
-            if (errorIndicator == null) {
-                throw e
-            }
+        runCatching {
+            val expressionEvaluation = ExpressionEvaluation(
+                interpreter.getSystemInterface(),
+                LocalizationContext(),
+                interpreter.getStatus()
+            )
+            expressionEvaluation.eval(functionCall)
+        }.onFailure { e ->
+            // TODO Catch a more specific exception?
+            errorIndicator ?: throw e
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
         }
-//        try {
-//            kotlin.run {
-//                val expressionEvaluation = ExpressionEvaluation(
-//                    interpreter.getSystemInterface(),
-//                    LocalizationContext(),
-//                    interpreter.getStatus()
-//                )
-//                expressionEvaluation.eval(functionCall)
-//            }
-//        } catch (e: Exception) { // TODO Catch a more specific exception?
-//            if (errorIndicator == null) {
-//                throw e
-//            }
-//            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
-//        }
     }
 }
 
