@@ -109,10 +109,8 @@ class RunnerTest : AbstractTest() {
         SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "CALCFIBCA5", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
-
-        // assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
-        assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat =         \t10")
-        assertContain(logs, "CALCFIB\t\tDATA\tppdat = N/D\t10")
+        assertContain(logs, "CALCFIBCA5\t3\t\tASSIGN\tppdat = 10      \twas:         ")
+        assertContain(logs, "CALCFIB\t2\t\tASSIGN\tppdat = 10      \twas: N/D")
     }
 
     @Test
