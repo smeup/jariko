@@ -5,7 +5,6 @@ import org.junit.Test
 import java.time.LocalDateTime
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
