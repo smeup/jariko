@@ -129,8 +129,8 @@ open class InternalInterpreter(
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override fun renderLog(renderer: LazyLogEntry) {
-        if (logsEnabled()) doLog(renderer)
+    override fun renderLog(producer: () -> LazyLogEntry) {
+        if (logsEnabled()) doLog(producer())
     }
 
     private fun doLog(renderer: LazyLogEntry) {
@@ -198,14 +198,16 @@ open class InternalInterpreter(
             }
 
             else -> {
-                var previous: Value? = null
-                if (data.name in globalSymbolTable) {
-                    previous = globalSymbolTable[data.name]
-                }
+
 
                 val logSource = LogSourceData(this.interpretationContext.currentProgramName, data.startLine())
-                renderLog(LazyLogEntry.produceData(logSource, data, value, previous))
-                renderLog(LazyLogEntry.produceAssignment(logSource, data, value))
+                renderLog {
+                    val previous = if (data.name in globalSymbolTable) {
+                        globalSymbolTable[data.name]
+                    } else null
+                    LazyLogEntry.produceData(logSource, data, value, previous)
+                }
+                renderLog { LazyLogEntry.produceAssignment(logSource, data, value) }
                 // deny reassignment if data is a constant
                 globalSymbolTable.set(data, coerce(value, data.type))?.let {
                     if (data.const) error("${data.name} is a const and cannot be assigned")
@@ -223,8 +225,8 @@ open class InternalInterpreter(
         val logSource =
             LogSourceData(programName = interpretationContext.currentProgramName, line = compilationUnit.startLine())
 
-        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "START"))
-        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "START"))
+        renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "START") }
+        renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "START") }
 
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
@@ -320,18 +322,18 @@ open class InternalInterpreter(
 
         val initElapsed = System.currentTimeMillis() - start
 
-        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "END"))
-        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "END"))
-        renderLog(LazyLogEntry.producePerformance(logSource, "SYMTBLINI", initElapsed))
+        renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "END") }
+        renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "END") }
+        renderLog { LazyLogEntry.producePerformance(logSource, "SYMTBLINI", initElapsed) }
 
-        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "START"))
-        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "START"))
+        renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "START") }
+        renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "START") }
 
         val loadElapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
 
-        renderLog(LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "END"))
-        renderLog(LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "END"))
-        renderLog(LazyLogEntry.producePerformance(logSource, "SYMTBLLOAD", loadElapsed))
+        renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "END") }
+        renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "END") }
+        renderLog { LazyLogEntry.producePerformance(logSource, "SYMTBLLOAD", loadElapsed) }
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -401,7 +403,7 @@ open class InternalInterpreter(
                         .sortedBy { it.second }
                         .joinToString(separator = "\n") { "${it.first}: ${it.second}ms" }
 
-            renderLog(LazyLogEntry.produceMessage(logEntry, message))
+            renderLog { LazyLogEntry.produceMessage(logEntry, message) }
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue
@@ -450,7 +452,7 @@ open class InternalInterpreter(
             line = statement.position.line()
         )
 
-        renderLog(LazyLogEntry.produceLine(logSource))
+        renderLog { LazyLogEntry.produceLine(logSource) }
 
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
@@ -560,7 +562,7 @@ open class InternalInterpreter(
                         "Expected BooleanValue, but found $value"
                     }
 
-                    renderLog(LazyLogEntry.produceMute(it, logSource, value))
+                    renderLog { LazyLogEntry.produceMute(it, logSource, value) }
 
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -594,7 +596,7 @@ open class InternalInterpreter(
 
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
-                    renderLog(LazyLogEntry.produceMute(it, logSource, message))
+                    renderLog { LazyLogEntry.produceMute(it, logSource, message) }
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteFailAnnotationExecuted(
@@ -781,7 +783,7 @@ open class InternalInterpreter(
 //            renderLog(LazyLogEntry.produceEval(logSource, expression, value))
 //        }
 
-        expression.produceExpressionLogRenderer(logSource, expression, value)?.let { renderLog(it) }
+        expression.produceExpressionLogRenderer(logSource, expression, value)?.let { renderLog { it } }
 
         return value
     }
@@ -874,7 +876,7 @@ open class InternalInterpreter(
                 val index = indexValue.asInt().value.toInt()
 
                 val logSource = LogSourceData(interpretationContext.currentProgramName, target.array.startLine())
-                renderLog(LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value))
+                renderLog { LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value) }
 
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
@@ -1144,13 +1146,13 @@ open class InternalInterpreter(
 
     private fun executeWithLogging(statement: Statement, source: LogSourceData) {
         if (statement is CompositeStatement) {
-            renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "START"))
+            renderLog { LazyLogEntry.produceStatement(source, statement.loggableEntityName, "START") }
         } else {
-            renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "EXEC"))
+            renderLog { LazyLogEntry.produceStatement(source, statement.loggableEntityName, "EXEC") }
         }
 
         if (statement is LoopStatement) {
-            renderLog(LazyLogEntry.produceLoopStart(source, statement.loggableEntityName, statement.loopSubject))
+            renderLog { LazyLogEntry.produceLoopStart(source, statement.loggableEntityName, statement.loopSubject) }
         }
 
         val executionTime = measureTimeMillis {
@@ -1161,21 +1163,21 @@ open class InternalInterpreter(
         LoggingContext.timeUsageByStatement.set(statement.loggableEntityName, timeUsageEntry + executionTime)
 
         if (statement is LoopStatement) {
-            renderLog(
+            renderLog {
                 LazyLogEntry.produceLoopEnd(
                     source,
                     statement.loggableEntityName,
                     statement.loopSubject,
                     statement.iterations
                 )
-            )
+            }
         }
 
         if (statement is CompositeStatement) {
-            renderLog(LazyLogEntry.produceStatement(source, statement.loggableEntityName, "END"))
+            renderLog { LazyLogEntry.produceStatement(source, statement.loggableEntityName, "END") }
         }
 
-        renderLog(LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime))
+        renderLog { LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime) }
     }
 }
 

@@ -33,7 +33,7 @@ interface InterpreterCore {
     fun getKlists(): HashMap<String, List<String>>
     fun getGlobalSymbolTable(): ISymbolTable
     fun getLocalizationContext(): LocalizationContext
-    fun renderLog(renderer: LazyLogEntry)
+    fun renderLog(producer: () -> LazyLogEntry)
     fun assign(target: AssignableExpression, value: Value): Value
     fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value
     fun assign(

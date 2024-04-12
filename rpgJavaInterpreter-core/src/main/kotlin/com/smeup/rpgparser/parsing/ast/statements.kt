@@ -137,7 +137,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = LogSourceData(programName, subroutine.referred!!.position.line())
-        interpreter.renderLog(LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!))
+        interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
             interpreter.execute(subroutine.referred!!.stmts)
         } catch (e: LeaveSrException) {
