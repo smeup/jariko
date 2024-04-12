@@ -14,3 +14,5 @@ The load api policy can be:
 - *Static*, Jariko always loads the API
 - *Dynamic*, Jariko loads the API's CompilationUnit, if needed, during AST creation.
 - *Just in Time*, Jariko loads the API, if needed, during the program interpretation.
+
+[Notes for developer](api4dev.md)
