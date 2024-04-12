@@ -144,10 +144,11 @@ internal fun String.resolveCompilerDirectives(): String {
                     directiveRow = true
                     // Control if ELSE is acceptable
                     val acceptedLastCodes =
-                        listOf(SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
-                               SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
-                               SYN_RELEVANT_DIRECTIVES.ENDIF
-                               )
+                        listOf(
+                            SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
+                            SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
+                            SYN_RELEVANT_DIRECTIVES.ENDIF
+                        )
                     if (!acceptedLastCodes.any { it == lastCode }) {
                         throw CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1))
                     }
@@ -166,7 +167,7 @@ internal fun String.resolveCompilerDirectives(): String {
                         SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
                         SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
                         SYN_RELEVANT_DIRECTIVES.ELSE,
-                        SYN_RELEVANT_DIRECTIVES.ENDIF,
+                        SYN_RELEVANT_DIRECTIVES.ENDIF
                     )
                     if (!acceptedLastCodes.any { it == lastCode }) {
                         throw CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1))

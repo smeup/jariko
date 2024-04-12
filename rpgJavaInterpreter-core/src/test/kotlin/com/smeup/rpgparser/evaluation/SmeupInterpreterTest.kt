@@ -5,7 +5,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
-
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -13,7 +12,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-import kotlin.test.assertFails
 
 open class SmeupInterpreterTest : AbstractTest() {
 
