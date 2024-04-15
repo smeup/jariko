@@ -146,6 +146,8 @@ open class InternalInterpreter(
             "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
         }
 
+        val logSource = LogSourceData(this.interpretationContext.currentProgramName, data.startLine())
+
         when (data) {
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
@@ -179,24 +181,18 @@ open class InternalInterpreter(
                                 dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
                             }
                         }
-
                         is DataStructValue -> {
                             containerValue.set(data, value)
                         }
-
                         is OccurableDataStructValue -> {
                             containerValue.value().set(data, value)
                         }
-
                         else -> TODO()
                     }
                 }
+                // TODO: Add DATA log entry for data structs
             }
-
             else -> {
-
-
-                val logSource = LogSourceData(this.interpretationContext.currentProgramName, data.startLine())
                 renderLog {
                     val previous = if (data.name in globalSymbolTable) {
                         globalSymbolTable[data.name]
@@ -760,7 +756,6 @@ open class InternalInterpreter(
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
-
             else -> expression.evalWith(expressionEvaluation)
         }
 
@@ -768,12 +763,6 @@ open class InternalInterpreter(
             this.interpretationContext.currentProgramName,
             expression.startLine()
         )
-
-//        if (expression !is StringLiteral && expression !is IntLiteral &&
-//            expression !is DataRefExpr && expression !is BlanksRefExpr
-//        ) {
-//            renderLog(LazyLogEntry.produceEval(logSource, expression, value))
-//        }
 
         expression.produceExpressionLogRenderer(logSource, expression, value)?.let { renderLog { it } }
 
@@ -850,7 +839,6 @@ open class InternalInterpreter(
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
             }
-
             is ArrayAccessExpr -> {
                 val arrayValue = eval(target.array) as ArrayValue
                 val targetType = target.array.type()
@@ -873,7 +861,6 @@ open class InternalInterpreter(
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
-
             is SubstExpr -> {
                 val oldValue = eval(target.string).asString().value
                 val length = if (target.length != null) eval(target.length).asInt().value.toInt() else null
@@ -888,7 +875,6 @@ open class InternalInterpreter(
 
                 return assign(target.string as AssignableExpression, newValue)
             }
-
             is SubarrExpr -> {
                 require(value is ArrayValue)
                 // replace portion of array with another array
@@ -909,7 +895,6 @@ open class InternalInterpreter(
                 }
                 return assign(target.array as AssignableExpression, array)
             }
-
             is LenExpr -> {
                 require((target.value as? DataRefExpr)?.variable?.referred is DataDefinition)
                 val dataDefinition: DataDefinition = (target.value as DataRefExpr).variable.referred!! as DataDefinition
@@ -920,7 +905,6 @@ open class InternalInterpreter(
                 }
                 return value
             }
-
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
@@ -935,14 +919,12 @@ open class InternalInterpreter(
                 }
                 return value
             }
-
             is IndicatorExpr -> {
                 val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
                 indicators[index] = coercedValue.asBoolean()
                 return coercedValue
             }
-
             is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
@@ -958,7 +940,6 @@ open class InternalInterpreter(
                     coercedValue
                 }
             }
-
             else -> TODO(target.toString())
         }
     }
@@ -1241,6 +1222,6 @@ private fun ILoggableExpression.produceExpressionLogRenderer(
         else -> source
     }
 
-    val entry = LogEntry(actualSource, this.loggableEntityName, "EVAL")
+    val entry = LogEntry(actualSource, LogChannel.EXPRESSION.getPropertyName(), "EVAL")
     return this.getExpressionLogRenderer(entry, metadata)
 }
