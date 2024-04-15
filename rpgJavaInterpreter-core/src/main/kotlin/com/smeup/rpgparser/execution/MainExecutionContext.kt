@@ -20,8 +20,10 @@ import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
+import java.sql.Statement
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.HashMap
 
 /**
  * Execution context allows to propagate, in simple and safe mode, some useful information, that could be
@@ -33,6 +35,7 @@ object MainExecutionContext {
 
     // default values in case jariko is not called from the command line program
     private val context: ThreadLocal<Context> by lazy { ThreadLocal<Context>() }
+    private val loggingContext: ThreadLocal<LoggingContext> by lazy { ThreadLocal<LoggingContext>() }
     private val noContextIdProvider: AtomicInteger by lazy { AtomicInteger() }
     private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf<String, Any>() }
     private val noConfiguration: Configuration by lazy { Configuration() }
@@ -100,6 +103,11 @@ object MainExecutionContext {
      * @return execution context attributes
      * */
     fun getAttributes(): MutableMap<String, Any> = context.get()?.attributes ?: noContextAttributes
+
+    /**
+     * @return logging context
+     */
+    fun getLoggingContext() = loggingContext.get() ?: null
 
     /**
      * @return a new unique identifier
@@ -219,4 +227,18 @@ data class ParsingProgram(val name: String) {
     var copyBlocks: CopyBlocks? = null
     var sourceLines: List<String>? = null
     val attributes: MutableMap<String, Any> = mutableMapOf()
+}
+
+data class LoggingContext(private val timeUsageByStatement: HashMap<String, Long>) {
+    fun recordStatementDuration(name: String, executionTime: Long) {
+        val timeUsageEntry = timeUsageByStatement.getOrPut(name) { 0 }
+        timeUsageByStatement[name] = timeUsageEntry + executionTime
+    }
+
+    fun generateTimeUsageByStatementReport() = timeUsageByStatement
+            .toList()
+            .sortedBy { it.second }
+            .joinToString(separator = "\n") {
+                "${it.first}: ${it.second}ms"
+            }
 }

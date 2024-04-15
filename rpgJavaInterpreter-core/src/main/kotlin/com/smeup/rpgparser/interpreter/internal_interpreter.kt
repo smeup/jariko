@@ -78,10 +78,6 @@ class InterpreterStatus(
     }
 }
 
-object LoggingContext {
-    val timeUsageByStatement = HashMap<String, Long>()
-}
-
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
@@ -397,11 +393,7 @@ open class InternalInterpreter(
             val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
             val logEntry = LogEntry(logSource, LogChannel.PERFORMANCE.getPropertyName(), "RECAP")
             val message = "Execution time is distributed as following:\n" +
-                    LoggingContext
-                        .timeUsageByStatement
-                        .toList()
-                        .sortedBy { it.second }
-                        .joinToString(separator = "\n") { "${it.first}: ${it.second}ms" }
+                    MainExecutionContext.getLoggingContext()?.generateTimeUsageByStatementReport()
 
             renderLog { LazyLogEntry.produceMessage(logEntry, message) }
         }.onFailure {
@@ -1159,8 +1151,7 @@ open class InternalInterpreter(
             statement.execute(this)
         }
 
-        val timeUsageEntry = LoggingContext.timeUsageByStatement.getOrPut(statement.loggableEntityName) { 0 }
-        LoggingContext.timeUsageByStatement.set(statement.loggableEntityName, timeUsageEntry + executionTime)
+        MainExecutionContext.getLoggingContext()?.recordStatementDuration(statement.loggableEntityName, executionTime)
 
         if (statement is LoopStatement) {
             renderLog {
