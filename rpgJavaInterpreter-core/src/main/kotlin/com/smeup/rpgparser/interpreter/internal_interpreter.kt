@@ -732,6 +732,7 @@ open class InternalInterpreter(
         }
 
     override fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value {
+        // TODO: Add logs
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
@@ -770,6 +771,7 @@ open class InternalInterpreter(
     }
 
     override fun mult(statement: MultStmt): Value {
+        // TODO: Add logs
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         val rightValue = BigDecimal(eval(statement.left).render())
         val leftValue = BigDecimal(eval(statement.right).render())
@@ -784,6 +786,7 @@ open class InternalInterpreter(
     }
 
     override fun div(statement: DivStmt): Value {
+        // TODO: Add logs
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         val dividend = BigDecimal(eval(statement.dividend).render())
         val divisor = BigDecimal(eval(statement.divisor).render())
@@ -810,6 +813,7 @@ open class InternalInterpreter(
     }
 
     override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+        // TODO: Add logs
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
             // currently the only assignable value for a record format type is blank
@@ -835,6 +839,7 @@ open class InternalInterpreter(
     }
 
     override fun assign(target: AssignableExpression, value: Value): Value {
+        // TODO: Add assignment logs
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -949,6 +954,7 @@ open class InternalInterpreter(
         value: Expression,
         operator: AssignmentOperator
     ): Value {
+        // TODO: Add assignment logs
         return when (operator) {
             NORMAL_ASSIGNMENT -> {
                 if (target is DataRefExpr && value is PlusExpr && value.left.render() == target.render() && value.right is IntLiteral) {
@@ -958,14 +964,12 @@ open class InternalInterpreter(
                     assign(target, eval(value))
                 }
             }
-
             PLUS_ASSIGNMENT ->
                 if (target is DataRefExpr && value is IntLiteral) {
                     increment(target.variable.referred!!, value.value)
                 } else {
                     assign(target, eval(PlusExpr(target, value)))
                 }
-
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
@@ -989,6 +993,7 @@ open class InternalInterpreter(
     }
 
     override fun add(statement: AddStmt): Value {
+        // TODO: Add logs
         val addend1 = eval(statement.addend1)
         require(addend1 is NumberValue) {
             "$addend1 should be a number"
@@ -1007,6 +1012,7 @@ open class InternalInterpreter(
     }
 
     override fun sub(statement: SubStmt): Value {
+        // TODO: Add logs
         val minuend = eval(statement.minuend)
         require(minuend is NumberValue) {
             "$minuend should be a number"

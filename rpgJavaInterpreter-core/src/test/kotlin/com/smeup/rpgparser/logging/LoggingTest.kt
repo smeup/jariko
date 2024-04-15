@@ -34,9 +34,9 @@ class LoggingTest : AbstractTest() {
     private val programName = "MYPGM"
     private val varName = "MYVAR"
     private val varValue = "MYVALUE"
-    private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+\\t$programName\\t\\tDATA\\t$varName = N/D\\t$varValue")
+    private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
     // there is no time stamp reference
-    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "\\t$programName\\t\\tDATA\\t$varName = N/D\\t$varValue")
+    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
 
     @After
     fun after() {
@@ -83,6 +83,7 @@ class LoggingTest : AbstractTest() {
                 val out = StringOutputStream()
                 System.setOut(PrintStream(out))
                 MainExecutionContext.log(createAssignmentLogEntry())
+                MainExecutionContext.log(createDataLogEntry())
                 out.flush()
                 val loggedOnConsole = out.toString().trim()
                 assertTrue(
@@ -126,6 +127,7 @@ class LoggingTest : AbstractTest() {
                 val out = StringOutputStream()
                 System.setOut(PrintStream(out))
                 MainExecutionContext.log(createAssignmentLogEntry())
+                MainExecutionContext.log(createDataLogEntry())
                 out.flush()
                 // in console, we must have nothing because I have implemented jarikoCallback.logInfo
                 val loggedOnConsole = out.toString().trim()
@@ -279,6 +281,16 @@ class LoggingTest : AbstractTest() {
             logSource,
             DataDefinition(name = varName, type = StringType(7)),
             StringValue(varValue)
+        )
+    }
+
+    private fun createDataLogEntry(): LazyLogEntry {
+        val logSource = LogSourceData(programName, "")
+        return LazyLogEntry.produceData(
+            logSource,
+            DataDefinition(name = varName, type = StringType(7)),
+            StringValue(varValue),
+            null
         )
     }
 }
