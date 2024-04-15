@@ -14,6 +14,15 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         assertEquals(expected, "smeup/MU023007".outputOf())
     }
     /**
+     * /COPY recognized in CTDATA
+     * @see #269
+     */
+    @Test
+    fun executeMU023008() {
+        val expected = listOf("Prova /COPY                                       ;Prova /COPY numero                                ;Prova /COPY 12                                    ;      /COPY QILEGEN, AAA")
+        assertEquals(expected, "smeup/MU023008".outputOf())
+    }
+    /**
      * Data reference - DS with 2 arrays defined with overlay
      * @see #247
      */
