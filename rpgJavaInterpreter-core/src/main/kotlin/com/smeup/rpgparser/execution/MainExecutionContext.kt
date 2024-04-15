@@ -83,6 +83,9 @@ object MainExecutionContext {
                         systemInterface = systemInterface
                     )
                 )
+                loggingContext.set(
+                    LoggingContext()
+                )
             }
             return mainProgram.runCatching {
                 invoke(context.get())
@@ -95,6 +98,7 @@ object MainExecutionContext {
             if (isRootContext) {
                 context.get()?.dbFileFactory?.close()
                 context.remove()
+                loggingContext.remove()
             }
         }
     }
@@ -229,13 +233,14 @@ data class ParsingProgram(val name: String) {
     val attributes: MutableMap<String, Any> = mutableMapOf()
 }
 
-data class LoggingContext(private val timeUsageByStatement: HashMap<String, Long>) {
+data class LoggingContext(private val timeUsageByStatement: HashMap<String, Long> = hashMapOf()) {
     fun recordStatementDuration(name: String, executionTime: Long) {
         val timeUsageEntry = timeUsageByStatement.getOrPut(name) { 0 }
         timeUsageByStatement[name] = timeUsageEntry + executionTime
     }
 
-    fun generateTimeUsageByStatementReport() = timeUsageByStatement
+    fun generateTimeUsageByStatementReport() =
+        timeUsageByStatement
             .toList()
             .sortedBy { it.second }
             .joinToString(separator = "\n") {

@@ -44,6 +44,10 @@ data class LogEntry(
 
 class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> String) {
     companion object {
+        fun fromEntry(entry: LogEntry): LazyLogEntry {
+            return produceMessage(entry, "")
+        }
+
         fun produceMessage(entry: LogEntry, message: String): LazyLogEntry {
             return LazyLogEntry(entry) { message }
         }
@@ -120,7 +124,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             action: String? = null
         ): LazyLogEntry {
             val entry = LogEntry(source, scope, action)
-            return produceMessage(entry, "")
+            return fromEntry(entry)
         }
 
         fun producePerformance(source: LogSourceData, entity: String, elapsed: Long): LazyLogEntry {
@@ -150,7 +154,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             source: LogSourceData,
         ): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
-            return LazyLogEntry(entry) { "" }
+            return fromEntry(entry)
         }
 
         fun produceError(
@@ -163,7 +167,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
 
         fun produceSubroutineStart(source: LogSourceData, subroutine: Subroutine): LazyLogEntry {
             val entry = LogEntry(source, "SUBROUTINE START", subroutine.name)
-            return LazyLogEntry(entry) { "" }
+            return fromEntry(entry)
         }
 
         fun produceLoopStart(source: LogSourceData, entity: String, subject: String): LazyLogEntry {
@@ -178,11 +182,9 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
     }
 
     private fun renderHeader(sep: String) = buildString {
-        append(sep)
         append(entry.source.filename)
         append(sep)
         append(entry.source.line)
-        append(sep)
     }
 
     fun render(sep: String, withHeader: Boolean = false, withScope: Boolean = true) = buildString {
