@@ -2,7 +2,7 @@
       * smeup V6R1.021DV
       * Nome sorgente       : MU041004
       * Sorgente di origine : QTEMP/SRC(MU041004)
-      * Esportato il        : 20240411 144710
+      * Esportato il        : 20240415 082654
       *====================================================================
      V* ==============================================================
      V* MODIFICHE Ril.  T Au Descrizione
@@ -51,7 +51,7 @@
      C                   ENDSR
       *---------------------------------------------------------------------
       /COPY QILEGEN,MULANG_D_C
-      /COPY QILEGEN,£DEC
+      /API QILEGEN,£DEC
       /COPY QILEGEN,£RITES
       /COPY QILEGEN,£JAX_C
       /COPY QILEGEN,£JAX_O
