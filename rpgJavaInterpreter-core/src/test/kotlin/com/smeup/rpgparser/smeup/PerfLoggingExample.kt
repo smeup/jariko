@@ -12,7 +12,7 @@ class PerfLoggingExample : MULANGTTest() {
     @Test @Category(PerformanceTest::class)
     fun testMUTE10_10() {
         val si = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
         }
         executePgm(programName = "performance/MUTE10_10", systemInterface = si)
     }

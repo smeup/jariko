@@ -42,7 +42,6 @@ import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.min
-import kotlin.system.measureTimeMillis
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
@@ -774,7 +773,7 @@ open class InternalInterpreter(
             expression.startLine()
         )
 
-        expression.produceExpressionLogRenderer(logSource, expression, value)?.let { renderLog { it } }
+        renderLog { LazyLogEntry.produceExpression(logSource, expression, value) }
 
         return value
     }
@@ -1133,10 +1132,12 @@ open class InternalInterpreter(
     }
 
     private fun executeWithLogging(statement: Statement, source: LogSourceData) {
+        statement.getResolutionLogRenderer(source)?.let { renderLog { it } }
+
         if (statement is CompositeStatement) {
-            renderLog { LazyLogEntry.produceStatement(source, statement.loggableEntityName, "START") }
+            renderLog { statement.getStatementLogRenderer(source, "START") }
         } else {
-            renderLog { LazyLogEntry.produceStatement(source, statement.loggableEntityName, "EXEC") }
+            renderLog { statement.getStatementLogRenderer(source, "EXEC") }
         }
 
         if (statement is LoopStatement) {
@@ -1161,7 +1162,7 @@ open class InternalInterpreter(
         }
 
         if (statement is CompositeStatement) {
-            renderLog { LazyLogEntry.produceStatement(source, statement.loggableEntityName, "END") }
+            renderLog { statement.getStatementLogRenderer(source, "END") }
         }
 
         renderLog { LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime) }
@@ -1219,24 +1220,4 @@ internal fun ISymbolTable.restoreFromMemorySlice(
             )
         }
     }
-}
-
-private fun ILoggableExpression.produceExpressionLogRenderer(
-    source: LogSourceData,
-    expression: Expression,
-    value: Value
-): LazyLogEntry? {
-    val metadata = ExpressionLogMetadata(expression, value)
-
-    val actualSource = when {
-        metadata.expression.position != null -> source.projectLine(metadata.expression.startLine())
-        metadata.expression.parent != null && metadata.expression.parent!!.position != null -> source.projectLine(
-            metadata.expression.parent!!.startLine()
-        )
-
-        else -> source
-    }
-
-    val entry = LogEntry(actualSource, LogChannel.EXPRESSION.getPropertyName(), "EVAL")
-    return this.getExpressionLogRenderer(entry, metadata)
 }

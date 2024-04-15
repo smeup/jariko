@@ -3,37 +3,27 @@ package com.smeup.rpgparser.logging
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.Expression
 
-data class PerformanceLogMetadata(
-    val elapsedMs: Long
-)
-
 data class DataLogMetadata(
     val data: AbstractDataDefinition,
     val value: Value,
     val previous: Value?
 )
 
-data class ExpressionLogMetadata(
-    val expression: Expression,
-    val value: Value
-)
-
 interface ILoggable {
     val loggableEntityName: String
 }
 
-interface ILoggableExpression : ILoggable {
+interface ILoggableStatement : ILoggable {
     override val loggableEntityName: String
-        get() = "EXPR"
+        get() = "STMT"
 
-    fun getExpressionLogRenderer(entry: LogEntry, metadata: ExpressionLogMetadata): LazyLogEntry? {
-        return LazyLogEntry(entry) { sep ->
-            val content = buildString {
-                append(metadata.expression.render())
-                append(sep)
-                append(metadata.value.render())
-            }
-            content
-        }
+    fun getStatementLogRenderer(
+        source: LogSourceData,
+        action: String
+    ): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry.produceMessage(entry, this.loggableEntityName)
     }
+
+    fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry? = null
 }

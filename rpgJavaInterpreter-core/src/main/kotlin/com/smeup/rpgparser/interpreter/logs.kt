@@ -19,7 +19,6 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.logging.DataLogMetadata
 import com.smeup.rpgparser.logging.LogChannel
-import com.smeup.rpgparser.logging.PerformanceLogMetadata
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.utils.asNonNullString
@@ -69,6 +68,33 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return LazyLogEntry(entry) { sep ->
                 val prevValue = if (metadata.previous == null) "N/D" else metadata.previous.render()
                 "${metadata.data.name} = ${metadata.value.render()}${sep}was: $prevValue"
+            }
+        }
+
+        fun produceExpression(
+            source: LogSourceData,
+            expression: Expression,
+            value: Value
+        ): LazyLogEntry {
+
+            val actualSource = when {
+                expression.position != null -> source.projectLine(expression.startLine())
+                expression.parent != null && expression.parent!!.position != null -> source.projectLine(
+                    expression.parent!!.startLine()
+                )
+
+                else -> source
+            }
+
+            val entry = LogEntry(actualSource, LogChannel.EXPRESSION.getPropertyName(), "EVAL")
+
+            return LazyLogEntry(entry) { sep ->
+                val content = buildString {
+                    append(expression.render())
+                    append(sep)
+                    append(value.render())
+                }
+                content
             }
         }
 

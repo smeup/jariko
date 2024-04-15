@@ -24,6 +24,8 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.logging.ILoggable
+import com.smeup.rpgparser.logging.ILoggableStatement
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
@@ -44,7 +46,7 @@ interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
 }
 
-interface LoopStatement {
+interface LoopStatement : ILoggableStatement {
     val loopSubject: String
     val iterations: Long
 }
@@ -62,9 +64,7 @@ enum class AssignmentOperator(val text: String) {
 abstract class Statement(
     @Transient override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
-) : Node(position), ILoggable {
-    override val loggableEntityName: String
-        get() = "STMT"
+) : Node(position), ILoggableStatement {
 
     open fun accept(
         mutes: MutableMap<Int, MuteParser.MuteLineContext>,
@@ -144,6 +144,20 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
             // Nothing to do here
         } catch (e: GotoException) {
             if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}$sep${subroutine.name}"
+        }
+    }
+
+    override fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}$sep${subroutine.name}"
         }
     }
 }
@@ -296,6 +310,13 @@ data class EvalStmt(
             interpreter.assign(target, expression, operator)
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${target.render()} ${operator.text} ${expression.render()}${sep}"
+        }
+    }
 }
 
 @Serializable
@@ -362,6 +383,13 @@ data class MoveAStmt(
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}${sep}${expression.render()} TO ${target.render()}"
+        }
+    }
 }
 
 @Serializable
@@ -384,6 +412,13 @@ data class MoveLStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         movel(operationExtender, target, expression, interpreter)
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${expression.render()} TO ${target.render()}"
+        }
     }
 }
 
@@ -718,6 +753,20 @@ data class CallStmt(
             }
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}$sep${expression.render()}"
+        }
+    }
+
+    override fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}$sep${expression.render()}"
+        }
+    }
 }
 
 @Serializable
@@ -745,6 +794,20 @@ data class CallPStmt(
             // TODO Catch a more specific exception?
             errorIndicator ?: throw e
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}$sep${functionCall.render()}"
+        }
+    }
+
+    override fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}$sep${functionCall.render()}"
         }
     }
 }
@@ -894,6 +957,13 @@ data class IfStmt(
             }
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${condition.render()}"
+        }
+    }
 }
 
 @Serializable
@@ -917,6 +987,9 @@ data class SetStmt(
     val indicators: List<AssignableExpression>,
     override val position: Position? = null
 ) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "SET"
+
     enum class ValueSet {
         ON,
         OFF
@@ -972,6 +1045,13 @@ data class PlistStmt(
             if (interpreter.getGlobalSymbolTable().contains(it.param.name)) {
                 interpreter.getGlobalSymbolTable()[it.param.name]
             }
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${params.mapNotNull { it.dataDefinition?.name }.joinToString() }}"
         }
     }
 }
@@ -1034,6 +1114,13 @@ data class ClearStmt(
             }
 
             else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${value.render()}"
         }
     }
 }
@@ -1158,6 +1245,13 @@ data class CompStmt(
             GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
             else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}FACTOR1${sep}${left.render()}${sep}FACTOR2${sep}${right.render()}${sep}HI${sep}${hi}${sep}LO${sep}${lo}${sep}EQ${sep}${eq}"
         }
     }
 }
@@ -1422,6 +1516,13 @@ data class DOWxxStmt(
             // nothing to do here
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${comparisonOperator.symbol}${sep}LEFT: ${factor1.render()}/RIGHT: ${factor2.render()}"
+        }
+    }
 }
 
 @Serializable
@@ -1491,6 +1592,13 @@ data class DoStmt(
             }
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}$sep${startLimit.render()} ${endLimit.render()}"
+        }
+    }
 }
 
 @Serializable
@@ -1520,6 +1628,13 @@ data class DowStmt(
         } catch (_: LeaveException) {
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${endExpression.render()}"
+        }
+    }
 }
 
 @Serializable
@@ -1547,6 +1662,13 @@ data class DouStmt(
                 loopCounter++
             } while (!interpreter.eval(endExpression).asBoolean().value)
         } catch (_: LeaveException) {
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}${endExpression.render()}"
         }
     }
 }
@@ -1711,6 +1833,16 @@ data class ForStmt(
             // leaving
         }
     }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val downward = if (downward) "DOWNTO" else "TO"
+        val byValue = if (byValue.render() == "1") "" else "BY ${byValue.render()}"
+
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}$sep${init.render()} $byValue $downward ${endValue.render()}"
+        }
+    }
 }
 
 /*
@@ -1788,6 +1920,22 @@ data class CatStmt(
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+
+        return LazyLogEntry(entry) { sep ->
+            buildString {
+                append(loggableEntityName)
+                append(sep)
+                if (left != null) {
+                    append("FACTOR1${sep}${left.render()}")
+                    append(sep)
+                }
+                append("FACTOR2${sep}${right.render()}")
+            }
+        }
+    }
 }
 
 @Serializable
@@ -1802,6 +1950,13 @@ data class LookupStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         lookUp(this, interpreter, interpreter.getLocalizationContext().charset)
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+            sep -> "${this.loggableEntityName}${sep}FACTOR1${sep}${left.render()}${sep}FACTOR2${sep}${right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
+        }
     }
 }
 
