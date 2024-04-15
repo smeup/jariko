@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.Expression
 
 data class DataLogMetadata(
     val data: AbstractDataDefinition,

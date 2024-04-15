@@ -23,7 +23,6 @@ import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.logging.ILoggable
 import com.smeup.rpgparser.logging.ILoggableStatement
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
@@ -40,7 +39,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.system.measureTimeMillis
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -314,7 +312,7 @@ data class EvalStmt(
     override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
-            sep -> "${this.loggableEntityName}${sep}${target.render()} ${operator.text} ${expression.render()}${sep}"
+            sep -> "${this.loggableEntityName}$sep${target.render()} ${operator.text} ${expression.render()}$sep"
         }
     }
 }
@@ -487,7 +485,7 @@ abstract class AbstractSetStmt(
     // this one is a dummy expression needed to initialize because of "transient" annotation
     @Transient open val searchArg: Expression = StringLiteral(""), // Factor1
     @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    @Transient override val position: Position? = null
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
@@ -1251,7 +1249,7 @@ data class CompStmt(
     override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
-            sep -> "${this.loggableEntityName}${sep}FACTOR1${sep}${left.render()}${sep}FACTOR2${sep}${right.render()}${sep}HI${sep}${hi}${sep}LO${sep}${lo}${sep}EQ${sep}${eq}"
+            sep -> "${this.loggableEntityName}${sep}FACTOR1$sep${left.render()}${sep}FACTOR2$sep${right.render()}${sep}HI$sep$hi${sep}LO$sep$lo${sep}EQ$sep$eq"
         }
     }
 }

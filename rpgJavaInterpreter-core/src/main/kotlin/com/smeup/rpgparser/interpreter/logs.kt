@@ -30,7 +30,7 @@ import kotlin.time.Duration
 
 data class LogSourceData(
     val programName: String,
-    val line: String,
+    val line: String
 ) {
     val filename = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
     fun projectLine(newLine: String) = LogSourceData(programName, newLine)
@@ -39,7 +39,7 @@ data class LogSourceData(
 data class LogEntry(
     val source: LogSourceData,
     val scope: String,
-    val action: String? = null,
+    val action: String? = null
 )
 
 class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> String) {
@@ -176,7 +176,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
         }
 
         fun produceResolution(
-            source: LogSourceData,
+            source: LogSourceData
         ): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
             return fromEntry(entry)

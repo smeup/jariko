@@ -20,7 +20,6 @@ import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
-import java.sql.Statement
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.HashMap

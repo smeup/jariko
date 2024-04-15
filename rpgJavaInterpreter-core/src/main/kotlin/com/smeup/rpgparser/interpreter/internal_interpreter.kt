@@ -154,6 +154,12 @@ open class InternalInterpreter(
         }
 
         val logSource = LogSourceData(this.interpretationContext.currentProgramName, data.startLine())
+        renderLog {
+            val previous = if (data.name in globalSymbolTable) {
+                globalSymbolTable[data.name]
+            } else null
+            LazyLogEntry.produceData(logSource, data, value, previous)
+        }
 
         when (data) {
             // Field are stored within the Data Structure definition
@@ -197,15 +203,8 @@ open class InternalInterpreter(
                         else -> TODO()
                     }
                 }
-                // TODO: Add DATA log entry for data structs
             }
             else -> {
-                renderLog {
-                    val previous = if (data.name in globalSymbolTable) {
-                        globalSymbolTable[data.name]
-                    } else null
-                    LazyLogEntry.produceData(logSource, data, value, previous)
-                }
                 renderLog { LazyLogEntry.produceAssignment(logSource, data, value) }
                 // deny reassignment if data is a constant
                 globalSymbolTable.set(data, coerce(value, data.type))?.let {
@@ -740,10 +739,14 @@ open class InternalInterpreter(
         }
 
     override fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value {
-        // TODO: Add logs
+        val logSource = LogSourceData(
+            this.interpretationContext.currentProgramName,
+            dataDefinition.startLine()
+        )
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
+            renderLog { LazyLogEntry.produceData(logSource, dataDefinition, newValue, value) }
             globalSymbolTable[dataDefinition] = newValue
             return newValue
         } else {
@@ -779,7 +782,6 @@ open class InternalInterpreter(
     }
 
     override fun mult(statement: MultStmt): Value {
-        // TODO: Add logs
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         val rightValue = BigDecimal(eval(statement.left).render())
         val leftValue = BigDecimal(eval(statement.right).render())
@@ -794,7 +796,6 @@ open class InternalInterpreter(
     }
 
     override fun div(statement: DivStmt): Value {
-        // TODO: Add logs
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         val dividend = BigDecimal(eval(statement.dividend).render())
         val divisor = BigDecimal(eval(statement.divisor).render())
@@ -821,7 +822,6 @@ open class InternalInterpreter(
     }
 
     override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
-        // TODO: Add logs
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
             // currently the only assignable value for a record format type is blank
@@ -847,7 +847,6 @@ open class InternalInterpreter(
     }
 
     override fun assign(target: AssignableExpression, value: Value): Value {
-        // TODO: Add assignment logs
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -962,7 +961,6 @@ open class InternalInterpreter(
         value: Expression,
         operator: AssignmentOperator
     ): Value {
-        // TODO: Add assignment logs
         return when (operator) {
             NORMAL_ASSIGNMENT -> {
                 if (target is DataRefExpr && value is PlusExpr && value.left.render() == target.render() && value.right is IntLiteral) {
@@ -1001,7 +999,6 @@ open class InternalInterpreter(
     }
 
     override fun add(statement: AddStmt): Value {
-        // TODO: Add logs
         val addend1 = eval(statement.addend1)
         require(addend1 is NumberValue) {
             "$addend1 should be a number"
@@ -1020,7 +1017,6 @@ open class InternalInterpreter(
     }
 
     override fun sub(statement: SubStmt): Value {
-        // TODO: Add logs
         val minuend = eval(statement.minuend)
         require(minuend is NumberValue) {
             "$minuend should be a number"

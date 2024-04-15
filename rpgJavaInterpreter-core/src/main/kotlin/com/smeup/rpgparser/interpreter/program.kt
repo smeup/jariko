@@ -21,7 +21,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
-import kotlin.system.measureTimeMillis
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 

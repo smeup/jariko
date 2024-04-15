@@ -5,7 +5,6 @@ import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
 import java.io.BufferedReader
 import java.io.InputStream
-import kotlin.system.measureTimeMillis
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
