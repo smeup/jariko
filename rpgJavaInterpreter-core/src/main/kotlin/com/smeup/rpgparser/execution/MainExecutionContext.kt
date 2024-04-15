@@ -24,6 +24,7 @@ import java.sql.Statement
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.HashMap
+import kotlin.time.Duration
 
 /**
  * Execution context allows to propagate, in simple and safe mode, some useful information, that could be
@@ -233,9 +234,16 @@ data class ParsingProgram(val name: String) {
     val attributes: MutableMap<String, Any> = mutableMapOf()
 }
 
-data class LoggingContext(private val timeUsageByStatement: HashMap<String, Long> = hashMapOf()) {
-    fun recordStatementDuration(name: String, executionTime: Long) {
-        val timeUsageEntry = timeUsageByStatement.getOrPut(name) { 0 }
+data class LoggingContext(
+    private val timeUsageByStatement: HashMap<String, Duration> = hashMapOf(),
+    private var logRenderingTime: Duration = Duration.ZERO
+) {
+    fun recordLogRenderingDuration(executionTime: Duration) {
+        logRenderingTime += executionTime
+    }
+
+    fun recordStatementDuration(name: String, executionTime: Duration) {
+        val timeUsageEntry = timeUsageByStatement.getOrPut(name) { Duration.ZERO }
         timeUsageByStatement[name] = timeUsageEntry + executionTime
     }
 
@@ -244,6 +252,19 @@ data class LoggingContext(private val timeUsageByStatement: HashMap<String, Long
             .toList()
             .sortedBy { it.second }
             .joinToString(separator = "\n") {
-                "${it.first}: ${it.second}ms"
+                "${it.first}: ${it.second}"
             }
+
+    fun generateReport() =
+        buildString {
+            append('\n')
+            append("Execution time is distributed as following:")
+            append('\n')
+            append(generateTimeUsageByStatementReport())
+            append("\n\n")
+            append("Of which ${getLogRenderingTime()} was used to render logs")
+            append("\n")
+        }
+
+    fun getLogRenderingTime() = logRenderingTime
 }

@@ -22,6 +22,8 @@ import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
 import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 data class ProgramParam(val name: String, val type: Type)
 
@@ -32,6 +34,7 @@ interface Program {
     fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
 }
 
+@OptIn(ExperimentalTime::class)
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
 
     private var systemInterface: SystemInterface? = null
@@ -101,7 +104,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val logSource = LogSourceData(name, "")
         logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
         val changedInitialValues: List<Value>
-        val elapsed = measureTimeMillis {
+        val elapsed = measureTime {
             interpreter.setInterpretationContext(object : InterpretationContext {
                 private var iDataWrapUpChoice: DataWrapUpChoice? = null
                 override val currentProgramName: String

@@ -43,6 +43,9 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
 object InterpreterConfiguration {
     /**
@@ -78,6 +81,7 @@ class InterpreterStatus(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
@@ -130,7 +134,11 @@ open class InternalInterpreter(
     }
 
     private fun doLog(renderer: LazyLogEntry) {
-        logHandlers.renderLog(renderer)
+        val time = measureTime {
+            logHandlers.renderLog(renderer)
+        }
+
+        MainExecutionContext.getLoggingContext()?.recordLogRenderingDuration(time)
     }
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
@@ -213,7 +221,8 @@ open class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
-        val start = System.currentTimeMillis()
+        val timeSource = TimeSource.Monotonic
+        val start = timeSource.markNow()
         val logSource =
             LogSourceData(programName = interpretationContext.currentProgramName, line = compilationUnit.startLine())
 
@@ -312,7 +321,7 @@ open class InternalInterpreter(
             }
         }
 
-        val initElapsed = System.currentTimeMillis() - start
+        val initElapsed = timeSource.markNow() - start
 
         renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "END") }
         renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "END") }
@@ -321,7 +330,7 @@ open class InternalInterpreter(
         renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "START") }
         renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "START") }
 
-        val loadElapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
+        val loadElapsed = measureTime { afterInitialization(initialValues = initialValues) }
 
         renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "END") }
         renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "END") }
@@ -373,14 +382,14 @@ open class InternalInterpreter(
             if (compilationUnit.minTimeOut == null) {
                 execute(compilationUnit.main.stmts)
             } else {
-                val elapsedTime = measureTimeMillis {
+                val elapsed = measureTime {
                     execute(compilationUnit.main.stmts)
                 }
 
-                if (elapsedTime > compilationUnit.minTimeOut!!) {
+                if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
                     throw InterpreterTimeoutException(
                         interpretationContext.currentProgramName,
-                        elapsedTime,
+                        elapsed.inWholeMilliseconds,
                         compilationUnit.minTimeOut!!
                     )
                 }
@@ -388,8 +397,8 @@ open class InternalInterpreter(
 
             val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
             val logEntry = LogEntry(logSource, LogChannel.PERFORMANCE.getPropertyName(), "RECAP")
-            val message = "Execution time is distributed as following:\n" +
-                    MainExecutionContext.getLoggingContext()?.generateTimeUsageByStatementReport()
+            val loggingContext = MainExecutionContext.getLoggingContext()
+            val message = loggingContext?.generateReport() ?: ""
 
             renderLog { LazyLogEntry.produceMessage(logEntry, message) }
         }.onFailure {
@@ -1134,7 +1143,7 @@ open class InternalInterpreter(
             renderLog { LazyLogEntry.produceLoopStart(source, statement.loggableEntityName, statement.loopSubject) }
         }
 
-        val executionTime = measureTimeMillis {
+        val executionTime = measureTime {
             statement.execute(this)
         }
 

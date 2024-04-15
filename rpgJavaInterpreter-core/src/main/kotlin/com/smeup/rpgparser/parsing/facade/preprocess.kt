@@ -6,7 +6,10 @@ import com.smeup.rpgparser.interpreter.LogSourceData
 import java.io.BufferedReader
 import java.io.InputStream
 import kotlin.system.measureTimeMillis
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
+@OptIn(ExperimentalTime::class)
 fun InputStream.preprocess(
     findCopy: (copyId: CopyId) -> String?,
     onStartInclusion: (copyId: CopyId, start: Int) -> Unit = { _: CopyId, _: Int -> },
@@ -17,7 +20,7 @@ fun InputStream.preprocess(
     val logSource = LogSourceData(programName, "")
     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PREPROP", "START"))
     var preprocessed: String
-    measureTimeMillis {
+    measureTime {
         preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(
             findCopy = findCopy,
             onStartInclusion = onStartInclusion,

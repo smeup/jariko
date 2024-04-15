@@ -27,6 +27,7 @@ import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
+import kotlin.time.Duration
 
 data class LogSourceData(
     val programName: String,
@@ -127,14 +128,12 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return fromEntry(entry)
         }
 
-        fun producePerformance(source: LogSourceData, entity: String, elapsed: Long): LazyLogEntry {
-            val metadata = PerformanceLogMetadata(elapsed)
+        fun producePerformance(source: LogSourceData, entity: String, elapsed: Duration): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
             return LazyLogEntry(entry) {
                 buildString {
                     append("elapsed ")
-                    append(metadata.elapsedMs)
-                    append("ms")
+                    append(elapsed.toString())
                 }
             }
         }
