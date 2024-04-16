@@ -1163,6 +1163,37 @@ data class DefineStmt(
     private fun findInLocalScope(search: String): InStatementDataDefinition? {
         return (this.parent as Subroutine).stmts.findInStatementDataDefinition(search, this)
     }
+
+    /**
+     * Get the list of stack. This could be necessary, in example, to avoid recursive calls.
+     * @return List of `DefineStmt` or empty list.
+     */
+    fun getStack(): List<DefineStmt> {
+        return (MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+            mutableSetOf<DefineStmt>()
+        } as MutableSet<DefineStmt>).toList()
+    }
+
+    /**
+     * Receiver wants to enter in call stack
+     * @return false if the receiver cannot enter
+     */
+    private fun enterInStack(): Boolean {
+        val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+            mutableSetOf<DefineStmt>()
+        } as MutableSet<DefineStmt>
+        return stack.add(this)
+    }
+
+    /**
+     * Receiver will exit from call stack
+     */
+    private fun exitFromStack(): Boolean {
+        val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+            mutableSetOf<DefineStmt>()
+        } as MutableSet<DefineStmt>
+        return stack.remove(this)
+    }
 }
 
 /**
@@ -1175,33 +1206,6 @@ private fun List<Statement>.findInStatementDataDefinition(originalName: String, 
                 .map(StatementThatCanDefineData::dataDefinition)
                 .flatten()
                 .firstOrNull { it.name == originalName }
-}
-
-/**
- * Receiver wants to enter in call stack
- * @return false if the receiver cannot enter
- */
-private fun DefineStmt.enterInStack(): Boolean {
-    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
-        mutableSetOf<DefineStmt>()
-    } as MutableSet<DefineStmt>
-    return stack.add(this)
-}
-
-/**
- * Receiver will exit from call stack
- * */
-private fun DefineStmt.exitFromStack(): Boolean {
-    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
-        mutableSetOf<DefineStmt>()
-    } as MutableSet<DefineStmt>
-    return stack.remove(this)
-}
-
-private fun DefineStmt.getStack(): List<DefineStmt> {
-    return (MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
-        mutableSetOf<DefineStmt>()
-    } as MutableSet<DefineStmt>).toList()
 }
 
 interface WithRightIndicators {
