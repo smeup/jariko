@@ -921,6 +921,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csFEOD() != null -> this.csFEOD()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csBITON() != null -> this.csBITON()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csBITOFF() != null -> this.csBITOFF()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -2002,6 +2008,24 @@ internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 internal fun CsFEODContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return FeodStmt(position)
+}
+
+// TODO
+internal fun CsBITONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return BitOnStmt(
+        dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
+        position = position
+    )
+}
+
+// TODO
+internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return BitOffStmt(
+        dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
+        position = position
+    )
 }
 
 /**
