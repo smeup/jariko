@@ -2377,4 +2377,16 @@ Test 6
         val expected = listOf("OK")
         assertEquals(expected, "LIKEWITHCOPY2".outputOf())
     }
+
+    @Test
+    fun executeBITON_INLINEDATA() {
+        val expected = listOf("1000")
+        assertEquals(expected, "BITON_INLINEDATA".outputOf())
+    }
+
+    @Test
+    fun executeBITOFF_INLINEDATA() {
+        val expected = listOf("1000")
+        assertEquals(expected, "BITOFF_INLINEDATA".outputOf())
+    }
 }

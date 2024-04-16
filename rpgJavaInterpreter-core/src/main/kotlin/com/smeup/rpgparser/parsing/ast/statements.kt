@@ -2146,3 +2146,21 @@ data class FeodStmt(
 ) : Statement(position), MockStatement {
     override fun execute(interpreter: InterpreterCore) { }
 }
+
+@Serializable
+data class BitOnStmt(
+    override val position: Position? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null
+) : Statement(position), StatementThatCanDefineData, MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class BitOffStmt(
+    override val position: Position? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null
+) : Statement(position), StatementThatCanDefineData, MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}

@@ -41,6 +41,8 @@ private val modules = SerializersModule {
     }
     polymorphic(Statement::class) {
         subclass(AddStmt::class)
+        subclass(BitOnStmt::class)
+        subclass(BitOffStmt::class)
         subclass(CabStmt::class)
         subclass(CallStmt::class)
         subclass(CallPStmt::class)
