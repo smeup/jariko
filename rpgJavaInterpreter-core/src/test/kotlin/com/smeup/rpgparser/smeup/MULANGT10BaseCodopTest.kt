@@ -75,12 +75,12 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Definition with PARM and DS
-     * @see #251
+     * Utilization of `LIKEDS` with a `DataDefinition` defined in parent.
+     * @see #271
      */
     @Test
     fun executeMU108006() {
-        val expected = listOf("")
+        val expected = listOf("ScritturaInProcedura")
         assertEquals(expected, "smeup/MU108006".outputOf())
     }
 }
