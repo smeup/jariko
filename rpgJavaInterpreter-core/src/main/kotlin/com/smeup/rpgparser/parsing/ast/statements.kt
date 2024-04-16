@@ -1130,10 +1130,12 @@ data class DefineStmt(
             /* Checking if the context is main or subroutine, to execute the right search about the InStatementsDataDefinition. */
             val inStatementDataDefinition = when (this.parent) {
                 is Subroutine -> {
-                    (this.parent as Subroutine).stmts.findInStatementDataDefinition(originalName, this)
+                    this.findInLocalScope(originalName)
+                        ?: this.findInGlobalScope(containingCU, originalName)
+                        ?: throw Error("Data reference $originalName not resolved")
                 }
                 is MainBody -> {
-                    containingCU.main.stmts.findInStatementDataDefinition(originalName, this)
+                    this.findInGlobalScope(containingCU, originalName) ?: throw Error("Data reference $originalName not resolved")
                 }
                 else -> throw Error("Data reference $originalName not resolved")
             }
@@ -1146,39 +1148,59 @@ data class DefineStmt(
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
     }
+
+    private fun findInGlobalScope(cu: CompilationUnit, search: String): InStatementDataDefinition? {
+        return cu.main.stmts.findInStatementDataDefinition(originalName, this) ?: cu.subroutines.firstNotNullOf {
+            it.stmts.findInStatementDataDefinition(search, this)
+        }
+    }
+
+    private fun findInLocalScope(search: String): InStatementDataDefinition? {
+        return (this.parent as Subroutine).stmts.findInStatementDataDefinition(search, this)
+    }
+
+    /**
+     * Get the list of stack. This could be necessary, in example, to avoid recursive calls.
+     * @return List of `DefineStmt` or empty list.
+     */
+    fun getStack(): List<DefineStmt> {
+        return (MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+            mutableSetOf<DefineStmt>()
+        } as MutableSet<DefineStmt>).toList()
+    }
+
+    /**
+     * Receiver wants to enter in call stack
+     * @return false if the receiver cannot enter
+     */
+    private fun enterInStack(): Boolean {
+        val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+            mutableSetOf<DefineStmt>()
+        } as MutableSet<DefineStmt>
+        return stack.add(this)
+    }
+
+    /**
+     * Receiver will exit from call stack
+     */
+    private fun exitFromStack(): Boolean {
+        val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
+            mutableSetOf<DefineStmt>()
+        } as MutableSet<DefineStmt>
+        return stack.remove(this)
+    }
 }
 
 /**
  * From a list of Statements, finds an inline definition (InStatementDataDefinition) based of `originalName`.
  */
-private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition {
+private fun List<Statement>.findInStatementDataDefinition(originalName: String, contextToExclude: DefineStmt): InStatementDataDefinition? {
     return this.filterIsInstance<StatementThatCanDefineData>()
-                .filter { it != contextToExclude }
+                .filter { !contextToExclude.getStack().contains(it) }
                 .asSequence()
                 .map(StatementThatCanDefineData::dataDefinition)
                 .flatten()
-                .find { it.name == originalName } ?: throw Error("Data reference $originalName not resolved")
-}
-
-/**
- * Receiver wants to enter in call stack
- * @return false if the receiver cannot enter
- */
-private fun DefineStmt.enterInStack(): Boolean {
-    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
-        mutableSetOf<DefineStmt>()
-    } as MutableSet<DefineStmt>
-    return stack.add(this)
-}
-
-/**
- * Receiver will exit from call stack
- * */
-private fun DefineStmt.exitFromStack(): Boolean {
-    val stack = MainExecutionContext.getAttributes().computeIfAbsent("DefineStmt.callStack") {
-        mutableSetOf<DefineStmt>()
-    } as MutableSet<DefineStmt>
-    return stack.remove(this)
+                .firstOrNull { it.name == originalName }
 }
 
 interface WithRightIndicators {

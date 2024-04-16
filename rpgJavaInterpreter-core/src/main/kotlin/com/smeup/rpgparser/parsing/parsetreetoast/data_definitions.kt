@@ -710,6 +710,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         }
         RpgType.BOOLEAN.rpgType -> BooleanType
         RpgType.UNLIMITED_STRING.rpgType -> UnlimitedStringType
+        RpgType.TIMESTAMP.rpgType -> TimeStampType
         else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
