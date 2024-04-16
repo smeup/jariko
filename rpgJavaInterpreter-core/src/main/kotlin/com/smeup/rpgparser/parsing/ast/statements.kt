@@ -1150,14 +1150,9 @@ data class DefineStmt(
     }
 
     private fun findInGlobalScope(cu: CompilationUnit, search: String): InStatementDataDefinition? {
-        var inStatementDataDefinition = cu.main.stmts.findInStatementDataDefinition(originalName, this)
-        if (inStatementDataDefinition == null) {
-            inStatementDataDefinition = cu.subroutines.firstNotNullOf {
-                it.stmts.findInStatementDataDefinition(search, this)
-            }
+        return cu.main.stmts.findInStatementDataDefinition(originalName, this) ?: cu.subroutines.firstNotNullOf {
+            it.stmts.findInStatementDataDefinition(search, this)
         }
-
-        return inStatementDataDefinition
     }
 
     private fun findInLocalScope(search: String): InStatementDataDefinition? {
