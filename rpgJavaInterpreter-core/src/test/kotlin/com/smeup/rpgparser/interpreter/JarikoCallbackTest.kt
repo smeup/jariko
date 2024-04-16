@@ -429,6 +429,11 @@ class JarikoCallbackTest : AbstractTest() {
         executePgmCallBackTest("ERROR13", SourceReferenceType.Program, "ERROR13", listOf(9, 10))
     }
 
+    @Test
+    fun executeERROR14CallBackTest() {
+        executePgmCallBackTest("ERROR14", SourceReferenceType.Program, "ERROR14", listOf(5))
+    }
+
     /**
      * This test simulates what a precompiler might do throws the use of the beforeParsing callback
      * In ERROR01.rpgle I will comment C specification to avoid a division by zero errors
