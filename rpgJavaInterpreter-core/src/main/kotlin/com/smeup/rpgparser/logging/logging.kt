@@ -25,7 +25,8 @@ enum class LogChannel {
     PERFORMANCE,
     RESOLUTION,
     PARSING,
-    ERROR;
+    ERROR,
+    ANALYTICS;
 
     fun getPropertyName() = this.name.lowercase()
 }

@@ -133,11 +133,7 @@ open class InternalInterpreter(
     }
 
     private fun doLog(renderer: LazyLogEntry) {
-        val time = measureTime {
-            logHandlers.renderLog(renderer)
-        }
-
-        MainExecutionContext.getLoggingContext()?.recordLogRenderingDuration(time)
+        logHandlers.renderLog(renderer)
     }
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
@@ -394,11 +390,8 @@ open class InternalInterpreter(
             }
 
             val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
-            val logEntry = LogEntry(logSource, LogChannel.PERFORMANCE.getPropertyName(), "RECAP")
             val loggingContext = MainExecutionContext.getLoggingContext()
-            val message = loggingContext?.generateReport() ?: ""
-
-            renderLog { LazyLogEntry.produceMessage(logEntry, message) }
+            renderLog { LazyLogEntry.produceAnalytics(logSource, "PERF RECAP", loggingContext?.generateReport() ?: "") }
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue

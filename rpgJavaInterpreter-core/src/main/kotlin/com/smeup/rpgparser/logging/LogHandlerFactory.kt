@@ -12,5 +12,6 @@ object LogHandlerFactory {
         LogChannel.RESOLUTION -> ResolutionLogHandler(level, separator)
         LogChannel.PARSING -> ParsingLogHandler(level, separator)
         LogChannel.ERROR -> ErrorLogHandler(level, separator)
+        LogChannel.ANALYTICS -> AnalyticsLogHandler(level, separator)
     }
 }

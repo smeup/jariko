@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.DataLogMetadata
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.ast.*
@@ -27,6 +28,8 @@ import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 data class LogSourceData(
     val programName: String,
@@ -162,6 +165,11 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
                     append(elapsed.toString())
                 }
             }
+        }
+
+        fun produceAnalytics(source: LogSourceData, action: String, message: String): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), action)
+            return produceMessage(entry, message)
         }
 
         fun produceStatement(
@@ -325,16 +333,21 @@ class ListLogHandler : InterpreterLogHandler {
 //    }
 }
 
+@OptIn(ExperimentalTime::class)
 fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
-    this.forEach {
-        try {
-            if (it.accepts(renderer.entry))
-                it.handle(renderer)
-        } catch (t: Throwable) {
-            // TODO: how should we handle exceptions?
-            t.printStackTrace()
+    val time = measureTime {
+        this.forEach {
+            try {
+                if (it.accepts(renderer.entry))
+                    it.handle(renderer)
+            } catch (t: Throwable) {
+                // TODO: how should we handle exceptions?
+                t.printStackTrace()
+            }
         }
     }
+
+    MainExecutionContext.getLoggingContext()?.recordRenderingDuration(time)
 }
 
 fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()

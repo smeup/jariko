@@ -140,6 +140,21 @@ class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), In
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+class AnalyticsLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+    private val logger = LogManager.getLogger(LogChannel.ANALYTICS.getPropertyName())
+
+    override fun render(renderer: LazyLogEntry): String {
+        return buildString {
+            append("ANALYTICS")
+            append(sep)
+            append(renderer.render(sep, withHeader = true, withScope = false))
+        }
+    }
+
+    override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.ANALYTICS.getPropertyName()
+    override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
+}
+
 private fun Logger.fireLogInfo(message: String) {
     val channel = this.name
     MainExecutionContext.getConfiguration().jarikoCallback.logInfo?.let {

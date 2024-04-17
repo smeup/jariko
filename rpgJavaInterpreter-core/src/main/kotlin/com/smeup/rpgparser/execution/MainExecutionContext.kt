@@ -20,10 +20,12 @@ import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
+import java.text.DecimalFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.HashMap
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
 
 /**
  * Execution context allows to propagate, in simple and safe mode, some useful information, that could be
@@ -234,25 +236,50 @@ data class ParsingProgram(val name: String) {
 }
 
 data class LoggingContext(
-    private val timeUsageByStatement: HashMap<String, Duration> = hashMapOf(),
-    private var logRenderingTime: Duration = Duration.ZERO
+    private val timeUsageByStatement: HashMap<String, UsageMeasurement> = hashMapOf(),
+    private var renderingTime: Duration = Duration.ZERO
 ) {
-    fun recordLogRenderingDuration(executionTime: Duration) {
-        logRenderingTime += executionTime
+
+    data class UsageMeasurement(val duration: Duration, val hit: Long) {
+        companion object {
+            fun new(): UsageMeasurement = UsageMeasurement(
+                duration = Duration.ZERO,
+                hit = 0
+            )
+        }
+    }
+
+    fun recordRenderingDuration(executionTime: Duration) {
+        renderingTime += executionTime
     }
 
     fun recordStatementDuration(name: String, executionTime: Duration) {
-        val timeUsageEntry = timeUsageByStatement.getOrPut(name) { Duration.ZERO }
-        timeUsageByStatement[name] = timeUsageEntry + executionTime
+        val timeUsageEntry = timeUsageByStatement.getOrPut(name) { UsageMeasurement.new() }
+
+        timeUsageByStatement[name] = UsageMeasurement(
+            duration = timeUsageEntry.duration + executionTime,
+            hit = timeUsageEntry.hit + 1
+        )
     }
 
-    fun generateTimeUsageByStatementReport() =
-        timeUsageByStatement
+    fun generateTimeUsageByStatementReport(): String {
+        val sorted = timeUsageByStatement
             .toList()
-            .sortedBy { it.second }
-            .joinToString(separator = "\n") {
-                "${it.first}: ${it.second}"
-            }
+            .sortedBy { it.second.duration }
+
+        val totalTime = sorted.fold(Duration.ZERO) { acc, curr -> acc + curr.second.duration }
+
+        val format = DecimalFormat("##.#%")
+
+        return sorted.joinToString(separator = "\n") {
+            val statementName = it.first
+            val duration = it.second.duration
+            val timePercentage = format.format(duration / totalTime)
+            val hit = it.second.hit
+            val average = (duration.inWholeNanoseconds / it.second.hit).nanoseconds
+            "${statementName}: $duration - $timePercentage - hit $hit times - avg. $average per usage"
+        }
+    }
 
     fun generateReport() =
         buildString {
@@ -265,5 +292,5 @@ data class LoggingContext(
             append("\n")
         }
 
-    fun getLogRenderingTime() = logRenderingTime
+    fun getLogRenderingTime() = renderingTime
 }

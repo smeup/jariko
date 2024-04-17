@@ -12,8 +12,16 @@ class PerfLoggingExample : MULANGTTest() {
     @Test @Category(PerformanceTest::class)
     fun testMUTE10_10() {
         val si = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA, LogChannel.STATEMENT, LogChannel.RESOLUTION, LogChannel.PERFORMANCE, LogChannel.LOOP, LogChannel.EXPRESSION)
         }
         executePgm(programName = "performance/MUTE10_10", systemInterface = si)
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun testT10_A60_P03() {
+        val si = JavaSystemInterface().apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
+        }
+        executePgm(programName = "smeup/T10_A60_P03.rpgle", systemInterface = si)
     }
 }

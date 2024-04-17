@@ -45,6 +45,9 @@ fun consoleVerboseConfiguration(): LoggingConfiguration {
 
     props.setProperty("${LogChannel.ERROR.getPropertyName()}.level", "all")
     props.setProperty("${LogChannel.ERROR.getPropertyName()}.output", "console")
+
+    props.setProperty("${LogChannel.ANALYTICS.getPropertyName()}.level", "all")
+    props.setProperty("${LogChannel.ANALYTICS.getPropertyName()}.output", "console")
     return LoggingConfiguration(props)
 }
 
