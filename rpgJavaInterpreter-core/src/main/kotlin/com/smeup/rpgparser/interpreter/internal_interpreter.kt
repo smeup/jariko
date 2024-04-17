@@ -391,7 +391,10 @@ open class InternalInterpreter(
 
             val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
             val loggingContext = MainExecutionContext.getLoggingContext()
-            renderLog { LazyLogEntry.produceAnalytics(logSource, "PERF RECAP", loggingContext?.generateReport() ?: "") }
+            loggingContext?.generateTimeUsageByStatementReportEntries(logSource)?.let {
+                it.forEach { entry -> renderLog { entry } }
+            }
+            loggingContext?.generateLogTimeReportEntry(logSource)?.let { renderLog { it } }
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue

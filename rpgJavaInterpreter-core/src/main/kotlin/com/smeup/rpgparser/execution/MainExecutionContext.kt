@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import java.text.DecimalFormat
 import java.util.*
@@ -262,7 +263,7 @@ data class LoggingContext(
         )
     }
 
-    fun generateTimeUsageByStatementReport(): String {
+    fun generateTimeUsageByStatementReportEntries(source: LogSourceData): List<LazyLogEntry> {
         val sorted = timeUsageByStatement
             .toList()
             .sortedBy { it.second.duration }
@@ -271,26 +272,19 @@ data class LoggingContext(
 
         val format = DecimalFormat("##.#%")
 
-        return sorted.joinToString(separator = "\n") {
+        return sorted.map {
             val statementName = it.first
             val duration = it.second.duration
             val timePercentage = format.format(duration / totalTime)
             val hit = it.second.hit
             val average = (duration.inWholeNanoseconds / it.second.hit).nanoseconds
-            "${statementName}: $duration - $timePercentage - hit $hit times - avg. $average per usage"
+
+            val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "PERF RECAP")
+            LazyLogEntry(entry) { sep ->
+                "$statementName$sep$duration$sep$timePercentage${sep}hit $hit times${sep}avg. $average per usage"
+            }
         }
     }
 
-    fun generateReport() =
-        buildString {
-            append('\n')
-            append("Execution time is distributed as following:")
-            append('\n')
-            append(generateTimeUsageByStatementReport())
-            append("\n\n")
-            append("Of which ${getLogRenderingTime()} was used to render logs")
-            append("\n")
-        }
-
-    fun getLogRenderingTime() = renderingTime
+    fun generateLogTimeReportEntry(source: LogSourceData): LazyLogEntry = LazyLogEntry.produceAnalytics(source, "LOG RENDERING TIME", renderingTime.toString())
 }
