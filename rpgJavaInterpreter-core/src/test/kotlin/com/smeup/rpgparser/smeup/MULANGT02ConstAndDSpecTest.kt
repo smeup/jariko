@@ -5,6 +5,24 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
+     * /COPY recognized in CTDATA
+     * @see #268
+     */
+    @Test
+    fun executeMU023007() {
+        val expected = listOf("/COPY in prima posizione                          ;/copy in prima posizione in minuscolo             ;Prova alla fine del testo /COPY                   ;Prova alla fine del testo in minuscolo /copy      ;Prova con /COPY in mezzo al testo                 ;Prova con /copy in mezzo al testo in minuscolo")
+        assertEquals(expected, "smeup/MU023007".outputOf())
+    }
+    /**
+     * /COPY recognized in CTDATA
+     * @see #269
+     */
+    @Test
+    fun executeMU023008() {
+        val expected = listOf("Prova /COPY                                       ;Prova /COPY numero                                ;Prova /COPY 12                                    ;      /COPY QILEGEN, AAA")
+        assertEquals(expected, "smeup/MU023008".outputOf())
+    }
+    /**
      * Data reference - DS with 2 arrays defined with overlay
      * @see #247
      */
