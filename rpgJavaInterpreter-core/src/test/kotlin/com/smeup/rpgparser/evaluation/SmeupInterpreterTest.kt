@@ -428,7 +428,14 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT70_A10_P01_05() {
         val outputOf = "smeup/T70_A10_P01-05".outputOf()
         println(outputOf)
-        assertTrue(outputOf.all { it.equals("PRINT") })
+        assertTrue(outputOf.all { it.equals("OK") })
+    }
+
+    @Test
+    fun executeMU701006() {
+        val outputOf = "smeup/MU701006".outputOf()
+        println(outputOf)
+        assertTrue(outputOf.all { it.equals("OK") })
     }
 
     @Test

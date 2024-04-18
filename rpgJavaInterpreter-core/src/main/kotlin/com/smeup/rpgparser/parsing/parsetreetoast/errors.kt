@@ -74,11 +74,7 @@ internal fun Node.error(message: String? = null, cause: Throwable? = null): Noth
             cause?.let { cause }
         )
     }.let { error ->
-        if (this is CompilationUnit) {
-            throw error
-        } else {
-            throw error.fireErrorEvent(this.position)
-        }
+        throw error.fireErrorEvent(this.position)
     }
 }
 

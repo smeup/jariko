@@ -53,6 +53,8 @@ internal fun String.includesCopy(
     val sb = StringBuffer()
     var addedLines = 0
     while (matcher.find()) {
+        // Skip CDATA section
+        if (null != matcher.group(3)) continue
         // Skip commented line
         if (null != matcher.group(2)) continue
         val copyId = matcher.group(1).copyId()
@@ -87,8 +89,18 @@ internal fun String.includesCopy(
     return sb.toString()
 }
 
+/**
+ *  Group 1: ID of Copy, like <folder>,<file> (without extension)
+ *  Group 2: Commented line
+ *  Group 3: CDATA section
+ */
 @JvmField
-val PATTERN: Pattern = Pattern.compile(".{6}/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|§|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
+val PATTERN: Pattern = Pattern.compile("" +
+        ".{6}/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\\$|§|,)+)|" +
+        "(.{6}\\*.+)|" +
+        "(\\*\\*(CTDATA)?\\s?[§£#@a-zA-Z0-9_]*[\\n\\S\\s]*)",
+    Pattern.CASE_INSENSITIVE
+)
 
 fun String.copyId(): CopyId {
     return when {
