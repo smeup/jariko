@@ -1,8 +1,9 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.LoggingContext
 import com.smeup.rpgparser.execution.MainExecutionContext
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 interface IMemorySliceStorage : AutoCloseable {
 
@@ -94,7 +95,6 @@ data class MemorySlice(val memorySliceId: MemorySliceId, val symbolTable: ISymbo
 /**
  * Create a memory slice manager
  * */
-@OptIn(ExperimentalTime::class)
 class MemorySliceMgr(private val storage: IMemorySliceStorage) {
 
     private var memorySlices = mutableMapOf<MemorySliceId, MemorySlice>()
@@ -164,9 +164,10 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
                     val values = slice.symbolTable.getValues().map {
                         encodeDataDefinition(it.key) to it.value
                     }.toMap()
-                    val elapsed = measureTime {
+                    val elapsed = measureNanoTime {
                         storage.store(memorySliceId = slice.memorySliceId, values = values)
-                    }
+                    }.nanoseconds
+                    MainExecutionContext.getLoggingContext()?.recordSymbolTableDuration(LoggingContext.SymbolTableAction.STORE, elapsed)
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "END"))
                     MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "SYMTBLSTORE", elapsed))
                 }

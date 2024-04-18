@@ -20,8 +20,8 @@ import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
+import com.smeup.rpgparser.execution.LoggingContext
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -42,9 +42,8 @@ import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.min
-import kotlin.time.ExperimentalTime
-import kotlin.time.TimeSource
-import kotlin.time.measureTime
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 object InterpreterConfiguration {
     /**
@@ -80,7 +79,6 @@ class InterpreterStatus(
     }
 }
 
-@OptIn(ExperimentalTime::class)
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
@@ -215,8 +213,7 @@ open class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
-        val timeSource = TimeSource.Monotonic
-        val start = timeSource.markNow()
+        val start = System.nanoTime()
         val logSource =
             LogSourceData(programName = interpretationContext.currentProgramName, line = compilationUnit.startLine())
 
@@ -315,8 +312,9 @@ open class InternalInterpreter(
             }
         }
 
-        val initElapsed = timeSource.markNow() - start
+        val initElapsed = (System.nanoTime() - start).nanoseconds
 
+        MainExecutionContext.getLoggingContext()?.recordSymbolTableDuration(LoggingContext.SymbolTableAction.INIT, initElapsed)
         renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLINI", "END") }
         renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLINI", "END") }
         renderLog { LazyLogEntry.producePerformance(logSource, "SYMTBLINI", initElapsed) }
@@ -324,8 +322,9 @@ open class InternalInterpreter(
         renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "START") }
         renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "START") }
 
-        val loadElapsed = measureTime { afterInitialization(initialValues = initialValues) }
+        val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
+        MainExecutionContext.getLoggingContext()?.recordSymbolTableDuration(LoggingContext.SymbolTableAction.LOAD, loadElapsed)
         renderLog { LazyLogEntry.produceInformational(logSource, "SYMTBLLOAD", "END") }
         renderLog { LazyLogEntry.produceStatement(logSource, "SYMTBLLOAD", "END") }
         renderLog { LazyLogEntry.producePerformance(logSource, "SYMTBLLOAD", loadElapsed) }
@@ -376,9 +375,9 @@ open class InternalInterpreter(
             if (compilationUnit.minTimeOut == null) {
                 execute(compilationUnit.main.stmts)
             } else {
-                val elapsed = measureTime {
+                val elapsed = measureNanoTime {
                     execute(compilationUnit.main.stmts)
-                }
+                }.nanoseconds
 
                 if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
                     throw InterpreterTimeoutException(
@@ -389,12 +388,7 @@ open class InternalInterpreter(
                 }
             }
 
-            val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
-            val loggingContext = MainExecutionContext.getLoggingContext()
-            loggingContext?.generateTimeUsageByStatementReportEntries(logSource)?.let {
-                it.forEach { entry -> renderLog { entry } }
-            }
-            loggingContext?.generateLogTimeReportEntry(logSource)?.let { renderLog { it } }
+            onExecutionEnd()
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue
@@ -760,6 +754,8 @@ open class InternalInterpreter(
     }
 
     override fun eval(expression: Expression): Value {
+        val start = System.nanoTime()
+
         val value = when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -772,6 +768,9 @@ open class InternalInterpreter(
             expression.startLine()
         )
 
+        val elapsed = System.nanoTime() - start
+
+        MainExecutionContext.getLoggingContext()?.recordExpressionDuration(elapsed.nanoseconds)
         renderLog { LazyLogEntry.produceExpression(logSource, expression, value) }
 
         return value
@@ -1136,9 +1135,9 @@ open class InternalInterpreter(
             renderLog { LazyLogEntry.produceLoopStart(source, statement.loggableEntityName, statement.loopSubject) }
         }
 
-        val executionTime = measureTime {
+        val executionTime = measureNanoTime {
             statement.execute(this)
-        }
+        }.nanoseconds
 
         MainExecutionContext.getLoggingContext()?.recordStatementDuration(statement.loggableEntityName, executionTime)
 
@@ -1158,6 +1157,24 @@ open class InternalInterpreter(
         }
 
         renderLog { LazyLogEntry.producePerformance(source, statement.loggableEntityName, executionTime) }
+    }
+
+    private fun onExecutionEnd() {
+        val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
+        val loggingContext = MainExecutionContext.getLoggingContext()
+
+        loggingContext ?: return
+
+        loggingContext.generateSymbolTableTimeUsageReportEntries(logSource).forEach {
+            entry -> renderLog { entry }
+        }
+
+        loggingContext.generateTimeUsageByStatementReportEntries(logSource).forEach {
+            entry -> renderLog { entry }
+        }
+
+        renderLog { loggingContext.generateExpressionReportEntry(logSource) }
+        renderLog { loggingContext.generateLogTimeReportEntry(logSource) }
     }
 }
 

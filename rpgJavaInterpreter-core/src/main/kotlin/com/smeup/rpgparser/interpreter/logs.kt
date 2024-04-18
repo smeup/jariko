@@ -27,9 +27,9 @@ import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
+import kotlin.system.measureNanoTime
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 data class LogSourceData(
     val programName: String,
@@ -333,9 +333,8 @@ class ListLogHandler : InterpreterLogHandler {
 //    }
 }
 
-@OptIn(ExperimentalTime::class)
 fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
-    val time = measureTime {
+    val time = measureNanoTime {
         this.forEach {
             try {
                 if (it.accepts(renderer.entry))
@@ -345,7 +344,7 @@ fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
                 t.printStackTrace()
             }
         }
-    }
+    }.nanoseconds
 
     MainExecutionContext.getLoggingContext()?.recordRenderingDuration(time)
 }
