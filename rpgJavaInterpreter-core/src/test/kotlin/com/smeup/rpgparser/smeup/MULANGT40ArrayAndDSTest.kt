@@ -15,6 +15,15 @@ open class MULANGT40ArrayAndDSTest : MULANGTTest() {
     }
 
     /**
+     * OCCURS with an expressions
+     */
+    @Test
+    fun executeMU401011() {
+        val expected = listOf("HELLOTHERE")
+        assertEquals(expected, "smeup/MU401011".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Field of DS with LIKE to field of next DS.
      */
     @Test

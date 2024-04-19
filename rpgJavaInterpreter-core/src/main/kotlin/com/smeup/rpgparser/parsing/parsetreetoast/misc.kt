@@ -125,7 +125,10 @@ private fun RContext.getDataDefinitions(
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(
+                            conf = conf,
+                            dataDefinitionProviders = dataDefinitionProviders)
+                        )
                     }
                     it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
                         fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
@@ -549,7 +552,11 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                         }
                         it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
                             DataDefinitionCalculator(
-                                it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders)
+                                it.statement().dcl_ds().toAstWithLikeDs(
+                                    conf = conf,
+                                    dataDefinitionProviders = dataDefinitionProviders,
+                                    parentDataDefinitions = parentDataDefinitions
+                                )
                             )
                         }
                         else -> null

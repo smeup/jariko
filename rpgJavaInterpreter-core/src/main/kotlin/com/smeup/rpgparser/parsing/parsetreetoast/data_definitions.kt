@@ -482,7 +482,7 @@ internal fun RpgParser.Dcl_dsContext.type(
     val explicitSize = this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     val keywords = this.keyword()
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
-    val occurs: Int? = keywords.asSequence().mapNotNull { it.keyword_occurs()?.numeric_constant?.children?.get(0)?.text?.toInt() }.firstOrNull()
+    val occurs: Int? = keywords.asSequence().mapNotNull { it.keyword_occurs()?.evaluate(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType() }
     val calculatedElementSize = fieldsList.fields.map {
@@ -511,6 +511,23 @@ internal fun RpgParser.Dcl_dsContext.type(
         baseType
     } else {
         ArrayType(baseType, nElements)
+    }
+}
+
+/**
+ * Evaluates the OCCURS keyword between a number or an expression to evaluate at runtime.
+ */
+internal fun RpgParser.Keyword_occursContext.evaluate(conf: ToAstConfiguration = ToAstConfiguration()): Int? {
+    return when {
+        this.numeric_constant != null -> numeric_constant?.getChild(0)?.text?.toInt()
+        this.expr != null -> {
+            val injectableCompileTimeInterpreter = InjectableCompileTimeInterpreter(
+                KnownDataDefinition.getInstance().values.toList(),
+                conf.compileTimeInterpreter
+            )
+            injectableCompileTimeInterpreter.evaluate(rContext(), this.expr.toAst(conf)).asInt().value.toInt()
+        }
+        else -> null
     }
 }
 
@@ -1038,7 +1055,8 @@ internal fun DataDefinition.setOverlayOn(fieldDefinition: FieldDefinition) {
 
 internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    dataDefinitionProviders: List<DataDefinitionProvider>
+    dataDefinitionProviders: List<DataDefinitionProvider>,
+    parentDataDefinitions: List<DataDefinition>? = null
 ):
         () -> DataDefinition {
     return {
@@ -1051,7 +1069,9 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
         val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
 
         val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
-        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: this.error("Data definition $likeDsName not found", conf = conf)
+        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName }
+            ?: parentDataDefinitions?.find { it.name == likeDsName }
+            ?: this.error("Data definition $likeDsName not found", conf = conf)
 
         val dataDefinition = DataDefinition(
                 this.name,
