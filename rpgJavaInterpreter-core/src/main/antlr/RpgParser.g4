@@ -159,7 +159,7 @@ keyword_likerec : KEYWORD_LIKEREC OPEN_PAREN intrecname=simpleExpression
 	(COLON (SPLAT_ALL | SPLAT_INPUT | SPLAT_OUTPUT | SPLAT_KEY))?
 	CLOSE_PAREN; 
 keyword_noopt : KEYWORD_NOOPT;
-keyword_occurs : KEYWORD_OCCURS OPEN_PAREN (numeric_constant=number | function | identifier) CLOSE_PAREN;
+keyword_occurs : KEYWORD_OCCURS OPEN_PAREN ((numeric_constant=number | function | identifier)|(expr=expression)) CLOSE_PAREN;
 keyword_opdesc : KEYWORD_OPDESC;
 keyword_options : KEYWORD_OPTIONS OPEN_PAREN identifier (COLON identifier)* CLOSE_PAREN; 
 keyword_overlay : KEYWORD_OVERLAY OPEN_PAREN name=simpleExpression (COLON (SPLAT_NEXT | pos=simpleExpression))? CLOSE_PAREN; 
