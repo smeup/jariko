@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.smeup
 
 import org.junit.Test
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 open class MULANGT40ArrayAndDSTest : MULANGTTest() {
