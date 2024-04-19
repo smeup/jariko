@@ -2,7 +2,7 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V* ==============================================================
-     V* 22/03/24  MUTEST  APU001 Creazione
+     V* 18/04/24  MUTEST  APU001 Creazione
      V*=====================================================================
     O *  OBIETTIVO
     O * L'obiettivo di questo test è quello di avere una condizione complessa
@@ -17,8 +17,6 @@
       /COPY QILEGEN,£PDS
       *---------------------------------------------------------------------
     RD* M A I N
-     D* Una volta copiato il template, aggiornare tutti i valori 'xxyyzz' con
-     D* quelli scelti per il casi di test. Non modificare la struttura del test.
       *---------------------------------------------------------------------
      C                   EVAL      £DBG_Pgm = 'MU120214'
      C                   EVAL      £DBG_Sez = 'A02'
