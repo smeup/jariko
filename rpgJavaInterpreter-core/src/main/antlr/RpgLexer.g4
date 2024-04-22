@@ -63,7 +63,7 @@ ID : ({
             _input.LA(-1) == '/' ||
             _input.LA(-1) == '='
       }? '*' {getCharPositionInLine()>7}? '*' ? [a-zA-Z])?
-      [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]*;
+      [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]*{getCharPositionInLine()<=80}?;
 NEWLINE : (('\r'? '\n')|'\r') -> skip;
 WS : [ \t] {getCharPositionInLine()>6}? [ \t]* -> skip ; // skip spaces, tabs
 

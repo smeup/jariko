@@ -73,4 +73,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("CALL_1(          , 1, MULANGTB10:  chiamata 1                           )")
         assertEquals(expected, "smeup/T10_A60_P10".outputOf())
     }
+
+    /**
+     * Utilization of `LIKEDS` with a `DataDefinition` defined in parent.
+     * @see #271
+     */
+    @Test
+    fun executeMU108006() {
+        val expected = listOf("ScritturaInProcedura")
+        assertEquals(expected, "smeup/MU108006".outputOf())
+    }
 }
