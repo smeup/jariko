@@ -437,7 +437,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR15CallBackTest() {
-        executePgmCallBackTest("ERROR15", SourceReferenceType.Program, "ERROR15", listOf(11))
+        executePgmCallBackTest("ERROR15", SourceReferenceType.Program, "ERROR15", listOf(16))
     }
 
     @Test
