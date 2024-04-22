@@ -2389,4 +2389,10 @@ Test 6
         val expected = listOf("1000")
         assertEquals(expected, "BITOFF_INLINEDATA".outputOf())
     }
+
+    @Test
+    fun executeMULTIPLE_HSPEC() {
+        val expected = listOf("OK")
+        assertEquals(expected, "MULTIPLE_HSPEC".outputOf())
+    }
 }
