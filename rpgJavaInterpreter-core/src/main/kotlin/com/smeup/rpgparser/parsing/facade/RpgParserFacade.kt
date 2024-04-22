@@ -186,6 +186,7 @@ class RpgParserFacade {
     fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): RpgParser {
         val logSource = LogSourceData(executionProgramName, "")
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RPGLOAD", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "RPGLOAD", "START"))
         val charInput: CharStream?
         val elapsedLoad = measureNanoTime {
             charInput = if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream)
@@ -195,9 +196,11 @@ class RpgParserFacade {
         val endLogSource = logSource.projectLine(lines.toString())
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "RPGLOAD", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(endLogSource, "RPGLOAD", "END"))
         MainExecutionContext.log(LazyLogEntry.producePerformance(endLogSource, "RPGLOAD", elapsedLoad))
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "LEXER", "START"))
 
         val lexer: RpgLexer
         val elapsedLexer = measureNanoTime {
@@ -212,9 +215,11 @@ class RpgParserFacade {
         }.nanoseconds
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "LEXER", "END"))
         MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "LEXER", elapsedLexer))
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "PARSER", "START"))
         val parser: RpgParser
         val elapsedParser = measureNanoTime {
             val commonTokenStream = CommonTokenStream(lexer)
@@ -227,14 +232,16 @@ class RpgParserFacade {
                 }
             })
         }.nanoseconds
-        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "END"))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "LEXER", elapsedParser))
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "PARSER", "END"))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "PARSER", elapsedParser))
         return parser
     }
 
     private fun verifyParseTree(parser: Parser, errors: MutableList<Error>, root: ParserRuleContext) {
         val logSource = LogSourceData(executionProgramName, "")
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "CHKPTREE", "START"))
         val elapsed = measureNanoTime {
             val commonTokenStream = parser.tokenStream as CommonTokenStream
             val lastToken = commonTokenStream.get(commonTokenStream.index())
@@ -251,6 +258,7 @@ class RpgParserFacade {
             })
         }.nanoseconds
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "CHKPTREE", "END"))
         MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "CHKPTREE", elapsed))
     }
 
@@ -344,10 +352,12 @@ class RpgParserFacade {
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root: RContext
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "RCONTEXT", "START"))
         val elapsedRoot = measureNanoTime {
             root = parser.r()
         }.nanoseconds
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "RCONTEXT", "END"))
         MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "RCONTEXT", elapsedRoot))
         var mutes: MutesImmutableMap? = null
         if (muteSupport) {
@@ -365,9 +375,11 @@ class RpgParserFacade {
             if (compiledFile.exists()) {
                 val logSource = LogSourceData(executionProgramName, "")
                 MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
+                MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "AST", "START"))
                 compiledFile.readBytes().createCompilationUnit().apply {
                     val elapsed = (System.nanoTime() - start).nanoseconds
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
+                    MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "AST", "END"))
                     MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "AST", elapsed))
                 }
             } else {
@@ -401,6 +413,7 @@ class RpgParserFacade {
             val compilationUnit: CompilationUnit
             val logSource = LogSourceData(executionProgramName, "")
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
+            MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "AST", "START"))
             val elapsed = measureNanoTime {
                 compilationUnit = result.root!!.rContext.toAst(
                     conf = MainExecutionContext.getConfiguration().options.toAstConfiguration,
@@ -423,6 +436,7 @@ class RpgParserFacade {
                 }
             }.nanoseconds
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
+            MainExecutionContext.log(LazyLogEntry.produceParsing(logSource, "AST", "END"))
             MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "AST", elapsed))
             compilationUnit
         }.onFailure {

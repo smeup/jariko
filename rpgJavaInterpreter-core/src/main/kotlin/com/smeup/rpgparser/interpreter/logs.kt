@@ -30,6 +30,7 @@ import java.util.*
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.DurationUnit
 
 data class LogSourceData(
     val programName: String,
@@ -162,7 +163,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return LazyLogEntry(entry) {
                 buildString {
                     append("elapsed ")
-                    append(elapsed.toString())
+                    append(elapsed.toString(DurationUnit.MICROSECONDS))
                 }
             }
         }
@@ -181,6 +182,15 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return LazyLogEntry(entry) {
                 statementName
             }
+        }
+
+        fun produceParsing(
+            source: LogSourceData,
+            entity: String,
+            action: String
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), action)
+            return LazyLogEntry(entry) { entity }
         }
 
         fun produceResolution(

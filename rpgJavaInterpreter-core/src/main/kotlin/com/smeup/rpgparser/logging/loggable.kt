@@ -14,7 +14,7 @@ interface ILoggable {
 
 interface ILoggableStatement : ILoggable {
     override val loggableEntityName: String
-        get() = "STMT"
+        get() = this.javaClass.simpleName
 
     fun getStatementLogRenderer(
         source: LogSourceData,

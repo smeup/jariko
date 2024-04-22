@@ -7,7 +7,7 @@ The logging permits to monitor the interpreter behaviour at the runtime. The log
 
 The output consists of a set of data records, with a fixed header segment with common data and a variable data segment specific for each channel. 
 
-The values of the record are separated by a character specified in the configuration  file. This permits to easily process the resulting logs as CSV files or using comman line tools such as cut.
+The values of the record are separated by a character specified in the configuration file. This permits to easily process the resulting logs as CSV files or using comman line tools such as cut.
 
 The available channels are:
 
@@ -19,6 +19,7 @@ The available channels are:
 * **Parsing:** measures parsing phase time.
 * **Resolution:** provides information about the process to identify the routines or programs to invoke. 
 * **Error:** provides information about error event occurred during the whole cycle of program interpretation.
+* **Analytics** provides information about higher level data collected during the whole cycle of program interpretation.
 
 ## Sample
 
@@ -96,14 +97,14 @@ and **logger.file.name**.
 
 ## Passing the configuration without a file
 
-If you don't want to pass the configuration to the logging system using a file, you could use the ```consoleLoggingConfiguration``` or the ```fileLoggingConfiguration``` fun.
+If you don't want to pass the configuration to the logging system using a file, you could use the ```consoleLoggingConfiguration``` or the ```fileLoggingConfiguration``` fun combined with the `LogChannel` enum.
 For example:
 ```
-val si = JavaSystemInterface(consoleLoggingConfiguration(EXPRESSION_LOGGER, PERFORMANCE_LOGGER))
+val si = JavaSystemInterface(consoleLoggingConfiguration(LogChannel.EXPRESSION, LogChannel.PERFORMANCE))
 ```   
 or
 ```
-val si = JavaSystemInterface(fileLoggingConfiguration(File("/home/pippo", "example.log"), EXPRESSION_LOGGER, PERFORMANCE_LOGGER))
+val si = JavaSystemInterface(fileLoggingConfiguration(File("/home/pippo", "example.log"), LogChannel.EXPRESSION, LogChannel.PERFORMANCE))
 ```   
 
 ## Log file format
@@ -113,8 +114,8 @@ variable data segment which depends on the channel.
 
 
 ```
-<TIMESTAMP><S><PROGRAM><S><LINE><S><CHANNEL><S><CHANNEL SPECIFIC>
-+------------------ header -------------------+----- data ------+
+<TIMESTAMP><S><CHANNEL><S><PROGRAM><S><LINE><S><ACTION><S><CHANNEL SPECIFIC>
++------------------ header ------------------------------+----- data ------+
 ```     
 
 The header contains the following data:
@@ -127,53 +128,44 @@ The header contains the following data:
 The **S** represent the separator character specified in the configuration.
 
 ## Data Channel DATA
-The monitors the accesses to the variables during the program execution.  
+The data channel monitors the accesses to the variables during the program execution.  
 
 ```
-14:25:29.471 TEST_06          DATA NBR = 0            10
-+-----------+-------------+--+---+---- data -----+- result -+
+14:53:47.263 DATA   MUTE10_10   16   ASSIGN  $V = 1  was: 0
++------------ header ---------------+-------+--- data ----+
 ```     
 The log record collects the initial value zero in this case and the new value
-assigned by a statement. In the example above the value of variable NBR has an
-initial value of 0 (zero) and assume the value of 10.
+assigned by a statement. In the example above the value of variable V has an
+initial value of 0 (zero) and assume the value of 1.
 
 
 ## Statement Channel STMT
 The statement channel captures information about the statement executed.  
 
 ```
-11:30:38.893 TEST_06       45 STMT EVAL WORDINC = J - I	   5
-+-----------+-------------+--+---+---- statement -----+- result -+
+15:04:57.031 STMT   MUTE10_10    47    EXEC   EVAL   $TIMMS = $TIMMS / 1000 
++-------------- header ---------------+------+-------- statement ---------+
 ```     
 
-In the example above the record contains the statement executed `EVAL WORDINC = J - I`
-and the result of the expression, in this case **5**.
+In the example above the record contains the statement executed `EVAL $TIMMS = $TIMMS / 1000`.
 
-When statement evaluate a comparison operator the result represent the logical
-value of the expression.
-
-```
-11:30:38.893 TEST_06       45 STMT	SELECT WHEN	NBR = 0	(false)
-11:30:38.893 TEST_06       47 STMT	SELECT WHEN	NBR = 1	(true)
-+-----------+-------------+--+---+---- statement -----+- result -+
-```
+Some statements might also emit proper and more specific information in the data section of the log entry.
 
 The statement channel also tracks the start and the end of a
 program or subroutine. 
 
 ```
-11:30:38.893 TEST_06       45 STMT	SELECT SUBROUTINE START	FIB
-
-11:30:38.893 TEST_06       55 STMT	SUBROUTINE END	FIB
-+-----------+-------------+--+---+--------- statement ---------+ 
+15:16:28.859    STMT	MUTE10_10		 START	INTERPRETATION
+15:04:57.041    STMT    MUTE10_10        END    INTERPRETATION
++-------------- header ---------------+--------+---- stmt ----+
 ```
 
 ## Expression Channel EXPR
 The expression channel collect all the expressions encountered during the program execution.
 
 ```
-14:14:30.330 TEST_06       28 EXPR A + B                3
-+-----------+-------------+--+---+-- expression --+- result -+
+15:59:20.546 EXPR   MULANGTC10    12    EVAL    C10_P2 = 1    true
++-------------------- header ----------------+---- expr ----+----+
 ```
 
 
@@ -184,33 +176,24 @@ when the loop exits. The end loop record include the number of cycles
 actually executed.
 
 ```
-14:14:30.330 TEST_06       28 LOOP FOR J = 1  TO 4
-14:14:30.571 TEST_06       35 LOOP ENDFOR J              4
-+-----------+-------------+--+---+----- loop ------+- result -+
+10:01:16.243 LOOP   MUTE10_10    39    START   DO 
+10:01:16.631 LOOP   MUTE10_10    39    END     DO  100000
++--------------- header -------------+--- loop ---+------+
 ```
 
-The example below shows a DOW loop execution.
-
-```
-14:14:30.330 TEST_06       13 LOOP DOW LOOP START COUNT < 100 
-14:14:30.556 TEST_06       22 STMT LEAVE
-14:14:30.571 TEST_06       33 LOOP DOW LOOP END                   45	
-+-----------+-------------+--+---+---------- loop -----------+- result -+
-```
 Please note that statements like LEAVE may affect the number of cycles
 actually executed.
 
 ## Performance Channel PERF
-The performance channel measures the execution time of loops, programs and
-subroutines. 
+The performance channel measures the execution time of statements. 
 The log records are generated at the end of statements block, measuring the
-time in milliseconds.
+time in microseconds.
 
 ```
-15:09:46.910 TEST_06       79 PERF ENDFOR I                       8 ms
-15:09:46.910 TEST_06       80 PERF SUBROUTINE END PRINT           9 ms
-15:09:46.910 TEST_06          PERF END TEST_06                  160 ms
-+-----------+-------------+--+---+---------- data -----------+- result -+
+15:51:55.838 PERF   MULANGTC10      7       PLIST   elapsed 8.875us
+15:51:55.840 PERF   MULANGTC10      13      EVAL    elapsed 566us
+15:51:55.840 PERF   MULANGTC10      14      EVAL    elapsed 35.084us
++---------------- header -----------------+--------+----- perf ----+
 ```
 
 ## Parsing Channel PARS
@@ -218,14 +201,17 @@ The parsing channel measures the parsing time needed to build AST.
 The log records are generated at the end of each phase related to parsing.
 
 ```
-12:36:33    MUTEXX        182 PARS PREPROP END MUTEXX          165 ms
-12:36:33    MUTEXX        182 PARS RPGLOAD END MUTEXX          127 ms
-12:36:33    MUTEXX            PARS LEXER END MUTEXX            236 ms
-12:36:34    MUTEXX            PARS PARSER END MUTEXX           674 ms
-12:36:41    MUTEXX            PARS RCONTEXT END MUTEXX        7191 ms
-12:36:41    MUTEXX            PARS CHKPTREE END MUTEXX          17 ms
-12:36:42    MUTEXX            PARS AST END MUTEXX              361 ms
-+-----------+-------------+--+---+---------- data ------------+- result -+
+09:55:51.994PARS  MULANGTC10            START   LEXER
+09:55:51.994PARS  MULANGTC10            END     LEXER
+09:55:51.994PARS  MULANGTC10            START   PARSER
+09:55:51.994PARS  MULANGTC10            END     PARSER
+09:55:51.995PARS  MULANGTC10            START  RCONTEXT
+09:55:52.074PARS  MULANGTC10            END    RCONTEXT
+09:55:52.074PARS  MULANGTC10            START  CHKPTREE
+09:55:52.074PARS  MULANGTC10            END    CHKPTREE
+09:55:52.074PARS  MULANGTC10            START   AST
+09:55:52.078PARS  MULANGTC10            END     AST
++--------- header ----------+----------+---- parse ----+
 ```
 
 
@@ -235,10 +221,8 @@ to resolve a program. When the interpreter starts, the RESL channel logs the lis
 of strategies used to locate a RPG/Java program.
 
 ```
-15:09:46.910                  RESL resource: /
-15:09:46.910                  RESL directory: .
-15:09:46.960 TEST_06       80 RESL CALL "CALCFIB"
-+-----------+-------------+--+---+---------- resolution -----------+
+15:47:40.824 RESL	T10_A60_P02	8	CALL	"MULANGTC10"
++------------ header -------------+---- resolution ----+
 ```
 
 ## Error Channel ERR

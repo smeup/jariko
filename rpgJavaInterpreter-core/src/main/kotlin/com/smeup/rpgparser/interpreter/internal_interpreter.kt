@@ -20,8 +20,8 @@ import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
-import com.smeup.rpgparser.execution.LoggingContext
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.LoggingContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference

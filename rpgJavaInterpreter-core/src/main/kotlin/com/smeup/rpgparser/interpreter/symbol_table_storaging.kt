@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.execution.LoggingContext
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.LoggingContext
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.nanoseconds
 
