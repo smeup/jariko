@@ -445,7 +445,7 @@ class JarikoCallbackTest : AbstractTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
                 toAstConfiguration = ToAstConfiguration().apply {
-                    // Consider all errors not blocking
+                    // Consider all errors as not blocking
                     afterPhaseErrorContinue = { true }
                 }
             }
