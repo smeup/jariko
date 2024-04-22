@@ -441,7 +441,7 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
-    fun executeERROR15DoesNotMustThrowError() {
+    fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
                 toAstConfiguration = ToAstConfiguration().apply {
