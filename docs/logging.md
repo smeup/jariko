@@ -225,14 +225,24 @@ of strategies used to locate a RPG/Java program.
 +------------ header -------------+---- resolution ----+
 ```
 
+## Analytics Channel ANALYTICS
+The analytics channel provides processed collected during the whole execution cycle. Information yield by this channel are derived by a LoggingContext where logging metadata are stored.
+
+```
+10:24:41.060 ANALYTICS    MUTE10_10    STMT TIME    DO    451457us    33%    1    avg. 451457us
+10:24:41.060 ANALYTICS    MUTE10_10    STMT TIME    EVAL    5307us    0%      2    avg. 2653us
+10:24:41.061 ANALYTICS    MUTE10_10    STMT TIME    ZADD    243199us    18%    200000    avg. 1us
+10:24:41.061 ANALYTICS    MUTE10_10    STMT TIME    SUBDUR    1122us    0%    1    avg. 1122us
+10:24:41.065 ANALYTICS    MUTE10_10    EXPR TIME    64627us    5%    1300104    avg. 0us
+10:24:41.066 ANALYTICS    MUTE10_10    LOG TIME    80529us    6%    1300120    avg. 0us
+```
+
 ## Error Channel ERR
 The error channel catches the error events (instances of `com.smeup.rpgparser.execution.ErrorEvent`).
 These events are particularly meaningful during the program syntax checking, below we can see an example.
 As you can see, the `ErrorEvent` is shown through its string representation.
 ```
-12:24:28.735 	ERROR02	6	ERR	ErrorEvent(error=java.lang.IllegalStateException: token recognition error at: 'C    ', errorEventSource=Parser, absoluteLine=6, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=ERROR02, relativeLine=6, position=Position(start=Line 6, Column 6, end=Line 6, Column 6)), fragment=      C                   EVAL      x = 1 / n)
-12:24:28.739 	ERROR02	7	ERR	ErrorEvent(error=java.lang.IllegalStateException: missing FREE_SEMI at 'C', errorEventSource=Parser, absoluteLine=7, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=ERROR02, relativeLine=7, position=Position(start=Line 7, Column 5, end=Line 7, Column 5)), fragment=     C                   SETON                                        LR)
-+-----------+-------------+--+---+---------- error ----------------+
+10:05:03.612 ERR    T10_A60_P02     4       ErrorEvent(error=java.lang.IllegalStateException: token recognition error at: 'Error', errorEventSource=Parser, absoluteLine=4, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=T10_A60_P02, relativeLine=4, position=Position(start=Line 4, Column 5, end=Line 4, Column 5)), fragment=     Error)
 ```
 
 For further information about the `ErrorEvent` see the kotlin-doc in [Configuration.kt](../rpgJavaInterpreter-core/src/main/kotlin/com/smeup/rpgparser/execution/Configuration.kt)
