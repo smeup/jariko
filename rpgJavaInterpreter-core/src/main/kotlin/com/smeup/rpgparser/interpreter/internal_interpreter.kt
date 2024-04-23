@@ -1161,20 +1161,13 @@ open class InternalInterpreter(
 
     private fun onExecutionEnd() {
         val logSource = LogSourceData(this.interpretationContext.currentProgramName, "")
-        val loggingContext = MainExecutionContext.getLoggingContext()
 
+        val loggingContext = MainExecutionContext.getLoggingContext()
         loggingContext ?: return
 
-        loggingContext.generateSymbolTableTimeUsageReportEntries(logSource).forEach {
+        loggingContext.generateCompleteReport(logSource).forEach {
             entry -> renderLog { entry }
         }
-
-        loggingContext.generateTimeUsageByStatementReportEntries(logSource).forEach {
-            entry -> renderLog { entry }
-        }
-
-        renderLog { loggingContext.generateExpressionReportEntry(logSource) }
-        renderLog { loggingContext.generateLogTimeReportEntry(logSource) }
     }
 }
 

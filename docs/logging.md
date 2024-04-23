@@ -241,13 +241,33 @@ of strategies used to locate a RPG/Java program.
 ## Analytics Channel ANALYTICS
 The analytics channel provides processed collected during the whole execution cycle. Information yield by this channel are derived by a LoggingContext where logging metadata are stored.
 
+Statement time analytics provide information about which statements were called during the program execution, how much time was spent totally to execute that statement and how many times each one was hit.
+
 ```
-10:24:41.060 ANALYTICS    MUTE10_10    STMT TIME    DO    451457us    33%    1    avg. 451457us
-10:24:41.060 ANALYTICS    MUTE10_10    STMT TIME    EVAL    5307us    0%      2    avg. 2653us
-10:24:41.061 ANALYTICS    MUTE10_10    STMT TIME    ZADD    243199us    18%    200000    avg. 1us
-10:24:41.061 ANALYTICS    MUTE10_10    STMT TIME    SUBDUR    1122us    0%    1    avg. 1122us
-10:24:41.065 ANALYTICS    MUTE10_10    EXPR TIME    64627us    5%    1300104    avg. 0us
-10:24:41.066 ANALYTICS    MUTE10_10    LOG TIME    80529us    6%    1300120    avg. 0us
+12:25:35.612 ANALYTICS    MUTE10_10        STMT TIME    DISPLAY 204us   1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    EXSR    450369us        1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    SET     146us   1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    TIME    3026us  2
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    DO      441230us        1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    EVAL    3857us  2
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    ZADD    204600us        200000
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    SUBDUR  601us   1
++------------- header ------------+--------+-------------------+----- analytics ------+
+```
+
+Symbol table analytics provide the same information of the statement analytics but referred to symbol table actions rather than statement execution.
+```
+12:25:35.613 ANALYTICS    MUTE10_10        SYMTBL TIME    INIT    21429us    1
+12:25:35.613 ANALYTICS    MUTE10_10        SYMTBL TIME    LOAD    131us      1
++------------- header ------------+--------+------------------+-- analytics --+
+```
+
+There are also other analytics which provide their own informational data. Here are some examples:
+```
+12:25:35.615 ANALYTICS    MUTE10_10        EXPR TIME       56195us    1300104
+12:25:35.615 ANALYTICS    MUTE10_10        LOG TIME        56177us    1300109
+12:25:35.615 ANALYTICS    MUTE10_10        PROGRAM TIME    1220526us
++------------- header ------------+--------+---------------+--- analytics --+
 ```
 
 ## Error Channel ERR

@@ -6,6 +6,7 @@ import com.smeup.rpgparser.interpreter.LogSourceData
 import java.text.DecimalFormat
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.exp
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
@@ -17,7 +18,6 @@ class LoggingContext {
     private var expressionTimeMeasurement = UsageMeasurement.new()
 
     private val initTimestamp = System.nanoTime()
-    private val percentageFormatter = DecimalFormat("##%")
 
     private val totalTime
         get() = (System.nanoTime() - initTimestamp).nanoseconds
@@ -67,61 +67,64 @@ class LoggingContext {
         )
     }
 
-    fun generateTimeUsageByStatementReportEntries(source: LogSourceData): List<LazyLogEntry> {
+    fun generateCompleteReport(source: LogSourceData): List<LazyLogEntry> {
+        val timeUsageEntries = generateTimeUsageByStatementReportEntries(source)
+        val symTableEntries = generateSymbolTableTimeUsageReportEntries(source)
+        val expressionEntry = generateExpressionReportEntry(source)
+        val logTimeEntry = generateLogTimeReportEntry(source)
+        val programExecutionEntry = generateProgramReportEntry(source)
+
+        return  timeUsageEntries + symTableEntries + expressionEntry + logTimeEntry + programExecutionEntry
+    }
+
+    private fun generateTimeUsageByStatementReportEntries(source: LogSourceData): List<LazyLogEntry> {
         return timeUsageByStatement.toList().map {
             val statementName = it.first
             val duration = it.second.duration
-            val timePercentage = percentageFormatter.format(duration / totalTime)
             val hit = it.second.hit
-            val average = (duration.inWholeNanoseconds / hit).nanoseconds
 
             val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "STMT TIME")
             LazyLogEntry(entry) { sep ->
-                "$statementName$sep${duration.toString(DurationUnit.MICROSECONDS)}$sep$timePercentage${sep}$hit${sep}avg. ${average.toString(
-                    DurationUnit.MICROSECONDS)}"
+                "$statementName$sep${duration.toString(DurationUnit.MICROSECONDS)}${sep}$hit"
             }
         }
     }
 
-    fun generateSymbolTableTimeUsageReportEntries(source: LogSourceData): List<LazyLogEntry> {
+    private fun generateSymbolTableTimeUsageReportEntries(source: LogSourceData): List<LazyLogEntry> {
         return symbolTableTimeUsage.toList().map {
             val action = it.first
             val duration = it.second.duration
-            val timePercentage = percentageFormatter.format(duration / totalTime)
             val hit = it.second.hit
-            val average = (duration.inWholeNanoseconds / hit).nanoseconds
 
             val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "SYMTBL TIME")
             LazyLogEntry(entry) { sep ->
-                "${action.name}$sep${duration.toString(DurationUnit.MICROSECONDS)}$sep$timePercentage${sep}$hit${sep}avg. ${average.toString(
-                    DurationUnit.MICROSECONDS)}"
+                "${action.name}$sep${duration.toString(DurationUnit.MICROSECONDS)}${sep}$hit"
             }
         }
     }
 
-    fun generateExpressionReportEntry(source: LogSourceData): LazyLogEntry {
+    private fun generateExpressionReportEntry(source: LogSourceData): LazyLogEntry {
         val duration = expressionTimeMeasurement.duration
-        val timePercentage = percentageFormatter.format(duration / totalTime)
         val hit = expressionTimeMeasurement.hit
-        val average = (duration.inWholeNanoseconds / hit).nanoseconds
 
         val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "EXPR TIME")
         return LazyLogEntry(entry) { sep ->
-            "${duration.toString(DurationUnit.MICROSECONDS)}$sep$timePercentage$sep$hit${sep}avg. ${average.toString(
-                DurationUnit.MICROSECONDS)}"
+            "${duration.toString(DurationUnit.MICROSECONDS)}$sep$hit"
         }
     }
 
-    fun generateLogTimeReportEntry(source: LogSourceData): LazyLogEntry {
+    private fun generateLogTimeReportEntry(source: LogSourceData): LazyLogEntry {
         val duration = renderingTimeMeasurement.duration
-        val timePercentage = percentageFormatter.format(duration / totalTime)
         val hit = renderingTimeMeasurement.hit
-        val average = (duration.inWholeNanoseconds / hit).nanoseconds
 
         val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "LOG TIME")
         return LazyLogEntry(entry) { sep ->
-            "${duration.toString(DurationUnit.MICROSECONDS)}$sep$timePercentage$sep$hit${sep}avg. ${average.toString(
-                DurationUnit.MICROSECONDS)}"
+            "${duration.toString(DurationUnit.MICROSECONDS)}$sep$hit"
         }
+    }
+
+    private fun generateProgramReportEntry(source: LogSourceData): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "PROGRAM TIME")
+        return LazyLogEntry(entry) { totalTime.toString(DurationUnit.MICROSECONDS) }
     }
 }
