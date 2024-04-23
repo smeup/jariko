@@ -233,11 +233,11 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
-                    it.dcl_ds() != null -> {
-                        val type = it.dcl_ds().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).fields
-                            .firstOrNull { it.name.equals(declName, ignoreCase = true) }?.type
-                        if (type != null) return type
-                    }
+//                    it.dcl_ds() != null -> {
+//                        val type = it.dcl_ds().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).fields
+//                            .firstOrNull { it.name.equals(declName, ignoreCase = true) }?.type
+//                        if (type != null) return type
+//                    }
                     it.dspec() != null -> {
                         val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
                         if (declName.equals(name, ignoreCase = true)) {
