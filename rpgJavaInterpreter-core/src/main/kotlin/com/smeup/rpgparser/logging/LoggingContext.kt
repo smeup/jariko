@@ -3,10 +3,8 @@ package com.smeup.rpgparser.logging
 import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
-import java.text.DecimalFormat
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.math.exp
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
@@ -74,7 +72,7 @@ class LoggingContext {
         val logTimeEntry = generateLogTimeReportEntry(source)
         val programExecutionEntry = generateProgramReportEntry(source)
 
-        return  timeUsageEntries + symTableEntries + expressionEntry + logTimeEntry + programExecutionEntry
+        return timeUsageEntries + symTableEntries + expressionEntry + logTimeEntry + programExecutionEntry
     }
 
     private fun generateTimeUsageByStatementReportEntries(source: LogSourceData): List<LazyLogEntry> {

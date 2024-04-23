@@ -234,8 +234,10 @@ to resolve a program. When the interpreter starts, the RESL channel logs the lis
 of strategies used to locate a RPG/Java program.
 
 ```
+12:57:47.387 RESL                   directory: ./resources/test/performance 
+12:57:47.389 RESL                   directory: ./resources 
 15:47:40.824 RESL	T10_A60_P02	8	CALL	"MULANGTC10"
-+------------ header -------------+---- resolution ----+
++------------ header -------------+-------------- resolution --------------+
 ```
 
 ## Analytics Channel ANALYTICS

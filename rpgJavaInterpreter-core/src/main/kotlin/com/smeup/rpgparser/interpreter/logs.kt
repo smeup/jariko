@@ -279,10 +279,12 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceResolution(
-            source: LogSourceData
+            source: LogSourceData,
+            resolution: String? = null
         ): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
-            return fromEntry(entry)
+            resolution ?: return fromEntry(entry)
+            return produceMessage(entry, resolution)
         }
 
         /**
