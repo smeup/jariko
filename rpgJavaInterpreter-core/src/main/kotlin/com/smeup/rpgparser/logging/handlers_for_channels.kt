@@ -21,6 +21,9 @@ import com.smeup.rpgparser.interpreter.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
+/**
+ * Log handler for the EXPR channel
+ */
 class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.EXPRESSION.getPropertyName())
 
@@ -36,6 +39,9 @@ class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the PERF channel
+ */
 class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.PERFORMANCE.getPropertyName())
 
@@ -51,6 +57,9 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the STMT channel
+ */
 class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.STATEMENT.getPropertyName())
 
@@ -66,6 +75,9 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the DATA channel
+ */
 class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.DATA.getPropertyName())
 
@@ -81,6 +93,9 @@ class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the LOOP channel
+ */
 class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.LOOP.getPropertyName())
     override fun render(renderer: LazyLogEntry): String {
@@ -95,6 +110,9 @@ class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the RESL channel
+ */
 class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.RESOLUTION.getPropertyName())
 
@@ -110,6 +128,9 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the PARS channel
+ */
 class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.PARSING.getPropertyName())
 
@@ -125,6 +146,9 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the ERR channel
+ */
 class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.ERROR.getPropertyName())
 
@@ -140,6 +164,9 @@ class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), In
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
+/**
+ * Log handler for the ANALYTICS channel
+ */
 class AnalyticsLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.ANALYTICS.getPropertyName())
 

@@ -2,7 +2,19 @@ package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.interpreter.InterpreterLogHandler
 
+/**
+ * A factory providing the different types of LogHandler by its corresponding LogChannel
+ * @see LogChannel
+ * @see LogHandler
+ */
 object LogHandlerFactory {
+
+    /**
+     * Get a new instance of InterpreterLogHandler by its corresponding LogChannel
+     * @return A new InterpreterLogHandler
+     * @see LogChannel
+     * @see InterpreterLogHandler
+     */
     fun produce(channel: LogChannel, level: LogLevel, separator: String): InterpreterLogHandler = when (channel) {
         LogChannel.DATA -> DataLogHandler(level, separator)
         LogChannel.LOOP -> LoopLogHandler(level, separator)

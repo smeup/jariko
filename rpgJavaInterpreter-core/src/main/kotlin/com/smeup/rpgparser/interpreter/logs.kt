@@ -32,6 +32,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
 
+/**
+ * A data class holding information about the source of the log
+ * @see LogEntry
+ */
 data class LogSourceData(
     val programName: String,
     val line: String
@@ -40,27 +44,48 @@ data class LogSourceData(
     fun projectLine(newLine: String) = LogSourceData(programName, newLine)
 }
 
+/**
+ * A representation of a single log entry
+ */
 data class LogEntry(
     val source: LogSourceData,
     val scope: String,
     val action: String? = null
 )
 
+/**
+ * A wrapper on LogEntry used to render its content dynamically only when needed
+ * @see LogEntry
+ */
 class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> String) {
     companion object {
+        /**
+         * Create a new LazyLogEntry providing an empty message
+         */
         fun fromEntry(entry: LogEntry): LazyLogEntry {
             return produceMessage(entry, "")
         }
 
+        /**
+         * Create a new LazyLogEntry providing a prerendered message
+         */
         fun produceMessage(entry: LogEntry, message: String): LazyLogEntry {
             return LazyLogEntry(entry) { message }
         }
 
+        /**
+         * Create a new LazyLogEntry for line logging
+         * @see LinesLogHandler
+         */
         fun produceLine(source: LogSourceData): LazyLogEntry {
             val entry = LogEntry(source, LinesLogHandler.SCOPE)
             return produceMessage(entry, "Line ${source.line}")
         }
 
+        /**
+         * Create a new LazyLogEntry for the DATA channel
+         * @see LogChannel
+         */
         fun produceData(
             source: LogSourceData,
             data: AbstractDataDefinition,
@@ -75,6 +100,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             }
         }
 
+        /**
+         * Create a new LazyLogEntry for the EXPR channel
+         * @see LogChannel
+         */
         fun produceExpression(
             source: LogSourceData,
             expression: Expression,
@@ -102,6 +131,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             }
         }
 
+        /**
+         * Create a new LazyLogEntry for the EvalLogHandler
+         * @see EvalLogHandler
+         */
         fun produceEval(
             source: LogSourceData,
             expression: Expression,
@@ -113,6 +146,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             )
         }
 
+        /**
+         * Create a new LazyLogEntry for Mutes
+         * @see MuteAnnotation
+         */
         fun produceMute(
             annotation: MuteAnnotation,
             source: LogSourceData,
@@ -130,6 +167,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return produceMessage(entry, message)
         }
 
+        /**
+         * Create a new LazyLogEntry for the AssignmentsLogHandler
+         * @see AssignmentsLogHandler
+         */
         fun produceAssignment(
             source: LogSourceData,
             data: AbstractDataDefinition,
@@ -139,6 +180,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return produceMessage(entry, "assigning to ${data.name} value $value")
         }
 
+        /**
+         * Create a new LazyLogEntry for the AssignmentsLogHandler describing array element assignments
+         * @see AssignmentsLogHandler
+         */
         fun produceAssignmentOfElement(
             source: LogSourceData,
             array: Expression,
@@ -149,6 +194,9 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return produceMessage(entry, "assigning to $array[$index] value $value")
         }
 
+        /**
+         * Create a new LazyLogEntry from LogEntry data
+         */
         fun produceInformational(
             source: LogSourceData,
             scope: String,
@@ -158,6 +206,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return fromEntry(entry)
         }
 
+        /**
+         * Create a new LazyLogEntry for the PERF channel
+         * @see LogChannel
+         */
         fun producePerformance(source: LogSourceData, entity: String, elapsed: Duration): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
             return LazyLogEntry(entry) {
@@ -168,11 +220,19 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             }
         }
 
+        /**
+         * Create a new LazyLogEntry for the ANALYTICS channel
+         * @see LogChannel
+         */
         fun produceAnalytics(source: LogSourceData, action: String, message: String): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), action)
             return produceMessage(entry, message)
         }
 
+        /**
+         * Create a new LazyLogEntry for the STMT channel
+         * @see LogChannel
+         */
         fun produceStatement(
             source: LogSourceData,
             statementName: String,
@@ -184,6 +244,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             }
         }
 
+        /**
+         * Create a new LazyLogEntry for the PARS channel
+         * @see LogChannel
+         */
         fun produceParsing(
             source: LogSourceData,
             entity: String,
@@ -193,6 +257,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return LazyLogEntry(entry) { entity }
         }
 
+        /**
+         * Create a new LazyLogEntry for the RESL channel
+         * @see LogChannel
+         */
         fun produceResolution(
             source: LogSourceData
         ): LazyLogEntry {
@@ -200,6 +268,10 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return fromEntry(entry)
         }
 
+        /**
+         * Create a new LazyLogEntry for the ERR channel
+         * @see LogChannel
+         */
         fun produceError(
             errorEvent: ErrorEvent
         ): LazyLogEntry {
@@ -208,16 +280,28 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             return LazyLogEntry(entry) { errorEvent.toString() }
         }
 
+        /**
+         * Create a new LazyLogEntry for subroutine start detection
+         * @see ListLogHandler
+         */
         fun produceSubroutineStart(source: LogSourceData, subroutine: Subroutine): LazyLogEntry {
             val entry = LogEntry(source, "SUBROUTINE START", subroutine.name)
             return fromEntry(entry)
         }
 
+        /**
+         * Create a new LazyLogEntry for the LOOP channel on loop start
+         * @see LogChannel
+         */
         fun produceLoopStart(source: LogSourceData, entity: String, subject: String): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "START")
             return LazyLogEntry(entry) { "$entity $subject" }
         }
 
+        /**
+         * Create a new LazyLogEntry for the LOOP channel on loop end
+         * @see LogChannel
+         */
         fun produceLoopEnd(source: LogSourceData, entity: String, subject: String, iterations: Long): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "END")
             return LazyLogEntry(entry) { "$entity $subject $iterations" }
@@ -252,8 +336,21 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
     }
 }
 
+/**
+ * A log handler specifically intended for usage by the interpreter
+ */
 interface InterpreterLogHandler {
+    /**
+     * Checks if the log entry should be accepted by this handler
+     * @see LogEntry
+     */
     fun accepts(entry: LogEntry): Boolean
+
+    /**
+     * Handles the log entry provided by the renderer
+     * @see LazyLogEntry
+     * @see LogEntry
+     */
     fun handle(renderer: LazyLogEntry)
 }
 

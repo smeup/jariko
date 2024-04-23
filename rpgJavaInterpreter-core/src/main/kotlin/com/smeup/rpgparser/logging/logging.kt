@@ -17,6 +17,9 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.util.*
 
+/**
+ * Enum representing the different types of available log channels
+ */
 enum class LogChannel {
     DATA,
     LOOP,
@@ -28,10 +31,21 @@ enum class LogChannel {
     ERROR,
     ANALYTICS;
 
+    /**
+     * The name of the variant when used in configurations
+     */
     fun getPropertyName() = this.name.lowercase()
 }
 
+/**
+ * Abstract definition of an handler for logs
+ */
 abstract class LogHandler(val level: LogLevel, val sep: String) {
+    /**
+     * Render the LogEntry to a string using the provider renderer
+     * @see LazyLogEntry
+     * @see LogEntry
+     */
     abstract fun render(renderer: LazyLogEntry): String
 }
 
