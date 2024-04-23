@@ -239,22 +239,39 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
             action: String
         ): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
-            return LazyLogEntry(entry) {
-                statementName
-            }
+            return LazyLogEntry(entry) { statementName }
         }
 
         /**
-         * Create a new LazyLogEntry for the PARS channel
+         * Create a new LazyLogEntry for the PARS channel on parsing start
          * @see LogChannel
          */
-        fun produceParsing(
+        fun produceParsingStart(
+            source: LogSourceData,
+            entity: String
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), "START")
+            return LazyLogEntry(entry) { entity }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the PARS channel on parsing end
+         * @see LogChannel
+         */
+        fun produceParsingEnd(
             source: LogSourceData,
             entity: String,
-            action: String
+            elapsed: Duration
         ): LazyLogEntry {
-            val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), action)
-            return LazyLogEntry(entry) { entity }
+            val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), "END")
+            return LazyLogEntry(entry) { sep ->
+                buildString {
+                    append(entity)
+                    append(sep)
+                    append("elapsed ")
+                    append(elapsed.toString(DurationUnit.MICROSECONDS))
+                }
+            }
         }
 
         /**

@@ -209,20 +209,22 @@ time in microseconds.
 
 ## Parsing Channel PARS
 The parsing channel measures the parsing time needed to build AST.
-The log records are generated at the end of each phase related to parsing.
+The log records related to the end of a parsing phase provide also the elapsed time information.
 
 ```
-09:55:51.994PARS  MULANGTC10            START   LEXER
-09:55:51.994PARS  MULANGTC10            END     LEXER
-09:55:51.994PARS  MULANGTC10            START   PARSER
-09:55:51.994PARS  MULANGTC10            END     PARSER
-09:55:51.995PARS  MULANGTC10            START  RCONTEXT
-09:55:52.074PARS  MULANGTC10            END    RCONTEXT
-09:55:52.074PARS  MULANGTC10            START  CHKPTREE
-09:55:52.074PARS  MULANGTC10            END    CHKPTREE
-09:55:52.074PARS  MULANGTC10            START   AST
-09:55:52.078PARS  MULANGTC10            END     AST
-+--------- header ----------+----------+---- parse ----+
+12:03:32.724 PARS   MUTE10_10               START   RPGLOAD
+12:03:32.730 PARS   MUTE10_10       56      END     RPGLOAD         elapsed 2936us
+12:03:32.730 PARS   MUTE10_10               START   LEXER
+12:03:32.778 PARS   MUTE10_10               END     LEXER           elapsed 47015us
+12:03:32.778 PARS   MUTE10_10               START   PARSER
+12:03:32.883 PARS   MUTE10_10               END     PARSER          elapsed 104924us
+12:03:32.883 PARS   MUTE10_10               START   RCONTEXT
+12:03:33.118 PARS   MUTE10_10               END     RCONTEXT        elapsed 234507us
+12:03:33.118 PARS   MUTE10_10               START   CHKPTREE
+12:03:33.120 PARS   MUTE10_10               END     CHKPTREE        elapsed 1681us
+12:03:33.121 PARS   MUTE10_10               START   AST
+12:03:33.306 PARS   MUTE10_10               END     AST             elapsed 185138us
++--------------- header ----------------+---------+---- parse ----+----- time -----+
 ```
 
 
