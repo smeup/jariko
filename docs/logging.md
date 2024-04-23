@@ -21,6 +21,17 @@ The available channels are:
 * **Error:** provides information about error event occurred during the whole cycle of program interpretation.
 * **Analytics** provides information about higher level data collected during the whole cycle of program interpretation.
 
+## How it works
+
+The log system is modeled on the concept of *channels* as previously mentioned. Each channel is defined in the `LogChannel` enum as a variant. In order to handle logs for a specific channel a specialization of the abstract class `LogHandler` must be implemented and provided by the `LogHandlerFactory`.
+
+`LogHandler`s are not strictly bound to channels. This means that more handlers can be defined to serve more specific needs if needed (for example logging debug information). Handlers defined with this mechanism can then be attached to the `SystemInterface` manually.
+
+Each log line is fired by rendering a `LazyLogEntry`.
+These are data classes that contain:
+- A `LogEntry` which provides information about the source of the log and it's nature (`scope` and `action`)
+- A `renderContent` function
+
 ## Sample
 
 ```shell script
