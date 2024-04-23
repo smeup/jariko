@@ -23,6 +23,7 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import org.junit.Assert
 import java.io.StringReader
 import kotlin.test.DefaultAsserter.assertTrue
@@ -432,6 +433,33 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR14CallBackTest() {
         executePgmCallBackTest("ERROR14", SourceReferenceType.Program, "ERROR14", listOf(5))
+    }
+
+    @Test
+    fun executeERROR15CallBackTest() {
+        executePgmCallBackTest("ERROR15", SourceReferenceType.Program, "ERROR15", listOf(16))
+    }
+
+    @Test
+    fun bypassSyntaxErrorTest() {
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                toAstConfiguration = ToAstConfiguration().apply {
+                    // Consider all errors as not blocking
+                    afterPhaseErrorContinue = { true }
+                }
+            }
+        }
+        var myMessage: String? = null
+        val systemInterface = JavaSystemInterface().apply {
+            onDisplay = { message, _ -> myMessage = message.trim() }
+        }
+        executePgm("ERROR15", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(
+            expected = "HELLO WORLD!!!",
+            actual = myMessage,
+            message = "DSPLY must be called because 1 is always equal to 1"
+        )
     }
 
     /**
