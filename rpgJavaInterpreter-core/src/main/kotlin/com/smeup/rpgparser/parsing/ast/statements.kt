@@ -803,19 +803,22 @@ data class CallPStmt(
 }
 
 @Serializable
-data class KListStmt
-private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
-    companion object {
-        operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
-            return KListStmt(name.uppercase(Locale.getDefault()), fields, position)
-        }
+data class KListStmt(
+    val name: String,
+    val fields: List<String>,
+    val dataDefinitions: List<InStatementDataDefinition>? = null,
+    override val position: Position?
+) : Statement(position), StatementThatCanDefineData {
+    private val normalizedName: String = name.uppercase(Locale.getDefault())
+
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val klistDefinition = InStatementDataDefinition(normalizedName, KListType)
+        val innerDefinitions = dataDefinitions ?: emptyList()
+        return listOf(klistDefinition) + innerDefinitions
     }
 
-    override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
-
     override fun execute(interpreter: InterpreterCore) {
-        // TODO Add logging as for PlistStmt
-        interpreter.getKlists()[name] = fields
+        interpreter.getKlists()[normalizedName] = fields
     }
 }
 
