@@ -4,6 +4,7 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.collectByType
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import org.junit.Test as test
 
 class DirectiveTest {
@@ -11,8 +12,10 @@ class DirectiveTest {
     @test fun singleDataParsing() {
         val cu = parseFragmentToCompilationUnit("H DECEDIT('.')")
         val decedits = cu.collectByType(DeceditDirective::class.java)
+        val targetDecedit = decedits.first()
+        assertIs<FormatDeceditDirective>(targetDecedit.type)
         assertEquals(1, decedits.size)
         assertEquals(1, cu.directives.size)
-        assertEquals(".", decedits[0].format)
+        assertEquals(".", (targetDecedit.type as FormatDeceditDirective).format.value)
     }
 }

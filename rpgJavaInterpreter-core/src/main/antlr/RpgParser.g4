@@ -1845,18 +1845,20 @@ MatchingRecordIndicator
 | BlankIndicator;
 
 hspec_fixed: HS_FIXED 
-	content=hspec_content
+	hspec_content+
 	(EOL|EOF);
 hspec_content:
       hs_decedit_set #setDecedit
     | hs_actgrp #setActGrp
-    | hs_expression* #hspecExpressions
+    | hs_expression #hspecExpression
     ;
-hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
+hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_decedit_parm CLOSE_PAREN)?);
 hs_actgrp: (HS_ACTGRP OPEN_PAREN hs_actgrp_parm CLOSE_PAREN);
-hs_expression: (ID (OPEN_PAREN (hs_parm (COLON hs_parm)*)? CLOSE_PAREN)?);
+hs_expression: (ID (OPEN_PAREN (hs_parm_expr (COLON hs_parm_expr)*)? CLOSE_PAREN)?);
 hs_parm: ID | hs_string | symbolicConstants;
+hs_parm_expr: ID | hs_string | symbolicConstants | HS_ANYPARAM | HS_JOBRUN | HS_NEW | HS_CALLER;
 hs_actgrp_parm: HS_NEW | HS_CALLER | hs_string;
+hs_decedit_parm: HS_JOBRUN | hs_string;
 hs_string: StringLiteralStart (content+=(StringContent | StringEscapedQuote))* StringLiteralEnd;
 blank_line: BLANK_LINE;
 directive: DIRECTIVE 
