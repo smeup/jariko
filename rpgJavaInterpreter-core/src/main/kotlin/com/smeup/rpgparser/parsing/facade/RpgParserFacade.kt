@@ -47,9 +47,11 @@ import org.apache.commons.io.input.BOMInputStream
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
-import kotlin.system.measureTimeMillis
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
@@ -182,15 +184,26 @@ class RpgParserFacade {
     }
 
     fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): RpgParser {
-        MainExecutionContext.log(RpgLoadLogStart(executionProgramName))
+        val logSource = LogSourceData(executionProgramName, "")
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RPGLOAD", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "RPGLOAD"))
         val charInput: CharStream?
-        val elapsedLoad = measureTimeMillis {
+        val elapsedLoad = measureNanoTime {
             charInput = if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream)
-        }
-        MainExecutionContext.log(RpgLoadLogEnd(executionProgramName, elapsedLoad, charInput))
-        MainExecutionContext.log(LexerLogStart(executionProgramName))
+        }.nanoseconds
+
+        val lines = charInput?.toString()?.split(Pattern.compile("\\r\\n|\\r|\\n"))?.size ?: 0
+        val endLogSource = logSource.projectLine(lines.toString())
+
+        MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "RPGLOAD", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingEnd(endLogSource, "RPGLOAD", elapsedLoad))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(endLogSource, "RPGLOAD", elapsedLoad))
+
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "LEXER"))
+
         val lexer: RpgLexer
-        val elapsedLexer = measureTimeMillis {
+        val elapsedLexer = measureNanoTime {
             lexer = RpgLexer(charInput)
             lexer.removeErrorListeners()
             lexer.addErrorListener(object : BaseErrorListener() {
@@ -199,11 +212,16 @@ class RpgParserFacade {
                         ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
                 }
             })
-        }
-        MainExecutionContext.log(LexerLogEnd(executionProgramName, elapsedLexer))
-        MainExecutionContext.log(ParserLogStart(executionProgramName))
+        }.nanoseconds
+
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "LEXER", elapsedLexer))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "LEXER", elapsedLexer))
+
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "PARSER"))
         val parser: RpgParser
-        val elapsedParser = measureTimeMillis {
+        val elapsedParser = measureNanoTime {
             val commonTokenStream = CommonTokenStream(lexer)
             parser = RpgParser(commonTokenStream)
             parser.removeErrorListeners()
@@ -213,14 +231,18 @@ class RpgParserFacade {
                         ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
                 }
             })
-        }
-        MainExecutionContext.log(ParserLogEnd(executionProgramName, elapsedParser))
+        }.nanoseconds
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "PARSER", elapsedParser))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "PARSER", elapsedParser))
         return parser
     }
 
     private fun verifyParseTree(parser: Parser, errors: MutableList<Error>, root: ParserRuleContext) {
-        MainExecutionContext.log(CheckParseTreeLogStart(executionProgramName))
-        val elapsed = measureTimeMillis {
+        val logSource = LogSourceData(executionProgramName, "")
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "CHKPTREE"))
+        val elapsed = measureNanoTime {
             val commonTokenStream = parser.tokenStream as CommonTokenStream
             val lastToken = commonTokenStream.get(commonTokenStream.index())
             if (lastToken.type != Token.EOF) {
@@ -234,8 +256,10 @@ class RpgParserFacade {
             }, {
                 errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
             })
-        }
-        MainExecutionContext.log(CheckParseTreeLogEnd(executionProgramName, elapsed))
+        }.nanoseconds
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "CHKPTREE", elapsed))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "CHKPTREE", elapsed))
     }
 
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
@@ -274,9 +298,10 @@ class RpgParserFacade {
             findMutes(code.byteInputStream(Charsets.UTF_8), errors)
 
     private fun findMutes(code: InputStream, errors: MutableList<Error>): MutesMap {
-        MainExecutionContext.log(FindMutesLogStart(executionProgramName))
+        val logSource = LogSourceData(executionProgramName, "")
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDMUTES", "START"))
         val mutes: MutesMap = HashMap()
-        val elapsed = measureTimeMillis {
+        val elapsed = measureNanoTime {
             val lexResult = lex(BOMInputStream(code))
             errors.addAll(lexResult.errors)
             lexResult.root?.forEachIndexed { index, token0 ->
@@ -293,13 +318,15 @@ class RpgParserFacade {
                     }
                 }
             }
-        }
-        MainExecutionContext.log(FindMutesLogEnd(executionProgramName, elapsed))
+        }.nanoseconds
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDMUTES", "END"))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "FINDMUTES", elapsed))
         return mutes
     }
 
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
+        val logSource = LogSourceData(executionProgramName, "")
         val errors = LinkedList<Error>()
         val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) CopyBlocks() else null
         // val includedCopySet = mutableSetOf<CopyId>()
@@ -324,11 +351,14 @@ class RpgParserFacade {
         }
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root: RContext
-        MainExecutionContext.log(RContextLogStart(executionProgramName))
-        val elapsedRoot = measureTimeMillis {
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "START"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "RCONTEXT"))
+        val elapsedRoot = measureNanoTime {
             root = parser.r()
-        }
-        MainExecutionContext.log(RContextLogEnd(executionProgramName, elapsedRoot))
+        }.nanoseconds
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "END"))
+        MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "RCONTEXT", elapsedRoot))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "RCONTEXT", elapsedRoot))
         var mutes: MutesImmutableMap? = null
         if (muteSupport) {
             mutes = findMutes(code, errors)
@@ -340,12 +370,17 @@ class RpgParserFacade {
 
     private fun tryToLoadCompilationUnit(): CompilationUnit? {
         return MainExecutionContext.getConfiguration().options.compiledProgramsDir?.let { compiledDir ->
-            val start = System.currentTimeMillis()
+            val start = System.nanoTime()
             val compiledFile = File(compiledDir, "$executionProgramName.bin")
             if (compiledFile.exists()) {
-                MainExecutionContext.log(AstLogStart(executionProgramName))
+                val logSource = LogSourceData(executionProgramName, "")
+                MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
+                MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "AST"))
                 compiledFile.readBytes().createCompilationUnit().apply {
-                    MainExecutionContext.log(AstLogEnd(executionProgramName, System.currentTimeMillis() - start))
+                    val elapsed = (System.nanoTime() - start).nanoseconds
+                    MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
+                    MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "AST", elapsed))
+                    MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "AST", elapsed))
                 }
             } else {
                 null
@@ -376,8 +411,10 @@ class RpgParserFacade {
         }
         return kotlin.runCatching {
             val compilationUnit: CompilationUnit
-            MainExecutionContext.log(AstLogStart(executionProgramName))
-            val elapsed = measureTimeMillis {
+            val logSource = LogSourceData(executionProgramName, "")
+            MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
+            MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "AST"))
+            val elapsed = measureNanoTime {
                 compilationUnit = result.root!!.rContext.toAst(
                     conf = MainExecutionContext.getConfiguration().options.toAstConfiguration,
                     source = if (MainExecutionContext.getConfiguration().options.mustDumpSource()) {
@@ -397,8 +434,10 @@ class RpgParserFacade {
                         }
                     }
                 }
-            }
-            MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
+            }.nanoseconds
+            MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
+            MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "AST", elapsed))
+            MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "AST", elapsed))
             compilationUnit
         }.onFailure {
             throw AstCreatingException(result.src, it)

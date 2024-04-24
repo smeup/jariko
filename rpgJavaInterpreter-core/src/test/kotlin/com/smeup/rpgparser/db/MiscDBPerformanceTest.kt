@@ -24,7 +24,7 @@ import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.IntValue
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -56,7 +56,7 @@ open class MiscDBPerformanceTest : AbstractTest() {
             val jrkExecMuteRepeat = System.getProperty("jrkEXEC_MUTErepeat", "1")
             println("execution mute repeat: $jrkExecMuteRepeat")
             val si = JavaSystemInterface().apply {
-                loggingConfiguration = consoleLoggingConfiguration(PERFORMANCE_LOGGER)
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE)
                 // capture messages and write them in CSV files
                 onDisplay = { message, _ ->
                     println("Handling displayed message: $message")
