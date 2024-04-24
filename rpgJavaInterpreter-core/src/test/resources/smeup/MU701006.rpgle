@@ -103,14 +103,6 @@
      C     £DBG_Str      DSPLY
       /ENDIF
       /ENDIF
-      * Test with condition on OS400 version
-      /IF DEFINED(*V5R1M0)
-     C                   EVAL      £DBG_Str='OK'
-     C     £DBG_Str      DSPLY
-      /ELSE
-     C                   EVAL      £DBG_Str='ERROR'
-     C     £DBG_Str      DSPLY
-      /ENDIF
      C                   ENDSR
       *---------------------------------------------------------------------
       */COPY QILEGEN,MULANG_D_C

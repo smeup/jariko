@@ -105,7 +105,11 @@ internal fun String.resolveCompilerDirectives(): String {
                     val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
-                        useRow = isDefined(definitions, code)
+                        if (code.startsWith("*V")) {
+                            throw CompilerDirectivesException("IF_DEFINED directive with unsupported $code parameter found at line " + (index + 1))
+                        } else {
+                            useRow = isDefined(definitions, code)
+                        }
                         ifLevel++
                     } else {
                         throw CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))
@@ -118,15 +122,7 @@ internal fun String.resolveCompilerDirectives(): String {
                     val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
-                        if (code.startsWith("*V")) {
-                            /*
-                            Manage case with OS400 version as always true because jariko RPG version
-                            is always the last one for definition
-                             */
-                            useRow = true
-                        } else {
-                            useRow = !isDefined(definitions, code)
-                        }
+                        useRow = !isDefined(definitions, code)
                         ifLevel++
                     } else {
                         throw CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
