@@ -25,7 +25,7 @@ val DIRECTIVES_KEYWORDS = listOf(
 val EOF_DIRECTIVE_KEYWORD = "      /EOF"
 
 // Search patterns for identifying compiler directive rows.
-val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
+val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§*,]+)\)$""", RegexOption.IGNORE_CASE)
 val IF_NOT_DEFINED_PATTERN = Regex(""".{6}/IF\sNOT\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
 val DEFINE_PATTERN = Regex(""".{6}/DEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
 val UNDEFINE_PATTERN = Regex(""".{6}/UNDEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
@@ -68,6 +68,15 @@ Receives an RPG source as string and resolves all embedded compile directives.
 The response is a string where all lines that should not be executed after resolving
 the compile directives are transformed into comment lines. The resolution of
 compilation directives must be performed after the resolution of /COPY directives.
+
+Not implemented:
+
+- ELSEIF compiler directive
+- Condition expressions special values(used in IF DEFINED directive):
+    - *ILERPG
+    - *CRTBNDRPG
+    - *CRTRPGMOD
+    - *THREAD_CONCURRENT
 */
 internal fun String.resolveCompilerDirectives(): String {
 
@@ -109,7 +118,15 @@ internal fun String.resolveCompilerDirectives(): String {
                     val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
-                        useRow = !isDefined(definitions, code)
+                        if (code.startsWith("*V")) {
+                            /*
+                            Manage case with OS400 version as always true because jariko RPG version
+                            is always the last one for definition
+                             */
+                            useRow = true
+                        } else {
+                            useRow = !isDefined(definitions, code)
+                        }
                         ifLevel++
                     } else {
                         throw CompilerDirectivesException("IF_NOT_DEFINED directive without code value at line " + (index + 1))
