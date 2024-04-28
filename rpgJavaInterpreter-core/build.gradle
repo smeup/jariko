@@ -293,12 +293,8 @@ $usage
                 arguments =  arguments + "${rootDir.path}/$project.rpgProgram"
             }
             args = (arguments)
-            jvmArgs "-XX:+UnlockCommercialFeatures",
-                    "-XX:+FlightRecorder",
-                    "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path},settings=${rootDir.path}/profiling.jfc",
-                    "-XX:FlightRecorderOptions=${project.FlightRecorderOptions}",
-                    "-XX:+UnlockDiagnosticVMOptions",
-                    "-XX:+DebugNonSafepoints"
+            jvmArgs "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path},settings=${rootDir.path}/profiling.jfc"
         }
         else {
             String messageError = """Missing parameter rpgProgram.
