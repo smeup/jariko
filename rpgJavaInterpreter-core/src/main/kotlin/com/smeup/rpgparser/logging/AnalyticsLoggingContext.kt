@@ -9,7 +9,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
 
-class LoggingContext {
+class AnalyticsLoggingContext {
     private val timeUsageByStatement: HashMap<String, UsageMeasurement> = hashMapOf()
     private val symbolTableTimeUsage: EnumMap<SymbolTableAction, UsageMeasurement> = EnumMap(SymbolTableAction::class.java)
     private var renderingTimeMeasurement = UsageMeasurement.new()

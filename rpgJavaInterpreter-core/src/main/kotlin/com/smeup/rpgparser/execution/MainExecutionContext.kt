@@ -19,7 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.logging.LoggingContext
+import com.smeup.rpgparser.logging.AnalyticsLoggingContext
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -105,7 +105,7 @@ object MainExecutionContext {
     /**
      * @return logging context
      */
-    fun getLoggingContext() = context.get()?.logging
+    fun getAnalyticsLoggingContext() = context.get()?.logging
 
     /**
      * @return a new unique identifier
@@ -197,10 +197,10 @@ object MainExecutionContext {
 }
 
 data class Context(
-    val attributes: MutableMap<String, Any> = mutableMapOf<String, Any>(),
+    val attributes: MutableMap<String, Any> = mutableMapOf(),
     val idProvider: AtomicInteger = AtomicInteger(),
     val configuration: Configuration,
-    val logging: LoggingContext = LoggingContext(),
+    val logging: AnalyticsLoggingContext = AnalyticsLoggingContext(),
     val memorySliceMgr: MemorySliceMgr? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,

@@ -40,7 +40,7 @@ data class LogSourceData(
     val programName: String,
     val line: String
 ) {
-    val filename = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
+    val filename get() = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
     fun projectLine(newLine: String) = LogSourceData(programName, newLine)
 }
 
@@ -472,7 +472,7 @@ fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
         }
     }.nanoseconds
 
-    MainExecutionContext.getLoggingContext()?.recordRenderingDuration(time)
+    MainExecutionContext.getAnalyticsLoggingContext()?.recordRenderingDuration(time)
 }
 
 fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()
