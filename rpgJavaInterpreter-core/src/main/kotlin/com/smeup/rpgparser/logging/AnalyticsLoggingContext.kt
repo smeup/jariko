@@ -2,7 +2,6 @@ package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogEntry
-import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.LogSourceProvider
 import java.util.*
 import kotlin.collections.HashMap

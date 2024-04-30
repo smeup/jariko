@@ -2,12 +2,6 @@ package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.interpreter.*
 
-data class DataLogMetadata(
-    val data: AbstractDataDefinition,
-    val value: Value,
-    val previous: Value?
-)
-
 interface ILoggable {
     val loggableEntityName: String
 }

@@ -18,7 +18,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.logging.DataLogMetadata
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
