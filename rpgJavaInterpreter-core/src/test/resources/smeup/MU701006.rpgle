@@ -82,9 +82,6 @@
      C                   EVAL      £DBG_Str='OK'
      C     £DBG_Str      DSPLY
       * Test with 3 nested IF
-      * The next row has some trailing while spaces.
-      * This test the new regex rules that ignore the
-      * white chars at the end of line.
       /UNDEFINE DEFINE_1
       /UNDEFINE DEFINE_2
       /DEFINE DEFINE_3
