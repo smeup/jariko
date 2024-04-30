@@ -33,7 +33,6 @@ val ELSE_PATTERN = Regex(""".{6}/ELSE\s*$""", RegexOption.IGNORE_CASE)
 val ENDIF_PATTERN = Regex(""".{6}/ENDIF\s*$""", RegexOption.IGNORE_CASE)
 val EOF_PATTERN = Regex(""".{6}/EOF\s*$""", RegexOption.IGNORE_CASE)
 
-
 /**
  * Resolve the EOF directive: after this directive, all rows are ignored until the end of the file
  * and marked in the result string as comments.
