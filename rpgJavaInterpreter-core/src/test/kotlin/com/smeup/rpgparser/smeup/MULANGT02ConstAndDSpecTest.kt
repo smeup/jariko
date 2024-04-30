@@ -148,4 +148,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
         assertEquals(expected, "smeup/MU025014".outputOf(configuration = smeupConfig))
     }
+    /**
+     * Constant Data definition on 2 lines
+     * @see #279
+     */
+    @Test
+    fun executeMU021008() {
+        val expected = listOf("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        assertASTCanBeProduced("smeup/MU021008", printTree = true)
+        assertEquals(expected, "smeup/MU021008".outputOf(configuration = smeupConfig))
+    }
 }
