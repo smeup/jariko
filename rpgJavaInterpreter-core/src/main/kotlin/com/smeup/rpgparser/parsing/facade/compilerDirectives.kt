@@ -25,13 +25,13 @@ val DIRECTIVES_KEYWORDS = listOf(
 val EOF_DIRECTIVE_KEYWORD = "      /EOF"
 
 // Search patterns for identifying compiler directive rows.
-val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§*,]+)\)$""", RegexOption.IGNORE_CASE)
-val IF_NOT_DEFINED_PATTERN = Regex(""".{6}/IF\sNOT\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
-val DEFINE_PATTERN = Regex(""".{6}/DEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
-val UNDEFINE_PATTERN = Regex(""".{6}/UNDEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
-val ELSE_PATTERN = Regex(""".{6}/ELSE""", RegexOption.IGNORE_CASE)
-val ENDIF_PATTERN = Regex(""".{6}/ENDIF""", RegexOption.IGNORE_CASE)
-val EOF_PATTERN = Regex(""".{6}/EOF""", RegexOption.IGNORE_CASE)
+val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§*,]+)\)\s*$""", RegexOption.IGNORE_CASE)
+val IF_NOT_DEFINED_PATTERN = Regex(""".{6}/IF\sNOT\sDEFINED\(([\w£$§,]+)\)\s*$""", RegexOption.IGNORE_CASE)
+val DEFINE_PATTERN = Regex(""".{6}/DEFINE\s+([^\s]+)\s*$""", RegexOption.IGNORE_CASE)
+val UNDEFINE_PATTERN = Regex(""".{6}/UNDEFINE\s+([^\s]+)\s*$""", RegexOption.IGNORE_CASE)
+val ELSE_PATTERN = Regex(""".{6}/ELSE\s*$""", RegexOption.IGNORE_CASE)
+val ENDIF_PATTERN = Regex(""".{6}/ENDIF\s*$""", RegexOption.IGNORE_CASE)
+val EOF_PATTERN = Regex(""".{6}/EOF\s*$""", RegexOption.IGNORE_CASE)
 
 /**
  * Resolve the EOF directive: after this directive, all rows are ignored until the end of the file
