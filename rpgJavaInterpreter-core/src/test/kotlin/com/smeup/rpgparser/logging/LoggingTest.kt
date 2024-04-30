@@ -276,7 +276,7 @@ class LoggingTest : AbstractTest() {
     }
 
     private fun createAssignmentLogEntry(): LazyLogEntry {
-        val logSource = LogSourceData(programName, "")
+        val logSource = { LogSourceData(programName, "") }
         return LazyLogEntry.produceAssignment(
             logSource,
             DataDefinition(name = varName, type = StringType(7)),
@@ -285,7 +285,7 @@ class LoggingTest : AbstractTest() {
     }
 
     private fun createDataLogEntry(): LazyLogEntry {
-        val logSource = LogSourceData(programName, "")
+    val logSource = { LogSourceData(programName, "") }
         return LazyLogEntry.produceData(
             logSource,
             DataDefinition(name = varName, type = StringType(7)),

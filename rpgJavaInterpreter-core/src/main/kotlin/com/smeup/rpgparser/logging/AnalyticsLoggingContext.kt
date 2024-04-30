@@ -3,6 +3,7 @@ package com.smeup.rpgparser.logging
 import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
+import com.smeup.rpgparser.interpreter.LogSourceProvider
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.time.Duration
@@ -65,7 +66,7 @@ class AnalyticsLoggingContext {
         )
     }
 
-    fun generateCompleteReport(source: LogSourceData): List<LazyLogEntry> {
+    fun generateCompleteReport(source: LogSourceProvider): List<LazyLogEntry> {
         val timeUsageEntries = generateTimeUsageByStatementReportEntries(source)
         val symTableEntries = generateSymbolTableTimeUsageReportEntries(source)
         val expressionEntry = generateExpressionReportEntry(source)
@@ -75,7 +76,7 @@ class AnalyticsLoggingContext {
         return timeUsageEntries + symTableEntries + expressionEntry + logTimeEntry + programExecutionEntry
     }
 
-    private fun generateTimeUsageByStatementReportEntries(source: LogSourceData): List<LazyLogEntry> {
+    private fun generateTimeUsageByStatementReportEntries(source: LogSourceProvider): List<LazyLogEntry> {
         return timeUsageByStatement.toList().map {
             val statementName = it.first
             val duration = it.second.duration
@@ -88,7 +89,7 @@ class AnalyticsLoggingContext {
         }
     }
 
-    private fun generateSymbolTableTimeUsageReportEntries(source: LogSourceData): List<LazyLogEntry> {
+    private fun generateSymbolTableTimeUsageReportEntries(source: LogSourceProvider): List<LazyLogEntry> {
         return symbolTableTimeUsage.toList().map {
             val action = it.first
             val duration = it.second.duration
@@ -101,7 +102,7 @@ class AnalyticsLoggingContext {
         }
     }
 
-    private fun generateExpressionReportEntry(source: LogSourceData): LazyLogEntry {
+    private fun generateExpressionReportEntry(source: LogSourceProvider): LazyLogEntry {
         val duration = expressionTimeMeasurement.duration
         val hit = expressionTimeMeasurement.hit
 
@@ -111,7 +112,7 @@ class AnalyticsLoggingContext {
         }
     }
 
-    private fun generateLogTimeReportEntry(source: LogSourceData): LazyLogEntry {
+    private fun generateLogTimeReportEntry(source: LogSourceProvider): LazyLogEntry {
         val duration = renderingTimeMeasurement.duration
         val hit = renderingTimeMeasurement.hit
 
@@ -121,7 +122,7 @@ class AnalyticsLoggingContext {
         }
     }
 
-    private fun generateProgramReportEntry(source: LogSourceData): LazyLogEntry {
+    private fun generateProgramReportEntry(source: LogSourceProvider): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), "PROGRAM TIME")
         return LazyLogEntry(entry) { totalTime.toString(DurationUnit.MICROSECONDS) }
     }

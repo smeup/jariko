@@ -17,12 +17,12 @@ interface ILoggableStatement : ILoggable {
         get() = this.javaClass.simpleName
 
     fun getStatementLogRenderer(
-        source: LogSourceData,
+        source: LogSourceProvider,
         action: String
     ): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry.produceMessage(entry, this.loggableEntityName)
     }
 
-    fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry? = null
+    fun getResolutionLogRenderer(source: LogSourceProvider): LazyLogEntry? = null
 }

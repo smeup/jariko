@@ -159,7 +159,7 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         memorySlices.values.forEach { slice ->
             val result = storage.runCatching {
                 if (slice.persist!!) {
-                    val logSource = LogSourceData(slice.memorySliceId.programName, "")
+                    val logSource = { LogSourceData(slice.memorySliceId.programName, "") }
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "START"))
                     val values = slice.symbolTable.getValues().map {
                         encodeDataDefinition(it.key) to it.value

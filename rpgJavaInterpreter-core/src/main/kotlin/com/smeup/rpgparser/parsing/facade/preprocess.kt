@@ -15,8 +15,7 @@ fun InputStream.preprocess(
     beforeInclusion: (copyId: CopyId) -> Boolean = { true }
 ): String {
     val programName = getExecutionProgramNameWithNoExtension()
-    val logSource = LogSourceData(programName, "")
-    MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PREPROP", "START"))
+    MainExecutionContext.log(LazyLogEntry.produceStatement({ LogSourceData(programName, "") }, "PREPROP", "START"))
     var preprocessed: String
     measureNanoTime {
         preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(
@@ -26,7 +25,7 @@ fun InputStream.preprocess(
             beforeInclusion = beforeInclusion
         ).resolveCompilerDirectives()
     }.apply {
-        val endLogSource = logSource.projectLine(preprocessed.lines().size.toString())
+        val endLogSource = { LogSourceData(programName, preprocessed.lines().size.toString()) }
         MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "PREPROP", "END"))
         MainExecutionContext.log(LazyLogEntry.producePerformance(endLogSource, "PREPROP", this.nanoseconds))
     }

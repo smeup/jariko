@@ -134,7 +134,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
 
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
-        val logSource = LogSourceData(programName, subroutine.referred!!.position.line())
+        val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
             interpreter.execute(subroutine.referred!!.stmts)
@@ -145,14 +145,14 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
                 sep -> "${this.loggableEntityName}$sep${subroutine.name}"
         }
     }
 
-    override fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry {
+    override fun getResolutionLogRenderer(source: LogSourceProvider): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
         return LazyLogEntry(entry) {
                 sep -> "${this.loggableEntityName}$sep${subroutine.name}"
@@ -309,7 +309,7 @@ data class EvalStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}$sep${target.render()} ${operator.text} ${expression.render()}$sep"
@@ -382,7 +382,7 @@ data class MoveAStmt(
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
                 sep -> "${this.loggableEntityName}${sep}${expression.render()} TO ${target.render()}"
@@ -412,7 +412,7 @@ data class MoveLStmt(
         movel(operationExtender, target, expression, interpreter)
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${expression.render()} TO ${target.render()}"
@@ -752,14 +752,14 @@ data class CallStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}$sep${expression.render()}"
         }
     }
 
-    override fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry {
+    override fun getResolutionLogRenderer(source: LogSourceProvider): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
         return LazyLogEntry(entry) {
                 sep -> "${this.loggableEntityName}$sep${expression.render()}"
@@ -795,14 +795,14 @@ data class CallPStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
                 sep -> "${this.loggableEntityName}$sep${functionCall.render()}"
         }
     }
 
-    override fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry {
+    override fun getResolutionLogRenderer(source: LogSourceProvider): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
         return LazyLogEntry(entry) {
                 sep -> "${this.loggableEntityName}$sep${functionCall.render()}"
@@ -956,7 +956,7 @@ data class IfStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${condition.render()}"
@@ -1046,7 +1046,7 @@ data class PlistStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${params.mapNotNull { it.dataDefinition?.name }.joinToString() }}"
@@ -1115,7 +1115,7 @@ data class ClearStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${value.render()}"
@@ -1266,7 +1266,7 @@ data class CompStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}FACTOR1$sep${left.render()}${sep}FACTOR2$sep${right.render()}${sep}HI$sep$hi${sep}LO$sep$lo${sep}EQ$sep$eq"
@@ -1535,7 +1535,7 @@ data class DOWxxStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${comparisonOperator.symbol}${sep}LEFT: ${factor1.render()}/RIGHT: ${factor2.render()}"
@@ -1611,7 +1611,7 @@ data class DoStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}$sep${startLimit.render()} ${endLimit.render()}"
@@ -1647,7 +1647,7 @@ data class DowStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${endExpression.render()}"
@@ -1683,7 +1683,7 @@ data class DouStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${endExpression.render()}"
@@ -1852,7 +1852,7 @@ data class ForStmt(
         }
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val downward = if (downward) "DOWNTO" else "TO"
         val byValue = if (byValue.render() == "1") "" else "BY ${byValue.render()}"
 
@@ -1939,7 +1939,7 @@ data class CatStmt(
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
 
         return LazyLogEntry(entry) { sep ->
@@ -1970,7 +1970,7 @@ data class LookupStmt(
         lookUp(this, interpreter, interpreter.getLocalizationContext().charset)
     }
 
-    override fun getStatementLogRenderer(source: LogSourceData, action: String): LazyLogEntry {
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}FACTOR1${sep}${left.render()}${sep}FACTOR2${sep}${right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
