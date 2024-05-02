@@ -10,7 +10,14 @@ import kotlinx.serialization.Transient
 abstract class Directive(@Transient override val position: Position? = null) : Node(position)
 
 @Serializable
-data class DeceditDirective(val format: String, override val position: Position? = null) : Directive(position)
+data class DeceditDirective(@SerialName("deceditType") val type: DeceditDirectiveType, override val position: Position? = null) : Directive(position)
+
+@Serializable
+sealed class DeceditDirectiveType
+@Serializable
+object JobRunDeceditDirective : DeceditDirectiveType()
+@Serializable
+data class FormatDeceditDirective(val format: StringLiteral) : DeceditDirectiveType()
 
 @Serializable
 data class ActivationGroupDirective(@SerialName("actvgrpType") val type: ActivationGroupType, override val position: Position? = null) :

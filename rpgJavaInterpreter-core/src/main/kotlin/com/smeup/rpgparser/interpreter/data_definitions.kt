@@ -47,6 +47,7 @@ abstract class AbstractDataDefinition(
      * true means this is a constant, default false
      * */
     @Transient open val const: Boolean = false,
+    @Transient open val static: Boolean = false,
     /**
      * This scope. Default: got by current parsing entity
      * */
@@ -63,8 +64,7 @@ abstract class AbstractDataDefinition(
         if (parsingFunction != null) {
             if (static) Scope.static(parsingFunction) else Scope.Local
         } else Scope.Program
-    },
-    @Transient open val static: Boolean = false
+    }
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()

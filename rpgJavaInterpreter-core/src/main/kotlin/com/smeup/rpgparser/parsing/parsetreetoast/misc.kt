@@ -237,7 +237,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    }
+    }.flatten()
     checkAstCreationErrors(phase = AstHandlingPhase.DirectivesCreation)
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional

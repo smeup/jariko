@@ -18,8 +18,6 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.LogEntry
-import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -28,16 +26,6 @@ import com.smeup.rpgparser.utils.asLong
 import com.strumenta.kolasu.model.Position
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
-
-data class MuteAnnotationExecutionLogEntry(override val programName: String, val annotation: MuteAnnotation, var result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return when (annotation) {
-            is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} $result ${annotation.val1} ${annotation.comparison} ${annotation.val2} "
-            is MuteFailAnnotation -> "executing MuteFail: ${annotation.position} - ${result.render()}"
-            else -> this.toString()
-        }
-    }
-}
 
 fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), position: Position? = null): MuteAnnotation {
     fun extractExpressionFrom(token: Token): Expression {

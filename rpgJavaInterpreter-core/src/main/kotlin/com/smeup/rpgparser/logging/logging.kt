@@ -1,8 +1,6 @@
 package com.smeup.rpgparser.logging
 
-import com.smeup.rpgparser.interpreter.InterpreterLogHandler
-import com.smeup.rpgparser.interpreter.LogEntry
-import com.smeup.rpgparser.interpreter.LoggingConfiguration
+import com.smeup.rpgparser.interpreter.*
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Appender
@@ -19,24 +17,36 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.util.*
 
-const val DATA_LOGGER: String = "data"
-const val LOOP_LOGGER: String = "loop"
-const val STATEMENT_LOGGER: String = "statement"
-const val EXPRESSION_LOGGER: String = "expression"
-const val PERFORMANCE_LOGGER: String = "performance"
-const val RESOLUTION_LOGGER: String = "resolution"
-const val PARSING_LOGGER: String = "parsing"
-const val ERROR_LOGGER: String = "error"
+/**
+ * Enum representing the different types of available log channels
+ */
+enum class LogChannel {
+    DATA,
+    LOOP,
+    STATEMENT,
+    EXPRESSION,
+    PERFORMANCE,
+    RESOLUTION,
+    PARSING,
+    ERROR,
+    ANALYTICS;
 
+    /**
+     * The name of the variant when used in configurations
+     */
+    fun getPropertyName() = this.name.lowercase()
+}
+
+/**
+ * Abstract definition of an handler for logs
+ */
 abstract class LogHandler(val level: LogLevel, val sep: String) {
-    // as this method is for registration only, I think it is incorrect to extract the extension as well
-    fun extractFilename(name: String): String {
-        return name.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
-    }
-
-    open fun render(logEntry: LogEntry): String {
-        return "NOT IMPLEMENTED"
-    }
+    /**
+     * Render the LogEntry to a string using the provider renderer
+     * @see LazyLogEntry
+     * @see LogEntry
+     */
+    abstract fun render(renderer: LazyLogEntry): String
 }
 
 fun loadLogConfiguration(configFile: File): LoggingConfiguration {
@@ -69,74 +79,41 @@ enum class LogLevel {
 }
 
 fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
-
-    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER, PARSING_LOGGER, ERROR_LOGGER)
-    val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx: LoggerContext by lazy {
         LogManager.getContext(false) as LoggerContext
     }
 
     val dataSeparator = config.getProperty("logger.data.separator")
     try {
-
-        names.forEach {
-            val logLevelStr = config.getProperty("$it.level") ?: LogLevel.OFF.name
-            val logLevel = LogLevel.find(logLevelStr) ?: {
+        val handlers = LogChannel.values().mapNotNull {
+            val logLevelStr = config.getProperty("${it.getPropertyName()}.level") ?: LogLevel.OFF.name
+            val logLevel = LogLevel.find(logLevelStr) ?: run {
                 System.err.println("Unknown log level: $logLevelStr, for channel $it")
                 LogLevel.OFF
-            }()
-            if (logLevel != LogLevel.OFF) {
-                when (it) {
-                    DATA_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(DataLogHandler(logLevel, dataSeparator))
-                    }
-                    LOOP_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(LoopLogHandler(logLevel, dataSeparator))
-                    }
-                    EXPRESSION_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(ExpressionLogHandler(logLevel, dataSeparator))
-                    }
-                    STATEMENT_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(StatementLogHandler(logLevel, dataSeparator))
-                    }
-                    PERFORMANCE_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(PerformanceLogHandler(logLevel, dataSeparator))
-                    }
-                    RESOLUTION_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(ResolutionLogHandler(logLevel, dataSeparator))
-                    }
-                    PARSING_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(ParsingLogHandler(logLevel, dataSeparator))
-                    }
-                    ERROR_LOGGER -> {
-                        configureLogChannel(ctx, it, config)
-                        handlers.add(ErrorLogHandler(logLevel, dataSeparator))
-                    }
-                }
             }
+
+            return@mapNotNull if (logLevel != LogLevel.OFF) {
+                configureLogChannel(ctx, it, config)
+                LogHandlerFactory.produce(it, logLevel, dataSeparator)
+            } else null
         }
+        return handlers
     } catch (e: Exception) {
         println("Configuration WARNING: ${e.message!!}")
     }
-    return handlers
+
+    return emptyList()
 }
 
 /**
  * Create a File Appender programmatically
  */
 fun createFileAppender(name: String, config: Configuration, properties: Properties): Appender? {
-
     /* already created ?*/
     if (config.appenders[name] != null) {
         return config.appenders[name]
     }
+
     val pattern = if (properties.getProperty("logger.date.pattern") != null) properties.getProperty("logger.date.pattern") else "HH:mm:ss.SSS"
     val layout = PatternLayout.newBuilder()
             .withConfiguration(config)
@@ -193,11 +170,10 @@ fun createConsoleAppender(name: String, config: Configuration, properties: Prope
     return appender
 }
 
-fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Properties) {
-    val level = properties.getProperty("$channel.level")
-    val output = properties.getProperty("$channel.output")
-
-    when (output) {
+fun configureLogChannel(ctx: LoggerContext, channel: LogChannel, properties: Properties) {
+    val channelName = channel.getPropertyName()
+    val level = properties.getProperty("$channelName.level")
+    when (val output = properties.getProperty("$channelName.output")) {
         "console" -> {
             // Creates and add the logger
             val console = createConsoleAppender("console", ctx.configuration, properties)
@@ -205,10 +181,10 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
             val refs = arrayOf(ref)
 
             val loggerConfig = LoggerConfig
-                    .createLogger(false, Level.getLevel(level.uppercase()), channel, "true", refs, null, ctx.configuration, null)
+                    .createLogger(false, Level.getLevel(level.uppercase()), channelName, "true", refs, null, ctx.configuration, null)
 
             loggerConfig.addAppender(console, null, null)
-            ctx.configuration.addLogger(channel, loggerConfig)
+            ctx.configuration.addLogger(channelName, loggerConfig)
         }
         "file" -> {
             // Creates and add the logger
@@ -217,31 +193,32 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
             val refs = arrayOf(ref)
 
             val loggerConfig = LoggerConfig
-                    .createLogger(false, Level.getLevel(level.uppercase()), channel, "true", refs, null, ctx.configuration, null)
+                    .createLogger(false, Level.getLevel(level.uppercase()), channelName, "true", refs, null, ctx.configuration, null)
 
             loggerConfig.addAppender(file, null, null)
-            ctx.configuration.addLogger(channel, loggerConfig)
+            ctx.configuration.addLogger(channelName, loggerConfig)
         }
         else -> throw RuntimeException("Unknown log output value: $output")
     }
     ctx.updateLoggers()
 }
 
-private fun loggingConfiguration(output: String, vararg types: String): LoggingConfiguration {
+private fun loggingConfiguration(output: String, vararg types: LogChannel): LoggingConfiguration {
     val configuration = LoggingConfiguration()
     configuration.setProperty("logger.data.separator", "\t")
     for (t in types) {
-        configuration.setProperty("$t.level", "all")
-        configuration.setProperty("$t.output", output)
+        val channelName = t.getPropertyName()
+        configuration.setProperty("$channelName.level", "all")
+        configuration.setProperty("$channelName.output", output)
     }
     return configuration
 }
 
-fun consoleLoggingConfiguration(vararg types: String): LoggingConfiguration {
+fun consoleLoggingConfiguration(vararg types: LogChannel): LoggingConfiguration {
     return loggingConfiguration("console", *types)
 }
 
-fun fileLoggingConfiguration(file: File, vararg types: String): LoggingConfiguration {
+fun fileLoggingConfiguration(file: File, vararg types: LogChannel): LoggingConfiguration {
     val configuration = loggingConfiguration("file", *types)
     configuration.setProperty("logger.file.path", file.parent)
     configuration.setProperty("logger.file.name", file.name)

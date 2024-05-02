@@ -67,7 +67,7 @@ class SymbolTable : ISymbolTable {
                     it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
                 }
                 if (field != null) {
-                    return if (topLevelValue.key.type is ArrayValue) {
+                    return if (topLevelValue.key.type is ArrayType) {
                         TODO("We do not yet handle top level values of array type")
                     } else {
                         (topLevelValue.value as DataStructValue)[field]

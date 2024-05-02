@@ -24,6 +24,7 @@ import com.smeup.rpgparser.interpreter.DataStructValue;
 import com.smeup.rpgparser.interpreter.StringValue;
 import com.smeup.rpgparser.interpreter.Value;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
+import com.smeup.rpgparser.logging.LogChannel;
 import com.smeup.rpgparser.logging.LoggingKt;
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
@@ -46,7 +47,7 @@ public class CallJarikoWithParams {
         File srcDir = new File(Objects.requireNonNull(CallJarikoWithParams.class.getResource("/rpg")).getPath());
         List<RpgProgramFinder> programFinders = List.of(new DirRpgProgramFinder(srcDir));
         final JavaSystemInterface systemInterface = new JavaSystemInterface(configuration);
-        systemInterface.setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.RESOLUTION_LOGGER, LoggingKt.PERFORMANCE_LOGGER));
+        systemInterface.setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LogChannel.RESOLUTION, LogChannel.PERFORMANCE));
         CommandLineProgram program = RunnerKt.getProgram(name, systemInterface, programFinders);
         return program.singleCall(inputParams, configuration);
     }

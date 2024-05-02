@@ -1,7 +1,9 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import kotlin.system.measureTimeMillis
+import com.smeup.rpgparser.logging.AnalyticsLoggingContext
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 interface IMemorySliceStorage : AutoCloseable {
 
@@ -157,14 +159,17 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         memorySlices.values.forEach { slice ->
             val result = storage.runCatching {
                 if (slice.persist!!) {
-                    MainExecutionContext.log(SymbolTableStoreLogStart(programName = slice.memorySliceId.programName))
+                    val logSource = { LogSourceData(slice.memorySliceId.programName, "") }
+                    MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "START"))
                     val values = slice.symbolTable.getValues().map {
                         encodeDataDefinition(it.key) to it.value
                     }.toMap()
-                    val elapsed = measureTimeMillis {
+                    val elapsed = measureNanoTime {
                         storage.store(memorySliceId = slice.memorySliceId, values = values)
-                    }
-                    MainExecutionContext.log(SymbolTableStoreLogEnd(programName = slice.memorySliceId.programName, elapsed))
+                    }.nanoseconds
+                    MainExecutionContext.getAnalyticsLoggingContext()?.recordSymbolTableDuration(AnalyticsLoggingContext.SymbolTableAction.STORE, elapsed)
+                    MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "END"))
+                    MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "SYMTBLSTORE", elapsed))
                 }
             }
             if (result.isFailure) {

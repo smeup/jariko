@@ -7,7 +7,7 @@ The logging permits to monitor the interpreter behaviour at the runtime. The log
 
 The output consists of a set of data records, with a fixed header segment with common data and a variable data segment specific for each channel. 
 
-The values of the record are separated by a character specified in the configuration  file. This permits to easily process the resulting logs as CSV files or using comman line tools such as cut.
+The values of the record are separated by a character specified in the configuration file. This permits to easily process the resulting logs as CSV files or using comman line tools such as cut.
 
 The available channels are:
 
@@ -19,6 +19,18 @@ The available channels are:
 * **Parsing:** measures parsing phase time.
 * **Resolution:** provides information about the process to identify the routines or programs to invoke. 
 * **Error:** provides information about error event occurred during the whole cycle of program interpretation.
+* **Analytics** provides information about higher level data collected during the whole cycle of program interpretation.
+
+## How it works
+
+The log system is modeled on the concept of *channels* as previously mentioned. Each channel is defined in the `LogChannel` enum as a variant. In order to handle logs for a specific channel a specialization of the abstract class `LogHandler` must be implemented and provided by the `LogHandlerFactory`.
+
+`LogHandler`s are not strictly bound to channels. This means that more handlers can be defined to serve more specific needs if needed (for example logging debug information). Handlers defined with this mechanism can then be attached to the `SystemInterface` manually.
+
+Each log line is fired by rendering a `LazyLogEntry`.
+These are data classes that contain:
+- A `LogEntry` which provides information about the source of the log and it's nature (`scope` and `action`)
+- A `renderContent` function
 
 ## Sample
 
@@ -96,14 +108,14 @@ and **logger.file.name**.
 
 ## Passing the configuration without a file
 
-If you don't want to pass the configuration to the logging system using a file, you could use the ```consoleLoggingConfiguration``` or the ```fileLoggingConfiguration``` fun.
+If you don't want to pass the configuration to the logging system using a file, you could use the ```consoleLoggingConfiguration``` or the ```fileLoggingConfiguration``` fun combined with the `LogChannel` enum.
 For example:
 ```
-val si = JavaSystemInterface(consoleLoggingConfiguration(EXPRESSION_LOGGER, PERFORMANCE_LOGGER))
+val si = JavaSystemInterface(consoleLoggingConfiguration(LogChannel.EXPRESSION, LogChannel.PERFORMANCE))
 ```   
 or
 ```
-val si = JavaSystemInterface(fileLoggingConfiguration(File("/home/pippo", "example.log"), EXPRESSION_LOGGER, PERFORMANCE_LOGGER))
+val si = JavaSystemInterface(fileLoggingConfiguration(File("/home/pippo", "example.log"), LogChannel.EXPRESSION, LogChannel.PERFORMANCE))
 ```   
 
 ## Log file format
@@ -113,8 +125,8 @@ variable data segment which depends on the channel.
 
 
 ```
-<TIMESTAMP><S><PROGRAM><S><LINE><S><CHANNEL><S><CHANNEL SPECIFIC>
-+------------------ header -------------------+----- data ------+
+<TIMESTAMP><S><CHANNEL><S><PROGRAM><S><LINE><S><ACTION><S><CHANNEL SPECIFIC>
++------------------ header ------------------------------+----- data ------+
 ```     
 
 The header contains the following data:
@@ -127,53 +139,44 @@ The header contains the following data:
 The **S** represent the separator character specified in the configuration.
 
 ## Data Channel DATA
-The monitors the accesses to the variables during the program execution.  
+The data channel monitors the accesses to the variables during the program execution.  
 
 ```
-14:25:29.471 TEST_06          DATA NBR = 0            10
-+-----------+-------------+--+---+---- data -----+- result -+
+14:53:47.263 DATA   MUTE10_10   16   ASSIGN  $V = 1  was: 0
++------------ header ---------------+-------+--- data ----+
 ```     
 The log record collects the initial value zero in this case and the new value
-assigned by a statement. In the example above the value of variable NBR has an
-initial value of 0 (zero) and assume the value of 10.
+assigned by a statement. In the example above the value of variable V has an
+initial value of 0 (zero) and assume the value of 1.
 
 
 ## Statement Channel STMT
 The statement channel captures information about the statement executed.  
 
 ```
-11:30:38.893 TEST_06       45 STMT EVAL WORDINC = J - I	   5
-+-----------+-------------+--+---+---- statement -----+- result -+
+15:04:57.031 STMT   MUTE10_10    47    EXEC   EVAL   $TIMMS = $TIMMS / 1000 
++-------------- header ---------------+------+-------- statement ---------+
 ```     
 
-In the example above the record contains the statement executed `EVAL WORDINC = J - I`
-and the result of the expression, in this case **5**.
+In the example above the record contains the statement executed `EVAL $TIMMS = $TIMMS / 1000`.
 
-When statement evaluate a comparison operator the result represent the logical
-value of the expression.
-
-```
-11:30:38.893 TEST_06       45 STMT	SELECT WHEN	NBR = 0	(false)
-11:30:38.893 TEST_06       47 STMT	SELECT WHEN	NBR = 1	(true)
-+-----------+-------------+--+---+---- statement -----+- result -+
-```
+Some statements might also emit proper and more specific information in the data section of the log entry.
 
 The statement channel also tracks the start and the end of a
 program or subroutine. 
 
 ```
-11:30:38.893 TEST_06       45 STMT	SELECT SUBROUTINE START	FIB
-
-11:30:38.893 TEST_06       55 STMT	SUBROUTINE END	FIB
-+-----------+-------------+--+---+--------- statement ---------+ 
+15:16:28.859    STMT	MUTE10_10		 START	INTERPRETATION
+15:04:57.041    STMT    MUTE10_10        END    INTERPRETATION
++-------------- header ---------------+--------+---- stmt ----+
 ```
 
 ## Expression Channel EXPR
 The expression channel collect all the expressions encountered during the program execution.
 
 ```
-14:14:30.330 TEST_06       28 EXPR A + B                3
-+-----------+-------------+--+---+-- expression --+- result -+
+15:59:20.546 EXPR   MULANGTC10    12    EVAL    C10_P2 = 1    true
++-------------------- header ----------------+---- expr ----+----+
 ```
 
 
@@ -184,48 +187,44 @@ when the loop exits. The end loop record include the number of cycles
 actually executed.
 
 ```
-14:14:30.330 TEST_06       28 LOOP FOR J = 1  TO 4
-14:14:30.571 TEST_06       35 LOOP ENDFOR J              4
-+-----------+-------------+--+---+----- loop ------+- result -+
+10:01:16.243 LOOP   MUTE10_10    39    START   DO 
+10:01:16.631 LOOP   MUTE10_10    39    END     DO  100000
++--------------- header -------------+--- loop ---+------+
 ```
 
-The example below shows a DOW loop execution.
-
-```
-14:14:30.330 TEST_06       13 LOOP DOW LOOP START COUNT < 100 
-14:14:30.556 TEST_06       22 STMT LEAVE
-14:14:30.571 TEST_06       33 LOOP DOW LOOP END                   45	
-+-----------+-------------+--+---+---------- loop -----------+- result -+
-```
 Please note that statements like LEAVE may affect the number of cycles
 actually executed.
 
 ## Performance Channel PERF
-The performance channel measures the execution time of loops, programs and
-subroutines. 
+The performance channel measures the execution time of statements. 
 The log records are generated at the end of statements block, measuring the
-time in milliseconds.
+time in microseconds.
 
 ```
-15:09:46.910 TEST_06       79 PERF ENDFOR I                       8 ms
-15:09:46.910 TEST_06       80 PERF SUBROUTINE END PRINT           9 ms
-15:09:46.910 TEST_06          PERF END TEST_06                  160 ms
-+-----------+-------------+--+---+---------- data -----------+- result -+
+15:51:55.838 PERF   MULANGTC10      7       PLIST   elapsed 8.875us
+15:51:55.840 PERF   MULANGTC10      13      EVAL    elapsed 566us
+15:51:55.840 PERF   MULANGTC10      14      EVAL    elapsed 35.084us
++---------------- header -----------------+--------+----- perf ----+
 ```
 
 ## Parsing Channel PARS
 The parsing channel measures the parsing time needed to build AST.
-The log records are generated at the end of each phase related to parsing.
+The log records related to the end of a parsing phase provide also the elapsed time information.
 
 ```
-12:36:33    MUTEXX        182 PARS PREPROP END MUTEXX          165 ms
-12:36:33    MUTEXX        182 PARS RPGLOAD END MUTEXX          127 ms
-12:36:33    MUTEXX            PARS LEXER END MUTEXX            236 ms
-12:36:34    MUTEXX            PARS PARSER END MUTEXX           674 ms
-12:36:41    MUTEXX            PARS RCONTEXT END MUTEXX        7191 ms
-12:36:41    MUTEXX            PARS CHKPTREE END MUTEXX          17 ms
-12:36:42    MUTEXX            PARS AST END MUTEXX              361 ms
-+-----------+-------------+--+---+---------- data ------------+- result -+
+12:03:32.724 PARS   MUTE10_10               START   RPGLOAD
+12:03:32.730 PARS   MUTE10_10       56      END     RPGLOAD         elapsed 2936us
+12:03:32.730 PARS   MUTE10_10               START   LEXER
+12:03:32.778 PARS   MUTE10_10               END     LEXER           elapsed 47015us
+12:03:32.778 PARS   MUTE10_10               START   PARSER
+12:03:32.883 PARS   MUTE10_10               END     PARSER          elapsed 104924us
+12:03:32.883 PARS   MUTE10_10               START   RCONTEXT
+12:03:33.118 PARS   MUTE10_10               END     RCONTEXT        elapsed 234507us
+12:03:33.118 PARS   MUTE10_10               START   CHKPTREE
+12:03:33.120 PARS   MUTE10_10               END     CHKPTREE        elapsed 1681us
+12:03:33.121 PARS   MUTE10_10               START   AST
+12:03:33.306 PARS   MUTE10_10               END     AST             elapsed 185138us
++--------------- header ----------------+---------+---- parse ----+----- time -----+
 ```
 
 
@@ -235,10 +234,42 @@ to resolve a program. When the interpreter starts, the RESL channel logs the lis
 of strategies used to locate a RPG/Java program.
 
 ```
-15:09:46.910                  RESL resource: /
-15:09:46.910                  RESL directory: .
-15:09:46.960 TEST_06       80 RESL CALL "CALCFIB"
-+-----------+-------------+--+---+---------- resolution -----------+
+12:57:47.387 RESL                   directory: ./resources/test/performance 
+12:57:47.389 RESL                   directory: ./resources 
+15:47:40.824 RESL	T10_A60_P02	8	CALL	"MULANGTC10"
++------------ header -------------+-------------- resolution --------------+
+```
+
+## Analytics Channel ANALYTICS
+The analytics channel provides processed collected during the whole execution cycle. Information yield by this channel are derived by a LoggingContext where logging metadata are stored.
+
+Statement time analytics provide information about which statements were called during the program execution, how much time was spent totally to execute that statement and how many times each one was hit.
+
+```
+12:25:35.612 ANALYTICS    MUTE10_10        STMT TIME    DISPLAY 204us   1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    EXSR    450369us        1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    SET     146us   1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    TIME    3026us  2
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    DO      441230us        1
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    EVAL    3857us  2
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    ZADD    204600us        200000
+12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    SUBDUR  601us   1
++------------- header ------------+--------+-------------------+----- analytics ------+
+```
+
+Symbol table analytics provide the same information of the statement analytics but referred to symbol table actions rather than statement execution.
+```
+12:25:35.613 ANALYTICS    MUTE10_10        SYMTBL TIME    INIT    21429us    1
+12:25:35.613 ANALYTICS    MUTE10_10        SYMTBL TIME    LOAD    131us      1
++------------- header ------------+--------+------------------+-- analytics --+
+```
+
+There are also other analytics which provide their own informational data. Here are some examples:
+```
+12:25:35.615 ANALYTICS    MUTE10_10        EXPR TIME       56195us    1300104
+12:25:35.615 ANALYTICS    MUTE10_10        LOG TIME        56177us    1300109
+12:25:35.615 ANALYTICS    MUTE10_10        PROGRAM TIME    1220526us
++------------- header ------------+--------+---------------+--- analytics --+
 ```
 
 ## Error Channel ERR
@@ -246,9 +277,7 @@ The error channel catches the error events (instances of `com.smeup.rpgparser.ex
 These events are particularly meaningful during the program syntax checking, below we can see an example.
 As you can see, the `ErrorEvent` is shown through its string representation.
 ```
-12:24:28.735 	ERROR02	6	ERR	ErrorEvent(error=java.lang.IllegalStateException: token recognition error at: 'C    ', errorEventSource=Parser, absoluteLine=6, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=ERROR02, relativeLine=6, position=Position(start=Line 6, Column 6, end=Line 6, Column 6)), fragment=      C                   EVAL      x = 1 / n)
-12:24:28.739 	ERROR02	7	ERR	ErrorEvent(error=java.lang.IllegalStateException: missing FREE_SEMI at 'C', errorEventSource=Parser, absoluteLine=7, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=ERROR02, relativeLine=7, position=Position(start=Line 7, Column 5, end=Line 7, Column 5)), fragment=     C                   SETON                                        LR)
-+-----------+-------------+--+---+---------- error ----------------+
+10:05:03.612 ERR    T10_A60_P02     4       ErrorEvent(error=java.lang.IllegalStateException: token recognition error at: 'Error', errorEventSource=Parser, absoluteLine=4, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=T10_A60_P02, relativeLine=4, position=Position(start=Line 4, Column 5, end=Line 4, Column 5)), fragment=     Error)
 ```
 
 For further information about the `ErrorEvent` see the kotlin-doc in [Configuration.kt](../rpgJavaInterpreter-core/src/main/kotlin/com/smeup/rpgparser/execution/Configuration.kt)

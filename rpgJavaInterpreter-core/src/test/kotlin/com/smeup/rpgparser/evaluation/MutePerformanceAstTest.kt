@@ -6,7 +6,7 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.PARSING_LOGGER
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.fileLoggingConfiguration
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
@@ -25,7 +25,7 @@ open class MutePerformanceAstTest : AbstractTest() {
         }
         val file = File(dir, "performance-ast.log")
         println("Performance ast creation logging file will be created in: $file")
-        loggingConfiguration = fileLoggingConfiguration(file, PARSING_LOGGER)
+        loggingConfiguration = fileLoggingConfiguration(file, LogChannel.PARSING)
         loggingConfiguration?.setProperty("logger.date.pattern", "yyyyMMdd HH:mm:ss")
     }
 
