@@ -462,6 +462,16 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR18CallBackTest() {
+        executePgmCallBackTest("ERROR18", SourceReferenceType.Program, "ERROR18", listOf(10))
+    }
+
+    @Test
+    fun executeERROR18SourceLineTest() {
+        executeSourceLineTest("ERROR18")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
