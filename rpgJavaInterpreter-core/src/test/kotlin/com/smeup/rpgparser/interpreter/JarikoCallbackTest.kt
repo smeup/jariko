@@ -596,19 +596,32 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     private fun createMockReloadConfig(): ReloadConfig {
-        val metadataProducer = { file: String ->
-            FileMetadata(
-                name = file,
-                tableName = file,
-                recordFormat = file,
+
+        val metadata = mapOf(
+            "FILE01" to FileMetadata(
+                name = "FILE01",
+                tableName = "FILE01",
+                recordFormat = "FILE01",
                 fields = listOf(
                     DbField("FIELD1", StringType(10)),
-                    DbField("FIELD2", StringType(10)),
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD3", StringType(10))
+                ),
+                accessFields = listOf("FIELD1")
+            ),
+            "FILE02" to FileMetadata(
+                name = "FILE02",
+                tableName = "FILE02",
+                recordFormat = "FILE02",
+                fields = listOf(
+                    DbField("FIELD1", StringType(100)),
+                    DbField("FIELD1", StringType(10)),
                     DbField("FIELD3", StringType(10))
                 ),
                 accessFields = listOf("FIELD1")
             )
-        }
+        )
+        val metadataProducer = { file: String -> metadata[file]!! }
         return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
     }
 }
