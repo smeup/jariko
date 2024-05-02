@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -551,6 +552,7 @@ class JarikoCallbackTest : AbstractTest() {
                     errorEvents.add(errorEvent)
                 }
                 options = Options(debuggingInformation = true)
+                reloadConfig = createMockReloadConfig()
             }
             executePgm(pgm, configuration = configuration)
         }.onSuccess {
@@ -579,6 +581,7 @@ class JarikoCallbackTest : AbstractTest() {
             // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
             // of runtime error
             options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
+            reloadConfig = createMockReloadConfig()
         }
         kotlin.runCatching {
             executePgm(pgm, configuration = configuration)
@@ -590,5 +593,22 @@ class JarikoCallbackTest : AbstractTest() {
                 Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
             }
         }
+    }
+
+    private fun createMockReloadConfig(): ReloadConfig {
+        val metadataProducer = { file: String ->
+            FileMetadata(
+                name = file,
+                tableName = file,
+                recordFormat = file,
+                fields = listOf(
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD2", StringType(10)),
+                    DbField("FIELD3", StringType(10))
+                ),
+                accessFields = listOf("FIELD1")
+            )
+        }
+        return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
     }
 }
