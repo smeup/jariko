@@ -184,7 +184,7 @@ class RpgParserFacade {
     }
 
     fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): RpgParser {
-        val logSource = LogSourceData(executionProgramName, "")
+        val logSource = { LogSourceData(executionProgramName, "") }
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RPGLOAD", "START"))
         MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "RPGLOAD"))
         val charInput: CharStream?
@@ -193,7 +193,7 @@ class RpgParserFacade {
         }.nanoseconds
 
         val lines = charInput?.toString()?.split(Pattern.compile("\\r\\n|\\r|\\n"))?.size ?: 0
-        val endLogSource = logSource.projectLine(lines.toString())
+        val endLogSource = { LogSourceData(executionProgramName, lines.toString()) }
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "RPGLOAD", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(endLogSource, "RPGLOAD", elapsedLoad))
@@ -239,7 +239,7 @@ class RpgParserFacade {
     }
 
     private fun verifyParseTree(parser: Parser, errors: MutableList<Error>, root: ParserRuleContext) {
-        val logSource = LogSourceData(executionProgramName, "")
+        val logSource = { LogSourceData(executionProgramName, "") }
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "START"))
         MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "CHKPTREE"))
         val elapsed = measureNanoTime {
@@ -298,7 +298,7 @@ class RpgParserFacade {
             findMutes(code.byteInputStream(Charsets.UTF_8), errors)
 
     private fun findMutes(code: InputStream, errors: MutableList<Error>): MutesMap {
-        val logSource = LogSourceData(executionProgramName, "")
+        val logSource = { LogSourceData(executionProgramName, "") }
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDMUTES", "START"))
         val mutes: MutesMap = HashMap()
         val elapsed = measureNanoTime {
@@ -326,7 +326,7 @@ class RpgParserFacade {
 
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
-        val logSource = LogSourceData(executionProgramName, "")
+        val logSource = { LogSourceData(executionProgramName, "") }
         val errors = LinkedList<Error>()
         val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) CopyBlocks() else null
         // val includedCopySet = mutableSetOf<CopyId>()
@@ -373,7 +373,7 @@ class RpgParserFacade {
             val start = System.nanoTime()
             val compiledFile = File(compiledDir, "$executionProgramName.bin")
             if (compiledFile.exists()) {
-                val logSource = LogSourceData(executionProgramName, "")
+                val logSource = { LogSourceData(executionProgramName, "") }
                 MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
                 MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "AST"))
                 compiledFile.readBytes().createCompilationUnit().apply {
@@ -411,7 +411,7 @@ class RpgParserFacade {
         }
         return kotlin.runCatching {
             val compilationUnit: CompilationUnit
-            val logSource = LogSourceData(executionProgramName, "")
+            val logSource = { LogSourceData(executionProgramName, "") }
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
             MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "AST"))
             val elapsed = measureNanoTime {

@@ -248,8 +248,7 @@ open class RpgSystem {
     @Synchronized
     fun log(logHandlers: List<InterpreterLogHandler>) {
         programFinders.forEach {
-            val logSource = LogSourceData("", "")
-            logHandlers.renderLog(LazyLogEntry.produceResolution(logSource, it.toString()))
+            logHandlers.renderLog(LazyLogEntry.produceResolution({ LogSourceData.UNKNOWN }, it.toString()))
         }
     }
 

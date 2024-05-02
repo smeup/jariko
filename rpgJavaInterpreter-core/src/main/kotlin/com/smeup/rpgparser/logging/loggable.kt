@@ -2,12 +2,6 @@ package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.interpreter.*
 
-data class DataLogMetadata(
-    val data: AbstractDataDefinition,
-    val value: Value,
-    val previous: Value?
-)
-
 interface ILoggable {
     val loggableEntityName: String
 }
@@ -17,12 +11,12 @@ interface ILoggableStatement : ILoggable {
         get() = this.javaClass.simpleName
 
     fun getStatementLogRenderer(
-        source: LogSourceData,
+        source: LogSourceProvider,
         action: String
     ): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry.produceMessage(entry, this.loggableEntityName)
     }
 
-    fun getResolutionLogRenderer(source: LogSourceData): LazyLogEntry? = null
+    fun getResolutionLogRenderer(source: LogSourceProvider): LazyLogEntry? = null
 }

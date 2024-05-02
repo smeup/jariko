@@ -18,7 +18,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.logging.DataLogMetadata
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -40,15 +39,24 @@ data class LogSourceData(
     val programName: String,
     val line: String
 ) {
-    val filename = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
+    companion object {
+        val UNKNOWN get() = LogSourceData("", "")
+    }
+    val filename get() = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
     fun projectLine(newLine: String) = LogSourceData(programName, newLine)
 }
+
+/**
+ * A function returning a LogSourceData
+ * @see LogSourceData
+ */
+typealias LogSourceProvider = () -> LogSourceData
 
 /**
  * A representation of a single log entry
  */
 data class LogEntry(
-    val source: LogSourceData,
+    val source: LogSourceProvider,
     val scope: String,
     val action: String? = null
 )
@@ -77,9 +85,9 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for line logging
          * @see LinesLogHandler
          */
-        fun produceLine(source: LogSourceData): LazyLogEntry {
+        fun produceLine(source: LogSourceProvider): LazyLogEntry {
             val entry = LogEntry(source, LinesLogHandler.SCOPE)
-            return produceMessage(entry, "Line ${source.line}")
+            return produceMessage(entry, "Line ${source().line}")
         }
 
         /**
@@ -87,16 +95,15 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceData(
-            source: LogSourceData,
+            source: LogSourceProvider,
             data: AbstractDataDefinition,
             value: Value,
             previous: Value?
         ): LazyLogEntry {
-            val metadata = DataLogMetadata(data, value, previous)
             val entry = LogEntry(source, LogChannel.DATA.getPropertyName(), "ASSIGN")
             return LazyLogEntry(entry) { sep ->
-                val prevValue = if (metadata.previous == null) "N/D" else metadata.previous.render()
-                "${metadata.data.name} = ${metadata.value.render()}${sep}was: $prevValue"
+                val prevValue = previous?.render() ?: "N/D"
+                "${data.name} = ${value.render()}${sep}was: $prevValue"
             }
         }
 
@@ -105,21 +112,23 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceExpression(
-            source: LogSourceData,
+            source: LogSourceProvider,
             expression: Expression,
             value: Value
         ): LazyLogEntry {
 
-            val actualSource = when {
-                expression.position != null -> source.projectLine(expression.startLine())
-                expression.parent != null && expression.parent!!.position != null -> source.projectLine(
-                    expression.parent!!.startLine()
-                )
-
-                else -> source
+            val actualProvider = {
+                val computedSource = source()
+                when {
+                    expression.position != null -> computedSource.projectLine(expression.startLine())
+                    expression.parent != null && expression.parent!!.position != null -> computedSource.projectLine(
+                        expression.parent!!.startLine()
+                    )
+                    else -> computedSource
+                }
             }
 
-            val entry = LogEntry(actualSource, LogChannel.EXPRESSION.getPropertyName(), "EVAL")
+            val entry = LogEntry(actualProvider, LogChannel.EXPRESSION.getPropertyName(), "EVAL")
 
             return LazyLogEntry(entry) { sep ->
                 val content = buildString {
@@ -136,7 +145,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see EvalLogHandler
          */
         fun produceEval(
-            source: LogSourceData,
+            source: LogSourceProvider,
             expression: Expression,
             value: Value
         ): LazyLogEntry {
@@ -152,7 +161,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          */
         fun produceMute(
             annotation: MuteAnnotation,
-            source: LogSourceData,
+            source: LogSourceProvider,
             result: Value
         ): LazyLogEntry {
             val message: String by lazy {
@@ -172,7 +181,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see AssignmentsLogHandler
          */
         fun produceAssignment(
-            source: LogSourceData,
+            source: LogSourceProvider,
             data: AbstractDataDefinition,
             value: Value
         ): LazyLogEntry {
@@ -185,7 +194,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see AssignmentsLogHandler
          */
         fun produceAssignmentOfElement(
-            source: LogSourceData,
+            source: LogSourceProvider,
             array: Expression,
             index: Int,
             value: Value
@@ -198,7 +207,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry from LogEntry data
          */
         fun produceInformational(
-            source: LogSourceData,
+            source: LogSourceProvider,
             scope: String,
             action: String? = null
         ): LazyLogEntry {
@@ -210,7 +219,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for the PERF channel
          * @see LogChannel
          */
-        fun producePerformance(source: LogSourceData, entity: String, elapsed: Duration): LazyLogEntry {
+        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
             return LazyLogEntry(entry) {
                 buildString {
@@ -224,7 +233,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for the ANALYTICS channel
          * @see LogChannel
          */
-        fun produceAnalytics(source: LogSourceData, action: String, message: String): LazyLogEntry {
+        fun produceAnalytics(source: LogSourceProvider, action: String, message: String): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), action)
             return produceMessage(entry, message)
         }
@@ -234,7 +243,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceStatement(
-            source: LogSourceData,
+            source: LogSourceProvider,
             statementName: String,
             action: String
         ): LazyLogEntry {
@@ -247,7 +256,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceParsingStart(
-            source: LogSourceData,
+            source: LogSourceProvider,
             entity: String
         ): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), "START")
@@ -259,7 +268,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceParsingEnd(
-            source: LogSourceData,
+            source: LogSourceProvider,
             entity: String,
             elapsed: Duration
         ): LazyLogEntry {
@@ -279,7 +288,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun produceResolution(
-            source: LogSourceData,
+            source: LogSourceProvider,
             resolution: String? = null
         ): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
@@ -294,7 +303,8 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
         fun produceError(
             errorEvent: ErrorEvent
         ): LazyLogEntry {
-            val source = LogSourceData(errorEvent.sourceReference?.sourceId ?: "", errorEvent.absoluteLine?.toString() ?: "")
+            val source =
+                { LogSourceData(errorEvent.sourceReference?.sourceId ?: "", errorEvent.absoluteLine?.toString() ?: "") }
             val entry = LogEntry(source, LogChannel.ERROR.getPropertyName())
             return LazyLogEntry(entry) { errorEvent.toString() }
         }
@@ -303,7 +313,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for subroutine start detection
          * @see ListLogHandler
          */
-        fun produceSubroutineStart(source: LogSourceData, subroutine: Subroutine): LazyLogEntry {
+        fun produceSubroutineStart(source: LogSourceProvider, subroutine: Subroutine): LazyLogEntry {
             val entry = LogEntry(source, "SUBROUTINE START", subroutine.name)
             return fromEntry(entry)
         }
@@ -312,7 +322,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for the LOOP channel on loop start
          * @see LogChannel
          */
-        fun produceLoopStart(source: LogSourceData, entity: String, subject: String): LazyLogEntry {
+        fun produceLoopStart(source: LogSourceProvider, entity: String, subject: String): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "START")
             return LazyLogEntry(entry) { "$entity $subject" }
         }
@@ -321,16 +331,17 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for the LOOP channel on loop end
          * @see LogChannel
          */
-        fun produceLoopEnd(source: LogSourceData, entity: String, subject: String, iterations: Long): LazyLogEntry {
+        fun produceLoopEnd(source: LogSourceProvider, entity: String, subject: String, iterations: Long): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "END")
             return LazyLogEntry(entry) { "$entity $subject $iterations" }
         }
     }
 
     private fun renderHeader(sep: String) = buildString {
-        append(entry.source.filename)
+        val source = entry.source()
+        append(source.filename)
         append(sep)
-        append(entry.source.line)
+        append(source.line)
     }
 
     fun render(sep: String, withHeader: Boolean = false, withScope: Boolean = true) = buildString {
@@ -472,7 +483,7 @@ fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
         }
     }.nanoseconds
 
-    MainExecutionContext.getLoggingContext()?.recordRenderingDuration(time)
+    MainExecutionContext.getAnalyticsLoggingContext()?.recordRenderingDuration(time)
 }
 
 fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()
