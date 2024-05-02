@@ -25,4 +25,11 @@ class CompilerDirectivesTest : AbstractTest() {
             "compilerDirectives/ERROR03".outputOf()
         }.printStackTrace()
     }
+
+    @Test
+    fun executeError04() {
+        assertFails {
+            "compilerDirectives/ERROR04".outputOf()
+        }.printStackTrace()
+    }
 }
