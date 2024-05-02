@@ -41,6 +41,7 @@ data class LogSourceData(
 ) {
     companion object {
         val UNKNOWN get() = LogSourceData("", "")
+        fun fromProgram(name: String) = LogSourceData(name, "")
     }
     val filename get() = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
     fun projectLine(newLine: String) = LogSourceData(programName, newLine)

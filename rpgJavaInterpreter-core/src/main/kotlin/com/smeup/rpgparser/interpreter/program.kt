@@ -99,7 +99,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
         }
         this.systemInterface = systemInterface
-        val logSource = { LogSourceData(name, "") }
+        val logSource = { LogSourceData.fromProgram(name) }
         logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
         val changedInitialValues: List<Value>
         val elapsed = measureNanoTime {
@@ -153,6 +153,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             // here clear symbol table if needed
             interpreter.doSomethingAfterExecution()
             MainExecutionContext.getProgramStack().pop()
+            if (MainExecutionContext.getProgramStack().isEmpty()) {
+                interpreter.onInterpretationEnd()
+            }
         }.nanoseconds
         logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
         logHandlers.renderLog(LazyLogEntry.producePerformance(logSource, "INTERPRETATION", elapsed))
