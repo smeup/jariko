@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.model.Field
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
@@ -41,7 +42,12 @@ data class DbField(val fieldName: String, val type: Type) {
     /**
      * Creates a data definition associated to this
      * */
-    fun toDataDefinition(prefix: Prefix?) = DataDefinition(prefix?.applyReplacementRules(fieldName) ?: fieldName, type)
+    fun toDataDefinition(prefix: Prefix?, position: Position?) =
+        DataDefinition(
+            name = prefix?.applyReplacementRules(fieldName) ?: fieldName,
+            type = type,
+            position = position
+        )
 }
 
 /**

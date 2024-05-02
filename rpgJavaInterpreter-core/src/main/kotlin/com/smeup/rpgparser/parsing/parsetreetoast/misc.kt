@@ -167,7 +167,7 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     if (internalFormatName == null) internalFormatName = metadata.tableName
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
-            dbField.toDataDefinition(prefix).apply {
+            dbField.toDataDefinition(prefix = prefix, position = position).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
         }
