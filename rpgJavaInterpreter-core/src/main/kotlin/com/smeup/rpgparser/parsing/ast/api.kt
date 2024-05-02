@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
@@ -71,6 +72,10 @@ data class ApiDescriptor(
  * @see Api.loadApi
  * */
 data class Api(val compilationUnit: CompilationUnit) {
+
+    init {
+        compilationUnit.resolveAndValidate()
+    }
 
     companion object {
 
