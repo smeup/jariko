@@ -83,4 +83,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ScritturaInProcedura")
         assertEquals(expected, "smeup/MU108006".outputOf())
     }
+
+    /**
+     * Inline definition on KFLD
+     * @see #276
+     */
+    @Test
+    fun executeMU105501() {
+        val expected = listOf("ABCDEFGHIL, 12")
+        assertEquals(expected, "smeup/MU105501".outputOf())
+    }
 }
