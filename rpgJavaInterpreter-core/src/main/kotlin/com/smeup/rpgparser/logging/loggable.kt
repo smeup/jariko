@@ -6,6 +6,11 @@ interface ILoggable {
     val loggableEntityName: String
 }
 
+interface ILoggableExpression : ILoggable {
+    override val loggableEntityName: String
+        get() = this.javaClass.simpleName
+}
+
 interface ILoggableStatement : ILoggable {
     override val loggableEntityName: String
         get() = this.javaClass.simpleName
