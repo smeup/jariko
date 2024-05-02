@@ -1025,7 +1025,14 @@ internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val fields = this.csKFLD().map {
         it.cspec_fixed_standard_parts().result.text
     }
-    return KListStmt(factor1, fields, position)
+
+    val dataDefinitions = this.csKFLD().mapNotNull {
+        val parts = it.cspec_fixed_standard_parts()
+        val name = parts.result.text
+        parts.toDataDefinition(name, position, conf)
+    }
+
+    return KListStmt(factor1, fields, dataDefinitions, position)
 }
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
