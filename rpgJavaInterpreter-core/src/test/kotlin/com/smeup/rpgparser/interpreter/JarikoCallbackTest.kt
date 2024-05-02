@@ -472,6 +472,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR19CallBackTest() {
+        // In this case the error occurs inside APIERR1
+        executePgmCallBackTest("APIERR1", SourceReferenceType.Program, "APIERR1", listOf(7, 7, 7))
+    }
+
+    @Test
+    fun executeERROR19SourceLineTest() {
+        // In this case the error occurs inside APIERR1
+        executeSourceLineTest("APIERR1")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -604,7 +616,9 @@ class JarikoCallbackTest : AbstractTest() {
         val errorEvents = mutableListOf<ErrorEvent>()
         val configuration = Configuration().apply {
             jarikoCallback.beforeParsing = { it ->
-                lines = StringReader(it).readLines()
+                if (MainExecutionContext.getParsingProgramStack().peek().name == pgm) {
+                    lines = StringReader(it).readLines()
+                }
                 it
             }
             jarikoCallback.onError = { errorEvents.add(it) }
