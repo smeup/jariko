@@ -27,6 +27,7 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     /**
      * Data definition under dependencies.
      * @see #265
+     * Currently this test fails because MU711003 include an /API (QILEGEN,£PRZ) not formally valid.
      */
     @Test
     fun executeMU711003() {
@@ -37,6 +38,7 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     /**
      * Data definition under dependencies.
      * @see #265
+     * Currently this test fails because MU711003 include an /API (QILEGEN,£C5PES) not formally valid.
      */
     @Test
     fun executeMU711004() {
