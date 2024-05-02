@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -441,6 +442,16 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR16CallBackTest() {
+        executePgmCallBackTest("ERROR16", SourceReferenceType.Program, "ERROR16", listOf(12))
+    }
+
+    @Test
+    fun executeERROR16SourceLineTest() {
+        executeSourceLineTest("ERROR16")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -551,6 +562,7 @@ class JarikoCallbackTest : AbstractTest() {
                     errorEvents.add(errorEvent)
                 }
                 options = Options(debuggingInformation = true)
+                reloadConfig = createMockReloadConfig()
             }
             executePgm(pgm, configuration = configuration)
         }.onSuccess {
@@ -579,6 +591,7 @@ class JarikoCallbackTest : AbstractTest() {
             // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
             // of runtime error
             options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
+            reloadConfig = createMockReloadConfig()
         }
         kotlin.runCatching {
             executePgm(pgm, configuration = configuration)
@@ -590,5 +603,35 @@ class JarikoCallbackTest : AbstractTest() {
                 Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
             }
         }
+    }
+
+    private fun createMockReloadConfig(): ReloadConfig {
+
+        val metadata = mapOf(
+            "FILE01" to FileMetadata(
+                name = "FILE01",
+                tableName = "FILE01",
+                recordFormat = "FILE01",
+                fields = listOf(
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD3", StringType(10))
+                ),
+                accessFields = listOf("FIELD1")
+            ),
+            "FILE02" to FileMetadata(
+                name = "FILE02",
+                tableName = "FILE02",
+                recordFormat = "FILE02",
+                fields = listOf(
+                    DbField("FIELD1", StringType(100)),
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD3", StringType(10))
+                ),
+                accessFields = listOf("FIELD1")
+            )
+        )
+        val metadataProducer = { file: String -> metadata[file]!! }
+        return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
     }
 }
