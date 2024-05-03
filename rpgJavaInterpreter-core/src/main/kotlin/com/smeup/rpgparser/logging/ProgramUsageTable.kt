@@ -56,7 +56,7 @@ fun ProgramUsageTable.recordSymbolTableAction(program: String, action: SymbolTab
  * Generate an ANALYTICS statement usage report in the form of a sequence of LazyLogEntry.
  * @see LazyLogEntry
  */
-fun ProgramUsageTable.generateStatementLogEntries(program: String, unit: DurationUnit = DurationUnit.NANOSECONDS): Sequence<LazyLogEntry> {
+fun ProgramUsageTable.generateStatementLogEntries(program: String): Sequence<LazyLogEntry> {
     val stats = this[program] ?: return emptySequence()
 
     return stats.statements.asSequence().map {
@@ -64,9 +64,9 @@ fun ProgramUsageTable.generateStatementLogEntries(program: String, unit: Duratio
         val duration = it.value.duration
         val hit = it.value.hit
 
-        val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "STMT TIME")
+        val entry = LogEntry({ LogSourceData.fromProgram(program) }, LogChannel.ANALYTICS.getPropertyName(), "STMT TIME")
         LazyLogEntry(entry) { sep ->
-            "$program$sep$statementName$sep${duration.toString(unit)}${sep}$hit"
+            "$statementName$sep${duration.inWholeMicroseconds}${sep}$hit"
         }
     }
 }
@@ -75,7 +75,7 @@ fun ProgramUsageTable.generateStatementLogEntries(program: String, unit: Duratio
  * Generate an ANALYTICS expression usage report in the form of a sequence of LazyLogEntry.
  * @see LazyLogEntry
  */
-fun ProgramUsageTable.generateExpressionLogEntries(program: String, unit: DurationUnit = DurationUnit.NANOSECONDS): Sequence<LazyLogEntry> {
+fun ProgramUsageTable.generateExpressionLogEntries(program: String): Sequence<LazyLogEntry> {
     val stats = this[program] ?: return emptySequence()
 
     return stats.expressions.asSequence().map {
@@ -83,9 +83,9 @@ fun ProgramUsageTable.generateExpressionLogEntries(program: String, unit: Durati
         val duration = it.value.duration
         val hit = it.value.hit
 
-        val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "EXPR TIME")
+        val entry = LogEntry({ LogSourceData.fromProgram(program) }, LogChannel.ANALYTICS.getPropertyName(), "EXPR TIME")
         LazyLogEntry(entry) { sep ->
-            "$program$sep$exprName$sep${duration.toString(unit)}${sep}$hit"
+            "$exprName$sep${duration.inWholeMicroseconds}${sep}$hit"
         }
     }
 }
@@ -94,7 +94,7 @@ fun ProgramUsageTable.generateExpressionLogEntries(program: String, unit: Durati
  * Generate an ANALYTICS symbol table usage report in the form of a sequence of LazyLogEntry.
  * @see LazyLogEntry
  */
-fun ProgramUsageTable.generateSymbolTableLogEntries(program: String, unit: DurationUnit = DurationUnit.NANOSECONDS): Sequence<LazyLogEntry> {
+fun ProgramUsageTable.generateSymbolTableLogEntries(program: String): Sequence<LazyLogEntry> {
     val stats = this[program] ?: return emptySequence()
 
     return stats.symbolTableActions.asSequence().map {
@@ -102,9 +102,9 @@ fun ProgramUsageTable.generateSymbolTableLogEntries(program: String, unit: Durat
         val duration = it.value.duration
         val hit = it.value.hit
 
-        val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "SYMTBL TIME")
+        val entry = LogEntry({ LogSourceData.fromProgram(program) }, LogChannel.ANALYTICS.getPropertyName(), "SYMTBL TIME")
         LazyLogEntry(entry) { sep ->
-            "$program$sep$action$sep${duration.toString(unit)}${sep}$hit"
+            "$action$sep${duration.inWholeMicroseconds}${sep}$hit"
         }
     }
 }

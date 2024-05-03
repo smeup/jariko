@@ -223,10 +223,7 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
         fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
             return LazyLogEntry(entry) {
-                buildString {
-                    append("elapsed ")
-                    append(elapsed.toString(DurationUnit.MICROSECONDS))
-                }
+                elapsed.inWholeMicroseconds.toString()
             }
         }
 

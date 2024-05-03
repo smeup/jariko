@@ -20,8 +20,6 @@ class AnalyticsLoggingContext {
     private val totalTime
         get() = (System.nanoTime() - initTimestamp).nanoseconds
 
-    private val durationUnit = DurationUnit.MICROSECONDS
-
     /**
      * Records log rendering duration.
      */
@@ -62,9 +60,9 @@ class AnalyticsLoggingContext {
 
         programUsageTable.asSequence().forEach {
             val program = it.key
-            val statement = programUsageTable.generateStatementLogEntries(program, durationUnit)
-            val expression = programUsageTable.generateExpressionLogEntries(program, durationUnit)
-            val symTable = programUsageTable.generateSymbolTableLogEntries(program, durationUnit)
+            val statement = programUsageTable.generateStatementLogEntries(program)
+            val expression = programUsageTable.generateExpressionLogEntries(program)
+            val symTable = programUsageTable.generateSymbolTableLogEntries(program)
 
             statementEntries.addAll(statement)
             expressionEntries.addAll(expression)
@@ -83,12 +81,14 @@ class AnalyticsLoggingContext {
 
         val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "LOG TIME")
         return LazyLogEntry(entry) { sep ->
-            "${duration.toString(durationUnit)}$sep$hit"
+            "$sep${duration.inWholeMicroseconds}$sep$hit"
         }
     }
 
     private fun generateProgramReportEntry(): LazyLogEntry {
         val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "PROGRAM TIME")
-        return LazyLogEntry(entry) { totalTime.toString(durationUnit) }
+        return LazyLogEntry(entry) { sep ->
+            "$sep${totalTime.inWholeMicroseconds}$sep"
+        }
     }
 }
