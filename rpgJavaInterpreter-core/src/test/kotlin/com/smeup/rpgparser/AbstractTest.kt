@@ -240,13 +240,21 @@ abstract class AbstractTest {
      *
      * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
      * @param configuration The configuration for the execution of the program.
+     * @param afterSystemInterface A callback function to be executed after the system interface is created.
+     * Default is an empty function.
      * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
      */
-    protected fun String.outputOf(trimEnd: Boolean = true, configuration: Configuration = Configuration()): List<String> {
+    protected fun String.outputOf(
+        trimEnd: Boolean = true,
+        configuration: Configuration = Configuration(),
+        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {}
+
+    ): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
+        afterSystemInterface.invoke(systemInterface)
         executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }

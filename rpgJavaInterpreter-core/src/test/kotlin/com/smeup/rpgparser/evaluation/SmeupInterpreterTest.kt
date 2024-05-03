@@ -5,6 +5,8 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import com.smeup.rpgparser.logging.LogChannel
+import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -278,7 +280,11 @@ open class SmeupInterpreterTest : AbstractTest() {
     @Test
     fun executeT10_A60_P02() {
         val expected = listOf<String>("C10_P1: MULANGT102")
-        assertEquals(expected, "smeup/T10_A60_P02".outputOf())
+        assertEquals(expected, "smeup/T10_A60_P02".outputOf(
+            afterSystemInterface = { si ->
+                si.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE, LogChannel.ANALYTICS)
+            }
+        ))
 
         assertFailsWith<Exception> {
             "smeup/T10_A60_P02F".outputOf()
