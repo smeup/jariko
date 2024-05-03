@@ -35,7 +35,6 @@
       *---------------------------------------------------------------------
      C     SEZ_A40       BEGSR
     OA* A£.TPDA(LIKE)
-     D* Commento
      C                   EVAL      £DBG_Pas='P12'
       *
      C                   EVAL      £DBG_Str= 'HELLOTHERE'
