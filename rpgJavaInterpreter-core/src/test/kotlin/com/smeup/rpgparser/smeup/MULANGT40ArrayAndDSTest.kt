@@ -31,4 +31,13 @@ open class MULANGT40ArrayAndDSTest : MULANGTTest() {
         val expected = listOf("HELLOTHERE")
         assertEquals(expected, "smeup/MU401012".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Field of DS with OVERLAY and LIKE, to field of next DS.
+     */
+    @Test
+    fun executeMU401013() {
+        val expected = listOf("HELLOTHERE")
+        assertEquals(expected, "smeup/MU401013".outputOf(configuration = smeupConfig))
+    }
 }
