@@ -1510,6 +1510,7 @@ HS_CLOSE_PAREN: CLOSE_PAREN -> type(CLOSE_PAREN);
 HS_StringLiteralStart: ['] -> type(StringLiteralStart),pushMode(InStringMode) ;
 HS_COLON: ':' -> type(COLON);
 HS_DECEDIT: [dD][eE][cC][eE][dD][iI][tT];
+HS_JOBRUN: '*'[jJ][oO][bB][rR][uU][nN];
 HS_NEW: '*'[nN][eE][wW];
 HS_CALLER: '*'[cC][aA][lL][lL][eE][rR];
 HS_ACTGRP: [aA][cC][tT][gG][rR][pP];
@@ -1518,6 +1519,7 @@ HS_WhiteSpace : [ \t]+ -> skip  ; // skip spaces, tabs, newlines
 HS_CONTINUATION: NEWLINE 
 	WORD5 [hH] ~[*] -> skip;
 HS_EOL : NEWLINE -> type(EOL),popMode;
+HS_ANYPARAM: '*'[a-zA-Z]+;
 
 fragment WORD5 : ~[\r\n]~[\r\n]~[\r\n]~[\r\n]~[\r\n];
 fragment NAME5 : NAMECHAR NAMECHAR NAMECHAR NAMECHAR NAMECHAR;

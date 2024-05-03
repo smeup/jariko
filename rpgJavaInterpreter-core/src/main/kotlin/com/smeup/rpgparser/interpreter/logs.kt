@@ -16,645 +16,414 @@
 
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
-import org.antlr.v4.runtime.CharStream
 import java.io.PrintStream
 import java.util.*
-import java.util.regex.Pattern
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.DurationUnit
 
-abstract class LogEntry(open val programName: String) {
-
-    fun renderHeader(channel: String, filename: String, line: String, sep: String): String {
-        return "${sep}$filename${sep}${line}${sep}$channel$sep"
+/**
+ * A data class holding information about the source of the log
+ * @see LogEntry
+ */
+data class LogSourceData(
+    val programName: String,
+    val line: String
+) {
+    companion object {
+        val UNKNOWN get() = LogSourceData("", "")
     }
-
-    open fun renderStatement(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
-    open fun renderPerformance(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
-
-    open fun renderLoop(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
-    open fun renderData(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
-    open fun renderExpression(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
-    open fun renderResolution(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
-    open fun renderErrorEvent(channel: String, filename: String, sep: String): String {
-        return "$channel NOT IMPLEMENTED"
-    }
+    val filename get() = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
+    fun projectLine(newLine: String) = LogSourceData(programName, newLine)
 }
 
-data class LineLogEntry(override val programName: String, val stmt: Statement) : LogEntry(programName) {
-    override fun toString(): String {
-        return "Line ${stmt.position.line()}"
-    }
-}
-
-data class CallExecutionLogEntry(override val programName: String, val callStmt: CallStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "calling $callStmt"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALL START${sep}${callStmt.expression.render()}"
-
-        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
-    }
-
-    override fun renderResolution(channel: String, filename: String, sep: String): String {
-        val data = "CALL ${sep}${callStmt.expression.render()}"
-
-        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
-    }
-}
-
-class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
-    override fun toString(): String {
-        return if (exception == null) {
-            "end of $callStmt"
-        } else {
-            "exception $exception in calling $callStmt"
-        }
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALL END${sep}${callStmt.expression.render()}"
-
-        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "CALL END${sep}${callStmt.expression.render()}${sep}$elapsed${sep}ms"
-
-        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
-    }
-}
-
-data class CallPExecutionLogEntry(override val programName: String, val callStmt: CallPStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "calling $callStmt"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALLP START${sep}${callStmt.functionCall.render()}"
-
-        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
-    }
-
-    override fun renderResolution(channel: String, filename: String, sep: String): String {
-        val data = "CALLP ${sep}${callStmt.functionCall.render()}"
-
-        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
-    }
-}
-
-class CallPEndLogEntry(programName: String, val callStmt: CallPStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
-    override fun toString(): String {
-        return if (exception == null) {
-            "end of $callStmt"
-        } else {
-            "exception $exception in calling $callStmt"
-        }
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALLP END${sep}${callStmt.functionCall.render()}"
-
-        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "CALLP END${sep}${callStmt.functionCall.render()}${sep}$elapsed${sep}ms"
-
-        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
-    }
-}
-
-data class FindProgramLogEntry(override val programName: String) : LogEntry(programName) {
-    override fun renderResolution(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, "", sep)
-    }
-}
-
-data class RpgProgramFinderLogEntry(override val programName: String) : LogEntry(programName) {
-    override fun renderResolution(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, "", "", sep) + programName
-    }
-}
-
-class SubroutineExecutionLogStart(programName: String, val subroutine: Subroutine) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing ${subroutine.name}"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE ${sep}${subroutine.name}"
-
-        return renderHeader(channel, filename, subroutine.startLine(), sep) + data
-    }
-
-    override fun renderResolution(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE START${sep}${subroutine.name}"
-        return renderHeader(channel, filename, subroutine.startLine(), sep) + data
-    }
-}
-
-class SubroutineExecutionLogEnd(programName: String, val subroutine: Subroutine, val elapsed: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing ${subroutine.name}"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE END${sep}${subroutine.name}"
-
-        return renderHeader(channel, filename, subroutine.endLine(), sep) + data
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE END${sep}${subroutine.name}${sep}$elapsed${sep}ms"
-
-        return renderHeader(channel, filename, subroutine.endLine(), sep) + data
-    }
-}
-
-class ForStatementExecutionLogStart(programName: String, val statement: ForStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing FOR LOOP"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val downward = if (statement.downward == true) "DOWNTO" else "TO"
-        val byValue = if (statement.byValue.render() == "1") "" else "BY ${statement.byValue.render()}"
-        val data = "FOR ${statement.init.render()} $byValue $downward ${statement.endValue.render()}"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val downward = if (statement.downward == true) "DOWNTO" else "TO"
-        val byValue = if (statement.byValue.render() == "1") "" else "BY ${statement.byValue.render()}"
-        val data = "FOR ${statement.init.render()} $byValue $downward ${statement.endValue.render()} "
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ForStatementExecutionLogEnd(programName: String, val statement: ForStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending FOR LOOP"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val reference = statement.init.render().substringBefore("=")
-        val data = "ENDFOR $reference"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val reference = statement.init.render().substringBefore("=")
-        val data = "ENDFOR ${reference}${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val reference = statement.init.render().substringBefore("=")
-        val data = "ENDFOR ${reference}${sep}${loopCounter}${sep}iterations"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-class DoStatemenExecutionLogStart(programName: String, val statement: DoStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing DO LOOP"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "DO LOOP START${sep}${statement.startLimit.render()} ${statement.endLimit.render()} "
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DO LOOP START${sep}${statement.startLimit.render()} ${statement.endLimit.render()} "
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending DO LOOP"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "DO LOOP END"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "DO LOOP END${sep}${elapsed}${sep}ms"
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DO LOOP END${sep}$loopCounter "
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class DOWxxStatementExecutionLogStart(programName: String, val statement: DOWxxStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing DOWxx LOOP"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "DOW${statement.comparisonOperator.symbol} LOOP START${sep}${statement.comparisonOperator}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DOW${statement.comparisonOperator.symbol} LOOP START${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class DOWxxStatementExecutionLogEnd(programName: String, val statement: DOWxxStmt, val elapsed: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending DOWxx LOOP"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "DOWxx LOOP END"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "DOW${statement.comparisonOperator.symbol} LOOP END${sep}${statement.comparisonOperator}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DOW${statement.comparisonOperator.symbol} LOOP END"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class DouStatemenExecutionLogStart(programName: String, val statement: DouStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing DOU LOOP"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "DOU LOOP START${sep}${statement.endExpression.render()} ${statement.endExpression.render()} "
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DOU LOOP START${sep}${statement.endExpression.render()} ${statement.endExpression.render()} "
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-class DouStatemenExecutionLogEnd(programName: String, val statement: DouStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending DOU LOOP"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "DO LOOP END"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "DO LOOP END${sep}${elapsed}${sep}ms"
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DO LOOP END${sep}$loopCounter "
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class DowStatemenExecutionLogStart(programName: String, val statement: DowStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing DOW LOOP"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "DOW LOOP START${sep}${statement.endExpression.render()} "
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DOW LOOP START${sep}${statement.endExpression.render()} "
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-class DowStatemenExecutionLogEnd(programName: String, val statement: DowStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending DOW LOOP"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "DOW LOOP END"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "DOW LOOP END${sep}${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-    override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val data = "DOW LOOP END${sep}${sep}${loopCounter}${sep}iterations"
-
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing SELECT CASE"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SELECT WHEN${sep}${case.condition.render()}$sep(${result.asBoolean().value})"
-
-        return renderHeader(channel, filename, case.startLine(), sep) + data
-    }
-}
-
-class CasXXExecutionLogEntry(programName: String, val case: CaseClause, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing CASxx"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CASxx${sep}${case.condition.render()}$sep(${result.asBoolean().value})"
-
-        return renderHeader(channel, filename, case.startLine(), sep) + data
-    }
-}
-
-class SelectOtherExecutionLogEntry(programName: String, val other: SelectOtherClause, val duration: Long = -1) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing SELECT OTHER"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, other.startLine(), sep) + "SELECT OTHER"
-    }
-}
-
-class CasOtherExecutionLogEntry(programName: String, val other: CaseOtherClause, val duration: Long = -1) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing CAS"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, other.startLine(), sep) + "CAS"
-    }
-}
-
-class MonitorExecutionLogEntry(programName: String, val statement: MonitorStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing MONITOR"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "MONITOR"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class IfExecutionLogEntry(programName: String, val statement: IfStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing IF"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "IF ${statement.condition.render()}${sep}${result.asBoolean().value}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ElseIfExecutionLogEntry(programName: String, val statement: ElseIfClause, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing ELSE IF"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "ELSE IF {statement.condition.render()}$sep(${result.asBoolean().value})"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ElseExecutionLogEntry(programName: String, val statement: ElseClause, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing ELSE "
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "ELSE"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class OnErrorExecutionLogEntry(programName: String, val statement: OnErrorClause) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing ON-ERROR"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "ON-ERROR"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class EvaluationLogEntry(programName: String, val statement: EvalStmt, val value: Value?) : LogEntry(programName) {
-    override fun toString(): String {
-        return "evaluating $statement as $value"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "EVAL ${statement.target.render()} ${statement.operator.text} ${statement.expression.render()}${sep}${value!!.render()}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-class ExpressionEvaluationLogEntry(programName: String, val expression: Expression, val value: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "evaluating $expression as $value"
-    }
-
-    override fun renderExpression(channel: String, filename: String, sep: String): String {
-        var header = "${sep}$filename${sep}${sep}$channel$sep"
-        if (expression.position != null) {
-            header = renderHeader(channel, filename, expression.startLine(), sep)
-        } else if (expression.parent != null && expression.parent!!.position != null) {
-            header = renderHeader(channel, filename, expression.parent!!.startLine(), sep)
+/**
+ * A function returning a LogSourceData
+ * @see LogSourceData
+ */
+typealias LogSourceProvider = () -> LogSourceData
+
+/**
+ * A representation of a single log entry
+ */
+data class LogEntry(
+    val source: LogSourceProvider,
+    val scope: String,
+    val action: String? = null
+)
+
+/**
+ * A wrapper on LogEntry used to render its content dynamically only when needed
+ * @see LogEntry
+ */
+class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> String) {
+    companion object {
+        /**
+         * Create a new LazyLogEntry providing an empty message
+         */
+        fun fromEntry(entry: LogEntry): LazyLogEntry {
+            return produceMessage(entry, "")
         }
 
-        val data = "${expression.render()}${sep}${value.render()}"
-        return header + data
+        /**
+         * Create a new LazyLogEntry providing a prerendered message
+         */
+        fun produceMessage(entry: LogEntry, message: String): LazyLogEntry {
+            return LazyLogEntry(entry) { message }
+        }
+
+        /**
+         * Create a new LazyLogEntry for line logging
+         * @see LinesLogHandler
+         */
+        fun produceLine(source: LogSourceProvider): LazyLogEntry {
+            val entry = LogEntry(source, LinesLogHandler.SCOPE)
+            return produceMessage(entry, "Line ${source().line}")
+        }
+
+        /**
+         * Create a new LazyLogEntry for the DATA channel
+         * @see LogChannel
+         */
+        fun produceData(
+            source: LogSourceProvider,
+            data: AbstractDataDefinition,
+            value: Value,
+            previous: Value?
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.DATA.getPropertyName(), "ASSIGN")
+            return LazyLogEntry(entry) { sep ->
+                val prevValue = previous?.render() ?: "N/D"
+                "${data.name} = ${value.render()}${sep}was: $prevValue"
+            }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the EXPR channel
+         * @see LogChannel
+         */
+        fun produceExpression(
+            source: LogSourceProvider,
+            expression: Expression,
+            value: Value
+        ): LazyLogEntry {
+
+            val actualProvider = {
+                val computedSource = source()
+                when {
+                    expression.position != null -> computedSource.projectLine(expression.startLine())
+                    expression.parent != null && expression.parent!!.position != null -> computedSource.projectLine(
+                        expression.parent!!.startLine()
+                    )
+                    else -> computedSource
+                }
+            }
+
+            val entry = LogEntry(actualProvider, LogChannel.EXPRESSION.getPropertyName(), "EVAL")
+
+            return LazyLogEntry(entry) { sep ->
+                val content = buildString {
+                    append(expression.render())
+                    append(sep)
+                    append(value.render())
+                }
+                content
+            }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the EvalLogHandler
+         * @see EvalLogHandler
+         */
+        fun produceEval(
+            source: LogSourceProvider,
+            expression: Expression,
+            value: Value
+        ): LazyLogEntry {
+            val entry = LogEntry(source, EvalLogHandler.SCOPE)
+            return produceMessage(
+                entry, "Evaluating ${expression.type()} = $value -- Line: ${expression.position.line()}"
+            )
+        }
+
+        /**
+         * Create a new LazyLogEntry for Mutes
+         * @see MuteAnnotation
+         */
+        fun produceMute(
+            annotation: MuteAnnotation,
+            source: LogSourceProvider,
+            result: Value
+        ): LazyLogEntry {
+            val message: String by lazy {
+                when (annotation) {
+                    is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} $result ${annotation.val1} ${annotation.comparison} ${annotation.val2} "
+                    is MuteFailAnnotation -> "executing MuteFail: ${annotation.position} - ${result.render()}"
+                    else -> this.toString()
+                }
+            }
+
+            val entry = LogEntry(source, "MUTE")
+            return produceMessage(entry, message)
+        }
+
+        /**
+         * Create a new LazyLogEntry for the AssignmentsLogHandler
+         * @see AssignmentsLogHandler
+         */
+        fun produceAssignment(
+            source: LogSourceProvider,
+            data: AbstractDataDefinition,
+            value: Value
+        ): LazyLogEntry {
+            val entry = LogEntry(source, AssignmentsLogHandler.SCOPE, value.render())
+            return produceMessage(entry, "assigning to ${data.name} value $value")
+        }
+
+        /**
+         * Create a new LazyLogEntry for the AssignmentsLogHandler describing array element assignments
+         * @see AssignmentsLogHandler
+         */
+        fun produceAssignmentOfElement(
+            source: LogSourceProvider,
+            array: Expression,
+            index: Int,
+            value: Value
+        ): LazyLogEntry {
+            val entry = LogEntry(source, AssignmentsLogHandler.SCOPE, "ARRAY")
+            return produceMessage(entry, "assigning to $array[$index] value $value")
+        }
+
+        /**
+         * Create a new LazyLogEntry from LogEntry data
+         */
+        fun produceInformational(
+            source: LogSourceProvider,
+            scope: String,
+            action: String? = null
+        ): LazyLogEntry {
+            val entry = LogEntry(source, scope, action)
+            return fromEntry(entry)
+        }
+
+        /**
+         * Create a new LazyLogEntry for the PERF channel
+         * @see LogChannel
+         */
+        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
+            return LazyLogEntry(entry) {
+                buildString {
+                    append("elapsed ")
+                    append(elapsed.toString(DurationUnit.MICROSECONDS))
+                }
+            }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the ANALYTICS channel
+         * @see LogChannel
+         */
+        fun produceAnalytics(source: LogSourceProvider, action: String, message: String): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), action)
+            return produceMessage(entry, message)
+        }
+
+        /**
+         * Create a new LazyLogEntry for the STMT channel
+         * @see LogChannel
+         */
+        fun produceStatement(
+            source: LogSourceProvider,
+            statementName: String,
+            action: String
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+            return LazyLogEntry(entry) { statementName }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the PARS channel on parsing start
+         * @see LogChannel
+         */
+        fun produceParsingStart(
+            source: LogSourceProvider,
+            entity: String
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), "START")
+            return LazyLogEntry(entry) { entity }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the PARS channel on parsing end
+         * @see LogChannel
+         */
+        fun produceParsingEnd(
+            source: LogSourceProvider,
+            entity: String,
+            elapsed: Duration
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.PARSING.getPropertyName(), "END")
+            return LazyLogEntry(entry) { sep ->
+                buildString {
+                    append(entity)
+                    append(sep)
+                    append("elapsed ")
+                    append(elapsed.toString(DurationUnit.MICROSECONDS))
+                }
+            }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the RESL channel
+         * @see LogChannel
+         */
+        fun produceResolution(
+            source: LogSourceProvider,
+            resolution: String? = null
+        ): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
+            resolution ?: return fromEntry(entry)
+            return produceMessage(entry, resolution)
+        }
+
+        /**
+         * Create a new LazyLogEntry for the ERR channel
+         * @see LogChannel
+         */
+        fun produceError(
+            errorEvent: ErrorEvent
+        ): LazyLogEntry {
+            val source =
+                { LogSourceData(errorEvent.sourceReference?.sourceId ?: "", errorEvent.absoluteLine?.toString() ?: "") }
+            val entry = LogEntry(source, LogChannel.ERROR.getPropertyName())
+            return LazyLogEntry(entry) { errorEvent.toString() }
+        }
+
+        /**
+         * Create a new LazyLogEntry for subroutine start detection
+         * @see ListLogHandler
+         */
+        fun produceSubroutineStart(source: LogSourceProvider, subroutine: Subroutine): LazyLogEntry {
+            val entry = LogEntry(source, "SUBROUTINE START", subroutine.name)
+            return fromEntry(entry)
+        }
+
+        /**
+         * Create a new LazyLogEntry for the LOOP channel on loop start
+         * @see LogChannel
+         */
+        fun produceLoopStart(source: LogSourceProvider, entity: String, subject: String): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "START")
+            return LazyLogEntry(entry) { "$entity $subject" }
+        }
+
+        /**
+         * Create a new LazyLogEntry for the LOOP channel on loop end
+         * @see LogChannel
+         */
+        fun produceLoopEnd(source: LogSourceProvider, entity: String, subject: String, iterations: Long): LazyLogEntry {
+            val entry = LogEntry(source, LogChannel.LOOP.getPropertyName(), "END")
+            return LazyLogEntry(entry) { "$entity $subject $iterations" }
+        }
+    }
+
+    private fun renderHeader(sep: String) = buildString {
+        val source = entry.source()
+        append(source.filename)
+        append(sep)
+        append(source.line)
+    }
+
+    fun render(sep: String, withHeader: Boolean = false, withScope: Boolean = true) = buildString {
+        if (withHeader) {
+            val header = renderHeader(sep)
+            append(header)
+            append(sep)
+        }
+
+        if (withScope) {
+            append(entry.scope)
+            append(sep)
+        }
+
+        if (entry.action != null) {
+            append(entry.action)
+            append(sep)
+        }
+
+        val content = renderContent(sep)
+        append(content)
     }
 }
 
-class AssignmentLogEntry(programName: String, val data: AbstractDataDefinition, val value: Value, val previous: Value?) : LogEntry(programName) {
-    override fun toString(): String {
-        return "assigning to $data value $value"
-    }
-    override fun renderData(channel: String, filename: String, sep: String): String {
-        val pvalue = if (previous == null) "N/D" else previous.render()
-        val data = "${data.name} = ${pvalue}${sep}${value.render()}"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class AssignmentOfElementLogEntry(programName: String, val array: Expression, val index: Int, val value: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "assigning to $array[$index] value $value"
-    }
-}
-
-class ProgramInterpretationLogStart(programName: String, val initialValues: Map<String, Value>) : LogEntry(programName) {
-    override fun toString(): String {
-        return "calling $programName with initial values $initialValues"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "INTERPRETATION START${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class ProgramInterpretationLogEnd(programName: String, val elapsed: Long = -1) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending $programName"
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "INTERPRETATION END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "INTERPRETATION END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class MoveLStatemenExecutionLog(programName: String, val statement: MoveLStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "MOVEL"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "MOVEL${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result.render()}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "MOVE"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "MOVE${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result.render()}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class MoveAStatemenExecutionLog(programName: String, val statement: MoveAStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "MOVEA"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "MOVEA${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result.render()}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ParamListStatemenExecutionLog(programName: String, val statement: PlistStmt, val name: String, val value: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "PLIST"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-
-        val data = "PARAM${sep}${name}${sep}${value.render()}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ClearStatemenExecutionLog(programName: String, val statement: ClearStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "CLEAR"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CLEAR${sep}${statement.value.render()}${sep}${result.render()}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class LeaveStatemenExecutionLog(programName: String, val statement: LeaveStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "LEAVE"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.startLine(), sep) + "LEAVE"
-    }
-}
-
-class LeaveSrStatemenExecutionLog(programName: String, val statement: LeaveSrStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "LEAVESR"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.startLine(), sep) + "LEAVESR"
-    }
-}
-
-class IterStatemenExecutionLog(programName: String, val statement: IterStmt) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ITER"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.startLine(), sep) + "ITER"
-    }
-}
-
+/**
+ * A log handler specifically intended for usage by the interpreter
+ */
 interface InterpreterLogHandler {
-    fun handle(logEntry: LogEntry)
+    /**
+     * Checks if the log entry should be accepted by this handler
+     * @see LogEntry
+     */
+    fun accepts(entry: LogEntry): Boolean
+
+    /**
+     * Handles the log entry provided by the renderer
+     * @see LazyLogEntry
+     * @see LogEntry
+     */
+    fun handle(renderer: LazyLogEntry)
 }
 
 // TODO remove used in Test only
 class LinesLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
-    override fun handle(logEntry: LogEntry) {
-        if (logEntry is LineLogEntry) {
-            printStream.println("[LOG] $logEntry")
-        }
+    companion object {
+        const val SCOPE = "LINE"
+    }
+
+    override fun accepts(entry: LogEntry) = entry.scope == SCOPE
+    override fun handle(renderer: LazyLogEntry) {
+        printStream.println("[LOG] ${renderer.render("\t", withHeader = false)}")
     }
 }
 
 class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
-    override fun handle(logEntry: LogEntry) {
-        if (logEntry is AssignmentLogEntry) {
-            printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value}")
-        }
+    companion object {
+        const val SCOPE = "ASSIGNMENT"
+    }
+
+    override fun accepts(entry: LogEntry) = entry.scope == SCOPE
+    override fun handle(renderer: LazyLogEntry) {
+        printStream.println("[LOG] ${renderer.render("\t", withHeader = false)}")
     }
 }
 
 // TODO remove used in Test only
 class EvalLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
-    override fun handle(logEntry: LogEntry) {
-        if (logEntry is ExpressionEvaluationLogEntry) {
-            printStream.println("[LOG] Evaluating ${logEntry.expression.type()} = ${logEntry.value} -- Line: ${logEntry.expression.position.line()}")
-        }
+    companion object {
+        const val SCOPE = "EVAL"
+    }
+
+    override fun accepts(entry: LogEntry) = entry.scope == SCOPE
+    override fun handle(renderer: LazyLogEntry) {
+        printStream.println("[LOG] ${renderer.render("\t", withHeader = false)}")
     }
 }
 
 object SimpleLogHandler : InterpreterLogHandler {
-    override fun handle(logEntry: LogEntry) {
-        println("[LOG] $logEntry")
+    override fun accepts(entry: LogEntry) = true
+
+    override fun handle(renderer: LazyLogEntry) {
+        println("[LOG] ${renderer.render("\t", withHeader = false)}")
     }
 
     fun fromFlag(flag: Boolean) = if (flag) {
@@ -667,48 +436,54 @@ object SimpleLogHandler : InterpreterLogHandler {
 class ListLogHandler : InterpreterLogHandler {
     private val _logs = LinkedList<LogEntry>()
 
-    override fun handle(logEntry: LogEntry) {
-        _logs.add(logEntry)
+    override fun accepts(entry: LogEntry) = true
+    override fun handle(renderer: LazyLogEntry) {
+        _logs.add(renderer.entry)
     }
 
     // Immutable view of the internal mutable list
     val logs: List<LogEntry>
         get() = _logs
 
-    fun getExecutedSubroutines() = _logs.asSequence().filterIsInstance(SubroutineExecutionLogStart::class.java).map { it.subroutine }.toList()
-    fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
-    fun getEvaluatedExpressions() = _logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
-    fun getAssignments() = _logs.filterIsInstance(AssignmentLogEntry::class.java)
+    fun getExecutedSubroutines() = _logs.asSequence().filter { it.scope == "SUBROUTINE START" }.toList()
+    fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.action }
+//    fun getEvaluatedExpressions() = _logs.filterIsInstance<ExpressionEvaluationLogEntry>()
+    fun getAssignments() = _logs.filter { it.scope == AssignmentsLogHandler.SCOPE }
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
-    fun getEvaluatedExpressionsConcise(): List<ExpressionEvaluationLogEntry> {
-        val base = _logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
-        var i = 0
-        while (i < base.size) {
-            val current = base[i]
-            val found = base.subList(0, i).reversed().firstOrNull {
-                it.expression == current.expression
-            }?.value == current.value
-            if (found) {
-                base.removeAt(i)
-            } else {
-                i++
-            }
-        }
-        return base
-    }
+//    fun getEvaluatedExpressionsConcise(): List<LogEntry2> {
+//        val base = _logs.asSequence().filter { it.scope == EvalLogHandler.SCOPE}.toMutableList()
+//        var i = 0
+//        while (i < base.size) {
+//            val current = base[i]
+//            val found = base.subList(0, i).reversed().firstOrNull {
+//                it. == current.expression
+//            }?.value == current.value
+//            if (found) {
+//                base.removeAt(i)
+//            } else {
+//                i++
+//            }
+//        }
+//        return base
+//    }
 }
 
-fun List<InterpreterLogHandler>.log(logEntry: LogEntry) {
-    this.forEach {
-        try {
-            it.handle(logEntry)
-        } catch (t: Throwable) {
-            // TODO: how should we handle exceptions?
-            t.printStackTrace()
+fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
+    val time = measureNanoTime {
+        this.forEach {
+            try {
+                if (it.accepts(renderer.entry))
+                    it.handle(renderer)
+            } catch (t: Throwable) {
+                // TODO: how should we handle exceptions?
+                t.printStackTrace()
+            }
         }
-    }
+    }.nanoseconds
+
+    MainExecutionContext.getAnalyticsLoggingContext()?.recordRenderingDuration(time)
 }
 
 fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()
@@ -717,483 +492,3 @@ fun Node?.startLine() = this?.position?.relative()?.second?.renderStartLine().as
 fun Node?.endLine() = this?.position?.relative()?.second?.renderEndLine().asNonNullString()
 fun SourceReference.renderStartLine() = "${this.relativeLine}"
 fun SourceReference.renderEndLine() = "${this.position?.end?.line}"
-class CatStatementExecutionLog(programName: String, val statement: CatStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "CAT"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        var data = "CAT${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
-        if (null != statement.left) {
-            data = "CAT${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
-        }
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class CompStatementExecutionLog(programName: String, val statement: CompStmt, val result: Value) : LogEntry(programName) {
-    override fun toString(): String {
-        return "COMP"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "COMP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}${statement.hi}${sep}LO${sep}${statement.lo}${sep}EQ${sep}${statement.eq}"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class LookupStatementExecutionLog(programName: String, val statement: LookupStmt, val hi: Int?, val lo: Int?, val eq: Int?) : LogEntry(programName) {
-    override fun toString(): String {
-        return "LOOKUP"
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class AstLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ast start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "AST START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class AstLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "ast $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "AST END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "AST END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class RpgLoadLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "rpgload start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "RPGLOAD START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class RpgLoadLogEnd(programName: String, val elapsed: Long, private val programSouce: CharStream?) : LogEntry(programName) {
-
-    private val lines: Int by lazy {
-        programSouce?.toString()?.split(Pattern.compile("\\r\\n|\\r|\\n"))?.size ?: 0
-    }
-
-    override fun toString(): String {
-        return "rpgload $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "RPGLOAD END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "$lines", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "RPGLOAD END${sep}$filename"
-
-        return renderHeader(channel, filename, "$lines", sep) + data
-    }
-}
-
-class PreprocessingLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "preprop start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PREPROP START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class PreprocessingLogEnd(programName: String, val elapsed: Long, private val programSouce: String) : LogEntry(programName) {
-
-    private val lines: Int by lazy {
-        programSouce.lines().size
-    }
-
-    override fun toString(): String {
-        return "preprop $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "PREPROP END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "$lines", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PREPROP END${sep}$filename"
-
-        return renderHeader(channel, filename, "$lines", sep) + data
-    }
-}
-
-class LexerLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "lexer start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "LEXER START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class LexerLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "lexer $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "LEXER END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "LEXER END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class ParserLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "parser start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PARSER START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class ParserLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "parser $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "PARSER END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PARSER END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class RContextLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "rcontext start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "RCONTEXT START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class RContextLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "rcontext $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "RCONTEXT END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "RCONTEXT END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class CheckParseTreeLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "chkptree start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CHKPTREE START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class CheckParseTreeLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "chkptree $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "CHKPTREE END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CHKPTREE END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class FindMutesLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "findmutes start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "FINDMUTES START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class FindMutesLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "findmutes $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "FINDMUTES END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "FINDMUTES END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SymbolTableIniLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "symtblini start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLINI START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SymbolTableIniLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "symtblini $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLINI END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLINI END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SymbolTableLoadLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "symtblload start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLLOAD START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SymbolTableLoadLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "symtblload $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLLOAD END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLLOAD END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SymbolTableStoreLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "symtblStore start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLSTORE START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SymbolTableStoreLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "symtblstore $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLSTORE END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SYMTBLSTORE END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class SetLogStart(programName: String, val statement: Statement, private val logPref: String, val kList: List<String>) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "$logPref START$sep$kList}"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class SetLogEnd(programName: String, val statement: Statement, private val logPref: String, val elapsed: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END"
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "$logPref END${sep}${elapsed}${sep}ms"
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class ReadLogStart(programName: String, val statement: Statement, private val logPref: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "$logPref $sep"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ReadLogEnd(programName: String, val statement: Statement, private val logPref: String, private val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END$sep$result"
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "$logPref END${sep}${elapsed}${sep}ms"
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class ReadEqualLogStart(programName: String, val statement: Statement, private val logPref: String, val kList: List<String>) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "$logPref START$sep$kList"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class ReadEqualLogEnd(programName: String, val statement: Statement, private val logPref: String, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END$sep$result"
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "$logPref END${sep}${elapsed}${sep}ms"
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class StoreLogStart(programName: String, val statement: Statement, private val logPref: String, val record: Record? = null) : LogEntry(programName) {
-    override fun toString(): String {
-        return "executing $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "$logPref $sep$record"
-
-        return renderHeader(channel, filename, statement.startLine(), sep) + data
-    }
-}
-
-class StoreLogEnd(programName: String, val statement: Statement, private val logPref: String, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
-    override fun toString(): String {
-        return "ending $logPref"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END$sep$result"
-    }
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "$logPref END${sep}${elapsed}${sep}ms"
-        return renderHeader(channel, filename, statement.endLine(), sep) + data
-    }
-}
-
-class ErrorEventLogEntry(private val errorEvent: ErrorEvent) : LogEntry(errorEvent.sourceReference?.sourceId ?: "") {
-    override fun toString(): String {
-        return "error"
-    }
-
-    override fun renderErrorEvent(channel: String, filename: String, sep: String): String {
-        val line = errorEvent.absoluteLine?.toString() ?: ""
-        return renderHeader(channel, filename, line, sep) + errorEvent
-    }
-}

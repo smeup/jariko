@@ -14,24 +14,24 @@ enum class SYN_RELEVANT_DIRECTIVES {
 
 // List used to skip the resolution procedure when the source does not contain compiler directives.
 val DIRECTIVES_KEYWORDS = listOf(
-                                "      /IF DEFINED",
-                                "      /IF NOT DEFINED",
-                                "      /DEFINE",
-                                "      /UNDEFINE",
-                                "      /ELSE",
-                                "      /ENDIF"
-                                )
+    "      /IF DEFINED",
+    "      /IF NOT DEFINED",
+    "      /DEFINE",
+    "      /UNDEFINE",
+    "      /ELSE",
+    "      /ENDIF"
+)
 
 val EOF_DIRECTIVE_KEYWORD = "      /EOF"
 
 // Search patterns for identifying compiler directive rows.
-val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
-val IF_NOT_DEFINED_PATTERN = Regex(""".{6}/IF\sNOT\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
-val DEFINE_PATTERN = Regex(""".{6}/DEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
-val UNDEFINE_PATTERN = Regex(""".{6}/UNDEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
-val ELSE_PATTERN = Regex(""".{6}/ELSE""", RegexOption.IGNORE_CASE)
-val ENDIF_PATTERN = Regex(""".{6}/ENDIF""", RegexOption.IGNORE_CASE)
-val EOF_PATTERN = Regex(""".{6}/EOF""", RegexOption.IGNORE_CASE)
+val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§*,]+)\)\s*$""", RegexOption.IGNORE_CASE)
+val IF_NOT_DEFINED_PATTERN = Regex(""".{6}/IF\sNOT\sDEFINED\(([\w£$§,]+)\)\s*$""", RegexOption.IGNORE_CASE)
+val DEFINE_PATTERN = Regex(""".{6}/DEFINE\s+([^\s]+)\s*$""", RegexOption.IGNORE_CASE)
+val UNDEFINE_PATTERN = Regex(""".{6}/UNDEFINE\s+([^\s]+)\s*$""", RegexOption.IGNORE_CASE)
+val ELSE_PATTERN = Regex(""".{6}/ELSE\s*$""", RegexOption.IGNORE_CASE)
+val ENDIF_PATTERN = Regex(""".{6}/ENDIF\s*$""", RegexOption.IGNORE_CASE)
+val EOF_PATTERN = Regex(""".{6}/EOF\s*$""", RegexOption.IGNORE_CASE)
 
 /**
  * Resolve the EOF directive: after this directive, all rows are ignored until the end of the file
@@ -68,6 +68,15 @@ Receives an RPG source as string and resolves all embedded compile directives.
 The response is a string where all lines that should not be executed after resolving
 the compile directives are transformed into comment lines. The resolution of
 compilation directives must be performed after the resolution of /COPY directives.
+
+Not implemented:
+
+- ELSEIF compiler directive
+- Condition expressions special values(used in IF DEFINED directive):
+    - *ILERPG
+    - *CRTBNDRPG
+    - *CRTRPGMOD
+    - *THREAD_CONCURRENT
 */
 internal fun String.resolveCompilerDirectives(): String {
 
@@ -96,7 +105,11 @@ internal fun String.resolveCompilerDirectives(): String {
                     val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
-                        useRow = isDefined(definitions, code)
+                        if (code.startsWith("*V")) {
+                            throw CompilerDirectivesException("IF_DEFINED directive with unsupported $code parameter found at line " + (index + 1))
+                        } else {
+                            useRow = isDefined(definitions, code)
+                        }
                         ifLevel++
                     } else {
                         throw CompilerDirectivesException("IF_DEFINED directive without code value at line " + (index + 1))

@@ -91,11 +91,10 @@ class RunnerTest : AbstractTest() {
         SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/logging/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "TEST_06", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
-        assertContain(logs, "TEST_06\t44\tPERF\tENDFOR J")
-        assertContain(logs, "TEST_06\t44\tPERF\tENDFOR J")
-        assertContain(logs, "TEST_06\t61\tPERF\tENDFOR I")
-        assertContain(logs, "TEST_06\t80\tPERF\tSUBROUTINE END\tPRINT")
-        assertContain(logs, "TEST_06\t\tPERF\tINTERPRETATION END TEST_06")
+        assertContain(logs, "PERF\tTEST_06\t39\tFOR\telapsed")
+        assertContain(logs, "PERF\tTEST_06\t31\tFOR\telapsed")
+        assertContain(logs, "PERF\tTEST_06\t67\tEXSR\telapsed")
+        assertContain(logs, "PERF\tTEST_06\t\tINTERPRETATION\telapsed")
     }
 
     private fun assertContain(logs: List<String>, expected: String) {
@@ -111,8 +110,8 @@ class RunnerTest : AbstractTest() {
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
 
         // assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
-        assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat =         \t10")
-        assertContain(logs, "CALCFIB\t\tDATA\tppdat = N/D\t10")
+        assertContain(logs, "DATA\tCALCFIBCA5\t3\tASSIGN\tppdat = 10      \twas:         ")
+        assertContain(logs, "DATA\tCALCFIB\t2\tASSIGN\tppdat = 10      \twas: N/D")
     }
 
     @Test

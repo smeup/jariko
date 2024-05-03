@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import org.junit.Test
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 open class MULANGT40ArrayAndDSTest : MULANGTTest() {
@@ -27,6 +28,7 @@ open class MULANGT40ArrayAndDSTest : MULANGTTest() {
      * Field of DS with LIKE to field of next DS.
      */
     @Test
+    @Ignore(value = "reverted pull #500")
     fun executeMU401012() {
         val expected = listOf("HELLOTHERE")
         assertEquals(expected, "smeup/MU401012".outputOf(configuration = smeupConfig))

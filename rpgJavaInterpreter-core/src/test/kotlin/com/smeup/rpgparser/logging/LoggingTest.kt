@@ -34,9 +34,9 @@ class LoggingTest : AbstractTest() {
     private val programName = "MYPGM"
     private val varName = "MYVAR"
     private val varValue = "MYVALUE"
-    private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+\\t$programName\\t\\tDATA\\t$varName = N/D\\t$varValue")
+    private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
     // there is no time stamp reference
-    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "\\t$programName\\t\\tDATA\\t$varName = N/D\\t$varValue")
+    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
 
     @After
     fun after() {
@@ -46,12 +46,12 @@ class LoggingTest : AbstractTest() {
 
     @Test
     fun consoleLoggingConfigurationTest() {
-        val loggingConfiguration = consoleLoggingConfiguration(EXPRESSION_LOGGER, PERFORMANCE_LOGGER)
-        assertEquals("all", loggingConfiguration.getProperty("$EXPRESSION_LOGGER.level"))
-        assertEquals("console", loggingConfiguration.getProperty("$EXPRESSION_LOGGER.output"))
+        val loggingConfiguration = consoleLoggingConfiguration(LogChannel.EXPRESSION, LogChannel.PERFORMANCE)
+        assertEquals("all", loggingConfiguration.getProperty("${LogChannel.EXPRESSION.getPropertyName()}.level"))
+        assertEquals("console", loggingConfiguration.getProperty("${LogChannel.EXPRESSION.getPropertyName()}.output"))
 
-        assertEquals("all", loggingConfiguration.getProperty("$PERFORMANCE_LOGGER.level"))
-        assertEquals("console", loggingConfiguration.getProperty("$PERFORMANCE_LOGGER.output"))
+        assertEquals("all", loggingConfiguration.getProperty("${LogChannel.PERFORMANCE.getPropertyName()}.level"))
+        assertEquals("console", loggingConfiguration.getProperty("${LogChannel.PERFORMANCE.getPropertyName()}.output"))
 
         assertNull(loggingConfiguration.getProperty("logger.file.path"))
         assertNull(loggingConfiguration.getProperty("logger.file.name"))
@@ -60,12 +60,12 @@ class LoggingTest : AbstractTest() {
     @Test
     fun fileLoggingConfigurationTest() {
         val file = File("/usr", "x.log")
-        val loggingConfiguration = fileLoggingConfiguration(file, EXPRESSION_LOGGER, PERFORMANCE_LOGGER)
-        assertEquals("all", loggingConfiguration.getProperty("$EXPRESSION_LOGGER.level"))
-        assertEquals("file", loggingConfiguration.getProperty("$EXPRESSION_LOGGER.output"))
+        val loggingConfiguration = fileLoggingConfiguration(file, LogChannel.EXPRESSION, LogChannel.PERFORMANCE)
+        assertEquals("all", loggingConfiguration.getProperty("${LogChannel.EXPRESSION.getPropertyName()}.level"))
+        assertEquals("file", loggingConfiguration.getProperty("${LogChannel.EXPRESSION.getPropertyName()}.output"))
 
-        assertEquals("all", loggingConfiguration.getProperty("$PERFORMANCE_LOGGER.level"))
-        assertEquals("file", loggingConfiguration.getProperty("$PERFORMANCE_LOGGER.output"))
+        assertEquals("all", loggingConfiguration.getProperty("${LogChannel.PERFORMANCE.getPropertyName()}.level"))
+        assertEquals("file", loggingConfiguration.getProperty("${LogChannel.PERFORMANCE.getPropertyName()}.output"))
 
         assertEquals(file.parent, loggingConfiguration.getProperty("logger.file.path"))
         assertEquals(file.name, loggingConfiguration.getProperty("logger.file.name"))
@@ -75,7 +75,7 @@ class LoggingTest : AbstractTest() {
     @Test
     fun mustWorkAsBeforeLogAsCallbackFeature() {
         val systemInterface = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(DATA_LOGGER)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
         }
         MainExecutionContext.execute(systemInterface = systemInterface) {
             val defaultOut = System.out
@@ -83,6 +83,7 @@ class LoggingTest : AbstractTest() {
                 val out = StringOutputStream()
                 System.setOut(PrintStream(out))
                 MainExecutionContext.log(createAssignmentLogEntry())
+                MainExecutionContext.log(createDataLogEntry())
                 out.flush()
                 val loggedOnConsole = out.toString().trim()
                 assertTrue(
@@ -100,14 +101,14 @@ class LoggingTest : AbstractTest() {
     @Test
     fun logAsCallBack() {
         val systemInterface = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(DATA_LOGGER)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
         }
         val configuration = Configuration()
         var enteredInLogInfo = false
         var enteredInChannelLoggingEnabled = false
         // callback implementation by setting logInfo function
         configuration.jarikoCallback.logInfo = { channel, message ->
-            assertEquals(DATA_LOGGER, channel)
+            assertEquals(LogChannel.DATA.getPropertyName(), channel)
             assertTrue(
                 actual = logFormatRegexWhenLogAsCallback.matches(message),
                 message = "'$message' must match this regexp: ${logFormatRegexWhenLogAsCallback.pattern}"
@@ -117,8 +118,8 @@ class LoggingTest : AbstractTest() {
         // callback implementation by setting channelLoggingEnabled function
         // where I say that I want to log only data channel
         configuration.jarikoCallback.channelLoggingEnabled = { channel ->
-            enteredInChannelLoggingEnabled = channel == DATA_LOGGER
-            channel == DATA_LOGGER
+            enteredInChannelLoggingEnabled = channel == LogChannel.DATA.getPropertyName()
+            channel == LogChannel.DATA.getPropertyName()
         }
         MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
             val defaultOut = System.out
@@ -126,6 +127,7 @@ class LoggingTest : AbstractTest() {
                 val out = StringOutputStream()
                 System.setOut(PrintStream(out))
                 MainExecutionContext.log(createAssignmentLogEntry())
+                MainExecutionContext.log(createDataLogEntry())
                 out.flush()
                 // in console, we must have nothing because I have implemented jarikoCallback.logInfo
                 val loggedOnConsole = out.toString().trim()
@@ -189,7 +191,7 @@ class LoggingTest : AbstractTest() {
             logInfCalled = true
         }
         val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(RESOLUTION_LOGGER)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
         }
         executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
         assertTrue(logInfCalled, "logInfo never called")
@@ -205,7 +207,7 @@ class LoggingTest : AbstractTest() {
         val out = StringOutputStream()
         System.setOut(PrintStream(out))
         val systemInterface = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(ERROR_LOGGER)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
         }
         kotlin.runCatching {
             executePgm(programName = "ERROR02", systemInterface = systemInterface)
@@ -239,14 +241,14 @@ class LoggingTest : AbstractTest() {
             }
         }
         val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(ERROR_LOGGER)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
         }
         kotlin.runCatching {
             executePgm(programName = "ERROR02", configuration = configuration, systemInterface = systemInterface)
         }.onSuccess {
             fail(message = "Jariko must throws an exception")
         }.onFailure {
-            assertEquals(ERROR_LOGGER, logInfoChannelParam)
+            assertEquals(LogChannel.ERROR.getPropertyName(), logInfoChannelParam)
         }
     }
 
@@ -273,12 +275,22 @@ class LoggingTest : AbstractTest() {
         }
     }
 
-    private fun createAssignmentLogEntry(): AssignmentLogEntry {
-        return AssignmentLogEntry(
-            programName = programName,
-            data = DataDefinition(name = varName, type = StringType(7)),
-            value = StringValue(varValue),
-            previous = null
+    private fun createAssignmentLogEntry(): LazyLogEntry {
+        val logSource = { LogSourceData(programName, "") }
+        return LazyLogEntry.produceAssignment(
+            logSource,
+            DataDefinition(name = varName, type = StringType(7)),
+            StringValue(varValue)
+        )
+    }
+
+    private fun createDataLogEntry(): LazyLogEntry {
+    val logSource = { LogSourceData(programName, "") }
+        return LazyLogEntry.produceData(
+            logSource,
+            DataDefinition(name = varName, type = StringType(7)),
+            StringValue(varValue),
+            null
         )
     }
 }

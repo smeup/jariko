@@ -1,11 +1,12 @@
 package com.smeup.rpgparser.parsing.facade
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
-import com.smeup.rpgparser.interpreter.PreprocessingLogStart
+import com.smeup.rpgparser.interpreter.LazyLogEntry
+import com.smeup.rpgparser.interpreter.LogSourceData
 import java.io.BufferedReader
 import java.io.InputStream
-import kotlin.system.measureTimeMillis
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 fun InputStream.preprocess(
     findCopy: (copyId: CopyId) -> String?,
@@ -14,9 +15,9 @@ fun InputStream.preprocess(
     beforeInclusion: (copyId: CopyId) -> Boolean = { true }
 ): String {
     val programName = getExecutionProgramNameWithNoExtension()
-    MainExecutionContext.log(PreprocessingLogStart(programName = programName))
+    MainExecutionContext.log(LazyLogEntry.produceStatement({ LogSourceData(programName, "") }, "PREPROP", "START"))
     var preprocessed: String
-    measureTimeMillis {
+    measureNanoTime {
         preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(
             findCopy = findCopy,
             onStartInclusion = onStartInclusion,
@@ -24,13 +25,9 @@ fun InputStream.preprocess(
             beforeInclusion = beforeInclusion
         ).resolveCompilerDirectives()
     }.apply {
-        MainExecutionContext.log(
-            PreprocessingLogEnd(
-                programName = programName,
-                elapsed = this,
-                programSouce = preprocessed
-            )
-        )
+        val endLogSource = { LogSourceData(programName, preprocessed.lines().size.toString()) }
+        MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "PREPROP", "END"))
+        MainExecutionContext.log(LazyLogEntry.producePerformance(endLogSource, "PREPROP", this.nanoseconds))
     }
     return preprocessed
 }

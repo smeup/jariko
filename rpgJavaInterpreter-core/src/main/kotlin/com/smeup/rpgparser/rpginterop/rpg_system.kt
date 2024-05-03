@@ -17,10 +17,7 @@
 package com.smeup.rpgparser.rpginterop
 
 import com.andreapivetta.kolor.yellow
-import com.smeup.rpgparser.interpreter.InterpreterLogHandler
-import com.smeup.rpgparser.interpreter.RpgProgram
-import com.smeup.rpgparser.interpreter.RpgProgramFinderLogEntry
-import com.smeup.rpgparser.interpreter.log
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
@@ -251,7 +248,7 @@ open class RpgSystem {
     @Synchronized
     fun log(logHandlers: List<InterpreterLogHandler>) {
         programFinders.forEach {
-            logHandlers.log(RpgProgramFinderLogEntry(it.toString()))
+            logHandlers.renderLog(LazyLogEntry.produceResolution({ LogSourceData.UNKNOWN }, it.toString()))
         }
     }
 

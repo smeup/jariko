@@ -24,7 +24,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import org.junit.Rule
 import org.junit.Test
@@ -37,7 +37,7 @@ import kotlin.test.assertEquals
  * */
 open class MiscDBTest : AbstractTest() {
 
-    private val consoleLoggers = arrayOf(PERFORMANCE_LOGGER)
+    private val consoleLoggers = arrayOf(LogChannel.PERFORMANCE)
 
     @Rule
     @JvmField
@@ -46,7 +46,7 @@ open class MiscDBTest : AbstractTest() {
     private fun testMute(
         programName: String,
         params: CommandLineParms = CommandLineParms(emptyMap()),
-        vararg consoleLoggers: String = this.consoleLoggers
+        vararg consoleLoggers: LogChannel = this.consoleLoggers
     ) {
         testIfReloadConfig { reloadConfig ->
             val si = JavaSystemInterface().apply {

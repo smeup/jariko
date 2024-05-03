@@ -24,8 +24,7 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.PARSING_LOGGER
-import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
@@ -460,7 +459,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         }
         val programFinders = listOf(DirRpgProgramFinder(File(resource.path)))
         val si = JavaSystemInterface().also {
-            it.loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER, PERFORMANCE_LOGGER)
+            it.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PARSING, LogChannel.PERFORMANCE)
         }
         val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
         val caller = getProgram("MUTE10_69", systemInterface = si, programFinders = programFinders)
@@ -477,7 +476,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         }
         val programFinders = listOf(DirRpgProgramFinder(File(resource.path)))
         val si = JavaSystemInterface().also {
-            it.loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER, PERFORMANCE_LOGGER)
+            it.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PARSING, LogChannel.PERFORMANCE)
         }
         val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
         val caller = getProgram("MUTE10_70", systemInterface = si, programFinders = programFinders)

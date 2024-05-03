@@ -167,7 +167,7 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     if (internalFormatName == null) internalFormatName = metadata.tableName
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
-            dbField.toDataDefinition(prefix).apply {
+            dbField.toDataDefinition(prefix = prefix, position = position).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
         }
@@ -237,7 +237,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    }
+    }.flatten()
     checkAstCreationErrors(phase = AstHandlingPhase.DirectivesCreation)
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
@@ -1025,7 +1025,14 @@ internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val fields = this.csKFLD().map {
         it.cspec_fixed_standard_parts().result.text
     }
-    return KListStmt(factor1, fields, position)
+
+    val dataDefinitions = this.csKFLD().mapNotNull {
+        val parts = it.cspec_fixed_standard_parts()
+        val name = parts.result.text
+        parts.toDataDefinition(name, position, conf)
+    }
+
+    return KListStmt(factor1, fields, dataDefinitions, position)
 }
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
