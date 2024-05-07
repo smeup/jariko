@@ -270,9 +270,17 @@ open class BaseCompileTimeInterpreter(
     private fun Cspec_fixedContext.findType(declName: String, conf: ToAstConfiguration): Type? {
         val ast = this.toAst(conf)
         if (ast is StatementThatCanDefineData) {
+            /**
+             * If ast does not have a parent we consider it to be part of a CU
+             * to accomodate resolution in CU scoping (see PListStmt)
+             */
+            if (ast.parent == null) {
+                ast.parent = CompilationUnit.empty()
+            }
+
             val dataDefinition = ast.dataDefinition()
             dataDefinition.forEach {
-                if (it.name.asValue().value == declName) {
+                if (it.name == declName) {
                     return it.type
                 }
             }
