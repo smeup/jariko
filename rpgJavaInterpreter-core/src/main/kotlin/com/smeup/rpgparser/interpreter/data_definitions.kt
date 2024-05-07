@@ -300,9 +300,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         }
         is ArrayType -> {
             val sb = StringBuilder()
-            (value as ArrayValue).elements().forEach {
-                sb.append(this.element.toDataStructureValue(it).value)
+            when (value) {
+                is ArrayValue -> value.elements().forEach {
+                    sb.append(this.element.toDataStructureValue(it).value)
+                }
+                is IntValue -> sb.append(this.element.toDataStructureValue(value).value)
             }
+
             return StringValue(sb.toString())
         }
         is CharacterType -> {
