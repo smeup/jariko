@@ -123,6 +123,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #266
      */
     @Test
+    fun executeMU021008() {
+        val expected = listOf("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        assertEquals(expected, "smeup/MU021008".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Definition with both Like and Overlay.
+     * @see #266
+     */
+    @Test
     fun executeMU024011() {
         val expected = listOf("CNCLICNCLICNFORCNFORCNCOLCNCOL")
         assertEquals(expected, "smeup/MU024011".outputOf(configuration = smeupConfig))
