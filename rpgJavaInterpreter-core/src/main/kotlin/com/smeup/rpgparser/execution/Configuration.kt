@@ -18,12 +18,15 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.ast.Api
+import com.smeup.rpgparser.parsing.ast.ApiId
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.MockStatement
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.File
 
 const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
@@ -124,6 +127,8 @@ data class Options(
  * @param channelLoggingEnabled If specified, it allows to enable programmatically the channel logging.
  * For instance, you can enable all channels by using [consoleVerboseConfiguration] but you can decide, through
  * the implementation of this callback, which channel you want to log.
+ * @param onMockStatement If specified, it allows customizing the behavior of the mock statements.
+ * @param onApiInclusion If specified, it allows overriding the default mechanism of API validation.
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -168,7 +173,16 @@ data class JarikoCallback(
      * This is called for those statements mocked.
      * @param mockStatement "Statement" where is get its name for the `println`.
      */
-    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock: ${it.javaClass.simpleName}") }
+    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock: ${it.javaClass.simpleName}") },
+    /**
+     * This is called before the Api is included in the main program.
+     * Default implementation resolves and validates the compilationUnit related the API.
+     * @param apiId The id of the API
+     * @param api The API to include
+     * */
+    var onApiInclusion: ((apiId: ApiId, api: Api) -> Unit) = { _, api ->
+        api.compilationUnit.resolveAndValidate()
+    }
 )
 
 /**

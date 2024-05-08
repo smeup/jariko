@@ -29,5 +29,6 @@ abstract class MULANGTTest : AbstractTest() {
         smeupConfig.reloadConfig = ReloadConfig(
             nativeAccessConfig = DBNativeAccessConfig(emptyList()),
             metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+        smeupConfig.options.debuggingInformation = true
     }
 }

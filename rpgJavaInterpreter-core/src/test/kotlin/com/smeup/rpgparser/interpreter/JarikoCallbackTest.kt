@@ -452,6 +452,58 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR17CallBackTest() {
+        executePgmCallBackTest("ERROR17", SourceReferenceType.Program, "ERROR17", listOf(12))
+    }
+
+    @Test
+    fun executeERROR17SourceLineTest() {
+        executeSourceLineTest("ERROR17")
+    }
+
+    @Test
+    fun executeERROR18CallBackTest() {
+        executePgmCallBackTest("ERROR18", SourceReferenceType.Program, "ERROR18", listOf(10))
+    }
+
+    @Test
+    fun executeERROR18SourceLineTest() {
+        executeSourceLineTest("ERROR18")
+    }
+
+    @Test
+    fun executeERROR19CallBackTest() {
+        // In this case the error occurs inside APIERR1
+        executePgmCallBackTest("APIERR1", SourceReferenceType.Program, "APIERR1", listOf(7, 7, 7))
+    }
+
+    @Test
+    fun executeERROR19SourceLineTest() {
+        // In this case the error occurs inside APIERR1
+        executeSourceLineTest("APIERR1")
+    }
+
+    @Test
+    fun executeERROR20SourceLineTest() {
+        executeSourceLineTest("ERROR20")
+    }
+
+    @Test
+    fun executeERROR21CallBackTest() {
+        executePgmCallBackTest("ERROR21", SourceReferenceType.Program, "ERROR21", listOf(9, 10))
+    }
+
+    @Test
+    fun executeERROR21SourceLineTest() {
+        executeSourceLineTest("ERROR21")
+    }
+
+    @Test
+    fun executeERROR20CallBackTest() {
+        executePgmCallBackTest("ERROR20", SourceReferenceType.Program, "ERROR20", listOf(7, 8))
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -584,7 +636,9 @@ class JarikoCallbackTest : AbstractTest() {
         val errorEvents = mutableListOf<ErrorEvent>()
         val configuration = Configuration().apply {
             jarikoCallback.beforeParsing = { it ->
-                lines = StringReader(it).readLines()
+                if (MainExecutionContext.getParsingProgramStack().peek().name == pgm) {
+                    lines = StringReader(it).readLines()
+                }
                 it
             }
             jarikoCallback.onError = { errorEvents.add(it) }

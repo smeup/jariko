@@ -31,7 +31,9 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     @Test
     fun executeMU711003() {
         val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
-        assertEquals(expected, "smeup/MU711003".outputOf(configuration = smeupConfig))
+        // Since QILEGEN,£PRZ is not formally correct API I override the API resolution.
+        val myConfig = smeupConfig.copy().apply { jarikoCallback.onApiInclusion = { _, _ -> } }
+        assertEquals(expected, "smeup/MU711003".outputOf(configuration = myConfig))
     }
 
     /**
@@ -41,6 +43,8 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     @Test
     fun executeMU711004() {
         val expected = listOf("A71_01(0) A71_02(3) A71_03(F)")
-        assertEquals(expected, "smeup/MU711004".outputOf(configuration = smeupConfig))
+        // Since QILEGEN,£C5PES is not formally correct API I override the API resolution.
+        val myConfig = smeupConfig.copy().apply { jarikoCallback.onApiInclusion = { _, _ -> } }
+        assertEquals(expected, "smeup/MU711004".outputOf(configuration = myConfig))
     }
 }
