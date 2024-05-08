@@ -52,7 +52,9 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
     return apiId.runNode {
         val parentPgmName = MainExecutionContext.getExecutionProgramName()
         MainExecutionContext.setExecutionProgramName(apiId.toString())
-        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).validate()
+        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, this)
+        }.validate()
         this.copy(
             fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
             dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
