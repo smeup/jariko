@@ -95,8 +95,8 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Inline definition on KFLD
-     * @see #277
+     * CALL with params defined in line and in D-spec
+     * @see #278
      */
     @Test
     fun executeMU106011() {
