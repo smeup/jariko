@@ -272,7 +272,7 @@ open class BaseCompileTimeInterpreter(
         if (ast is StatementThatCanDefineData) {
             val dataDefinition = ast.dataDefinition()
             dataDefinition.forEach {
-                if (it.name.asValue().value == declName) {
+                if (it.name == declName) {
                     return it.type
                 }
             }
