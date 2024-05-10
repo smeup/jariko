@@ -1,12 +1,12 @@
-     FAUTOOG1L  IF   E           K DISK
-     D PNCLAS          S                   DIM(1000) LIKE(AO£CLA)
+     FMULANGTL  IF   E           K DISK
+     D PNCLAS          S                   DIM(1000) LIKE(MLLIBR)
      D DSCLAS          DS                  OCCURS(%ELEM(PNCLAS))
-     D  XC£GRA                             LIKE(AO£GRA)
+     D  XC£GRA                             LIKE(MLSYST)
       *
-     C                   EVAL      AO£GRA = 'HELLO THERE'
+     C                   EVAL      MLSYST = 'HELLO THERE'
      C                   EXSR      MEMREC
       *
      C     MEMREC        BEGSR
-     C                   EVAL      XC£GRA=AO£GRA
+     C                   EVAL      XC£GRA=MLSYST
      C     XC£GRA        DSPLY
      C                   ENDSR
