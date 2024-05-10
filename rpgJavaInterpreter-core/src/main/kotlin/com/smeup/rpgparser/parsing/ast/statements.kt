@@ -2375,10 +2375,10 @@ data class TestnStmt(
         if (isNumeric) {
             interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
         } else {
-            if(valStr.trim().isEmpty()) {
+            if (valStr.trim().isEmpty()) {
                 interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             } else {
-                if(valStr.startsWith(" ")) {
+                if (valStr.startsWith(" ")) {
                     interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
                 } else {
                     interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
