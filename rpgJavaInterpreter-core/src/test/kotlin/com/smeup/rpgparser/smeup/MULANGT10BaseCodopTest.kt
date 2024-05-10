@@ -93,4 +93,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ABCDEFGHIL, 12")
         assertEquals(expected, "smeup/MU105501".outputOf())
     }
+
+    /**
+     * EXCEPT
+     */
+    @Test
+    fun executeMU101501() {
+        val expected = listOf("EXCEPT works")
+        assertASTCanBeProduced("smeup/MU101501",  printTree = true)
+        assertEquals(expected, "smeup/MU101501".outputOf(configuration = smeupConfig))
+    }
 }
