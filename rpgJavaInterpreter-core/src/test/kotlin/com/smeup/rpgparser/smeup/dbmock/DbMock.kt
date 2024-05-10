@@ -5,10 +5,14 @@ import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.interpreter.StringType
 import kotlin.test.todo
 
-interface DbMock {
+interface DbMock : AutoCloseable {
     fun createTable(): String
     fun dropTable(): String
     fun populateTable(): String
+
+    override fun close() {
+        dropTable()
+    }
 
     fun buildDbColumnsFromDbFields(fields: List<DbField>): String {
         return fields.mapIndexed { i, it ->
