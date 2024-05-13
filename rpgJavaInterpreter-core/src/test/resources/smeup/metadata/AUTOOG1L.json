@@ -1,0 +1,55 @@
+{"name": "AUTOOG1L",
+  "tableName": "AUTOOG0F",
+  "recordFormat": "AUTOOGR",
+  "fields": [
+    { "fieldName": "AO£CLA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AO£TIP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AO£PAR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AO£COD",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "AO£ATT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "AO£VAL",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":256, "varying":false}}
+  , { "fieldName": "AO£GRA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":40, "varying":false}}
+  , { "fieldName": "AO£F01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£F10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "AO£DTI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AO£ORI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AO£UTI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AO£OGI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AO£DTA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AO£ORA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AO£UTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AO£OGA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  ], "accessFields": [ "AO£TIP", "AO£PAR", "AO£CLA", "AO£COD", "AO£ATT", "AO£VAL", "AO£GRA"]}
