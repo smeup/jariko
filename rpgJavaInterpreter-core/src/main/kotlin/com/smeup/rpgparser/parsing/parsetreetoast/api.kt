@@ -50,8 +50,11 @@ internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfig
 
 private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
     return apiId.runNode {
+        val parentPgmName = MainExecutionContext.getExecutionProgramName()
         MainExecutionContext.setExecutionProgramName(apiId.toString())
-        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).validate()
+        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, this)
+        }.validate()
         this.copy(
             fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
             dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
@@ -63,7 +66,9 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
                 this.apiDescriptors?.plus(it)
             } ?: this.apiDescriptors,
             procedures = this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
-        )
+        ).apply {
+            MainExecutionContext.setExecutionProgramName(parentPgmName)
+        }
     }
 }
 

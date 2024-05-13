@@ -16,6 +16,9 @@ lexer grammar RpgLexer;
 	protected int getLastTokenType(){
 		return lastTokenType;
 	}
+	private void printMatch(String tokenName) {
+	    System.out.println("Matched " + tokenName + " with '" + getText() + "'");
+	}
 } 
 
 // Parser Rules
@@ -703,18 +706,15 @@ FE_COMMENTS: '//' -> popMode,pushMode(FIXED_CommentMode_HIDDEN),channel(HIDDEN) 
 FE_NEWLINE : NEWLINE -> popMode,skip;
 
 mode InStringMode;
-	//  Any char except +,- or ', or a + or - followed by more than just whitespace 
-StringContent: ( 
-       ~['\r\n+-]
-       | [+-] [ ]* {_input.LA(1)!=' ' && _input.LA(1)!='\r' && _input.LA(1)!='\n'}? // Plus is ok as long as it's not the last char
-       )+;// space or not 
+//  Any char except +,- or ', or a + or - followed by more than just whitespace
 StringEscapedQuote: [']['] {setText("'");};
 StringLiteralEnd: ['] -> popMode;
-FIXED_FREE_STRING_CONTINUATION: ('+' [ ]* NEWLINE) 
+FIXED_STRING_COMMENTS80: {_modeStack.contains(FIXED_CalcSpec) || _modeStack.contains(FIXED_DefSpec) || _modeStack.contains(FIXED_OutputSpec)}? ~[\r\n'] {getCharPositionInLine()>=80}? ~[\r\n']* -> channel(HIDDEN);
+FIXED_FREE_STRING_CONTINUATION: ('+' [ ]* (FIXED_STRING_COMMENTS80? NEWLINE))
    {_modeStack.contains(FIXED_CalcSpec) || _modeStack.contains(FIXED_DefSpec)
      || _modeStack.contains(FIXED_OutputSpec)}?
    -> pushMode(EatCommentLinesPlus),pushMode(EatCommentLines),skip;
-FIXED_FREE_STRING_CONTINUATION_MINUS: ('-' [ ]* NEWLINE) 
+FIXED_FREE_STRING_CONTINUATION_MINUS: ('-' [ ]* (FIXED_STRING_COMMENTS80? NEWLINE))
    {_modeStack.contains(FIXED_CalcSpec) || _modeStack.contains(FIXED_DefSpec)
      || _modeStack.contains(FIXED_OutputSpec)}?
    -> pushMode(EatCommentLines),skip;
@@ -726,6 +726,10 @@ FREE_STRING_CONTINUATION_MINUS: {!_modeStack.contains(FIXED_CalcSpec)
      && !_modeStack.contains(FIXED_DefSpec)
      && !_modeStack.contains(FIXED_OutputSpec)}?
       '-' [ ]* NEWLINE '       ' -> skip;
+StringContent: {getCharPositionInLine()<80}? (
+    ~['\r\n+-]
+    | [+-] [ ]* {getCharPositionInLine()<80}? {_input.LA(1)!=' ' && _input.LA(1)!='\r' && _input.LA(1)!='\n'}? // Plus is ok as long as it's not the last char
+)+;// space or not
 PlusOrMinus: [+-];
 
 mode InDoubleStringMode;
