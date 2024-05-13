@@ -7,7 +7,6 @@ import com.smeup.rpgparser.interpreter.SymbolTableAction
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
 
 /**
  * Collects the usage information about the main parts of the program.
