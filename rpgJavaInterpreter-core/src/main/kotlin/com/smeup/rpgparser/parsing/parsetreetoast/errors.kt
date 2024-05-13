@@ -173,7 +173,7 @@ internal fun checkAstCreationErrors(phase: AstHandlingPhase) {
         return
     }
     if (getAstCreationErrors().isNotEmpty()) {
-        if (MainExecutionContext.getConfiguration().options?.toAstConfiguration?.afterPhaseErrorContinue?.invoke(phase) != true) {
+        if (!MainExecutionContext.getConfiguration().options.toAstConfiguration.afterPhaseErrorContinue(phase)) {
             throw getAstCreationErrors()[0]
         }
     }

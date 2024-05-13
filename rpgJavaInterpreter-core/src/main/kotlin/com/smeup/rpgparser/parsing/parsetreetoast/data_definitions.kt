@@ -1057,15 +1057,8 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
     conf: ToAstConfiguration = ToAstConfiguration(),
     dataDefinitionProviders: List<DataDefinitionProvider>,
     parentDataDefinitions: List<DataDefinition>? = null
-):
-        () -> DataDefinition {
+): () -> DataDefinition {
     return {
-        if (this.TO_POSITION().text.trim().isNotEmpty()) {
-            this.TO_POSITION().text.asInt()
-        } else {
-            null
-        }
-
         val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
 
         val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
@@ -1074,10 +1067,11 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
             ?: this.error("Data definition $likeDsName not found", conf = conf)
 
         val dataDefinition = DataDefinition(
-                this.name,
-                referredDataDefinition.type,
-                referredDataDefinition.fields,
-                position = this.toPosition(true))
+            this.name,
+            referredDataDefinition.type,
+            referredDataDefinition.fields,
+            position = this.toPosition(true)
+        )
         dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         dataDefinition
     }

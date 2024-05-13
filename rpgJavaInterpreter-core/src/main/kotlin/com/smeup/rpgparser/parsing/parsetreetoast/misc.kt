@@ -79,7 +79,6 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
 }
 
 internal object KnownDataDefinition {
-
     fun getInstance(): MutableMap<String, DataDefinition> {
         return if (MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getAttributes()
@@ -98,61 +97,147 @@ private fun RContext.getDataDefinitions(
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
-    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = KnownDataDefinition.getInstance()
 
-    fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
-        dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
+    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    dataDefinitionProviders += fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().map {
+        it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
     }
     // First pass ignore exception and all the know definitions
-    dataDefinitionProviders.addAll(this.statement()
-        .mapNotNull {
-            it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
-        })
+    val firstPassProviders = this.statement().mapNotNull {
+        it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
+    }
+    dataDefinitionProviders += firstPassProviders
+
     // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.statement()
+    var unresolvedStatements = mutableListOf<StatementContext>()
+
+    val secondPassProviders = this.statement()
         .mapNotNull {
             kotlin.runCatching {
-                when {
-                    it.dspec() != null -> {
-                        it.dspec()
-                            .toAst(conf, knownDataDefinitions.values.toList())
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.dcl_c() != null -> {
-                        it.dcl_c()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(
-                            conf = conf,
-                            dataDefinitionProviders = dataDefinitionProviders)
-                        )
-                    }
-                    it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
-                        fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
-                    } -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
-                    }
-                    else -> null
-                }
+                it.getDataDefinitionProvider(
+                    fileDefinitions = fileDefinitions,
+                    knownDataDefinitions = knownDataDefinitions,
+                    dataDefinitionProviders = dataDefinitionProviders,
+                    conf
+                )
+            }.onFailure { e ->
+                if (e !is AstResolutionError)
+                    unresolvedStatements.add(it)
             }.getOrNull()
         }
-    )
-    return dataDefinitionProviders.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
+
+    dataDefinitionProviders += secondPassProviders
+    val resolvedDataDefinition = dataDefinitionProviders.mapNotNull {
+        kotlin.runCatching { it.toDataDefinition() }.getOrNull()
+    }.toMutableList()
+
+    knownDataDefinitions.addMissing(resolvedDataDefinition)
+
+    // Third pass, we try to resolve statements that could be resolved previously
+    var prevUnresolvedSize = -1
+    while (unresolvedStatements.size > 0 && prevUnresolvedSize != unresolvedStatements.size) {
+        val (newDefinitions, unresolved) = unresolvedStatements.tryResolve(
+            fileDefinitions = fileDefinitions,
+            knownDataDefinitions = knownDataDefinitions,
+            dataDefinitionProviders = dataDefinitionProviders,
+            conf = conf
+        )
+
+        resolvedDataDefinition.addAll(newDefinitions)
+
+        prevUnresolvedSize = unresolvedStatements.size
+        unresolvedStatements = unresolved.toMutableList()
+    }
+
+    return resolvedDataDefinition
 }
+
+private fun StatementContext.getDataDefinitionProvider(
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    knownDataDefinitions: MutableMap<String, DataDefinition>,
+    dataDefinitionProviders: List<DataDefinitionProvider>,
+    conf: ToAstConfiguration
+): DataDefinitionProvider? {
+    return when {
+        this.dspec() != null -> {
+            this.dspec()
+                .toAst(conf, knownDataDefinitions.values.toList())
+                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+        }
+        this.dcl_c() != null -> {
+            this.dcl_c()
+                .toAst(conf)
+                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+        }
+        this.dcl_ds() != null && this.dcl_ds().useLikeDs(conf) -> {
+            DataDefinitionCalculator(this.dcl_ds().toAstWithLikeDs(
+                conf = conf,
+                dataDefinitionProviders = dataDefinitionProviders)
+            )
+        }
+        this.dcl_ds() != null && this.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
+            fileDefinition.name.equals(this.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
+        } -> {
+            DataDefinitionCalculator(this.dcl_ds().toAstWithExtName(conf, fileDefinitions))
+        }
+        else -> null
+    }
+}
+
+private fun List<StatementContext>.tryResolve(
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    knownDataDefinitions: MutableMap<String, DataDefinition>,
+    dataDefinitionProviders: List<DataDefinitionProvider>,
+    conf: ToAstConfiguration
+): Pair<List<DataDefinition>, List<StatementContext>> {
+    val stillUnresolved = mutableListOf<StatementContext>()
+    val newDefinitions = this.mapNotNull {
+        val provider = it.getDataDefinitionProvider(
+            fileDefinitions = fileDefinitions,
+            knownDataDefinitions = knownDataDefinitions,
+            dataDefinitionProviders = dataDefinitionProviders,
+            conf = conf
+        )
+
+        if (provider == null) {
+            stillUnresolved.add(it)
+            return@mapNotNull null
+        }
+
+        val definition = kotlin.runCatching { provider.toDataDefinition() }.getOrNull()
+        if (definition == null) {
+            stillUnresolved.add(it)
+            return@mapNotNull null
+        }
+
+        if (provider !is DataDefinitionHolder)
+            knownDataDefinitions.addIfNotPresent(definition)
+        definition
+    }
+
+    return Pair(newDefinitions, stillUnresolved)
+}
+
+private fun DataDefinition.getHolder() = DataDefinitionHolder(this)
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
     knownDataDefinitions: MutableMap<String, DataDefinition>
 ): DataDefinitionHolder {
-        knownDataDefinitions.addIfNotPresent(this)
+    knownDataDefinitions.addIfNotPresent(this)
     return DataDefinitionHolder(this)
 }
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
     if (put(dataDefinition.name, dataDefinition) != null)
         dataDefinition.error("${dataDefinition.name} has been defined twice")
+}
+
+private fun MutableMap<String, DataDefinition>.addMissing(dataDefinitions: Collection<DataDefinition>) {
+    dataDefinitions.forEach {
+        if (!this.containsKey(it.name))
+            this[it.name] = it
+    }
 }
 
 private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
