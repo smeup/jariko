@@ -1,0 +1,613 @@
+{
+  "name": "JALOGT0F",
+  "tableName": "JALOGT0F",
+  "recordFormat": "JALOGTR",
+  "fields": [
+    {
+      "fieldName": "J1IDOG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1TREC",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 3,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1ORIG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 3,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1ASLA",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1ASUT",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1ASNR",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1AMBI",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1WEUT",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1WEMS",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1WEFU",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1WEME",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1LIVE",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1STAT",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 2,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1DTIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1ORIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DTUL",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1ORUL",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DTFI",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1ORFI",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1TPO1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 12,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1CDO1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1TPO2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 12,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1CDO2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1TPO3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 12,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1CDO3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1TPO4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 12,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1CDO4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1TPO5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 12,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1CDO5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1COD1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1COD2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1COD3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1COD4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1COD5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1NUM1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1NUM2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1NUM3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1NUM4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1NUM5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DAT1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DAT2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DAT3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DAT4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1DAT5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1FL01",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL02",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL03",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL04",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL05",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL06",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL07",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL08",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL09",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL10",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL11",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL12",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL13",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL14",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL15",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL16",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL17",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL18",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL19",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1FL20",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1USIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1DTIS",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1ORIS",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1OGIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1USAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1DTAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1ORAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "J1OGAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "J1LIBE",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 31000,
+        "varying": true
+      }
+    }
+  ],
+  "accessFields": []
+}
