@@ -158,4 +158,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
         assertEquals(expected, "smeup/MU025014".outputOf(configuration = smeupConfig))
     }
+
+    @Test
+    fun executeMUDRNR01() {
+        val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
+        assertEquals(expected, "smeup/MUDRNR01".outputOf(configuration = smeupConfig))
+    }
 }
