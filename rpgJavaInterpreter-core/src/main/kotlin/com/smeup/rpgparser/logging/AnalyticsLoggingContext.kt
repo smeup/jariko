@@ -5,8 +5,6 @@ import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.SymbolTableAction
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.DurationUnit
 
 /**
  * Object used to store metadata for ANALYTICS log channel.
@@ -15,16 +13,20 @@ import kotlin.time.DurationUnit
 class AnalyticsLoggingContext {
     private val programUsageTable = ProgramUsageTable()
     private var renderingTimeMeasurement = UsageMeasurement.new()
-
-    private val initTimestamp = System.nanoTime()
-    private val totalTime
-        get() = (System.nanoTime() - initTimestamp).nanoseconds
+    private var interpretationTimeMeasurement = UsageMeasurement.new()
 
     /**
      * Records log rendering duration.
      */
     fun recordRenderingDuration(time: Duration) {
         renderingTimeMeasurement = renderingTimeMeasurement.hit(time)
+    }
+
+    /**
+     * Records interpretation duration.
+     */
+    fun recordInterpretationDuration(time: Duration) {
+        interpretationTimeMeasurement = interpretationTimeMeasurement.hit(time)
     }
 
     /**
@@ -70,9 +72,9 @@ class AnalyticsLoggingContext {
         }
 
         val logTimeEntry = generateLogTimeReportEntry()
-        val programExecutionEntry = generateProgramReportEntry()
+        val interpretationTimeEntry = generateInterpretationReportEntry()
 
-        return statementEntries + expressionEntries + symbolTableEntries + logTimeEntry + programExecutionEntry
+        return statementEntries + expressionEntries + symbolTableEntries + logTimeEntry + interpretationTimeEntry
     }
 
     private fun generateLogTimeReportEntry(): LazyLogEntry {
@@ -85,10 +87,13 @@ class AnalyticsLoggingContext {
         }
     }
 
-    private fun generateProgramReportEntry(): LazyLogEntry {
-        val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "PROGRAM TIME")
+    private fun generateInterpretationReportEntry(): LazyLogEntry {
+        val duration = interpretationTimeMeasurement.duration
+        val hit = interpretationTimeMeasurement.hit
+
+        val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "INTERPRETATION TIME")
         return LazyLogEntry(entry) { sep ->
-            "$sep${totalTime.inWholeMicroseconds}$sep"
+            "$sep${duration.inWholeMicroseconds}$sep$hit"
         }
     }
 }
