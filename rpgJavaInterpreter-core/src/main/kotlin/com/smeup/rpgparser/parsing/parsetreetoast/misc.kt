@@ -155,7 +155,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
-private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
+internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val reloadConfig = MainExecutionContext.getConfiguration()
         .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
