@@ -4,10 +4,9 @@
      D  XC£GRA                             LIKE(AO£GRA)
       *
      C                   EVAL      AO£GRA = 'HELLO THERE'
-     C     DSCLAS        DSPLY
-     C*                   EXSR      MEMREC
+     C                   EXSR      MEMREC
       *
-     C*     MEMREC        BEGSR
-     C*                   EVAL      XC£GRA=AO£GRA
-     C*     XC£GRA        DSPLY
-     C*                   ENDSR
+     C     MEMREC        BEGSR
+     C                   EVAL      XC£GRA=AO£GRA
+     C     XC£GRA        DSPLY
+     C                   ENDSR
