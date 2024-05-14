@@ -1002,7 +1002,7 @@ private fun annidatedReferenceExpression(
             } else {
                 IntLiteral(indexValue, computeNewPosition(position, text))
             }
-        expr = ArrayAccessExpr(expr, indexExpression)
+        expr = ArrayAccessExpr(expr, indexExpression, position)
     }
     return expr as AssignableExpression
 }

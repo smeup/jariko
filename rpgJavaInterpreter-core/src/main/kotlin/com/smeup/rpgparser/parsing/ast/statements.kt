@@ -705,7 +705,7 @@ data class CallStmt(
                     }
                 } else {
                     if (!interpreter.exists(it.param.name)) {
-                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
+                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
                     }
                 }
             } else {
@@ -1101,19 +1101,19 @@ data class ClearStmt(
                  */
                 if (this.value.variable.referred?.type is OccurableDataStructureType) {
                     val origValue = interpreter.eval(value) as OccurableDataStructValue
-                    newValue = interpreter.assign(value, BlanksRefExpr()) as OccurableDataStructValue
+                    newValue = interpreter.assign(value, BlanksRefExpr(this.position)) as OccurableDataStructValue
                     newValue.pos(origValue.occurrence)
                 } else {
-                    interpreter.assign(value, BlanksRefExpr())
+                    interpreter.assign(value, BlanksRefExpr(this.position))
                 }
             }
 
             is IndicatorExpr -> {
-                interpreter.assign(value, BlanksRefExpr())
+                interpreter.assign(value, BlanksRefExpr(this.position))
             }
 
             is ArrayAccessExpr -> {
-                interpreter.assign(value, BlanksRefExpr())
+                interpreter.assign(value, BlanksRefExpr(this.position))
             }
 
             else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
@@ -1608,7 +1608,7 @@ data class DoStmt(
                     } catch (e: IterException) {
                         // nothing to do here
                     }
-                    interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
+                    interpreter.assign(index, PlusExpr(index, IntLiteral(1), this.position))
                 }
             } catch (e: LeaveException) {
                 // nothing to do here
