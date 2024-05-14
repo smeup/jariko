@@ -7,11 +7,11 @@ class MULANGTLDbMock : DbMock {
     val metadata = FileMetadata.createInstance(File("src/test/resources/smeup/metadata/MULANGTL.json").inputStream())
 
     override fun createTable(): String = """
-        CREATE TABLE ${metadata.tableName} (
+        CREATE TABLE IF NOT EXISTS ${metadata.tableName} (
             ${this.buildDbColumnsFromDbFields(metadata.fields)})
         """
         .trimIndent()
-    override fun dropTable(): String = "DROP TABLE ${metadata.tableName}"
+    override fun dropTable(): String = "DROP TABLE IF EXISTS ${metadata.tableName}"
     override fun populateTable(): String {
         return """
             INSERT INTO ${metadata.tableName}(MLSYST, MLLIBR, MLFILE, MLTIPO, MLPROG, MLPSEZ, MLPPAS, MLPDES, MLSQIN, MLSQFI, MLAAAT, MLAAVA, MLNNAT, MLNNVA, MLINDI, MLTEES, MLUSES, MLDTES, MLORES, MLASLA, MLASNR, MLLIBE) 
