@@ -990,12 +990,12 @@ open class InternalInterpreter(
                 if (target is DataRefExpr && value is IntLiteral) {
                     increment(target.variable.referred!!, value.value)
                 } else {
-                    assign(target, eval(PlusExpr(target, value)))
+                    assign(target, eval(PlusExpr(target, value, target.position)))
                 }
-            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
-            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
-            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
-            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value, target.position)))
+            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value, target.position)))
+            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value, target.position)))
+            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value, target.position)))
         }
     }
 
@@ -1006,11 +1006,11 @@ open class InternalInterpreter(
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
-            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
-            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
-            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
-            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
-            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value, target.position)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value, target.position)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value, target.position)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value, target.position)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value, target.position)))
         }
     }
 
@@ -1146,10 +1146,13 @@ open class InternalInterpreter(
     private inline fun executeWithLogging(statement: Statement) {
         val programName = this.interpretationContext.currentProgramName
         val sourceProducer = { LogSourceData(programName, statement.position.line()) }
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
 
         renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
 
+        val isSelfNested = loggingContext?.isExecutingCompositeStatement ?: false
         if (statement is CompositeStatement) {
+            loggingContext?.enterCompositeStatement(statement.loggableEntityName)
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
         } else {
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "EXEC") }
@@ -1163,7 +1166,11 @@ open class InternalInterpreter(
             statement.execute(this)
         }.nanoseconds
 
-        MainExecutionContext.getAnalyticsLoggingContext()?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
+        loggingContext?.let { ctx ->
+            if (ctx.isExecutingCompositeStatement && isSelfNested) {
+                ctx.recordNestedStatementExecution(programName, statement.loggableEntityName, executionTime)
+            } else ctx.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
+        }
 
         if (statement is LoopStatement) {
             renderLogInternal {
@@ -1177,6 +1184,7 @@ open class InternalInterpreter(
         }
 
         if (statement is CompositeStatement) {
+            loggingContext?.exitCompositeStatement()
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
         }
 
