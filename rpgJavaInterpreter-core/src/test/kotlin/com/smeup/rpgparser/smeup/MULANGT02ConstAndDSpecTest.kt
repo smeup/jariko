@@ -1,9 +1,31 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
+    @BeforeTest
+    override fun setUp() {
+        if (!DBServer.isRunning()) {
+            DBServer.startDB()
+        }
+
+        super.setUp()
+    }
+
+    @AfterTest()
+    override fun tearDown() {
+        /*
+         * This causes `connection exception: connection failure: java.net.SocketException: Pipe interrotta (Write failed)`
+         *  during `./gradle check`
+         */
+//        DBServer.stopDB()
+    }
+
     /**
      * /COPY recognized in CTDATA
      * @see #268
@@ -166,7 +188,13 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00101() {
-        val expected = listOf("HELLO THERE")
-        assertEquals(expected, "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig))
+        MULANGTLDbMock().use {
+            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+            val expected = listOf("HELLO THERE")
+            assertEquals(
+                expected = expected,
+                "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
+            )
+        }
     }
 }
