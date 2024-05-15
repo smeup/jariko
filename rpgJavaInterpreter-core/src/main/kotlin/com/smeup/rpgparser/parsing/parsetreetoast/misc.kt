@@ -934,6 +934,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csBITOFF() != null -> this.csBITOFF()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csTESTN() != null -> this.csTESTN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -2016,6 +2019,14 @@ internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return UnlockStmt(position)
+}
+
+internal fun CsTESTNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TestnStmt {
+    val position = toPosition(conf.considerPosition)
+    val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return TestnStmt(resultExpression, dataDefinition, cspec_fixed_standard_parts().rightIndicators(), position)
 }
 
 // TODO
