@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.utils.asBigDecimal
@@ -30,8 +31,10 @@ import java.math.RoundingMode
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.nanoseconds
 
 class ExpressionEvaluation(
     val systemInterface: SystemInterface,
@@ -44,77 +47,113 @@ class ExpressionEvaluation(
     private fun evalAsLong(expression: Expression): Long = expression.evalWith(this).asInt().value
     private fun evalAsDecimal(expression: Expression): BigDecimal = expression.evalWith(this).asDecimal().value
 
-    override fun eval(expression: StringLiteral): Value = StringValue(expression.value)
-    override fun eval(expression: IntLiteral) = IntValue(expression.value)
-    override fun eval(expression: RealLiteral) = DecimalValue(expression.value)
-    override fun eval(expression: NumberOfElementsExpr): Value {
-        return when (val value = expression.value.evalWith(this)) {
+    private inline fun proxyLogging(expression: Expression, action: () -> Value): Value {
+        if (systemInterface.getAllLogHandlers().isEmpty()) return action()
+
+        val programName = MainExecutionContext.getExecutionProgramName()
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
+        val isSelfNested = loggingContext?.isExecutingExpression ?: false
+        loggingContext?.enterExpression(expression.loggableEntityName)
+
+        val start = System.nanoTime()
+        val value = action()
+        val elapsed = (System.nanoTime() - start).nanoseconds
+
+        MainExecutionContext.log(
+            LazyLogEntry.producePerformance(
+                { LogSourceData(programName, expression.startLine()) },
+                expression.loggableEntityName,
+                elapsed
+            )
+        )
+
+        loggingContext?.let { ctx ->
+            if (isSelfNested)
+                ctx.recordNestedExpressionExecutionFromScope(programName, elapsed)
+            else ctx.recordExpressionExecution(programName, expression.loggableEntityName, elapsed)
+
+            ctx.exitExpression()
+        }
+
+        return value
+    }
+
+    override fun eval(expression: StringLiteral): Value = proxyLogging(expression) { StringValue(expression.value) }
+    override fun eval(expression: IntLiteral) = proxyLogging(expression) { IntValue(expression.value) }
+    override fun eval(expression: RealLiteral) = proxyLogging(expression) { DecimalValue(expression.value) }
+
+    override fun eval(expression: NumberOfElementsExpr): Value = proxyLogging(expression) {
+        return@proxyLogging when (val value = expression.value.evalWith(this)) {
             is ArrayValue -> value.arrayLength().asValue()
             is OccurableDataStructValue -> value.occurs.asValue()
             else -> throw IllegalStateException("Cannot ask number of elements of $value")
         }
     }
 
-    override fun eval(expression: DataRefExpr) = interpreterStatus.getVar(
-        expression.variable.referred
-            ?: throw IllegalStateException("Unsolved reference ${expression.variable.name} at ${expression.position}")
-    )
-
-    override fun eval(expression: EqualityExpr): Value {
-        val left = expression.left.evalWith(this)
-        val right = expression.right.evalWith(this)
-        return areEquals(left, right).asValue()
+    override fun eval(expression: DataRefExpr) = proxyLogging(expression) {
+        interpreterStatus.getVar(
+            expression.variable.referred
+                ?: throw IllegalStateException("Unsolved reference ${expression.variable.name} at ${expression.position}")
+        )
     }
 
-    override fun eval(expression: DifferentThanExpr): Value {
+    override fun eval(expression: EqualityExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return (!areEquals(left, right)).asValue()
+        areEquals(left, right).asValue()
     }
 
-    override fun eval(expression: GreaterThanExpr): Value {
+    override fun eval(expression: DifferentThanExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return isGreaterThan(left, right, localizationContext.charset).asValue()
+        (!areEquals(left, right)).asValue()
     }
 
-    override fun eval(expression: GreaterEqualThanExpr): Value {
+    override fun eval(expression: GreaterThanExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return (isGreaterThan(left, right, localizationContext.charset) || areEquals(left, right)).asValue()
+        isGreaterThan(left, right, localizationContext.charset).asValue()
     }
 
-    override fun eval(expression: LessEqualThanExpr): Value {
+    override fun eval(expression: GreaterEqualThanExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return (isEqualOrSmaller(left, right, localizationContext.charset)).asValue()
+        (isGreaterThan(left, right, localizationContext.charset) || areEquals(left, right)).asValue()
     }
 
-    override fun eval(expression: LessThanExpr): Value {
+    override fun eval(expression: LessEqualThanExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return isSmallerThan(left, right, localizationContext.charset).asValue()
+        (isEqualOrSmaller(left, right, localizationContext.charset)).asValue()
     }
 
-    override fun eval(expression: BlanksRefExpr) = BlanksValue
-    override fun eval(expression: DecExpr): Value {
+    override fun eval(expression: LessThanExpr): Value = proxyLogging(expression) {
+        val left = expression.left.evalWith(this)
+        val right = expression.right.evalWith(this)
+        isSmallerThan(left, right, localizationContext.charset).asValue()
+    }
+
+    override fun eval(expression: BlanksRefExpr) = proxyLogging(expression) { BlanksValue } as BlanksValue
+
+    override fun eval(expression: DecExpr): Value = proxyLogging(expression) {
         val decDigits = expression.decDigits.evalWith(this).asInt().value
         val valueAsString = expression.value.evalWith(this).asString().value
         val valueAsBigDecimal = valueAsString.asBigDecimal()
         require(valueAsBigDecimal != null) {
             "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
         }
-        return if (decDigits == 0L) {
+
+        return@proxyLogging if (decDigits == 0L) {
             IntValue(valueAsBigDecimal.toLong())
         } else {
             DecimalValue(valueAsBigDecimal)
         }
     }
 
-    override fun eval(expression: PlusExpr): Value {
+    override fun eval(expression: PlusExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return when {
+        return@proxyLogging when {
             left is StringValue && right is AbstractStringValue -> {
                 if (left.varying) {
                     val s = left.value.trimEnd() + right.getWrappedString()
@@ -151,61 +190,20 @@ class ExpressionEvaluation(
         }
     }
 
-    private fun sum(left: ArrayValue, right: ArrayValue, position: Position?): ArrayValue {
-        val listValue = when {
-            left.elementType is StringType && right.elementType is StringType ->
-                left.elements().mapIndexed { i: Int, v: Value ->
-                    if (right.elements().size > i) {
-                        val rightElement = right.getElement(i + 1)
-
-                        val valueToAdd: String = if (v.asString().varying) {
-                            (v.asString().value + rightElement.asString().value)
-                        } else {
-                            (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + rightElement.asString().value)
-                        }
-                        StringValue(valueToAdd, left.elementType.hasVariableSize())
-                    } else {
-                        v
-                    }
-                }
-            left.elementType is NumberType && right.elementType is NumberType ->
-                left.elements().mapIndexed { i: Int, v: Value ->
-                    if (right.elements().size > i) {
-                        val rightElement = right.getElement(i + 1)
-                        when {
-                            v is IntValue && rightElement is IntValue -> {
-                                (v + rightElement)
-                            }
-
-                            v is NumberValue && rightElement is NumberValue -> {
-                                DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
-                            }
-
-                            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
-                        }
-                    } else {
-                        v
-                    }
-                }
-            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
-        } as MutableList<Value>
-        return ConcreteArrayValue(listValue, left.elementType)
-    }
-
-    override fun eval(expression: MinusExpr): Value {
+    override fun eval(expression: MinusExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return when {
+        return@proxyLogging when {
             left is IntValue && right is IntValue -> (left - right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.minus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
     }
 
-    override fun eval(expression: MultExpr): Value {
+    override fun eval(expression: MultExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
-        return when {
+        return@proxyLogging when {
             left is IntValue && right is IntValue -> (left * right)
             left is NumberValue && right is NumberValue -> {
                 DecimalValue(left.bigDecimal.multiply(right.bigDecimal))
@@ -214,25 +212,25 @@ class ExpressionEvaluation(
         }
     }
 
-    override fun eval(expression: CharExpr): Value {
+    override fun eval(expression: CharExpr): Value = proxyLogging(expression) {
         val value = expression.value.evalWith(this)
         val representation = value.stringRepresentation(expression.format)
 
         if (expression.value !is DivExpr) {
-            return StringValue(representation)
+            return@proxyLogging StringValue(representation)
         }
 
         // Decimals are always returned with 10 decimal digits
         // fill with 0 if necessary
         val numDecimals = value.asDecimal().value.scale()
-        return when {
+        return@proxyLogging when {
             numDecimals == 0 -> StringValue("$representation.0000000000")
             numDecimals < 10 -> StringValue(representation + "0".repeat(10 - numDecimals))
             else -> StringValue(representation.trim())
         }
     }
 
-    override fun eval(expression: LookupExpr): Value {
+    override fun eval(expression: LookupExpr): Value = proxyLogging(expression) {
         val searchValued = expression.searchedValued.evalWith(this)
         val array = expression.array.evalWith(this) as ArrayValue
         var index = array.elements().indexOfFirst {
@@ -251,22 +249,24 @@ class ExpressionEvaluation(
         val upperLimit = start.plus(length).value - 1
         if (lowerLimit > index || upperLimit < index) index = -1
 
-        return if (index == -1) 0.asValue() else (index + 1).asValue()
+        return@proxyLogging if (index == -1) 0.asValue() else (index + 1).asValue()
     }
 
-    override fun eval(expression: ArrayAccessExpr): Value {
+    override fun eval(expression: ArrayAccessExpr): Value = proxyLogging(expression) {
         val arrayValueRaw = expression.array.evalWith(this)
         val arrayValue = arrayValueRaw as? ArrayValue
             ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
         val indexValue = expression.index.evalWith(this)
-        return arrayValue.getElement(indexValue.asInt().value.toInt())
+        arrayValue.getElement(indexValue.asInt().value.toInt())
     }
 
-    override fun eval(expression: HiValExpr) = HiValValue
-    override fun eval(expression: LowValExpr) = LowValValue
-    override fun eval(expression: ZeroExpr) = ZeroValue
-    override fun eval(expression: AllExpr) = AllValue(eval(expression.charsToRepeat).asString().value)
-    override fun eval(expression: TranslateExpr): Value {
+    override fun eval(expression: HiValExpr) = proxyLogging(expression) { HiValValue } as HiValValue
+    override fun eval(expression: LowValExpr) = proxyLogging(expression) { LowValValue } as LowValValue
+    override fun eval(expression: ZeroExpr) = proxyLogging(expression) { ZeroValue } as ZeroValue
+    override fun eval(expression: AllExpr) = proxyLogging(expression) {
+        AllValue(eval(expression.charsToRepeat).asString().value)
+    } as AllValue
+    override fun eval(expression: TranslateExpr): Value = proxyLogging(expression) {
         val originalChars = expression.from.evalWith(this).asString().value
         val newChars = expression.to.evalWith(this).asString().value
         val start = expression.startPos.evalWith(this).asInt().value.toInt()
@@ -282,42 +282,44 @@ class ExpressionEvaluation(
         substitutionMap.forEach {
             right = right.replace(it.key, it.value)
         }
-        return StringValue(pair.first + right)
+        StringValue(pair.first + right)
     }
 
-    override fun eval(expression: LogicalAndExpr): Value {
+    override fun eval(expression: LogicalAndExpr): Value = proxyLogging(expression) {
         val left = evalAsBoolean(expression.left)
-        return if (left) {
+        return@proxyLogging if (left) {
             expression.right.evalWith(this)
         } else {
             BooleanValue.FALSE
         }
     }
 
-    override fun eval(expression: LogicalOrExpr): Value {
+    override fun eval(expression: LogicalOrExpr): Value = proxyLogging(expression) {
         val left = evalAsBoolean(expression.left)
-        return if (left) {
+        return@proxyLogging if (left) {
             BooleanValue.TRUE
         } else {
             expression.right.evalWith(this)
         }
     }
 
-    override fun eval(expression: LogicalCondition): Value {
+    override fun eval(expression: LogicalCondition): Value = proxyLogging(expression) {
         if (expression.ands.any { !evalAsBoolean(it) } && !expression.ors.any { evalAsBoolean(it) }) {
-            return BooleanValue.FALSE
+            return@proxyLogging BooleanValue.FALSE
         }
 
         if (evalAsBoolean(expression.expression)) {
-            return BooleanValue.TRUE
+            return@proxyLogging BooleanValue.TRUE
         }
 
-        return BooleanValue(expression.ors.any { evalAsBoolean(it) })
+        BooleanValue(expression.ors.any { evalAsBoolean(it) })
     }
 
-    override fun eval(expression: OnRefExpr) = BooleanValue.TRUE
-    override fun eval(expression: NotExpr) = BooleanValue(!evalAsBoolean(expression.base))
-    override fun eval(expression: ScanExpr): Value {
+    override fun eval(expression: OnRefExpr) = proxyLogging(expression) { BooleanValue.TRUE } as BooleanValue
+    override fun eval(expression: NotExpr) = proxyLogging(expression) {
+        BooleanValue(!evalAsBoolean(expression.base))
+    } as BooleanValue
+    override fun eval(expression: ScanExpr): Value = proxyLogging(expression) {
         var startIndex = 0
         if (expression.start != null) {
             startIndex = expression.start.evalWith(this).asInt().value.toInt()
@@ -331,21 +333,22 @@ class ExpressionEvaluation(
             expression.source.evalWith(this).asString().value.substring(0, startIndex + length)
         } ?: expression.source.evalWith(this).asString().value
         val result = source.indexOf(value, startIndex)
-        return IntValue(if (result == -1) 0 else result.toLong() + 1)
+        IntValue(if (result == -1) 0 else result.toLong() + 1)
     }
-    override fun eval(expression: CheckExpr): Value {
-        var startpos = 0
+
+    override fun eval(expression: CheckExpr): Value = proxyLogging(expression) {
+        var startPos = 0
         if (expression.start != null) {
-            startpos = expression.start.evalWith(this).asInt().value.toInt()
-            if (startpos > 0) {
-                startpos -= 1
+            startPos = expression.start.evalWith(this).asInt().value.toInt()
+            if (startPos > 0) {
+                startPos -= 1
             }
         }
         val comparator = expression.value.evalWith(this).asString().value
         val base = expression.source.evalWith(this).asString().value.toCharArray()
 
         var result = 0
-        for (i in startpos until base.size) {
+        for (i in startPos until base.size) {
             val currChar = base[i]
             if (!comparator.contains(currChar)) {
                 result = i + 1
@@ -353,21 +356,21 @@ class ExpressionEvaluation(
             }
         }
 
-        return IntValue(result.toLong())
+        IntValue(result.toLong())
     }
 
-    override fun eval(expression: SubstExpr): Value {
+    override fun eval(expression: SubstExpr): Value = proxyLogging(expression) {
         val length = if (expression.length != null) expression.length.evalWith(this).asInt().value.toInt() else 0
         val start = expression.start.evalWith(this).asInt().value.toInt() - 1
         val originalString = expression.string.evalWith(this).asString().value
-        return if (length == 0) {
+        return@proxyLogging if (length == 0) {
             StringValue(originalString.padEnd(start + 1).substring(start))
         } else {
             StringValue(originalString.padEnd(start + length + 1).substring(start, start + length))
         }
     }
 
-    override fun eval(expression: SubarrExpr): Value {
+    override fun eval(expression: SubarrExpr): Value = proxyLogging(expression) {
         val start = expression.start.evalWith(this).asInt().value.toInt() - 1
         val numberOfElement: Int? = if (expression.numberOfElements != null) expression.numberOfElements.evalWith(this).asInt().value.toInt() else null
         val originalArray: ArrayValue = expression.array.evalWith(this).asArray()
@@ -376,11 +379,11 @@ class ExpressionEvaluation(
         } else {
             (start) + numberOfElement
         }
-        return originalArray.take(start, to)
+        originalArray.take(start, to)
     }
 
-    override fun eval(expression: LenExpr): Value {
-        return when (val value = expression.value.evalWith(this)) {
+    override fun eval(expression: LenExpr): Value = proxyLogging(expression) {
+        return@proxyLogging when (val value = expression.value.evalWith(this)) {
             is StringValue -> {
                 when (expression.value) {
                     is DataRefExpr -> {
@@ -447,23 +450,24 @@ class ExpressionEvaluation(
         }
     }
 
-    override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
+    override fun eval(expression: OffRefExpr) = proxyLogging(expression) { BooleanValue.FALSE } as BooleanValue
 
-    override fun eval(expression: NegationExpr): DecimalValue {
+    override fun eval(expression: NegationExpr): DecimalValue = proxyLogging(expression) {
         val value = expression.value1.evalWith(this).asDecimal().value
-        return DecimalValue(-value)
-    }
+        DecimalValue(-value)
+    } as DecimalValue
 
-    override fun eval(expression: IndicatorExpr): BooleanValue {
+    override fun eval(expression: IndicatorExpr): BooleanValue = proxyLogging(expression) {
         // if index is passed through expression, it means that it is a dynamic indicator
         val runtimeIndex = expression.indexExpression?.evalWith(this)?.asInt()?.value?.toInt() ?: expression.index
-        return interpreterStatus.indicator(runtimeIndex)
-    }
-    override fun eval(expression: FunctionCall): Value {
+        interpreterStatus.indicator(runtimeIndex)
+    } as BooleanValue
+
+    override fun eval(expression: FunctionCall): Value = proxyLogging(expression) {
         val functionToCall = expression.function.name
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
             ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        return FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
+        FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
             val paramsValues = expression.args.map {
                 if (it is DataRefExpr) {
                     FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
@@ -475,29 +479,29 @@ class ExpressionEvaluation(
         }
     }
 
-    override fun eval(expression: TimeStampExpr): Value {
+    override fun eval(expression: TimeStampExpr): Value = proxyLogging(expression) {
         if (expression.value == null) {
-            return TimeStampValue.now()
+            return@proxyLogging TimeStampValue.now()
         } else {
             val evaluated = expression.value.evalWith(this)
             if (evaluated is StringValue) {
-                return TimeStampValue.of(evaluated.value)
+                return@proxyLogging TimeStampValue.of(evaluated.value)
             }
             TODO("TimeStamp parsing: " + evaluated)
         }
     }
 
-    override fun eval(expression: EditcExpr): Value {
+    override fun eval(expression: EditcExpr): Value = proxyLogging(expression) {
         val n = expression.value.evalWith(this)
         val format = expression.format.evalWith(this)
         if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-        return n.asDecimal().formatAs(format.value, expression.value.type(), localizationContext.decedit)
+        n.asDecimal().formatAs(format.value, expression.value.type(), localizationContext.decedit)
     }
 
-    override fun eval(expression: DiffExpr): Value {
+    override fun eval(expression: DiffExpr): Value = proxyLogging(expression) {
         val v1 = expression.value1.evalWith(this)
         val v2 = expression.value2.evalWith(this)
-        return when (expression.durationCode) {
+        return@proxyLogging when (expression.durationCode) {
             is DurationInMSecs -> IntValue(
                 ChronoUnit.MICROS.between(
                     v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
@@ -536,7 +540,7 @@ class ExpressionEvaluation(
         }
     }
 
-    override fun eval(expression: DivExpr): Value {
+    override fun eval(expression: DivExpr): Value = proxyLogging(expression) {
         val v1 = expression.left.evalWith(this)
         val v2 = expression.right.evalWith(this)
         require(v1 is NumberValue && v2 is NumberValue)
@@ -569,17 +573,17 @@ class ExpressionEvaluation(
             v1.bigDecimal.divide(v2.bigDecimal, MathContext.DECIMAL128)
         }
         // TODO rounding and scale???
-        return DecimalValue(res)
+        DecimalValue(res)
     }
 
-    override fun eval(expression: ExpExpr): Value {
+    override fun eval(expression: ExpExpr): Value = proxyLogging(expression) {
         val v1 = expression.left.evalWith(this)
         val v2 = expression.right.evalWith(this)
-        return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
+        DecimalValue(BigDecimal(v1.asInt().value.toDouble().pow(v2.asInt().value.toDouble())))
     }
 
-    override fun eval(expression: TrimrExpr): Value {
-        return if (expression.charactersToTrim == null) {
+    override fun eval(expression: TrimrExpr): Value = proxyLogging(expression) {
+        return@proxyLogging if (expression.charactersToTrim == null) {
             StringValue(evalAsString(expression.value).trimEnd())
         } else {
             val suffix = evalAsString(expression.charactersToTrim)
@@ -591,83 +595,92 @@ class ExpressionEvaluation(
         }
     }
 
-    override fun eval(expression: TrimlExpr): Value {
-        if (expression.charactersToTrim == null) {
-            return StringValue(evalAsString(expression.value).trimStart())
+    override fun eval(expression: TrimlExpr): Value = proxyLogging(expression) {
+        return@proxyLogging if (expression.charactersToTrim == null) {
+            StringValue(evalAsString(expression.value).trimStart())
         } else {
             val prefix = evalAsString(expression.charactersToTrim)
             var result = evalAsString(expression.value)
             while (result.startsWith(prefix)) {
                 result = result.substringAfter(prefix)
             }
-            return StringValue(result)
+            StringValue(result)
         }
     }
 
-    override fun eval(expression: TrimExpr) = StringValue(evalAsString(expression.value).trim())
-    override fun eval(expression: FoundExpr): Value {
+    override fun eval(expression: TrimExpr) = proxyLogging(expression) {
+        StringValue(evalAsString(expression.value).trim())
+    } as StringValue
+    override fun eval(expression: FoundExpr): Value = proxyLogging(expression) {
         // TODO fix this bad implementation
         if (expression.name == null) {
-            return BooleanValue(interpreterStatus.lastFound)
+            return@proxyLogging BooleanValue(interpreterStatus.lastFound)
         }
         TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
     }
 
-    override fun eval(expression: EofExpr): Value {
-
+    override fun eval(expression: EofExpr): Value = proxyLogging(expression) {
         if (expression.name == null) {
-            return BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
+            return@proxyLogging BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
         }
         TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
     }
 
-    override fun eval(expression: EqualExpr): Value {
+    override fun eval(expression: EqualExpr): Value = proxyLogging(expression) {
         if (expression.name == null) {
-            return BooleanValue(interpreterStatus.lastDBFile?.equal() ?: false)
+            return@proxyLogging BooleanValue(interpreterStatus.lastDBFile?.equal() ?: false)
         }
         TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
     }
 
-    override fun eval(expression: AbsExpr): Value {
+    override fun eval(expression: AbsExpr): Value = proxyLogging(expression) {
         val value = evalAsDecimal(expression.value)
-        return DecimalValue(BigDecimal.valueOf(abs(value.toDouble())))
+        DecimalValue(BigDecimal.valueOf(abs(value.toDouble())))
     }
 
-    override fun eval(expression: EditwExpr): Value {
+    override fun eval(expression: EditwExpr): Value = proxyLogging(expression) {
         val n = expression.value.evalWith(this)
         val format = evalAsString(expression.format)
-        return n.asDecimal().formatAsWord(format, expression.value.type())
+        n.asDecimal().formatAsWord(format, expression.value.type())
     }
 
-    override fun eval(expression: IntExpr): Value =
-        when (val value = expression.value.evalWith(this)) {
+    override fun eval(expression: IntExpr): Value = proxyLogging(expression) {
+        return@proxyLogging when (val value = expression.value.evalWith(this)) {
             is StringValue ->
                 IntValue(cleanNumericString(value.value).asLong())
+
             is DecimalValue ->
                 value.asInt()
+
             is UnlimitedStringValue ->
                 IntValue(cleanNumericString(value.value).asLong())
+
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
         }
+    }
 
-    override fun eval(expression: InthExpr): Value =
+    override fun eval(expression: InthExpr): Value = proxyLogging(expression) {
         when (val value = expression.value.evalWith(this)) {
             is StringValue ->
                 IntValue(value.value.toDouble().roundToLong())
+
             is DecimalValue ->
                 IntValue(value.value.toDouble().roundToLong())
+
             is UnlimitedStringValue ->
                 IntValue(value.value.toDouble().roundToLong())
+
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INTH")
         }
-
-    override fun eval(expression: RemExpr): Value {
-        val n = evalAsLong(expression.dividend)
-        val m = evalAsLong(expression.divisor)
-        return IntValue(n % m)
     }
 
-    override fun eval(expression: QualifiedAccessExpr): Value {
+    override fun eval(expression: RemExpr): Value = proxyLogging(expression) {
+        val n = evalAsLong(expression.dividend)
+        val m = evalAsLong(expression.divisor)
+        IntValue(n % m)
+    }
+
+    override fun eval(expression: QualifiedAccessExpr): Value = proxyLogging(expression) {
         val dataStringValue = when (val value = expression.container.evalWith(this)) {
             is DataStructValue -> {
                 value
@@ -676,16 +689,15 @@ class ExpressionEvaluation(
             is OccurableDataStructValue -> {
                 value.value()
             }
-
             else -> {
                 throw ClassCastException(value::class.java.name)
             }
         }
-        return dataStringValue[expression.field.referred
+        return@proxyLogging dataStringValue[expression.field.referred
             ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
     }
 
-    override fun eval(expression: ReplaceExpr): Value {
+    override fun eval(expression: ReplaceExpr): Value = proxyLogging(expression) {
         val replacement = evalAsString(expression.replacement)
         val sourceString = evalAsString(expression.source)
         val replacementLength: Int = replacement.length
@@ -712,41 +724,39 @@ class ExpressionEvaluation(
             }
         }
         // truncated if length is greater than type.elementSize
-        return if (result.length > expression.source.type().elementSize()) {
+        return@proxyLogging if (result.length > expression.source.type().elementSize()) {
             StringValue(result.substring(0, expression.source.type().elementSize()), expression.source.type().hasVariableSize())
         } else {
             StringValue(result, expression.source.type().hasVariableSize())
         }
     }
 
-    override fun eval(expression: SqrtExpr): Value {
+    override fun eval(expression: SqrtExpr): Value = proxyLogging(expression) {
         val value = evalAsDecimal(expression.value)
-        return DecimalValue(BigDecimal.valueOf(sqrt(value.toDouble())))
+        DecimalValue(BigDecimal.valueOf(sqrt(value.toDouble())))
     }
 
     override fun eval(expression: AssignmentExpr) =
         throw RuntimeException("AssignmentExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: GlobalIndicatorExpr): Value {
+    override fun eval(expression: GlobalIndicatorExpr): Value = proxyLogging(expression) {
         val value = StringBuilder()
         for (i in IndicatorType.Predefined.range) {
             value.append(if (interpreterStatus.indicators[i] == null) "0" else if (interpreterStatus.indicators[i]!!.value) "1" else "0")
         }
-        return StringValue(value.toString())
+        StringValue(value.toString())
     }
 
-    override fun eval(expression: ParmsExpr): Value {
-        return IntValue(interpreterStatus.params.toLong())
-    }
+    override fun eval(expression: ParmsExpr): Value = proxyLogging(expression) { IntValue(interpreterStatus.params.toLong()) }
 
-    override fun eval(expression: OpenExpr): Value {
+    override fun eval(expression: OpenExpr): Value = proxyLogging(expression) {
         val name = expression.name
         require(name != null) {
             "Line ${expression.position?.line()} - %OPEN require a table name"
         }
         val enrichedDBFile = interpreterStatus.dbFileMap.get(name)
             ?: throw RuntimeException("Table $name cannot be found (${expression.position.line()})")
-        return BooleanValue(enrichedDBFile.open)
+        BooleanValue(enrichedDBFile.open)
     }
 
     private fun cleanNumericString(s: String): String {
@@ -756,5 +766,46 @@ class ExpressionEvaluation(
             result.contains(",") -> result.substringBefore(",")
             else -> result
         }
+    }
+
+    private fun sum(left: ArrayValue, right: ArrayValue, position: Position?): ArrayValue {
+        val listValue = when {
+            left.elementType is StringType && right.elementType is StringType ->
+                left.elements().mapIndexed { i: Int, v: Value ->
+                    if (right.elements().size > i) {
+                        val rightElement = right.getElement(i + 1)
+
+                        val valueToAdd: String = if (v.asString().varying) {
+                            (v.asString().value + rightElement.asString().value)
+                        } else {
+                            (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + rightElement.asString().value)
+                        }
+                        StringValue(valueToAdd, left.elementType.hasVariableSize())
+                    } else {
+                        v
+                    }
+                }
+            left.elementType is NumberType && right.elementType is NumberType ->
+                left.elements().mapIndexed { i: Int, v: Value ->
+                    if (right.elements().size > i) {
+                        val rightElement = right.getElement(i + 1)
+                        when {
+                            v is IntValue && rightElement is IntValue -> {
+                                (v + rightElement)
+                            }
+
+                            v is NumberValue && rightElement is NumberValue -> {
+                                DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
+                            }
+
+                            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
+                        }
+                    } else {
+                        v
+                    }
+                }
+            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
+        } as MutableList<Value>
+        return ConcreteArrayValue(listValue, left.elementType)
     }
 }

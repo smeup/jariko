@@ -774,8 +774,6 @@ open class InternalInterpreter(
     }
 
     override fun eval(expression: Expression): Value {
-        val start = System.nanoTime()
-
         val value = when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -783,13 +781,9 @@ open class InternalInterpreter(
             else -> expression.evalWith(expressionEvaluation)
         }
 
-        val elapsed = (System.nanoTime() - start).nanoseconds
-
         val programName = this.interpretationContext.currentProgramName
-        MainExecutionContext.getAnalyticsLoggingContext()?.recordExpressionExecution(programName, expression.loggableEntityName, elapsed)
         val sourceProvider = { LogSourceData(programName, expression.startLine()) }
         renderLogInternal { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
-        renderLogInternal { LazyLogEntry.producePerformance(sourceProvider, expression.loggableEntityName, elapsed) }
 
         return value
     }
