@@ -156,8 +156,8 @@ open class BaseCompileTimeInterpreter(
             when {
                 it.fspec_fixed() != null -> {
                     val size = it.fspec_fixed().runParserRuleContext(conf) { context ->
-                        kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
-                    }?.second?.find { it.name.equals(declName, ignoreCase = true) }?.elementSize()
+                        kotlin.runCatching { context.toAst(conf).let { fileDefinition -> fileDefinition.toDataDefinitions() } }.getOrNull()
+                    }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.elementSize()
                     if (size != null) return size
                 }
                 it.dspec() != null -> {
@@ -242,8 +242,8 @@ open class BaseCompileTimeInterpreter(
                 when {
                     it.fspec_fixed() != null -> {
                         val type = it.fspec_fixed().runParserRuleContext(conf) { context ->
-                            kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
-                        }?.second?.find { it.name.equals(declName, ignoreCase = true) }?.type
+                            kotlin.runCatching { context.toAst(conf).let { fileDefinition -> fileDefinition.toDataDefinitions() } }.getOrNull()
+                        }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.type
                         if (type != null) return type
                     }
                     it.dcl_ds() != null -> {
