@@ -84,7 +84,7 @@ open class MULANGT12LoopFlowGotoTest : MULANGTTest() {
      */
     @Test
     fun executeMU120905() {
-        val expected = listOf("A09_N1: 11")
+        val expected = listOf("A09_N2: 11")
         assertEquals(expected, "smeup/MU120905".outputOf())
     }
 
@@ -93,7 +93,7 @@ open class MULANGT12LoopFlowGotoTest : MULANGTTest() {
      */
     @Test
     fun executeMU120906() {
-        val expected = listOf("A09_N1: 10")
+        val expected = listOf("A09_N2: 10")
         assertEquals(expected, "smeup/MU120906".outputOf())
     }
 }
