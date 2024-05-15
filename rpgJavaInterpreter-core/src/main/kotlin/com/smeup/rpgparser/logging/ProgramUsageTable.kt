@@ -18,6 +18,7 @@ class ProgramUsageStats {
         EnumMap(SymbolTableAction::class.java)
     }
     val nestedStatements: HashMap<String, UsageMeasurement> by lazy { hashMapOf() }
+    val nestedExpressions: HashMap<String, UsageMeasurement> by lazy { hashMapOf() }
 }
 
 typealias ProgramUsageTable = HashMap<String, ProgramUsageStats>
@@ -41,6 +42,17 @@ fun ProgramUsageTable.recordNestedStatement(program: String, scope: Stack<String
     val path = "${scope.joinToString(separator = "/")}/$entity"
     val measurement = programStats.nestedStatements.getOrDefault(path, UsageMeasurement.new())
     programStats.nestedStatements[path] = measurement.hit(time)
+}
+
+/**
+ * Records the execution of a nested expression.
+ * @see ILoggableExpression
+ */
+fun ProgramUsageTable.recordNestedExpression(program: String, scope: Stack<String>, time: Duration) {
+    val programStats = this.getOrPut(program) { ProgramUsageStats() }
+    val path = scope.joinToString(separator = "->")
+    val measurement = programStats.nestedExpressions.getOrDefault(path, UsageMeasurement.new())
+    programStats.nestedExpressions[path] = measurement.hit(time)
 }
 
 /**
@@ -95,6 +107,25 @@ fun ProgramUsageTable.generateNestedStatementLogEntries(program: String): Sequen
         val hit = it.value.hit
 
         val entry = LogEntry({ LogSourceData.fromProgram(program) }, LogChannel.ANALYTICS.getPropertyName(), "NESTED STMT TIME")
+        LazyLogEntry(entry) { sep ->
+            "$statementName$sep${duration.inWholeMicroseconds}${sep}$hit"
+        }
+    }
+}
+
+/**
+ * Generate an ANALYTICS nested expression usage report in the form of a sequence of LazyLogEntry.
+ * @see LazyLogEntry
+ */
+fun ProgramUsageTable.generateNestedExpressionLogEntries(program: String): Sequence<LazyLogEntry> {
+    val stats = this[program] ?: return emptySequence()
+
+    return stats.nestedExpressions.asSequence().map {
+        val statementName = it.key
+        val duration = it.value.duration
+        val hit = it.value.hit
+
+        val entry = LogEntry({ LogSourceData.fromProgram(program) }, LogChannel.ANALYTICS.getPropertyName(), "NESTED EXPR TIME")
         LazyLogEntry(entry) { sep ->
             "$statementName$sep${duration.inWholeMicroseconds}${sep}$hit"
         }

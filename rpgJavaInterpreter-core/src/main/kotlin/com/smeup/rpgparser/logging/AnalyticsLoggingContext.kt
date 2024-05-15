@@ -17,11 +17,17 @@ class AnalyticsLoggingContext {
     private var interpretationTimeMeasurement = UsageMeasurement.new()
 
     private val statementScope = Stack<String>()
+    private val expressionScope = Stack<String>()
 
     /**
      * Checks whether we are in a CompositeStatement scope or not.
      */
     val isExecutingCompositeStatement get() = statementScope.isNotEmpty()
+
+    /**
+     * Checks whether we are executing an expression or not.
+     */
+    val isExecutingExpression get() = expressionScope.isNotEmpty()
 
     /**
      * Records the beginning of the execution of a CompositeStatement.
@@ -32,6 +38,16 @@ class AnalyticsLoggingContext {
      * Records the end of the execution of a CompositeStatement.
      */
     fun exitCompositeStatement() { statementScope.pop() }
+
+    /**
+     * Records the beginning of the execution of an expression.
+     */
+    fun enterExpression(entity: String) { expressionScope.push(entity) }
+
+    /**
+     * Records the end of the execution of an expression.
+     */
+    fun exitExpression() { expressionScope.pop() }
 
     /**
      * Records log rendering duration.
@@ -76,6 +92,13 @@ class AnalyticsLoggingContext {
         programUsageTable.recordNestedStatement(program, statementScope, entity, time)
 
     /**
+     * Records the execution of a nested expression from the current expression scope state.
+     * @see ILoggableExpression
+     */
+    fun recordNestedExpressionExecutionFromScope(program: String, time: Duration) =
+        programUsageTable.recordNestedExpression(program, expressionScope, time)
+
+    /**
      * Generate an ANALYTICS report based on currently collected metadata in the form
      * of a list of LazyLogEntry.
      * @see LazyLogEntry
@@ -85,6 +108,7 @@ class AnalyticsLoggingContext {
         val expressionEntries = mutableListOf<LazyLogEntry>()
         val symbolTableEntries = mutableListOf<LazyLogEntry>()
         val nestedStatementEntries = mutableListOf<LazyLogEntry>()
+        val nestedExpressionEntries = mutableListOf<LazyLogEntry>()
 
         programUsageTable.asSequence().forEach {
             val program = it.key
@@ -92,17 +116,19 @@ class AnalyticsLoggingContext {
             val expression = programUsageTable.generateExpressionLogEntries(program)
             val symTable = programUsageTable.generateSymbolTableLogEntries(program)
             val nestedStatement = programUsageTable.generateNestedStatementLogEntries(program)
+            val nestedExpression = programUsageTable.generateNestedExpressionLogEntries(program)
 
             statementEntries.addAll(statement)
             expressionEntries.addAll(expression)
             symbolTableEntries.addAll(symTable)
             nestedStatementEntries.addAll(nestedStatement)
+            nestedExpressionEntries.addAll(nestedExpression)
         }
 
         val logTimeEntry = generateLogTimeReportEntry()
         val interpretationTimeEntry = generateInterpretationReportEntry()
 
-        return statementEntries + expressionEntries + symbolTableEntries + nestedStatementEntries + logTimeEntry + interpretationTimeEntry
+        return statementEntries + expressionEntries + symbolTableEntries + nestedStatementEntries + nestedExpressionEntries + logTimeEntry + interpretationTimeEntry
     }
 
     private fun generateLogTimeReportEntry(): LazyLogEntry {
