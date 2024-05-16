@@ -63,6 +63,8 @@ sealed class Type {
         throw IllegalStateException("Not an ArrayType")
     }
     open fun hasVariableSize() = false
+
+    open fun isNumeric() = false
 }
 
 @Serializable
@@ -153,6 +155,8 @@ object HiValType : Type() {
         get() = throw IllegalStateException("Has variable size")
 
     override fun hasVariableSize() = true
+
+    override fun isNumeric() = true
 }
 
 @Serializable
@@ -161,6 +165,8 @@ object LowValType : Type() {
         get() = throw IllegalStateException("Has variable size")
 
     override fun hasVariableSize() = true
+
+    override fun isNumeric() = true
 }
 
 @Serializable
@@ -242,6 +248,8 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
             return false
         }
     }
+
+    override fun isNumeric() = true
 }
 
 @Serializable

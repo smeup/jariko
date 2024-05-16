@@ -74,11 +74,7 @@ internal fun Node.error(message: String? = null, cause: Throwable? = null): Noth
             cause?.let { cause }
         )
     }.let { error ->
-        if (this is CompilationUnit) {
-            throw error
-        } else {
-            throw error.fireErrorEvent(this.position)
-        }
+        throw error.fireErrorEvent(this.position)
     }
 }
 
@@ -170,6 +166,12 @@ internal fun ParserRuleContext.require(value: Boolean, lazyMessage: () -> String
 }
 
 internal fun checkAstCreationErrors(phase: AstHandlingPhase) {
+    // If the parsing program stack is greater than 1, it means: I am parsing an API.
+    // The errors inside API must never be blocking else I run the risk
+    // to skip all errors related to the main program occurring after the API inclusions
+    if (MainExecutionContext.getParsingProgramStack().size > 1) {
+        return
+    }
     if (getAstCreationErrors().isNotEmpty()) {
         if (MainExecutionContext.getConfiguration().options?.toAstConfiguration?.afterPhaseErrorContinue?.invoke(phase) != true) {
             throw getAstCreationErrors()[0]

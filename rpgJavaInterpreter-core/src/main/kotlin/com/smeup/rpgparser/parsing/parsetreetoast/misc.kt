@@ -125,7 +125,10 @@ private fun RContext.getDataDefinitions(
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(
+                            conf = conf,
+                            dataDefinitionProviders = dataDefinitionProviders)
+                        )
                     }
                     it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
                         fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
@@ -164,7 +167,7 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     if (internalFormatName == null) internalFormatName = metadata.tableName
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
-            dbField.toDataDefinition(prefix).apply {
+            dbField.toDataDefinition(prefix = prefix, position = position).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
         }
@@ -234,7 +237,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    }
+    }.flatten()
     checkAstCreationErrors(phase = AstHandlingPhase.DirectivesCreation)
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
@@ -246,21 +249,18 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
     checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
-    // If none of 'rpg procedures', add only any 'fake procedures'.
-    // If any 'rpg procedures' exists, add any 'fake procedures' too.
-    val fakeProcedures = getFakeProcedures(rContext = this,
+    val procerurePrototypes = getProcerurePrototypes(rContext = this,
         conf = conf,
         dataDefinitions = dataDefinitions,
-        mainStmts = mainStmts,
         procedures = procedures
     )
 
     if (null == procedures) {
-        if (!fakeProcedures.isEmpty()) {
-            procedures = fakeProcedures
+        if (!procerurePrototypes.isEmpty()) {
+            procedures = procerurePrototypes
         }
     } else {
-        (procedures as ArrayList).addAll(fakeProcedures)
+        (procedures as ArrayList).addAll(procerurePrototypes)
     }
 
     return CompilationUnit(
@@ -286,72 +286,40 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }.postProcess()
 }
 
-private fun getFakeProcedures(
+private fun getProcerurePrototypes(
     rContext: RContext,
     conf: ToAstConfiguration,
     dataDefinitions: List<DataDefinition>,
-    mainStmts: List<Statement>,
     procedures: List<CompilationUnit>?
 ): List<CompilationUnit> {
-    // If any of the 'non rpgle standard' procedures (only prototype definition 'PR' and missing
-    // the procedure implementation) should be the 'doped java procedure' case.
-    // Needed to create a 'fake procedure' to be able to get 'ProcedureParameterDataDefinition'.
-    // 1. get names of all prototype definitions
-    // 2. match names with related procedure implementation to remove any 'not real fake prototype'
-    // 3. any missing match, will generate a fake procedure
-    val fakePrototypeNames = mutableMapOf<String, ArrayList<DataDefinition>>()
-    rContext.children.forEach {
-        if (it is Dcl_prContext) {
-            var fakePrototypeName = ""
-            val fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
-            if (rContext.children[0] is Dcl_prContext) {
-                (rContext.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
-                    val fakePrototypeDataDefinition: DataDefinition
-                    if (index == 0) {
-                        fakePrototypeName =
-                            (element as PrBeginContext).ds_name().NAME().text
-                    } else {
-                        val parmFixed = ((rContext.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
-                        var paramPassedBy = ParamPassedBy.Reference
-                        val paramOptions = mutableListOf<ParamOption>()
-                        parmFixed
-                            .keyword()
-                            .forEach { it ->
-                                if (it.keyword_const() != null) {
-                                    paramPassedBy = ParamPassedBy.Const
-                                } else if (it.keyword_value() != null) {
-                                    paramPassedBy = ParamPassedBy.Value
-                                }
-                                if (it.keyword_options() != null) {
-                                    it.keyword_options().identifier().forEach {
-                                        val keyword = it.free_identifier().idOrKeyword().ID().toString()
-                                        val paramOption = ParamOption.getByKeyword(keyword)
-                                        (paramOptions as ArrayList).add(paramOption)
-                                    }
-                                }
-                            }
-                        fakePrototypeDataDefinition =
-                            parmFixed.toAst(conf, dataDefinitions.toList())
-                        fakePrototypeDataDefinition.paramPassedBy = paramPassedBy
-                        fakePrototypeDataDefinition.paramOptions = paramOptions
-                        fakePrototypeDataDefinitions.add(fakePrototypeDataDefinition)
-                    }
-                }
-                // Add only 'real fake prototype', if any RPG procedure exists yet
-                // the 'fake prototype' with same name mustn't be added.
-                if (null == procedures || (!procedures.map { cu -> cu.procedureName }.contains(fakePrototypeName))) {
-                    fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
-                }
-            }
-        }
-    }
+    /*
+     * Could be prototype procedures definition. The construction is performed:
+     * 1. filtering by procedures without concrete implementation;
+     * 2. preparing fake procedure
+     */
+    val prototypeProcedures: Map<String, List<DataDefinition>> =
+        rContext.children
+            .filterIsInstance<Dcl_prContext>()
+            .filter { procedures?.firstOrNull { p -> p.procedureName == it.getName() } == null }
+            .associate { it ->
+                val procedureName: String = it.children.firstOrNull { it is PrBeginContext }.let { (it as PrBeginContext).ds_name().NAME().text }
+                val procedureDataDefinitions = it.children.filterIsInstance<Parm_fixedContext>().map {
+                    val dataDefinition: DataDefinition = it.toAst(conf, dataDefinitions.toList())
+                    dataDefinition.paramPassedBy = it.getParamPassedBy()
+                    dataDefinition.paramOptions = it.getParamOptions()
 
-    // Create 'fake procedures' related only to 'fake prototype names'
-    return fakePrototypeNames.map {
+                    dataDefinition
+                }
+
+                procedureName to procedureDataDefinitions
+            }
+            .toMap()
+
+    return prototypeProcedures.map {
         CompilationUnit(
             fileDefinitions = emptyList(),
             dataDefinitions = emptyList(),
-            MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+            main = MainBody(emptyList()),
             subroutines = emptyList(),
             compileTimeArrays = emptyList(),
             directives = emptyList(),
@@ -360,6 +328,38 @@ private fun getFakeProcedures(
             procedureName = it.key,
             proceduresParamsDataDefinitions = it.value
         )
+    }
+}
+
+/**
+ * Gets the name of procedure
+ */
+private fun Dcl_prContext.getName(): String = this.children.firstOrNull { it is PrBeginContext }.let { (it as PrBeginContext).ds_name().NAME().text }
+
+/**
+ * Gets how the param is passed. If isn't set Const or Value, the param is passed by Reference.
+ */
+private fun Parm_fixedContext.getParamPassedBy(): ParamPassedBy {
+    var paramPassedBy = ParamPassedBy.Reference
+    this.keyword().forEach {
+        if (it.keyword_const() != null) {
+            paramPassedBy = ParamPassedBy.Const
+        } else if (it.keyword_value() != null) {
+            paramPassedBy = ParamPassedBy.Value
+        }
+    }
+    return paramPassedBy
+}
+
+/**
+ * Get a list of param options, if they exist.
+ */
+private fun Parm_fixedContext.getParamOptions(): List<ParamOption> {
+    return this.keyword().filter { it.keyword_options() != null }.flatMap { it ->
+        it.keyword_options().identifier().map {
+            val keyword = it.free_identifier().idOrKeyword().ID().toString()
+            ParamOption.getByKeyword(keyword)
+        }
     }
 }
 
@@ -552,7 +552,11 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                         }
                         it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
                             DataDefinitionCalculator(
-                                it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders)
+                                it.statement().dcl_ds().toAstWithLikeDs(
+                                    conf = conf,
+                                    dataDefinitionProviders = dataDefinitionProviders,
+                                    parentDataDefinitions = parentDataDefinitions
+                                )
                             )
                         }
                         else -> null
@@ -924,6 +928,15 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csFEOD() != null -> this.csFEOD()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csBITON() != null -> this.csBITON()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csBITOFF() != null -> this.csBITOFF()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csTESTN() != null -> this.csTESTN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -1015,7 +1028,14 @@ internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val fields = this.csKFLD().map {
         it.cspec_fixed_standard_parts().result.text
     }
-    return KListStmt(factor1, fields, position)
+
+    val dataDefinitions = this.csKFLD().mapNotNull {
+        val parts = it.cspec_fixed_standard_parts()
+        val name = parts.result.text
+        parts.toDataDefinition(name, position, conf)
+    }
+
+    return KListStmt(factor1, fields, dataDefinitions, position)
 }
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
@@ -2001,10 +2021,36 @@ internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     return UnlockStmt(position)
 }
 
+internal fun CsTESTNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TestnStmt {
+    val position = toPosition(conf.considerPosition)
+    val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return TestnStmt(resultExpression, dataDefinition, cspec_fixed_standard_parts().rightIndicators(), position)
+}
+
 // TODO
 internal fun CsFEODContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return FeodStmt(position)
+}
+
+// TODO
+internal fun CsBITONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return BitOnStmt(
+        dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
+        position = position
+    )
+}
+
+// TODO
+internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return BitOffStmt(
+        dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
+        position = position
+    )
 }
 
 /**

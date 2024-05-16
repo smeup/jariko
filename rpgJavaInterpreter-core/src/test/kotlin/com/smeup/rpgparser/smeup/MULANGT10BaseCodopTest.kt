@@ -73,4 +73,43 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("CALL_1(          , 1, MULANGTB10:  chiamata 1                           )")
         assertEquals(expected, "smeup/T10_A60_P10".outputOf())
     }
+
+    /**
+     * Utilization of `LIKEDS` with a `DataDefinition` defined in parent.
+     * @see #271
+     */
+    @Test
+    fun executeMU108006() {
+        val expected = listOf("ScritturaInProcedura")
+        assertEquals(expected, "smeup/MU108006".outputOf())
+    }
+
+    /**
+     * Inline definition on KFLD
+     * @see #276
+     */
+    @Test
+    fun executeMU105501() {
+        val expected = listOf("ABCDEFGHIL, 12")
+        assertEquals(expected, "smeup/MU105501".outputOf())
+    }
+
+    /**
+     * CALL with params defined in line and in D-spec
+     * @see #278
+     */
+    @Test
+    fun executeMU106011() {
+        val expected = listOf("CALL(mod:inp   )")
+        assertEquals(expected, "smeup/MU106011".outputOf())
+    }
+
+    /**
+     * TESTN
+     */
+    @Test
+    fun executeMU102501() {
+        val expected = listOf("51=1,52=0,53=0")
+        assertEquals(expected, "smeup/MU102501".outputOf())
+    }
 }

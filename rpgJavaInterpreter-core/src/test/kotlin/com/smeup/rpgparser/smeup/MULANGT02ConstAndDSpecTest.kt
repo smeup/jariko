@@ -5,6 +5,24 @@ import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     /**
+     * /COPY recognized in CTDATA
+     * @see #268
+     */
+    @Test
+    fun executeMU023007() {
+        val expected = listOf("/COPY in prima posizione                          ;/copy in prima posizione in minuscolo             ;Prova alla fine del testo /COPY                   ;Prova alla fine del testo in minuscolo /copy      ;Prova con /COPY in mezzo al testo                 ;Prova con /copy in mezzo al testo in minuscolo")
+        assertEquals(expected, "smeup/MU023007".outputOf())
+    }
+    /**
+     * /COPY recognized in CTDATA
+     * @see #269
+     */
+    @Test
+    fun executeMU023008() {
+        val expected = listOf("Prova /COPY                                       ;Prova /COPY numero                                ;Prova /COPY 12                                    ;      /COPY QILEGEN, AAA")
+        assertEquals(expected, "smeup/MU023008".outputOf())
+    }
+    /**
      * Data reference - DS with 2 arrays defined with overlay
      * @see #247
      */
@@ -32,6 +50,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeT02_A40_P05() {
         val expected = listOf("333,zz")
         assertEquals(expected, "smeup/T02_A40_P05".outputOf())
+    }
+
+    /**
+     * Definition with both Like and Overlay.
+     * @see #266
+     */
+    @Test
+    fun executeT02_A40_P11() {
+        val expected = listOf("CNCLICNCLICNFORCNFORCNCOLCNCOL")
+        assertEquals(expected, "smeup/T02_A40_P11".outputOf())
     }
 
     /**
@@ -82,5 +110,52 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeT02_A80_P06() {
         val expected = listOf("1")
         assertEquals(expected, "smeup/T02_A80_P06".outputOf())
+    }
+
+    /**
+     * ###################
+     * ATOMIC TEST SECTION
+     * ###################
+     */
+
+    /**
+     * Definition with both Like and Overlay.
+     * @see #266
+     */
+    @Test
+    fun executeMU021008() {
+        val expected = listOf("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        assertEquals(expected, "smeup/MU021008".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Definition with both Like and Overlay.
+     * @see #266
+     */
+    @Test
+    fun executeMU024011() {
+        val expected = listOf("CNCLICNCLICNFORCNFORCNCOLCNCOL")
+        assertEquals(expected, "smeup/MU024011".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Definition with Like to a variable defined also with like.
+     * @see #160
+     */
+    @Test
+    fun executeMU025002() {
+        val expected = listOf("A50_A3(       ) A50_A4(       )")
+        assertEquals(expected, "smeup/MU025002".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data definition with `Z` RPG type and resolution of inline definition,
+     *  from DEFINE that uses *LIKE, from data definition of a subroutine defined in main.
+     * @see #269
+     */
+    @Test
+    fun executeMU025014() {
+        val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
+        assertEquals(expected, "smeup/MU025014".outputOf(configuration = smeupConfig))
     }
 }

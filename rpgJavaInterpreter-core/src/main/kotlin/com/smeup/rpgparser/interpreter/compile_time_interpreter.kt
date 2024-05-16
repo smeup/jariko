@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.Cspec_fixedContext
+import com.smeup.rpgparser.RpgParser.Parm_fixedContext
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
@@ -233,6 +234,10 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
+                    it.dcl_ds() != null -> {
+                        val type = it.dcl_ds().parm_fixed().find { it.ds_name().text.equals(declName, ignoreCase = true) }?.findType(conf)
+                        if (type != null) return type
+                    }
                     it.dspec() != null -> {
                         val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
                         if (declName.equals(name, ignoreCase = true)) {
@@ -267,11 +272,15 @@ open class BaseCompileTimeInterpreter(
         if (ast is StatementThatCanDefineData) {
             val dataDefinition = ast.dataDefinition()
             dataDefinition.forEach {
-                if (it.name.asValue().value == declName) {
+                if (it.name == declName) {
                     return it.type
                 }
             }
         }
         return null
+    }
+
+    private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type? {
+        return this.toAst(conf, emptyList()).type
     }
 }

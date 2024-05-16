@@ -159,7 +159,7 @@ keyword_likerec : KEYWORD_LIKEREC OPEN_PAREN intrecname=simpleExpression
 	(COLON (SPLAT_ALL | SPLAT_INPUT | SPLAT_OUTPUT | SPLAT_KEY))?
 	CLOSE_PAREN; 
 keyword_noopt : KEYWORD_NOOPT;
-keyword_occurs : KEYWORD_OCCURS OPEN_PAREN (numeric_constant=number | function | identifier) CLOSE_PAREN; 
+keyword_occurs : KEYWORD_OCCURS OPEN_PAREN ((numeric_constant=number | function | identifier)|(expr=expression)) CLOSE_PAREN;
 keyword_opdesc : KEYWORD_OPDESC;
 keyword_options : KEYWORD_OPTIONS OPEN_PAREN identifier (COLON identifier)* CLOSE_PAREN; 
 keyword_overlay : KEYWORD_OVERLAY OPEN_PAREN name=simpleExpression (COLON (SPLAT_NEXT | pos=simpleExpression))? CLOSE_PAREN; 
@@ -394,10 +394,11 @@ onError:
 	statement*
 ;
 selectstatement:
-	beginselect
-	whenstatement*
+    (beginselect endselect) |
+	(beginselect
+	whenstatement+
 	other?
-	endselect
+	endselect)
 ;
 
 other:
@@ -439,9 +440,10 @@ when:
 	indicators=cs_indicators 
 	factor1=factor 
 	csWHEN
+	andConds=csANDxx*
+    orConds=csORxx*
 	)
 	| (op_when FREE_SEMI free_linecomments? )
-	statement*
 ;
 csWHENxx:
 CS_FIXED
@@ -1755,7 +1757,7 @@ csOperationAndExtendedFactor2:
 	// operation=OP_EVAL
 
 	//|operation=OP_IF
-	|operation=OP_CALLP operationExtender=cs_operationExtender?
+	operation=OP_CALLP operationExtender=cs_operationExtender?
 	//|operation=OP_DOW
 	//|operation=OP_ELSEIF
 	;
@@ -1843,18 +1845,20 @@ MatchingRecordIndicator
 | BlankIndicator;
 
 hspec_fixed: HS_FIXED 
-	content=hspec_content
+	hspec_content+
 	(EOL|EOF);
 hspec_content:
       hs_decedit_set #setDecedit
     | hs_actgrp #setActGrp
-    | hs_expression* #hspecExpressions
+    | hs_expression #hspecExpression
     ;
-hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
+hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_decedit_parm CLOSE_PAREN)?);
 hs_actgrp: (HS_ACTGRP OPEN_PAREN hs_actgrp_parm CLOSE_PAREN);
-hs_expression: (ID (OPEN_PAREN (hs_parm (COLON hs_parm)*)? CLOSE_PAREN)?);
+hs_expression: (ID (OPEN_PAREN (hs_parm_expr (COLON hs_parm_expr)*)? CLOSE_PAREN)?);
 hs_parm: ID | hs_string | symbolicConstants;
+hs_parm_expr: ID | hs_string | symbolicConstants | HS_ANYPARAM | HS_JOBRUN | HS_NEW | HS_CALLER;
 hs_actgrp_parm: HS_NEW | HS_CALLER | hs_string;
+hs_decedit_parm: HS_JOBRUN | hs_string;
 hs_string: StringLiteralStart (content+=(StringContent | StringEscapedQuote))* StringLiteralEnd;
 blank_line: BLANK_LINE;
 directive: DIRECTIVE 
@@ -2374,7 +2378,7 @@ bif_code: BIF_ABS
 
 
 free: ((baseExpression FREE_SEMI free_linecomments? ) | exec_sql); // (NEWLINE |COMMENTS_EOL);
-c_free: (((expression) free_linecomments? ) | exec_sql);
+c_free: ((expression free_linecomments? ) | exec_sql);
 
 control: opCode indicator_expr;
 exec_sql: EXEC_SQL WORDS+ SEMI ;

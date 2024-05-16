@@ -1,3 +1,4 @@
+      /COPY QILEGEN,£DECDS
      V* ==============================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione

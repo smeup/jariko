@@ -16,6 +16,9 @@ lexer grammar RpgLexer;
 	protected int getLastTokenType(){
 		return lastTokenType;
 	}
+	private void printMatch(String tokenName) {
+	    System.out.println("Matched " + tokenName + " with '" + getText() + "'");
+	}
 } 
 
 // Parser Rules
@@ -63,7 +66,7 @@ ID : ({
             _input.LA(-1) == '/' ||
             _input.LA(-1) == '='
       }? '*' {getCharPositionInLine()>7}? '*' ? [a-zA-Z])?
-      [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]*;
+      [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]*{getCharPositionInLine()<=80}?;
 NEWLINE : (('\r'? '\n')|'\r') -> skip;
 WS : [ \t] {getCharPositionInLine()>6}? [ \t]* -> skip ; // skip spaces, tabs
 
@@ -703,18 +706,15 @@ FE_COMMENTS: '//' -> popMode,pushMode(FIXED_CommentMode_HIDDEN),channel(HIDDEN) 
 FE_NEWLINE : NEWLINE -> popMode,skip;
 
 mode InStringMode;
-	//  Any char except +,- or ', or a + or - followed by more than just whitespace 
-StringContent: ( 
-       ~['\r\n+-]
-       | [+-] [ ]* {_input.LA(1)!=' ' && _input.LA(1)!='\r' && _input.LA(1)!='\n'}? // Plus is ok as long as it's not the last char
-       )+;// space or not 
+//  Any char except +,- or ', or a + or - followed by more than just whitespace
 StringEscapedQuote: [']['] {setText("'");};
 StringLiteralEnd: ['] -> popMode;
-FIXED_FREE_STRING_CONTINUATION: ('+' [ ]* NEWLINE) 
+FIXED_STRING_COMMENTS80: {_modeStack.contains(FIXED_CalcSpec) || _modeStack.contains(FIXED_DefSpec) || _modeStack.contains(FIXED_OutputSpec)}? ~[\r\n'] {getCharPositionInLine()>=80}? ~[\r\n']* -> channel(HIDDEN);
+FIXED_FREE_STRING_CONTINUATION: ('+' [ ]* (FIXED_STRING_COMMENTS80? NEWLINE))
    {_modeStack.contains(FIXED_CalcSpec) || _modeStack.contains(FIXED_DefSpec)
      || _modeStack.contains(FIXED_OutputSpec)}?
    -> pushMode(EatCommentLinesPlus),pushMode(EatCommentLines),skip;
-FIXED_FREE_STRING_CONTINUATION_MINUS: ('-' [ ]* NEWLINE) 
+FIXED_FREE_STRING_CONTINUATION_MINUS: ('-' [ ]* (FIXED_STRING_COMMENTS80? NEWLINE))
    {_modeStack.contains(FIXED_CalcSpec) || _modeStack.contains(FIXED_DefSpec)
      || _modeStack.contains(FIXED_OutputSpec)}?
    -> pushMode(EatCommentLines),skip;
@@ -726,6 +726,10 @@ FREE_STRING_CONTINUATION_MINUS: {!_modeStack.contains(FIXED_CalcSpec)
      && !_modeStack.contains(FIXED_DefSpec)
      && !_modeStack.contains(FIXED_OutputSpec)}?
       '-' [ ]* NEWLINE '       ' -> skip;
+StringContent: {getCharPositionInLine()<80}? (
+    ~['\r\n+-]
+    | [+-] [ ]* {getCharPositionInLine()<80}? {_input.LA(1)!=' ' && _input.LA(1)!='\r' && _input.LA(1)!='\n'}? // Plus is ok as long as it's not the last char
+)+;// space or not
 PlusOrMinus: [+-];
 
 mode InDoubleStringMode;
@@ -1510,6 +1514,7 @@ HS_CLOSE_PAREN: CLOSE_PAREN -> type(CLOSE_PAREN);
 HS_StringLiteralStart: ['] -> type(StringLiteralStart),pushMode(InStringMode) ;
 HS_COLON: ':' -> type(COLON);
 HS_DECEDIT: [dD][eE][cC][eE][dD][iI][tT];
+HS_JOBRUN: '*'[jJ][oO][bB][rR][uU][nN];
 HS_NEW: '*'[nN][eE][wW];
 HS_CALLER: '*'[cC][aA][lL][lL][eE][rR];
 HS_ACTGRP: [aA][cC][tT][gG][rR][pP];
@@ -1518,6 +1523,7 @@ HS_WhiteSpace : [ \t]+ -> skip  ; // skip spaces, tabs, newlines
 HS_CONTINUATION: NEWLINE 
 	WORD5 [hH] ~[*] -> skip;
 HS_EOL : NEWLINE -> type(EOL),popMode;
+HS_ANYPARAM: '*'[a-zA-Z]+;
 
 fragment WORD5 : ~[\r\n]~[\r\n]~[\r\n]~[\r\n]~[\r\n];
 fragment NAME5 : NAMECHAR NAMECHAR NAMECHAR NAMECHAR NAMECHAR;

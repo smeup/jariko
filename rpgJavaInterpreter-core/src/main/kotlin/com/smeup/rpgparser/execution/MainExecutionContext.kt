@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.AnalyticsLoggingContext
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -102,6 +103,11 @@ object MainExecutionContext {
     fun getAttributes(): MutableMap<String, Any> = context.get()?.attributes ?: noContextAttributes
 
     /**
+     * @return logging context
+     */
+    fun getAnalyticsLoggingContext() = context.get()?.logging
+
+    /**
      * @return a new unique identifier
      */
     fun newId(): Int {
@@ -165,8 +171,8 @@ object MainExecutionContext {
     /**
      * Logs entries
      */
-    fun log(logEntry: LogEntry) {
-        context.get()?.log(logEntry)
+    fun log(renderer: LazyLogEntry) {
+        context.get()?.renderLog(renderer)
     }
 
     /***
@@ -191,9 +197,10 @@ object MainExecutionContext {
 }
 
 data class Context(
-    val attributes: MutableMap<String, Any> = mutableMapOf<String, Any>(),
+    val attributes: MutableMap<String, Any> = mutableMapOf(),
     val idProvider: AtomicInteger = AtomicInteger(),
     val configuration: Configuration,
+    val logging: AnalyticsLoggingContext = AnalyticsLoggingContext(),
     val memorySliceMgr: MemorySliceMgr? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
@@ -209,8 +216,8 @@ data class Context(
         systemInterface.getAllLogHandlers()
     }
 
-    fun log(logEntry: LogEntry) {
-        logHandlers.log(logEntry)
+    fun renderLog(renderer: LazyLogEntry) {
+        logHandlers.renderLog(renderer)
     }
 }
 

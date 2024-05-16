@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -23,6 +24,7 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import org.junit.Assert
 import java.io.StringReader
 import kotlin.test.DefaultAsserter.assertTrue
@@ -429,6 +431,110 @@ class JarikoCallbackTest : AbstractTest() {
         executePgmCallBackTest("ERROR13", SourceReferenceType.Program, "ERROR13", listOf(9, 10))
     }
 
+    @Test
+    fun executeERROR14CallBackTest() {
+        executePgmCallBackTest("ERROR14", SourceReferenceType.Program, "ERROR14", listOf(5))
+    }
+
+    @Test
+    fun executeERROR15CallBackTest() {
+        executePgmCallBackTest("ERROR15", SourceReferenceType.Program, "ERROR15", listOf(16))
+    }
+
+    @Test
+    fun executeERROR16CallBackTest() {
+        executePgmCallBackTest("ERROR16", SourceReferenceType.Program, "ERROR16", listOf(12))
+    }
+
+    @Test
+    fun executeERROR16SourceLineTest() {
+        executeSourceLineTest("ERROR16")
+    }
+
+    @Test
+    fun executeERROR17CallBackTest() {
+        executePgmCallBackTest("ERROR17", SourceReferenceType.Program, "ERROR17", listOf(12))
+    }
+
+    @Test
+    fun executeERROR17SourceLineTest() {
+        executeSourceLineTest("ERROR17")
+    }
+
+    @Test
+    fun executeERROR18CallBackTest() {
+        executePgmCallBackTest("ERROR18", SourceReferenceType.Program, "ERROR18", listOf(10))
+    }
+
+    @Test
+    fun executeERROR18SourceLineTest() {
+        executeSourceLineTest("ERROR18")
+    }
+
+    @Test
+    fun executeERROR19CallBackTest() {
+        // In this case the error occurs inside APIERR1
+        executePgmCallBackTest("APIERR1", SourceReferenceType.Program, "APIERR1", listOf(7, 7, 7))
+    }
+
+    @Test
+    fun executeERROR19SourceLineTest() {
+        // In this case the error occurs inside APIERR1
+        executeSourceLineTest("APIERR1")
+    }
+
+    @Test
+    fun executeERROR20SourceLineTest() {
+        executeSourceLineTest("ERROR20")
+    }
+
+    @Test
+    fun executeERROR21CallBackTest() {
+        executePgmCallBackTest("ERROR21", SourceReferenceType.Program, "ERROR21", listOf(9, 10))
+    }
+
+    @Test
+    fun executeERROR21SourceLineTest() {
+        executeSourceLineTest("ERROR21")
+    }
+
+    @Test
+    fun executeERROR20CallBackTest() {
+        executePgmCallBackTest("ERROR20", SourceReferenceType.Program, "ERROR20", listOf(7, 8))
+    }
+
+    @Test
+    fun executeERROR22CallBackTest() {
+        executePgmCallBackTest("ERROR22", SourceReferenceType.Program, "ERROR22", listOf(10, 11))
+    }
+
+    @Test
+    fun executeERROR22SourceLineTest() {
+        executeSourceLineTest("ERROR22")
+    }
+
+    @Test
+    fun bypassSyntaxErrorTest() {
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                toAstConfiguration = ToAstConfiguration().apply {
+                    // Consider all errors as not blocking
+                    afterPhaseErrorContinue = { true }
+                }
+            }
+        }
+        var myMessage: String? = null
+        val systemInterface = JavaSystemInterface().apply {
+            onDisplay = { message, _ -> myMessage = message.trim() }
+        }
+        executePgm("ERROR15", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(
+            expected = "HELLO WORLD!!!",
+            actual = myMessage,
+            message = "DSPLY must be called because 1 is always equal to 1"
+        )
+    }
+
     /**
      * This test simulates what a precompiler might do throws the use of the beforeParsing callback
      * In ERROR01.rpgle I will comment C specification to avoid a division by zero errors
@@ -518,6 +624,7 @@ class JarikoCallbackTest : AbstractTest() {
                     errorEvents.add(errorEvent)
                 }
                 options = Options(debuggingInformation = true)
+                reloadConfig = createMockReloadConfig()
             }
             executePgm(pgm, configuration = configuration)
         }.onSuccess {
@@ -539,13 +646,16 @@ class JarikoCallbackTest : AbstractTest() {
         val errorEvents = mutableListOf<ErrorEvent>()
         val configuration = Configuration().apply {
             jarikoCallback.beforeParsing = { it ->
-                lines = StringReader(it).readLines()
+                if (MainExecutionContext.getParsingProgramStack().peek().name == pgm) {
+                    lines = StringReader(it).readLines()
+                }
                 it
             }
             jarikoCallback.onError = { errorEvents.add(it) }
             // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
             // of runtime error
             options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
+            reloadConfig = createMockReloadConfig()
         }
         kotlin.runCatching {
             executePgm(pgm, configuration = configuration)
@@ -557,5 +667,35 @@ class JarikoCallbackTest : AbstractTest() {
                 Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
             }
         }
+    }
+
+    private fun createMockReloadConfig(): ReloadConfig {
+
+        val metadata = mapOf(
+            "FILE01" to FileMetadata(
+                name = "FILE01",
+                tableName = "FILE01",
+                recordFormat = "FILE01",
+                fields = listOf(
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD3", StringType(10))
+                ),
+                accessFields = listOf("FIELD1")
+            ),
+            "FILE02" to FileMetadata(
+                name = "FILE02",
+                tableName = "FILE02",
+                recordFormat = "FILE02",
+                fields = listOf(
+                    DbField("FIELD1", StringType(100)),
+                    DbField("FIELD1", StringType(10)),
+                    DbField("FIELD3", StringType(10))
+                ),
+                accessFields = listOf("FIELD1")
+            )
+        )
+        val metadataProducer = { file: String -> metadata[file]!! }
+        return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
     }
 }

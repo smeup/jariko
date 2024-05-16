@@ -94,6 +94,19 @@ data class CompilationUnit(
             return _allDataDefinitions
         }
 
+    /**
+     * This returns `true` if this procedure is a prototype by its empty lists for file definition,
+     *  data definition, subroutines, compile time arrays and directive.
+     */
+    fun isProcedurePrototype(): Boolean {
+        return !this.procedureName.isNullOrBlank() &&
+                this.fileDefinitions.isEmpty() &&
+                this.dataDefinitions.isEmpty() &&
+                this.subroutines.isEmpty() &&
+                this.compileTimeArrays.isEmpty() &&
+                this.directives.isEmpty()
+    }
+
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }

@@ -47,6 +47,7 @@ abstract class AbstractDataDefinition(
      * true means this is a constant, default false
      * */
     @Transient open val const: Boolean = false,
+    @Transient open val static: Boolean = false,
     /**
      * This scope. Default: got by current parsing entity
      * */
@@ -63,8 +64,7 @@ abstract class AbstractDataDefinition(
         if (parsingFunction != null) {
             if (static) Scope.static(parsingFunction) else Scope.Local
         } else Scope.Program
-    },
-    @Transient open val static: Boolean = false
+    }
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -300,9 +300,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         }
         is ArrayType -> {
             val sb = StringBuilder()
-            (value as ArrayValue).elements().forEach {
-                sb.append(this.element.toDataStructureValue(it).value)
+            when (value) {
+                is ArrayValue -> value.elements().forEach {
+                    sb.append(this.element.toDataStructureValue(it).value)
+                }
+                is IntValue -> sb.append(this.element.toDataStructureValue(value).value)
             }
+
             return StringValue(sb.toString())
         }
         is CharacterType -> {

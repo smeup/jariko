@@ -65,7 +65,7 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun kListParsing() {
-        assertEquals(KListStmt("KEY", listOf("KY1TST", "KY2TST")),
+        assertEquals(KListStmt("Key", listOf("KY1TST", "KY2TST"), emptyList(), null),
                     multiLineStatement("""
      C     Key           KLIST
      C                   KFLD                    KY1TST

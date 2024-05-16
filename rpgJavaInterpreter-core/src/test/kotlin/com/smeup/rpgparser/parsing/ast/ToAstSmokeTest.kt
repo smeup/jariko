@@ -25,6 +25,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 open class ToAstSmokeTest : AbstractTest() {
@@ -360,6 +361,26 @@ open class ToAstSmokeTest : AbstractTest() {
                     assertEquals(expected = true, actual = this.static, message = "VSTAT must be static")
                 }
             }
+        }
+    }
+
+    @Test
+    fun buildAstForLIKEDS01() {
+        assertASTCanBeProduced(exampleName = "LIKEDS01", printTree = false).apply {
+            this.resolveAndValidate()
+            assertNotNull(this.getDataOrFieldDefinition("SECOND_F1"), "SECOND_F1 is defined in SECOND DS")
+            assertNotNull(this.getDataOrFieldDefinition("FIRST_F1"), "FIRST_F1 is defined like SECOND_F1")
+        }
+    }
+
+    @Test
+    fun buildAstForLIKEDS02() {
+        assertASTCanBeProduced(exampleName = "LIKEDS02", printTree = false).apply {
+            this.resolveAndValidate()
+            assertNotNull(this.getDataOrFieldDefinition("SECOND_F1"), "SECOND_F1 is defined in SECOND DS")
+            assertNotNull(this.getDataOrFieldDefinition("SECOND_F2"), "SECOND_F2 is defined in SECOND DS")
+            assertNotNull(this.getDataOrFieldDefinition("FIRST_F1"), "FIRST_F1 is defined like SECOND_F1")
+            assertNotNull(this.getDataOrFieldDefinition("FIRST_F2"), "FIRST_F1 is defined like SECOND_F1")
         }
     }
 }

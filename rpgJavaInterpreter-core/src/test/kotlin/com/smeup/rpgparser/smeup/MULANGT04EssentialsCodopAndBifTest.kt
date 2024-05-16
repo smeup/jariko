@@ -1,10 +1,23 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import org.junit.Test
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
+    /**
+     * No error when there isn't a called subroutine
+     * @see #270
+     */
+    @Test
+    fun executeMU041004() {
+        assertFailsWith(AstResolutionError::class) {
+            "smeup/MU041004".outputOf(configuration = smeupConfig)
+        }
+    }
+
     /**
      * TIME with inline number declarations
      */

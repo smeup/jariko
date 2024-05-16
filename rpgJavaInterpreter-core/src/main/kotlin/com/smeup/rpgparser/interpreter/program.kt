@@ -21,7 +21,8 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
-import kotlin.system.measureTimeMillis
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.nanoseconds
 
 data class ProgramParam(val name: String, val type: Type)
 
@@ -62,7 +63,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }.type
             ProgramParam(it.param.name, type)
         }
-        ?: emptyList()
+            ?: emptyList()
     }
 
     init {
@@ -98,9 +99,10 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
         }
         this.systemInterface = systemInterface
-        logHandlers.log(ProgramInterpretationLogStart(name, params))
+        val logSource = { LogSourceData(name, "") }
+        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
         val changedInitialValues: List<Value>
-        val elapsed = measureTimeMillis {
+        val elapsed = measureNanoTime {
             interpreter.setInterpretationContext(object : InterpretationContext {
                 private var iDataWrapUpChoice: DataWrapUpChoice? = null
                 override val currentProgramName: String
@@ -151,8 +153,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             // here clear symbol table if needed
             interpreter.doSomethingAfterExecution()
             MainExecutionContext.getProgramStack().pop()
-        }
-        logHandlers.log(ProgramInterpretationLogEnd(name, elapsed))
+        }.nanoseconds
+        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
+        logHandlers.renderLog(LazyLogEntry.producePerformance(logSource, "INTERPRETATION", elapsed))
         return changedInitialValues
     }
 

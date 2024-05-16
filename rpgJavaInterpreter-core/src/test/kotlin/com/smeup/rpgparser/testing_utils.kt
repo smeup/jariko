@@ -663,6 +663,7 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPat
                         ?: error("resource $dbFile.json not found in $metadataPaths")
                 }
             )
+            options = Options(debuggingInformation = true)
         }
 
         val compiled = compile(

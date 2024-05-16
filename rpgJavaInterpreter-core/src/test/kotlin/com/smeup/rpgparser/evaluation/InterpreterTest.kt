@@ -86,7 +86,7 @@ open class InterpreterTest : AbstractTest() {
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         val assignments = logHandler.getAssignments()
         // The ppdat variable is not varying length 8
-        assertEquals(StringValue("10".padEnd(8, ' ')), assignments[0].value)
+        assertEquals(StringValue("10".padEnd(8, ' ')).value, assignments[0].action)
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
     }
@@ -1915,6 +1915,34 @@ Test 6
     }
 
     @Test
+    fun executeAPIPGM2() {
+        assertEquals(
+            expected = listOf("Hello world"),
+            actual = outputOf("APIPGM2"))
+    }
+
+    @Test
+    fun executeAPIPGM3() {
+        assertEquals(
+            expected = listOf("3", "6"),
+            actual = outputOf("APIPGM3"))
+    }
+
+    @Test
+    fun executeAPIPGM4() {
+        assertEquals(
+            expected = listOf("Hello there!", "General Kenobi"),
+            actual = outputOf("APIPGM4"))
+    }
+
+    @Test
+    fun executeAPIPGM5() {
+        assertEquals(
+            expected = listOf("Hello there!", "General Kenobi"),
+            actual = outputOf("APIPGM5"))
+    }
+
+    @Test
     open fun executeDSOVERL() {
         assertEquals(
             expected = "AAAA,BBBB".split(","),
@@ -2348,5 +2376,23 @@ Test 6
     fun executeLIKEWITHCOPY2() {
         val expected = listOf("OK")
         assertEquals(expected, "LIKEWITHCOPY2".outputOf())
+    }
+
+    @Test
+    fun executeBITON_INLINEDATA() {
+        val expected = listOf("1000")
+        assertEquals(expected, "BITON_INLINEDATA".outputOf())
+    }
+
+    @Test
+    fun executeBITOFF_INLINEDATA() {
+        val expected = listOf("1000")
+        assertEquals(expected, "BITOFF_INLINEDATA".outputOf())
+    }
+
+    @Test
+    fun executeMULTIPLE_HSPEC() {
+        val expected = listOf("OK")
+        assertEquals(expected, "MULTIPLE_HSPEC".outputOf())
     }
 }
