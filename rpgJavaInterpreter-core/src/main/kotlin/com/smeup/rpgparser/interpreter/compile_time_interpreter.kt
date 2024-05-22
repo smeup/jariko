@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.Cspec_fixedContext
+import com.smeup.rpgparser.RpgParser.Parm_fixedContext
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
@@ -155,8 +156,8 @@ open class BaseCompileTimeInterpreter(
             when {
                 it.fspec_fixed() != null -> {
                     val size = it.fspec_fixed().runParserRuleContext(conf) { context ->
-                        kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
-                    }?.second?.find { it.name.equals(declName, ignoreCase = true) }?.elementSize()
+                        kotlin.runCatching { context.toAst(conf).let { fileDefinition -> fileDefinition.toDataDefinitions() } }.getOrNull()
+                    }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.elementSize()
                     if (size != null) return size
                 }
                 it.dspec() != null -> {
@@ -239,15 +240,14 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
-//                    it.dcl_ds() != null -> {
-//                        val type = it.dcl_ds().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).fields
-//                            .firstOrNull { it.name.equals(declName, ignoreCase = true) }?.type
-//                        if (type != null) return type
-//                    }
                     it.fspec_fixed() != null -> {
                         val type = it.fspec_fixed().runParserRuleContext(conf) { context ->
-                            kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
-                        }?.second?.find { it.name.equals(declName, ignoreCase = true) }?.type
+                            kotlin.runCatching { context.toAst(conf).let { fileDefinition -> fileDefinition.toDataDefinitions() } }.getOrNull()
+                        }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.type
+                        if (type != null) return type
+                    }
+                    it.dcl_ds() != null -> {
+                        val type = it.dcl_ds().parm_fixed().find { it.ds_name().text.equals(declName, ignoreCase = true) }?.findType(conf)
                         if (type != null) return type
                     }
                     it.dspec() != null -> {
@@ -284,11 +284,15 @@ open class BaseCompileTimeInterpreter(
         if (ast is StatementThatCanDefineData) {
             val dataDefinition = ast.dataDefinition()
             dataDefinition.forEach {
-                if (it.name.asValue().value == declName) {
+                if (it.name == declName) {
                     return it.type
                 }
             }
         }
         return null
+    }
+
+    private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type? {
+        return this.toAst(conf, emptyList()).type
     }
 }

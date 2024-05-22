@@ -1,43 +1,46 @@
+      *====================================================================
+      * smeup V6R1.021DV
+      * Nome sorgente       : MU021008
+      * Sorgente di origine : QTEMP/SRC(MU021008)
+      * Esportato il        : 20240429 170424
+      *====================================================================
      V* ==============================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V* ==============================================================
-     V* 19/04/24  MUTEST  APU001 Creazione
+     V* 29/04/24  MUTEST  COSANT Creazione
      V*=====================================================================
     O *  OBIETTIVO
-    O * L'obiettivo di questo test è l'utilizzo della LIKE di un field
-    O *  di un'altra DS dichiarata successivamente.
+    O * Test costante con su 2 righe
      V* ==============================================================
-     D* Sezione delle variabili.
-     D D40_DS1         DS
-     D  D40_DS1_F1                         DIM(9999)
-     D  D40_DS1_F2                         LIKE(£095R_CN)
-     D                                     OVERLAY(D40_DS1_F1:1)
-      * --------------------------------------------------------------
+     D* Sezione delle variabili. Per esempio:
+     D UP              C                   CONST('ABCDEFGHIJKLMNOPQRST-         _NOTXT
+     D                                     UVWXYZ')
+     D LO              C                   CONST('abcdefghijklmnopqrst-         _NOTXT
+     D                                     uvwxyz')
       /COPY QILEGEN,MULANG_D_D
       /COPY QILEGEN,£TABB£1DS
+      /COPY QILEGEN,£G40E
       /COPY QILEGEN,£PDS
-      /COPY QILEGEN,£D5_095DS
       *---------------------------------------------------------------------
     RD* M A I N
       *---------------------------------------------------------------------
-     C                   EVAL      £DBG_Pgm = 'MU401012'
-     C                   EVAL      £DBG_Sez = 'A40'
+     C                   EVAL      £DBG_Pgm = 'MU021008'
+     C                   EVAL      £DBG_Sez = 'A10'
      C                   EVAL      £DBG_Fun = '*INZ'
      C                   EXSR      £DBG
-     C                   EXSR      SEZ_A40
+     C                   EXSR      SEZ_A10
      C                   EXSR      £DBG
      C                   EVAL      £DBG_Fun = '*END'
      C                   EXSR      £DBG
      C                   SETON                                        LR
       *---------------------------------------------------------------------
-    RD* Test atomico LIKE field di una successiva DS
-      *---------------------------------------------------------------------
-     C     SEZ_A40       BEGSR
-    OA* A£.TPDA(LIKE)
-     C                   EVAL      £DBG_Pas='P12'
-      *
-     C                   EVAL      £DBG_Str= 'HELLOTHERE'
+     C     SEZ_A10       BEGSR
+    OA* A£.TPDA(C)
+     D* Passo
+     C                   EVAL      £DBG_Pas='P08'
+      * Assegnazione della costante
+     C                   EVAL      £DBG_Str = UP
       *
      C                   ENDSR
       *---------------------------------------------------------------------

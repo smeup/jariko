@@ -100,6 +100,7 @@ private val modules = SerializersModule {
         subclass(SubStmt::class)
         subclass(SubstStmt::class)
         subclass(TagStmt::class)
+        subclass(TestnStmt::class)
         subclass(TimeStmt::class)
         subclass(UnlockStmt::class)
         subclass(UpdateStmt::class)
