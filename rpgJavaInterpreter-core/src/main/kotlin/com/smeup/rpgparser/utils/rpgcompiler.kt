@@ -51,7 +51,14 @@ data class CompilationResult(
     val parsingError: Throwable? = null
 )
 
-private fun compileFile(file: File, targetDir: File, format: Format, muteSupport: Boolean, force: Boolean = true): CompilationResult {
+private fun compileFile(
+    file: File,
+    targetDir: File,
+    format: Format,
+    muteSupport: Boolean,
+    force: Boolean = true,
+    allowCompilationError: (file: File, error: Throwable) -> Boolean = { _, _ -> false }
+): CompilationResult {
     runCatching {
         println("Compiling $file")
         val compiledFile = File(
@@ -79,12 +86,16 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
                     if (getAstCreationErrors().isNotEmpty()) {
                         throw getAstCreationErrors().first()
                     }
-                }.onFailure {
-                    println("Compilation skipped because of following ast creating error".yellow())
-                    val errStream = ByteArrayOutputStream()
-                    it.printStackTrace(PrintStream(errStream))
-                    println(String(errStream.toByteArray()).yellow())
-                    return CompilationResult(file, null, null, it)
+                }.onFailure { error ->
+                    if (allowCompilationError(file, error)) {
+                        println("Ast creating error not blocking because this program is in a white list".yellow())
+                        val errStream = ByteArrayOutputStream()
+                        error.printStackTrace(PrintStream(errStream))
+                        println(String(errStream.toByteArray()).yellow())
+                        return CompilationResult(file, null, null, error)
+                    } else {
+                        throw error
+                    }
                 }
                 when (format) {
                     Format.BIN -> compiledFile.writeBytes(cu!!.encodeToByteArray())
@@ -124,6 +135,7 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
  * example, you can pass an option to enable the source dump in case of error, this feature for default is not
  * enabled for performances reason.
  * @param allowFile if true that file will be compiled if its extension is .rpgle else that file will not be compiled
+ * @param allowCompilationError if true the error on compilation is considered not blocking
  * */
 @JvmOverloads
 fun compile(
@@ -135,7 +147,8 @@ fun compile(
     systemInterface: (dir: File) -> SystemInterface = { dir ->
         JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) } },
     configuration: Configuration = Configuration(),
-    allowFile: (file: File) -> Boolean = { true }
+    allowFile: (file: File) -> Boolean = { true },
+    allowCompilationError: (file: File, error: Throwable) -> Boolean = { _, _ -> false }
 ): Collection<CompilationResult> {
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
@@ -143,7 +156,16 @@ fun compile(
         val si = systemInterface.invoke(src.parentFile)
         MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
             it.executionProgramName = src.name
-            compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport, force))
+            compilationResult.add(
+                compileFile(
+                    file = src,
+                    targetDir = compiledProgramsDir,
+                    format = format,
+                    muteSupport = muteSupport,
+                    force = force,
+                    allowCompilationError = allowCompilationError
+                )
+            )
         }
     } else if (src.exists()) {
         val si = systemInterface.invoke(src.absoluteFile)
@@ -154,7 +176,16 @@ fun compile(
         }?.forEach { file ->
             MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
                 it.executionProgramName = file.name
-                compilationResult.add(compileFile(file, compiledProgramsDir, format, muteSupport, force))
+                compilationResult.add(
+                    compileFile(
+                        file = file,
+                        targetDir = compiledProgramsDir,
+                        format = format,
+                        muteSupport = muteSupport,
+                        force = force,
+                        allowCompilationError = allowCompilationError
+                    )
+                )
             }
         }
     } else {

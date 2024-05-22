@@ -125,7 +125,12 @@ class MiscTest {
         srcFile.deleteOnExit()
         srcFile.writeText(program)
         println("Compiling $srcFile")
-        val compilationResults = compile(src = srcFile, srcFile.parentFile)
+
+        val compilationResults = compile(
+            src = srcFile,
+            compiledProgramsDir = srcFile.parentFile,
+            allowCompilationError = { _, _ -> true }
+        )
         assert(compilationResults.first().compiledFile == null)
         assertNotNull(compilationResults.first().parsingError)
     }
