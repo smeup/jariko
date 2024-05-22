@@ -19,7 +19,9 @@ package com.smeup.rpgparser.utils
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.parsing.ast.format
 import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
@@ -316,5 +318,138 @@ class MiscTest {
             System.setErr(defaultErr)
             System.err.println("Stderr restored")
         }
+    }
+
+    @Test
+    fun formatCompilationUnit() {
+        val pgm = """
+     D MSG             S             20   
+     C                   EVAL      MSG = 'Hi guy how are you?'
+     C     MSG           DSPLY
+        """
+        val cu = RpgParserFacade().parseAndProduceAst(pgm.byteInputStream())
+        val expected = """
+CompilationUnit(
+  fileDefinitions=[
+    
+  ],
+  dataDefinitions=[
+    DataDefinition(
+      name=MSG,
+      type=StringType(
+        length=20,
+        varying=false
+      ),
+      fields=[
+        
+      ],
+      initializationValue=null,
+      inz=false,
+      position=Position(
+        start=Line 2,
+        Column 5,
+        end=Line 2,
+        Column 82
+      ),
+      const=false,
+      paramPassedBy=Reference,
+      paramOptions=[
+        
+      ],
+      defaultValue=null,
+      static=false
+    )
+  ],
+  main=MainBody(
+    stmts=[
+      EvalStmt(
+        target=DataRefExpr(
+          variable=Ref(
+            MSG
+          )[
+            Unsolved
+          ],
+          position=Position(
+            start=Line 3,
+            Column 35,
+            end=Line 3,
+            Column 38
+          )
+        ),
+        expression=StringLiteral(
+          value=Hi guy how are you?,
+          position=Position(
+            start=Line 3,
+            Column 41,
+            end=Line 3,
+            Column 62
+          )
+        ),
+        operator=NORMAL_ASSIGNMENT,
+        flags=EvalFlags(
+          halfAdjust=false,
+          maximumNumberOfDigitsRule=false,
+          resultDecimalPositionRule=false
+        ),
+        position=Position(
+          start=Line 3,
+          Column 25,
+          end=Line 3,
+          Column 82
+        )
+      ),
+      DisplayStmt(
+        factor1=DataRefExpr(
+          variable=Ref(
+            MSG
+          )[
+            Unsolved
+          ],
+          position=Position(
+            start=Line 4,
+            Column 11,
+            end=Line 4,
+            Column 14
+          )
+        ),
+        response=null,
+        position=Position(
+          start=Line 4,
+          Column 25,
+          end=Line 4,
+          Column 82
+        )
+      )
+    ],
+    position=Position(
+      start=Line 3,
+      Column 25,
+      end=Line 4,
+      Column 82
+    )
+  ),
+  subroutines=[
+    
+  ],
+  compileTimeArrays=[
+    
+  ],
+  directives=[
+    
+  ],
+  position=Position(
+    start=Line 2,
+    Column 5,
+    end=Line 4,
+    Column 82
+  ),
+  apiDescriptors=null,
+  procedures=null,
+  procedureName=null,
+  proceduresParamsDataDefinitions=null,
+  source=null,
+  copyBlocks=null
+)""".trimIndent()
+        Assert.assertEquals(expected, cu.format())
     }
 }
