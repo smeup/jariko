@@ -642,10 +642,16 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
     }
 }
 
-fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPaths: List<String> = emptyList()) {
+fun compileAllMutes(
+    dirs: List<String>,
+    format: Format = Format.BIN,
+    metadataPaths: List<String> = emptyList(),
+    copyPaths: List<String> = emptyList()
+) {
     println("Deleting $testCompiledDir")
     testCompiledDir.deleteRecursively()
     testCompiledDir.mkdirs()
+    val copyDirs = copyPaths.map { File(rpgTestSrcDir, it) }
     dirs.forEach { it ->
         val muteSupport = it != "performance-ast"
         val srcDir = File(rpgTestSrcDir, it)
@@ -674,13 +680,17 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPat
             systemInterface = { dir ->
                 TestJavaSystemInterface().apply {
                     rpgSystem.addProgramFinder(DirRpgProgramFinder(dir))
+                    // To avoid duplication, I add copyDir as further program finder only if different from program dir
+                    copyDirs.filter { copyDir -> copyDir != dir }.forEach { copyDir ->
+                        rpgSystem.addProgramFinder(DirRpgProgramFinder(copyDir))
+                    }
                 }
             },
             // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
             allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") },
             configuration = configuration
         )
-        // now error are displayed during the compilation
+        // now errors are displayed during the compilation
         if (compiled.any { it.error != null }) {
             error("Compilation error view logs")
         }
@@ -720,7 +730,8 @@ private class CompileAllMutes : CliktCommand(
         compileAllMutes(
             dirs = dirs.split(",").map { it.trim() },
             format = Format.valueOf(format),
-            metadataPaths = metadataPaths.split(",").map { it.trim() }
+            metadataPaths = metadataPaths.split(",").map { it.trim() },
+            copyPaths = listOf(".", "smeup")
         )
     }
 }

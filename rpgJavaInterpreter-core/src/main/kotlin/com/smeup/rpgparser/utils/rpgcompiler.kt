@@ -25,6 +25,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
 import com.smeup.rpgparser.parsing.ast.encodeToString
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.parsetreetoast.getAstCreationErrors
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
@@ -73,6 +74,11 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
                     cu = RpgParserFacade().apply {
                         this.muteSupport = muteSupport
                     }.parseAndProduceAst(it)
+                    // In case of errors in API parseAndProduceAst(it) could not be blocking
+                    // and then, I verify if there are errors
+                    if (getAstCreationErrors().isNotEmpty()) {
+                        throw getAstCreationErrors().first()
+                    }
                 }.onFailure {
                     println("Compilation skipped because of following ast creating error".yellow())
                     val errStream = ByteArrayOutputStream()
