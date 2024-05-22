@@ -40,7 +40,7 @@
      C     SEZ_A08       BEGSR
     OA* A£.CDOP()
      C                   EVAL      £DBG_Pas='P02'
-     C*                   EVAL      DS01.SUBDS='Test'
+     C                   EVAL      DS01.SUBDS='Test'
      C                   EVAL      £DBG_Str=%TRIM(DS01)
      C                   ENDSR
       *---------------------------------------------------------------------
