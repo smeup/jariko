@@ -4,7 +4,6 @@ import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.SymbolTableAction
-import java.util.Stack
 import kotlin.time.Duration
 
 /**
@@ -16,38 +15,38 @@ class AnalyticsLoggingContext {
     private var renderingTimeMeasurement = UsageMeasurement.new()
     private var interpretationTimeMeasurement = UsageMeasurement.new()
 
-    private val statementScope = Stack<String>()
-    private val expressionScope = Stack<String>()
+//    private val statementScope = Stack<String>()
+//    private val expressionScope = Stack<String>()
 
     /**
      * Checks whether we are in a CompositeStatement scope or not.
      */
-    val isExecutingCompositeStatement get() = statementScope.isNotEmpty()
+//    val isExecutingCompositeStatement get() = statementScope.isNotEmpty()
 
     /**
      * Checks whether we are executing an expression or not.
      */
-    val isExecutingExpression get() = expressionScope.isNotEmpty()
+//    val isExecutingExpression get() = expressionScope.isNotEmpty()
 
     /**
      * Records the beginning of the execution of a CompositeStatement.
      */
-    fun enterCompositeStatement(entity: String) { statementScope.push(entity) }
+//    fun enterCompositeStatement(entity: String) { statementScope.push(entity) }
 
     /**
      * Records the end of the execution of a CompositeStatement.
      */
-    fun exitCompositeStatement() { statementScope.pop() }
+//    fun exitCompositeStatement() { statementScope.pop() }
 
     /**
      * Records the beginning of the execution of an expression.
      */
-    fun enterExpression(entity: String) { expressionScope.push(entity) }
+//    fun enterExpression(entity: String) { expressionScope.push(entity) }
 
     /**
      * Records the end of the execution of an expression.
      */
-    fun exitExpression() { expressionScope.pop() }
+//    fun exitExpression() { expressionScope.pop() }
 
     /**
      * Records log rendering duration.
@@ -78,6 +77,22 @@ class AnalyticsLoggingContext {
         programUsageTable.recordSymbolTableAction(program, action, time)
 
     /**
+     * Records a parsing step.
+     */
+    fun recordParsing(program: String, step: String, time: Duration) =
+        programUsageTable.recordParsing(program, step, time)
+
+    fun recordUsage(program: String, type: ProgramUsageType, entity: String, time: Duration) =
+        when (type) {
+            ProgramUsageType.Parsing -> recordParsing(program, entity, time)
+            ProgramUsageType.Statement -> recordStatementExecution(program, entity, time)
+            ProgramUsageType.Expression -> recordExpressionExecution(program, entity, time)
+            ProgramUsageType.SymbolTable -> recordSymbolTableAccess(program, SymbolTableAction.valueOf(entity), time)
+            ProgramUsageType.LogRendering -> recordRenderingDuration(time)
+            ProgramUsageType.Interpretation -> recordInterpretationDuration(time)
+        }
+
+    /**
      * Records the execution of a statement.
      * @see ILoggableStatement
      */
@@ -88,15 +103,15 @@ class AnalyticsLoggingContext {
      * Records the execution of a nested statement.
      * @see ILoggableStatement
      */
-    fun recordNestedStatementExecution(program: String, entity: String, time: Duration) =
-        programUsageTable.recordNestedStatement(program, statementScope, entity, time)
+//    fun recordNestedStatementExecution(program: String, entity: String, time: Duration) =
+//        programUsageTable.recordNestedStatement(program, statementScope, entity, time)
 
     /**
      * Records the execution of a nested expression from the current expression scope state.
      * @see ILoggableExpression
      */
-    fun recordNestedExpressionExecutionFromScope(program: String, time: Duration) =
-        programUsageTable.recordNestedExpression(program, expressionScope, time)
+//    fun recordNestedExpressionExecutionFromScope(program: String, time: Duration) =
+//        programUsageTable.recordNestedExpression(program, expressionScope, time)
 
     /**
      * Generate an ANALYTICS report based on currently collected metadata in the form
@@ -107,28 +122,25 @@ class AnalyticsLoggingContext {
         val statementEntries = mutableListOf<LazyLogEntry>()
         val expressionEntries = mutableListOf<LazyLogEntry>()
         val symbolTableEntries = mutableListOf<LazyLogEntry>()
-        val nestedStatementEntries = mutableListOf<LazyLogEntry>()
-        val nestedExpressionEntries = mutableListOf<LazyLogEntry>()
+        val parsingEntries = mutableListOf<LazyLogEntry>()
 
         programUsageTable.asSequence().forEach {
             val program = it.key
             val statement = programUsageTable.generateStatementLogEntries(program)
             val expression = programUsageTable.generateExpressionLogEntries(program)
             val symTable = programUsageTable.generateSymbolTableLogEntries(program)
-            val nestedStatement = programUsageTable.generateNestedStatementLogEntries(program)
-            val nestedExpression = programUsageTable.generateNestedExpressionLogEntries(program)
+            val parsing = programUsageTable.generateParsingLogEntries(program)
 
             statementEntries.addAll(statement)
             expressionEntries.addAll(expression)
             symbolTableEntries.addAll(symTable)
-            nestedStatementEntries.addAll(nestedStatement)
-            nestedExpressionEntries.addAll(nestedExpression)
+            parsingEntries.addAll(parsing)
         }
 
         val logTimeEntry = generateLogTimeReportEntry()
         val interpretationTimeEntry = generateInterpretationReportEntry()
 
-        return statementEntries + expressionEntries + symbolTableEntries + nestedStatementEntries + nestedExpressionEntries + logTimeEntry + interpretationTimeEntry
+        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + logTimeEntry + interpretationTimeEntry
     }
 
     private fun generateLogTimeReportEntry(): LazyLogEntry {

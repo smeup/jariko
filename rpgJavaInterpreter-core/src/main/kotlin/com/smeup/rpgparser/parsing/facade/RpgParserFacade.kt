@@ -26,6 +26,7 @@ import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
@@ -197,7 +198,7 @@ class RpgParserFacade {
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "RPGLOAD", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(endLogSource, "RPGLOAD", elapsedLoad))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(endLogSource, "RPGLOAD", elapsedLoad))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(endLogSource, ProgramUsageType.Parsing, "RPGLOAD", elapsedLoad))
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "START"))
         MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "LEXER"))
@@ -216,7 +217,7 @@ class RpgParserFacade {
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "LEXER", elapsedLexer))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "LEXER", elapsedLexer))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "LEXER", elapsedLexer))
 
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "START"))
         MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "PARSER"))
@@ -234,7 +235,7 @@ class RpgParserFacade {
         }.nanoseconds
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "PARSER", elapsedParser))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "PARSER", elapsedParser))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "PARSER", elapsedParser))
         return parser
     }
 
@@ -259,7 +260,7 @@ class RpgParserFacade {
         }.nanoseconds
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "CHKPTREE", elapsed))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "CHKPTREE", elapsed))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "CHKPTREE", elapsed))
     }
 
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
@@ -320,7 +321,7 @@ class RpgParserFacade {
             }
         }.nanoseconds
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDMUTES", "END"))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "FINDMUTES", elapsed))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "FINDMUTES", elapsed))
         return mutes
     }
 
@@ -358,7 +359,7 @@ class RpgParserFacade {
         }.nanoseconds
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "RCONTEXT", elapsedRoot))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "RCONTEXT", elapsedRoot))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "RCONTEXT", elapsedRoot))
         var mutes: MutesImmutableMap? = null
         if (muteSupport) {
             mutes = findMutes(code, errors)
@@ -380,7 +381,7 @@ class RpgParserFacade {
                     val elapsed = (System.nanoTime() - start).nanoseconds
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
                     MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "AST", elapsed))
-                    MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "AST", elapsed))
+                    MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "AST", elapsed))
                 }
             } else {
                 null
@@ -437,7 +438,7 @@ class RpgParserFacade {
             }.nanoseconds
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
             MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "AST", elapsed))
-            MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "AST", elapsed))
+            MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "AST", elapsed))
             compilationUnit
         }.onFailure {
             throw AstCreatingException(result.src, it)

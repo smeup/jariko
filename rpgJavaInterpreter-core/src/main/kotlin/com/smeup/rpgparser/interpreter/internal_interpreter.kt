@@ -21,6 +21,7 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -331,20 +332,18 @@ open class InternalInterpreter(
         val initElapsed = (System.nanoTime() - start).nanoseconds
 
         val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext()
-        analyticsContext?.recordSymbolTableAccess(programName, SymbolTableAction.INIT, initElapsed)
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-        renderLogInternal { LazyLogEntry.producePerformance(logSourceProducer, "SYMTBLINI", initElapsed) }
+        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
 
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
         val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-        analyticsContext?.recordSymbolTableAccess(programName, SymbolTableAction.LOAD, loadElapsed)
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-        renderLogInternal { LazyLogEntry.producePerformance(logSourceProducer, "SYMTBLLOAD", loadElapsed) }
+        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -597,7 +596,6 @@ open class InternalInterpreter(
 
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
-                    val programName = this.interpretationContext.currentProgramName
                     renderLogInternal {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, message)
@@ -1144,9 +1142,7 @@ open class InternalInterpreter(
 
         renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
 
-        val isSelfNested = loggingContext?.isExecutingCompositeStatement ?: false
         if (statement is CompositeStatement) {
-            loggingContext?.enterCompositeStatement(statement.loggableEntityName)
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
         } else {
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "EXEC") }
@@ -1160,11 +1156,7 @@ open class InternalInterpreter(
             statement.execute(this)
         }.nanoseconds
 
-        loggingContext?.let { ctx ->
-            if (ctx.isExecutingCompositeStatement && isSelfNested) {
-                ctx.recordNestedStatementExecution(programName, statement.loggableEntityName, executionTime)
-            } else ctx.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
-        }
+        loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
 
         if (statement is LoopStatement) {
             renderLogInternal {
@@ -1178,11 +1170,10 @@ open class InternalInterpreter(
         }
 
         if (statement is CompositeStatement) {
-            loggingContext?.exitCompositeStatement()
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
         }
 
-        renderLogInternal { LazyLogEntry.producePerformance(sourceProducer, statement.loggableEntityName, executionTime) }
+        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(sourceProducer, ProgramUsageType.Statement, statement.loggableEntityName, executionTime) }
     }
 
     override fun onInterpretationEnd() {
@@ -1191,20 +1182,38 @@ open class InternalInterpreter(
     }
 
     private fun getWithLogging(data: String): Value {
-        val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return globalSymbolTable[data]
         val start = System.nanoTime()
         val value = globalSymbolTable[data]
         val elapsed = System.nanoTime() - start
-        analyticsContext.recordSymbolTableAccess(interpretationContext.currentProgramName, SymbolTableAction.GET, elapsed.nanoseconds)
+        val programName = interpretationContext.currentProgramName
+
+        renderLogInternal {
+            LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                { LogSourceData.fromProgram(programName) },
+                ProgramUsageType.SymbolTable,
+                SymbolTableAction.GET.name,
+                elapsed.nanoseconds
+            )
+        }
+
         return value
     }
 
     private fun getWithLogging(data: AbstractDataDefinition): Value {
-        val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return globalSymbolTable[data]
         val start = System.nanoTime()
         val value = globalSymbolTable[data]
         val elapsed = System.nanoTime() - start
-        analyticsContext.recordSymbolTableAccess(interpretationContext.currentProgramName, SymbolTableAction.GET, elapsed.nanoseconds)
+        val programName = interpretationContext.currentProgramName
+
+        renderLogInternal {
+            LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                { LogSourceData(programName, data.startLine()) },
+                ProgramUsageType.SymbolTable,
+                SymbolTableAction.GET.name,
+                elapsed.nanoseconds
+            )
+        }
+
         return value
     }
 
@@ -1215,9 +1224,16 @@ open class InternalInterpreter(
             }
         }
 
-        val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return setValue()
         val elapsed = measureNanoTime { setValue() }
-        analyticsContext.recordSymbolTableAccess(interpretationContext.currentProgramName, SymbolTableAction.SET, elapsed.nanoseconds)
+        val programName = interpretationContext.currentProgramName
+        renderLogInternal {
+            LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                { LogSourceData(programName, data.startLine()) },
+                ProgramUsageType.SymbolTable,
+                SymbolTableAction.SET.name,
+                elapsed.nanoseconds
+            )
+        }
     }
 }
 

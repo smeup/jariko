@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.utils.asBigDecimal
@@ -52,28 +53,19 @@ class ExpressionEvaluation(
 
         val programName = MainExecutionContext.getExecutionProgramName()
         val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
-        val isSelfNested = loggingContext?.isExecutingExpression ?: false
-        loggingContext?.enterExpression(expression.loggableEntityName)
 
         val start = System.nanoTime()
         val value = action()
         val elapsed = (System.nanoTime() - start).nanoseconds
 
         MainExecutionContext.log(
-            LazyLogEntry.producePerformance(
+            LazyLogEntry.producePerformanceAndUpdateAnalytics(
                 { LogSourceData(programName, expression.startLine()) },
+                ProgramUsageType.Expression,
                 expression.loggableEntityName,
                 elapsed
             )
         )
-
-        loggingContext?.let { ctx ->
-            if (isSelfNested)
-                ctx.recordNestedExpressionExecutionFromScope(programName, elapsed)
-            else ctx.recordExpressionExecution(programName, expression.loggableEntityName, elapsed)
-
-            ctx.exitExpression()
-        }
 
         return value
     }

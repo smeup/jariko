@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.ProgramUsageType
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.nanoseconds
 
@@ -166,9 +167,8 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
                     val elapsed = measureNanoTime {
                         storage.store(memorySliceId = slice.memorySliceId, values = values)
                     }.nanoseconds
-                    MainExecutionContext.getAnalyticsLoggingContext()?.recordSymbolTableAccess(slice.memorySliceId.programName, SymbolTableAction.STORE, elapsed)
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "END"))
-                    MainExecutionContext.log(LazyLogEntry.producePerformance(logSource, "SYMTBLSTORE", elapsed))
+                    MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.SymbolTable, SymbolTableAction.STORE.name, elapsed))
                 }
             }
             if (result.isFailure) {
