@@ -199,19 +199,15 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Data definition not resolved for a specification that uses `LIKE` to a field from file. In addition,
-     *  there is a DS with an `%ELEM()` built-in function to that field.
-     * @see #LS24002645
+     * Data definition not resolved for patterns containing the ':' in XLate factor 1
+     * @see #LS24002758
      */
     @Test
     fun executeMUDRNRAPU00201() {
-        MULANGTLDbMock().use {
-            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
-            val expected = listOf("ok")
-            assertEquals(
-                expected = expected,
-                "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig)
-            )
-        }
+        val expected = listOf("ok")
+        assertEquals(
+            expected = expected,
+            "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig)
+        )
     }
 }
