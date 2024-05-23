@@ -164,7 +164,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     }.onFailure { error ->
         error("Not found metadata for $this", error)
     }.getOrNull() ?: error("Not found metadata for $this")
-    if (internalFormatName == null) internalFormatName = metadata.tableName
+    if (internalFormatName == null) internalFormatName = metadata.recordFormat
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
             dbField.toDataDefinition(prefix = prefix, position = position).apply {
@@ -181,7 +181,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     // record format possibly for file video is unuseful
     if (fileType == FileType.DB) {
         val recordFormatDefinition = DataDefinition(
-            name = metadata.recordFormat,
+            internalFormatName!!,
             type = RecordFormatType,
             position = position,
             fields = fieldsDefinition
