@@ -176,6 +176,7 @@ private val modules = SerializersModule {
         subclass(ZeroExpr::class)
         subclass(ParmsExpr::class)
         subclass(StatusExpr::class)
+        subclass(SizeExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)

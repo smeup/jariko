@@ -210,4 +210,25 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig)
         )
     }
+
+    /**
+     * Data definition where its field is initialized with the size of parent.
+     * @see #LS24002756
+     */
+    @Test
+    fun executeMU024012() {
+        val expected = listOf("Size: 2")
+        assertEquals(expected, "smeup/MU024012".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data definition where its field is initialized with the size of parent.
+     * Each field has a specific position from start.
+     * @see #LS24002756
+     */
+    @Test
+    fun executeMU024013() {
+        val expected = listOf("Size: 8")
+        assertEquals(expected, "smeup/MU024013".outputOf(configuration = smeupConfig))
+    }
 }

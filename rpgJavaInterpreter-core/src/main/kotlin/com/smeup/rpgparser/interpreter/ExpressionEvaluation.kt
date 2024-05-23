@@ -749,6 +749,19 @@ class ExpressionEvaluation(
         return BooleanValue(enrichedDBFile.open)
     }
 
+    override fun eval(expression: SizeExpr): Value {
+        return when (expression.value) {
+            is DataRefExpr -> (expression.value as DataRefExpr).variable.referred?.type?.size?.let { IntValue(it.toLong()) }
+                ?: throw UnsupportedOperationException("${(expression.value as DataRefExpr).variable.name} not referred with %SIZE")
+            // Could be:
+            //  - literal
+            //  - array{:*ALL}
+            //  - table{:*ALL}
+            //  - multiple-occurrence data structure{:*ALL}
+            else -> throw UnsupportedOperationException("I do not know how to handle ${expression.value} with %SIZE. Is '${expression.value.javaClass.simpleName}' class.")
+        }
+    }
+
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")
         return when {
