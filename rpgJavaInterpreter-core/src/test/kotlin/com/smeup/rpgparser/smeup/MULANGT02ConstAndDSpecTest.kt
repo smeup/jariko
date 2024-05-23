@@ -181,15 +181,6 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         assertEquals(expected, "smeup/MU025014".outputOf(configuration = smeupConfig))
     }
 
-    @Test
-    fun executeMUDRNR01() {
-        MULANGTLDbMock().use {
-            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
-            val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
-            assertEquals(expected, "smeup/MUDRNR01".outputOf(configuration = smeupConfig))
-        }
-    }
-
     /**
      * Data definition not resolved for a specification that uses `LIKE` to a field from file. In addition,
      *  there is a DS with an `%ELEM()` built-in function to that field.
@@ -218,5 +209,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             expected = expected,
             "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig)
         )
+    }
+
+    @Test
+    fun executeMUDRNRAPU00202() {
+        MULANGTLDbMock().use {
+            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+            val expected = listOf("ok")
+            assertEquals(expected, "smeup/MUDRNRAPU0202".outputOf(configuration = smeupConfig))
+        }
     }
 }

@@ -134,7 +134,7 @@ private fun RContext.getDataDefinitions(
 
     knownDataDefinitions.addMissing(resolvedDataDefinition)
 
-    // Third pass, we try to resolve statements that could be resolved previously
+    // Third pass, we try to resolve statements that could not be resolved previously
     var prevUnresolvedSize = -1
     while (unresolvedStatements.size > 0 && prevUnresolvedSize != unresolvedStatements.size) {
         val (newDefinitions, unresolved) = unresolvedStatements.tryResolve(
