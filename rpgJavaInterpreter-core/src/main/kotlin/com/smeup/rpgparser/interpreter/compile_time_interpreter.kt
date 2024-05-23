@@ -154,6 +154,12 @@ open class BaseCompileTimeInterpreter(
     private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
         statements.forEach {
             when {
+                it.fspec_fixed() != null -> {
+                    val size = it.fspec_fixed().runParserRuleContext(conf) { context ->
+                        kotlin.runCatching { context.toAst(conf).let { fileDefinition -> fileDefinition.toDataDefinitions() } }.getOrNull()
+                    }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.elementSize()
+                    if (size != null) return size
+                }
                 it.dspec() != null -> {
                     val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
                     if (declName.equals(name, ignoreCase = true)) {
@@ -234,6 +240,12 @@ open class BaseCompileTimeInterpreter(
         statements
             .forEach { it ->
                 when {
+                    it.fspec_fixed() != null -> {
+                        val type = it.fspec_fixed().runParserRuleContext(conf) { context ->
+                            kotlin.runCatching { context.toAst(conf).let { fileDefinition -> fileDefinition.toDataDefinitions() } }.getOrNull()
+                        }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.type
+                        if (type != null) return type
+                    }
                     it.dcl_ds() != null -> {
                         val type = it.dcl_ds().parm_fixed().find { it.ds_name().text.equals(declName, ignoreCase = true) }?.findType(conf)
                         if (type != null) return type

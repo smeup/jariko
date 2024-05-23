@@ -1,9 +1,31 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
+    @BeforeTest
+    override fun setUp() {
+        if (!DBServer.isRunning()) {
+            DBServer.startDB()
+        }
+
+        super.setUp()
+    }
+
+    @AfterTest()
+    override fun tearDown() {
+        /*
+         * This causes `connection exception: connection failure: java.net.SocketException: Pipe interrotta (Write failed)`
+         *  during `./gradle check`
+         */
+//        DBServer.stopDB()
+    }
+
     /**
      * /COPY recognized in CTDATA
      * @see #268
@@ -157,5 +179,22 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMU025014() {
         val expected = listOf("A50_A14(A) A50_B14(ABCDEFGHIJ)")
         assertEquals(expected, "smeup/MU025014".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data definition not resolved for a specification that uses `LIKE` to a field from file. In addition,
+     *  there is a DS with an `%ELEM()` built-in function to that field.
+     * @see #LS24002645
+     */
+    @Test
+    fun executeMUDRNRAPU00101() {
+        MULANGTLDbMock().use {
+            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+            val expected = listOf("HELLO THERE")
+            assertEquals(
+                expected = expected,
+                "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
+            )
+        }
     }
 }
