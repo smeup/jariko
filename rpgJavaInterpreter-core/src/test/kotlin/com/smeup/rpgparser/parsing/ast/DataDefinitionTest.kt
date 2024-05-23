@@ -110,12 +110,14 @@ open class DataDefinitionTest : AbstractTest() {
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 0,
                                 calculatedEndOffset = 50,
-                                declaredArrayInLineOnThisField = null),
+                                declaredArrayInLineOnThisField = null,
+                                overlayTarget = "\$\$SVAR"),
                         FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200),
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 50,
                                 calculatedEndOffset = 1050,
-                                declaredArrayInLineOnThisField = null)
+                                declaredArrayInLineOnThisField = null,
+                                overlayTarget = "\$\$SVAR")
                 ))
     }
 

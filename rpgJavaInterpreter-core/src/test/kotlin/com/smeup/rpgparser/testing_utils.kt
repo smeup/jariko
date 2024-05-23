@@ -71,6 +71,17 @@ val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bi
 
 private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle")!!.file).parent
 
+// All programs for which we can ignore compilation programs
+private val whiteListRegexp = Regex(
+    "QILEGEN,CPERR.*|ERROR.*|APIERR.*|CALCFIB2.*|JDATWD.*|JD_001.*|JD_008.*|JD_URL.*|" +
+            "JFTCPR.*|JRANDOMA.*|LOSER_PR.*|LOSER_PR.*|PROCEDURE_N.*|PROCEDURE_O.*|PROOF.*|TSTCPY05.*|TSTCPY07.*" +
+            "£�MU1API.*|MUTE03_09.*|MUTE12_01.*|MUTE13_26.*|MUTE15_02.*|MUTE_ERROR.*")
+
+// All api declared not valid (compilation unit will not be validated before the inclusion)
+private val notValidApi = listOf(
+    "QILEGEN,£C5PES", "QILEGEN,£PRZ"
+)
+
 fun parseFragmentToCompilationUnit(
     code: String,
     toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
@@ -642,10 +653,16 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
     }
 }
 
-fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPaths: List<String> = emptyList()) {
+fun compileAllMutes(
+    dirs: List<String>,
+    format: Format = Format.BIN,
+    metadataPaths: List<String> = emptyList(),
+    copyPaths: List<String> = emptyList()
+) {
     println("Deleting $testCompiledDir")
     testCompiledDir.deleteRecursively()
     testCompiledDir.mkdirs()
+    val copyDirs = copyPaths.map { File(rpgTestSrcDir, it) }
     dirs.forEach { it ->
         val muteSupport = it != "performance-ast"
         val srcDir = File(rpgTestSrcDir, it)
@@ -664,8 +681,20 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPat
                 }
             )
             options = Options(debuggingInformation = true)
+            jarikoCallback.onError = { error ->
+                error.sourceReference?.let { sourceReference ->
+                    if (!whiteListRegexp.matches(sourceReference.sourceId)) {
+                        System.err.println(error)
+                    }
+                } ?: System.err.println(error)
+            }
+            jarikoCallback.onApiInclusion = { apiId, api ->
+                if (!notValidApi.contains(apiId.toString())) {
+                    api.compilationUnit.resolveAndValidate()
+                }
+            }
         }
-
+        val notInWhitList = mutableListOf<String>()
         val compiled = compile(
             src = srcDir,
             compiledProgramsDir = testCompiledDir,
@@ -674,15 +703,26 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPat
             systemInterface = { dir ->
                 TestJavaSystemInterface().apply {
                     rpgSystem.addProgramFinder(DirRpgProgramFinder(dir))
+                    // To avoid duplication, I add copyDir as further program finder only if different from program dir
+                    copyDirs.filter { copyDir -> copyDir != dir }.forEach { copyDir ->
+                        rpgSystem.addProgramFinder(DirRpgProgramFinder(copyDir))
+                    }
                 }
             },
             // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
             allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") },
-            configuration = configuration
+            configuration = configuration,
+            allowCompilationError = { file, _ ->
+                whiteListRegexp.matches(file.name).apply {
+                    if (!this) {
+                        notInWhitList.add(file.name)
+                    }
+                }
+            }
         )
-        // now error are displayed during the compilation
+        // now errors are displayed during the compilation
         if (compiled.any { it.error != null }) {
-            error("Compilation error view logs")
+            error("Errors during compilation for these programs: ${notInWhitList.joinToString()}")
         }
     }
 }
@@ -697,7 +737,7 @@ private class CompileAllMutes : CliktCommand(
         help = "list of relative directories containing programs relative to path: $rpgTestSrcDir"
     ).default(
         listOf(
-            ".", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
+            ".", "data/ds", "data/interop", "primitives", "logging", "mute",
             "overlay", "performance", "performance-ast", "struct", "smeup"
         ).joinToString()
     )
@@ -720,7 +760,8 @@ private class CompileAllMutes : CliktCommand(
         compileAllMutes(
             dirs = dirs.split(",").map { it.trim() },
             format = Format.valueOf(format),
-            metadataPaths = metadataPaths.split(",").map { it.trim() }
+            metadataPaths = metadataPaths.split(",").map { it.trim() },
+            copyPaths = listOf(".", "smeup")
         )
     }
 }
