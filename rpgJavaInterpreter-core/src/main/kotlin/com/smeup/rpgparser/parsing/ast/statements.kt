@@ -1661,6 +1661,49 @@ data class DowStmt(
 }
 
 @Serializable
+data class DOUxxStmt(
+    val comparisonOperator: ComparisonOperator,
+    val factor1: Expression,
+    val factor2: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement, LoopStatement {
+    override val loggableEntityName: String
+        get() = "DOUxx"
+
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
+
+    override val loopSubject: String
+        get() = ""
+
+    override fun execute(interpreter: InterpreterCore) {
+        try {
+            do {
+                ++_iterations
+                interpreter.execute(body)
+            } while (comparisonOperator.verify(
+                    factor1,
+                    factor2,
+                    interpreter,
+                    interpreter.getLocalizationContext().charset
+                ).isVerified
+            )
+        } catch (e: LeaveException) {
+            // nothing to do here
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}${comparisonOperator.symbol}${sep}LEFT: ${factor1.render()}/RIGHT: ${factor2.render()}"
+        }
+    }
+}
+
+@Serializable
 data class DouStmt(
     val endExpression: Expression,
     override val body: List<Statement>,
