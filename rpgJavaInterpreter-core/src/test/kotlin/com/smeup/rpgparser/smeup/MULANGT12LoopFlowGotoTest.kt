@@ -42,4 +42,58 @@ open class MULANGT12LoopFlowGotoTest : MULANGTTest() {
         val expected = listOf("OK")
         assertEquals(expected, "smeup/MU120214".outputOf())
     }
+
+    /**
+     * DOUEQ
+     */
+    @Test
+    fun executeMU120901() {
+        val expected = listOf("A09_N2: 1")
+        assertEquals(expected, "smeup/MU120901".outputOf())
+    }
+
+    /**
+     * DOUNE
+     */
+    @Test
+    fun executeMU120902() {
+        val expected = listOf("A09_N2: 1")
+        assertEquals(expected, "smeup/MU120902".outputOf())
+    }
+
+    /**
+     * DOUGT
+     */
+    @Test
+    fun executeMU120903() {
+        val expected = listOf("A09_N1: 11")
+        assertEquals(expected, "smeup/MU120903".outputOf())
+    }
+
+    /**
+     * DOUGE
+     */
+    @Test
+    fun executeMU120904() {
+        val expected = listOf("A09_N1: 10")
+        assertEquals(expected, "smeup/MU120904".outputOf())
+    }
+
+    /**
+     * DOULT
+     */
+    @Test
+    fun executeMU120905() {
+        val expected = listOf("A09_N2: 11")
+        assertEquals(expected, "smeup/MU120905".outputOf())
+    }
+
+    /**
+     * DOULE
+     */
+    @Test
+    fun executeMU120906() {
+        val expected = listOf("A09_N2: 10")
+        assertEquals(expected, "smeup/MU120906".outputOf())
+    }
 }

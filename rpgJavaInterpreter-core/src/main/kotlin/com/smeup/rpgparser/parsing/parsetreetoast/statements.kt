@@ -56,6 +56,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
+        this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = this, conf = conf)
         this.monitorstatement() != null -> this.monitorstatement().let {
             it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
                 stmt = it.toAst(conf = conf),
@@ -89,6 +90,42 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
     val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
 
     return DOWxxStmt(
+        comparisonOperator = comparison,
+        factor1 = this.factor1.content.toAst(conf = conf),
+        factor2 = factor2Ast,
+        position = toPosition(conf.considerPosition),
+        body = blockContext.statement().map { it.toAst(conf) }
+    )
+}
+
+/**
+ * In accord to official documentation, the condition of DOUxx is for to quit from block,
+ *  instead for execute it like the new programming languages.
+ * @see https://www.ibm.com/docs/en/i/7.5?topic=codes-douxx-do-until
+ */
+internal fun RpgParser.CsDOUxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOUxxStmt {
+    val comparison = when {
+        this.csDOUEQ() != null -> ComparisonOperator.NE
+        this.csDOUNE() != null -> ComparisonOperator.EQ
+        this.csDOUGT() != null -> ComparisonOperator.LE
+        this.csDOUGE() != null -> ComparisonOperator.LT
+        this.csDOULT() != null -> ComparisonOperator.GE
+        this.csDOULE() != null -> ComparisonOperator.GT
+        else -> todo(conf = conf)
+    }
+    val factor2 = when {
+        this.csDOUEQ() != null -> this.csDOUEQ().cspec_fixed_standard_parts().factor2
+        this.csDOUNE() != null -> this.csDOUNE().cspec_fixed_standard_parts().factor2
+        this.csDOUGT() != null -> this.csDOUGT().cspec_fixed_standard_parts().factor2
+        this.csDOUGE() != null -> this.csDOUGE().cspec_fixed_standard_parts().factor2
+        this.csDOULT() != null -> this.csDOULT().cspec_fixed_standard_parts().factor2
+        this.csDOULE() != null -> this.csDOULE().cspec_fixed_standard_parts().factor2
+        else -> todo(conf = conf)
+    }
+
+    val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
+
+    return DOUxxStmt(
         comparisonOperator = comparison,
         factor1 = this.factor1.content.toAst(conf = conf),
         factor2 = factor2Ast,

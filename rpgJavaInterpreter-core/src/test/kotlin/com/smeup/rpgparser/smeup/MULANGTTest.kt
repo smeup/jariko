@@ -3,8 +3,10 @@ package com.smeup.rpgparser.smeup
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.ConnectionConfig
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
 /**
@@ -14,7 +16,6 @@ import kotlin.test.BeforeTest
  * @see MULANGT60VideoTestCompiled see above
  */
 abstract class MULANGTTest : AbstractTest() {
-
     /**
      * The configuration used to execute some kind of tests, for example all test required files.
      * The required files are placed in the resources/smeup/metadata folder.
@@ -22,13 +23,31 @@ abstract class MULANGTTest : AbstractTest() {
     lateinit var smeupConfig: Configuration
 
     @BeforeTest
-    fun setUp() {
+    open fun setUp() {
         smeupConfig = Configuration()
         val path = javaClass.getResource("/smeup/metadata")!!.path
-        val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
+        val connectionConfigs = listOf(ConnectionConfig(
+            fileName = "*",
+            url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+            user = "SA",
+            password = "",
+            driver = "org.hsqldb.jdbc.JDBCDriver"
+        ))
+        val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = connectionConfigs)
         smeupConfig.reloadConfig = ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            nativeAccessConfig = DBNativeAccessConfig(connectionConfigs.map {
+                com.smeup.dbnative.ConnectionConfig(
+                    fileName = it.fileName,
+                    url = it.url,
+                    user = it.user,
+                    password = it.password,
+                    driver = it.driver,
+                    impl = it.impl
+                )
+            }),
             metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
-        smeupConfig.options.debuggingInformation = true
     }
+
+    @AfterTest()
+    open fun tearDown() {}
 }

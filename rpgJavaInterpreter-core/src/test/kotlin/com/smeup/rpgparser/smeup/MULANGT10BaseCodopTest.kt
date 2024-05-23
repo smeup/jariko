@@ -103,4 +103,13 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("CALL(mod:inp   )")
         assertEquals(expected, "smeup/MU106011".outputOf())
     }
+
+    /**
+     * TESTN
+     */
+    @Test
+    fun executeMU102501() {
+        val expected = listOf("51=1,52=0,53=0")
+        assertEquals(expected, "smeup/MU102501".outputOf())
+    }
 }
