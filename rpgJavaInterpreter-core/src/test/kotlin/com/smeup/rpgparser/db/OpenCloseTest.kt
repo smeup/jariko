@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.db.utilities.createEmployeeMetadata
 import org.junit.Test
 import kotlin.test.assertEquals
 

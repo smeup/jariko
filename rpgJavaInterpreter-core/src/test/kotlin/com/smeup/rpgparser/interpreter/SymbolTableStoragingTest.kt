@@ -113,7 +113,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         commandLineProgram.singleCall(emptyList(), configuration)
         // verify if serialization is ok
         // get variables for memorysliceid
-        val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
+        val variables = memoryStorage.storage[MemorySliceId("MyAct".uppercase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
             expected = varValue,
@@ -143,7 +143,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
      C                   SETON                                          RT
      """
         val commandLineProgram = getProgram(nameOrSource = myProgram)
-        val memorySliceId = MemorySliceId("MyAct".toUpperCase(), programName = myProgram)
+        val memorySliceId = MemorySliceId("MyAct".uppercase(), programName = myProgram)
         val memoryStorage = MemoryStorage()
         memoryStorage.storage[memorySliceId] = mutableMapOf("Y" to StringValue(value = varValue, varying = true))
         val configuration = Configuration(memorySliceStorage = memoryStorage)
@@ -173,7 +173,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val memoryStorage = MemoryStorage()
         val configuration = Configuration(memorySliceStorage = memoryStorage)
         commandLineProgram.singleCall(emptyList(), configuration)
-        val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
+        val variables = memoryStorage.storage[MemorySliceId("MyAct".uppercase(), programName = myProgram)]
         assertEquals(
             expected = null,
             actual = variables,
@@ -202,7 +202,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val configuration = Configuration(memorySliceStorage = memoryStorage)
         // First call, instatiate and initialize X variable to value 1
         commandLineProgram.singleCall(emptyList(), configuration)
-        var variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
+        var variables = memoryStorage.storage[MemorySliceId("MyAct".uppercase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
             expected = varValue.trim(),
@@ -211,7 +211,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
         // Second program execution, X variable must exist with value 1, than it will increase to value 2.
         commandLineProgram.singleCall(emptyList(), configuration)
-        variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
+        variables = memoryStorage.storage[MemorySliceId("MyAct".uppercase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
             expected = varValue.trim() + varValue.trim(),
@@ -236,12 +236,12 @@ open class SymbolTableStoragingTest : AbstractTest() {
      C                   SETON                                          RT
      """
         val commandLineProgram = getProgram(nameOrSource = myProgram)
-        val memorySliceId = MemorySliceId("MyAct".toUpperCase(), programName = myProgram)
+        val memorySliceId = MemorySliceId("MyAct".uppercase(), programName = myProgram)
         val memoryStorage = MemoryStorage()
         memoryStorage.storage[memorySliceId] = mutableMapOf("Z" to StringValue(value = varValue, varying = true))
         val configuration = Configuration(memorySliceStorage = memoryStorage)
         commandLineProgram.singleCall(emptyList(), configuration)
-        val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
+        val variables = memoryStorage.storage[MemorySliceId("MyAct".uppercase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
             expected = varValue,
@@ -284,7 +284,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
         // First call to program A, instatiate and initialize Z variable to value ending with 'A' character.
         commandLineProgramA.singleCall(emptyList(), configuration)
-        var variables = memoryStorage.storage[MemorySliceId("MyActA".toUpperCase(), programName = myProgramA)]
+        var variables = memoryStorage.storage[MemorySliceId("MyActA".uppercase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
@@ -293,7 +293,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
         // First call to program B, instatiate and initialize Z variable to value ending with 'B' character.
         commandLineProgramB.singleCall(emptyList(), configuration)
-        variables = memoryStorage.storage[MemorySliceId("MyActB".toUpperCase(), programName = myProgramB)]
+        variables = memoryStorage.storage[MemorySliceId("MyActB".uppercase(), programName = myProgramB)]
         require(variables != null)
         assertEquals(
             expected = "${varValue}B",
@@ -301,7 +301,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         )
 
         // Z variable on MyActA must have previous value ending with 'A' character.
-        variables = memoryStorage.storage[MemorySliceId("MyActA".toUpperCase(), programName = myProgramA)]
+        variables = memoryStorage.storage[MemorySliceId("MyActA".uppercase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
@@ -344,7 +344,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
         // First call to program A, instatiate and initialize Z variable to value ending with 'A' character.
         commandLineProgramA.singleCall(emptyList(), configuration)
-        var variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramA)]
+        var variables = memoryStorage.storage[MemorySliceId("MyActSAME".uppercase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
@@ -353,7 +353,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
         // First call to program B, instatiate and initialize Z variable to value ending with 'B' character.
         commandLineProgramB.singleCall(emptyList(), configuration)
-        variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramB)]
+        variables = memoryStorage.storage[MemorySliceId("MyActSAME".uppercase(), programName = myProgramB)]
         require(variables != null)
         assertEquals(
             expected = "${varValue}B",
@@ -361,7 +361,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         )
 
         // Variable 'Z myProgramA scoped' have not changed his initial values, no interference between two programs
-        variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramA)]
+        variables = memoryStorage.storage[MemorySliceId("MyActSAME".uppercase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",

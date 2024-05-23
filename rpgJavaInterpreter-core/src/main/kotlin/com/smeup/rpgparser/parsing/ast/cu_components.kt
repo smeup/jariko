@@ -163,3 +163,41 @@ enum class DataWrapUpChoice {
 
 // A PList is a list of parameters
 fun List<Statement>.plist(): PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+
+internal fun CompilationUnit.format(): String {
+    var indent = 0
+    var foundComma = false
+    val sb = StringBuilder()
+    var index = 0
+    val cuString = this.toString()
+    cuString.iterator().forEach {
+        when (it) {
+            '{', '[', '(' -> {
+                sb.append("$it\n")
+                indent += 2
+                sb.append(" ".repeat(indent))
+            }
+            '}', ']', ')' -> {
+                foundComma = false
+                sb.append("\n")
+                indent -= 2
+                sb.append(" ".repeat(indent))
+                sb.append(it)
+            }
+            ',' -> {
+                sb.append("$it\n")
+                sb.append(" ".repeat(indent))
+                foundComma = true
+            }
+            ' ' -> {
+                if (!foundComma) {
+                    sb.append(it)
+                }
+                foundComma = false
+            }
+            else -> sb.append(it)
+        }
+        index++
+    }
+    return sb.toString()
+}

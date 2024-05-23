@@ -18,15 +18,13 @@ package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.*
-import com.smeup.rpgparser.interpreter.StringValue
 import org.hsqldb.Server
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-open class ReadTest : AbstractTest() {
+open class OpenRenameTest : AbstractTest() {
 
     companion object {
 
@@ -46,41 +44,24 @@ open class ReadTest : AbstractTest() {
     }
 
     @Test
-    fun equalWithNoSetllReturnsFalse() {
+    fun testOpenWithoutRename() {
         val outputLines = outputOfDBPgm(
-            "db/EQUALNOSET",
-            listOf(createEmployeeMetadata()),
+            "db/OPEN",
+            listOf(createEmployeeMetadata("EMPLOY0F", "EMPLOYR")),
             emptyList(),
             emptyMap()
         )
-        assertEquals(listOf("EQUAL=0"), outputLines)
+        assertEquals(listOf("OK"), outputLines)
     }
 
     @Test
-    fun doesNotFindNonExistingRecord() {
-        assertEquals(
-            listOf("Not found"),
-            outputOfDBPgm(
-                "db/CHAINREADE",
-                listOf(createEmployeeMetadata()),
-                emptyList(),
-                mapOf("toFind" to StringValue("XXX"))
-            )
+    fun testWithRename() {
+        val outputLines = outputOfDBPgm(
+            "db/OPEN_RENAME",
+            listOf(createEmployeeMetadata("EMPLOY0F", "EMPLOYR")),
+            emptyList(),
+            emptyMap()
         )
-    }
-
-    @Test
-    @Ignore
-    fun findsExistingRecords2() {
-        assertEquals(
-            // TODO is the order of results mandatory?
-            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
-            outputOfDBPgm(
-                "db/CHAINREADE",
-                listOf(createEmployeeMetadata()),
-                emptyList(),
-                mapOf("toFind" to StringValue("C01"))
-            )
-        )
+        assertEquals(listOf("OK"), outputLines)
     }
 }
