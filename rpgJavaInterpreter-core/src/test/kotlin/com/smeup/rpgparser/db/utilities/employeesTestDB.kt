@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.smeup.rpgparser.db
+package com.smeup.rpgparser.db.utilities
 
 import com.smeup.rpgparser.interpreter.DbField
 import com.smeup.rpgparser.interpreter.FileMetadata
