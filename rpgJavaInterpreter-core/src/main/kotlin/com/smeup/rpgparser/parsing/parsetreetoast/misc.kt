@@ -115,12 +115,13 @@ private fun RContext.getDataDefinitions(
     val secondPassProviders = this.statement()
         .mapNotNull {
             kotlin.runCatching {
-                it.getDataDefinitionProvider(
+                val provider = it.getDataDefinitionProvider(
                     fileDefinitions = fileDefinitions,
                     knownDataDefinitions = knownDataDefinitions,
                     dataDefinitionProviders = dataDefinitionProviders,
                     conf
-                )
+                )?.also { knownDataDefinitions.addIfNotPresent(it.toDataDefinition()) }
+                provider
             }.onFailure { e ->
                 if (e !is AstResolutionError)
                     unresolvedStatements.add(it)
@@ -134,7 +135,11 @@ private fun RContext.getDataDefinitions(
 
     knownDataDefinitions.addMissing(resolvedDataDefinition)
 
-    // Third pass, we try to resolve statements that could not be resolved previously
+    /**
+     * Third pass, we try to resolve statements that could not be resolved previously
+     * we retry until we have no more unresolved statements or no additional statement
+     * can be resolved.
+     */
     var prevUnresolvedSize = -1
     while (unresolvedStatements.size > 0 && prevUnresolvedSize != unresolvedStatements.size) {
         val (newDefinitions, unresolved) = unresolvedStatements.tryResolve(
@@ -163,18 +168,17 @@ private fun StatementContext.getDataDefinitionProvider(
         this.dspec() != null -> {
             this.dspec()
                 .toAst(conf, knownDataDefinitions.values.toList())
-                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                .toHolder()
         }
         this.dcl_c() != null -> {
-            this.dcl_c()
-                .toAst(conf)
-                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+            this.dcl_c().toAst(conf).toHolder()
         }
         this.dcl_ds() != null && this.dcl_ds().useLikeDs(conf) -> {
-            DataDefinitionCalculator(this.dcl_ds().toAstWithLikeDs(
+            val calculator = this.dcl_ds().toAstWithLikeDs(
                 conf = conf,
-                dataDefinitionProviders = dataDefinitionProviders)
+                dataDefinitionProviders = dataDefinitionProviders
             )
+            DataDefinitionCalculator(calculator)
         }
         this.dcl_ds() != null && this.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
             fileDefinition.name.equals(this.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
@@ -211,15 +215,15 @@ private fun List<StatementContext>.tryResolve(
             return@mapNotNull null
         }
 
-        if (provider !is DataDefinitionHolder)
-            knownDataDefinitions.addIfNotPresent(definition)
+        knownDataDefinitions.addIfNotPresent(definition)
+
         definition
     }
 
     return Pair(newDefinitions, stillUnresolved)
 }
 
-private fun DataDefinition.getHolder() = DataDefinitionHolder(this)
+private fun DataDefinition.toHolder() = DataDefinitionHolder(this)
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
     knownDataDefinitions: MutableMap<String, DataDefinition>

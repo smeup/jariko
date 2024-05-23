@@ -4,5 +4,6 @@
      D £DBG_Str        S             2
 
      C                   EVAL      SJALOG=JALOGT
+     C                   EVAL      JALOGT=SJALOG
      C                   EVAL      £DBG_Str='ok'
      C     £DBG_Str      DSPLY

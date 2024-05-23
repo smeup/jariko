@@ -216,7 +216,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         MULANGTLDbMock().use {
             com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
             val expected = listOf("ok")
-            assertEquals(expected, "smeup/MUDRNRAPU0202".outputOf(configuration = smeupConfig))
+            assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
         }
     }
 }
