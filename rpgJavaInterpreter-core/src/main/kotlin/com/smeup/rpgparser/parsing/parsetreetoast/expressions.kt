@@ -141,7 +141,7 @@ fun String.toIntLiteral(position: Position?): IntLiteral {
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    if (this.text.toUpperCase().startsWith("*ALL")) {
+    if (this.text.uppercase().startsWith("*ALL")) {
         return AllExpr(this.all().literal().toAst(conf), toPosition(conf.considerPosition))
     }
 
@@ -149,7 +149,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
         return FunctionCall(ReferenceByName(this.text), listOf(), toPosition(conf.considerPosition))
     }
 
-    return when (this.text.toUpperCase()) {
+    return when (this.text.uppercase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> ZeroExpr(toPosition(conf.considerPosition))
         "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))

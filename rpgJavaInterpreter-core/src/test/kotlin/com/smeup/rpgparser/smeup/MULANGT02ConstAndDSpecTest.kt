@@ -197,4 +197,17 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             )
         }
     }
+
+    /**
+     * Data definition not resolved for patterns containing the ':' in XLate factor 1
+     * @see #LS24002758
+     */
+    @Test
+    fun executeMUDRNRAPU00201() {
+        val expected = listOf("ok")
+        assertEquals(
+            expected = expected,
+            "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig)
+        )
+    }
 }
