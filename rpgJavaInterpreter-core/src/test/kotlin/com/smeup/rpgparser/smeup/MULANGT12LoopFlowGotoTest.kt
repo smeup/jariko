@@ -96,4 +96,13 @@ open class MULANGT12LoopFlowGotoTest : MULANGTTest() {
         val expected = listOf("A09_N2: 10")
         assertEquals(expected, "smeup/MU120906".outputOf())
     }
+
+    /**
+     * DOWEQ with indicator into SR
+     */
+    @Test
+    fun executeMU120907() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MU120907".outputOf())
+    }
 }
