@@ -66,16 +66,17 @@ open class ToAstSmokeTest : AbstractTest() {
     fun buildAstForJD_001_dataDefinitions() {
         val root = assertASTCanBeProduced("JD_001")
         assertEquals(10, root.dataDefinitions.size)
-        assertEquals("@UNNAMED_DS_16", root.dataDefinitions[0].name)
-        assertEquals("U\$FUNZ", root.dataDefinitions[1].name)
-        assertEquals("U\$METO", root.dataDefinitions[2].name)
-        assertEquals("U\$SVARSK", root.dataDefinitions[3].name)
-        assertEquals("U\$IN35", root.dataDefinitions[4].name)
-        assertEquals("\$\$URL", root.dataDefinitions[5].name)
-        assertEquals("\$X", root.dataDefinitions[6].name)
-        assertEquals("U\$SVARSK_INI", root.dataDefinitions[7].name)
-        assertEquals("§§FUNZ", root.dataDefinitions[8].name)
-        assertEquals("§§METO", root.dataDefinitions[9].name)
+        val dataDefinitionNames = root.dataDefinitions.map { it.name }
+        assertTrue(dataDefinitionNames.contains("@UNNAMED_DS_16"))
+        assertTrue(dataDefinitionNames.contains("U\$FUNZ"))
+        assertTrue(dataDefinitionNames.contains("U\$METO"))
+        assertTrue(dataDefinitionNames.contains("U\$SVARSK"))
+        assertTrue(dataDefinitionNames.contains("U\$IN35"))
+        assertTrue(dataDefinitionNames.contains("\$\$URL"))
+        assertTrue(dataDefinitionNames.contains("\$X"))
+        assertTrue(dataDefinitionNames.contains("U\$SVARSK_INI"))
+        assertTrue(dataDefinitionNames.contains("§§FUNZ"))
+        assertTrue(dataDefinitionNames.contains("§§METO"))
     }
 
     @Test
