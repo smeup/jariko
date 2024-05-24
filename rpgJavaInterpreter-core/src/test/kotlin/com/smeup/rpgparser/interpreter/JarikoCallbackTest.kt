@@ -24,6 +24,7 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
+import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import org.junit.Assert
 import java.io.StringReader
