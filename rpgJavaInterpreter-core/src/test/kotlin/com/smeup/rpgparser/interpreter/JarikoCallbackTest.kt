@@ -638,6 +638,53 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
+     * This function is used to test the execution of a program and validate the error handling mechanism.
+     * It expects the program to fail and checks if the error events are correctly captured.
+     *
+     * @param pgm The name of the program to be executed.
+     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
+     * @param sourceId The expected identifier of the source where the error is expected to occur.
+     * @param lines The map of lines, number and message, expected.
+     */
+    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: Map<Int, String>) {
+        val errorEvents = mutableListOf<ErrorEvent>()
+        runCatching {
+            val configuration = Configuration().apply {
+                jarikoCallback.onError = { errorEvent ->
+                    println(errorEvent)
+                    errorEvents.add(errorEvent)
+                }
+                options = Options(debuggingInformation = true)
+                reloadConfig = createMockReloadConfig()
+            }
+            executePgm(pgm, configuration = configuration)
+        }.onSuccess {
+            Assert.fail("Program must exit with error")
+        }.onFailure {
+            println(it.stackTraceToString())
+            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
+            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
+            val found = errorEvents
+                            .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
+                            .map { it.contains(lines) }
+            Assert.assertTrue(
+                "Errors don't correspond",
+                found.filter { it }.size.equals(lines.size)
+            )
+        }
+    }
+
+    internal fun Map.Entry<Int, String>.contains(list: Map<Int, String>): Boolean {
+        list.forEach {
+            if (this.value.contains(it.value) && this.key == it.key) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /**
      * Verify that the sourceLine is properly set in case of error.
      * ErrorEvent must contain a reference of an absolute line of the source code
      * */
