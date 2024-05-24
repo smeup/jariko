@@ -343,7 +343,9 @@ data class FieldDefinition(
 
     // true when the FieldDefinition contains a DIM keyword on its line
     val declaredArrayInLineOnThisField: Int? = null,
-    override val const: Boolean = false
+    override val const: Boolean = false,
+    // I moved here for more readability when we need to evaluate the state of FieldDefinition
+    internal var overlayTarget: String? = null
 ) :
     AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
@@ -364,7 +366,6 @@ data class FieldDefinition(
 
     @property:Link
     @Transient var overlayingOn: AbstractDataDefinition? = null
-    internal var overlayTarget: String? = null
 
     // when they are arrays, how many bytes should we skip into the DS to find the next element?
     // normally it would be the same size as an element of the DS, however if they are declared
@@ -460,7 +461,7 @@ data class FieldDefinition(
 @Serializable
 class InStatementDataDefinition(
     override val name: String,
-    override val type: Type,
+    @SerialName(value = "inStatDataDefType") override val type: Type,
     override val position: Position? = null,
     val initializationValue: Expression? = null,
     override val const: Boolean = false

@@ -17,6 +17,9 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.db.utilities.createEMPLOYEE
+import com.smeup.rpgparser.db.utilities.createEmployeeMetadata
+import com.smeup.rpgparser.db.utilities.dropEMPLOYEE
 import com.smeup.rpgparser.db.utilities.execute
 import org.hsqldb.Server
 import org.junit.After

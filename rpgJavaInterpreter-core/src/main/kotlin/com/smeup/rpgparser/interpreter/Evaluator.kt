@@ -81,4 +81,5 @@ interface Evaluator {
     fun eval(expression: GlobalIndicatorExpr): Value
     fun eval(expression: ParmsExpr): Value
     fun eval(expression: OpenExpr): Value
+    fun eval(expression: SizeExpr): Value
 }

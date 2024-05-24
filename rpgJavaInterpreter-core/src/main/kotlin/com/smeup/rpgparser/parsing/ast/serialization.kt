@@ -19,6 +19,7 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
@@ -38,6 +39,7 @@ private val modules = SerializersModule {
     polymorphic(AbstractDataDefinition::class) {
         subclass(FieldDefinition::class)
         subclass(DataDefinition::class)
+        subclass(InStatementDataDefinition::class)
     }
     polymorphic(Statement::class) {
         subclass(AddStmt::class)
@@ -58,6 +60,7 @@ private val modules = SerializersModule {
         subclass(DivStmt::class)
         subclass(DoStmt::class)
         subclass(DouStmt::class)
+        subclass(DOUxxStmt::class)
         subclass(DowStmt::class)
         subclass(DOWxxStmt::class)
         subclass(EvalStmt::class)
@@ -173,6 +176,7 @@ private val modules = SerializersModule {
         subclass(ZeroExpr::class)
         subclass(ParmsExpr::class)
         subclass(StatusExpr::class)
+        subclass(SizeExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)

@@ -25,6 +25,10 @@ import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
+import com.smeup.rpgparser.interpreter.LazyLogEntry
+import com.smeup.rpgparser.interpreter.LogSourceData
+import com.smeup.rpgparser.interpreter.StatementReference
+import com.smeup.rpgparser.interpreter.line
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
@@ -399,6 +403,7 @@ class RpgParserFacade {
         }
         procedures?.onEach { procedureUnit ->
             procedureUnit.parent = this
+            procedureUnit.afterLoadAst()
         }
     }
 

@@ -155,7 +155,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
-private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
+internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val reloadConfig = MainExecutionContext.getConfiguration()
         .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
@@ -164,7 +164,7 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     }.onFailure { error ->
         error("Not found metadata for $this", error)
     }.getOrNull() ?: error("Not found metadata for $this")
-    if (internalFormatName == null) internalFormatName = metadata.tableName
+    if (internalFormatName == null) internalFormatName = metadata.recordFormat
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
             dbField.toDataDefinition(prefix = prefix, position = position).apply {
@@ -181,7 +181,7 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     // record format possibly for file video is unuseful
     if (fileType == FileType.DB) {
         val recordFormatDefinition = DataDefinition(
-            name = metadata.recordFormat,
+            internalFormatName!!,
             type = RecordFormatType,
             position = position,
             fields = fieldsDefinition
@@ -1396,20 +1396,19 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 }
 
 private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
-    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index, conf) else this.content.toAst(conf)
+    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index) else this.content.toAst(conf)
 
-private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToAstConfiguration): Expression {
-    val baseStringTokens = this.split(":")
-    val startPosition = 0
+private fun String.toDoubleExpression(position: Position?, index: Int): Expression {
+    val quoteAwareSplitPattern = Regex(""":(?=([^']*'[^']*')*[^']*$)""")
+    val baseStringTokens = this.split(quoteAwareSplitPattern)
     var reference = baseStringTokens[index]
-    val ret: Expression
 
     val regexp = Regex("'(.*?)'")
-    if (reference.matches(regexp)) {
+    val ret = if (reference.matches(regexp)) {
         reference = reference.replace("'", "")
-        ret = StringLiteral(reference, position)
+        StringLiteral(reference, position)
     } else {
-        ret = DataRefExpr(ReferenceByName(reference), position)
+        DataRefExpr(ReferenceByName(reference), position)
     }
     return ret
 }

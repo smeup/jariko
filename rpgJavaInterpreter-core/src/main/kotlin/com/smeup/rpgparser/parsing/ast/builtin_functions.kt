@@ -388,6 +388,18 @@ data class OpenExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %SIZE
+@Serializable
+data class SizeExpr(var value: Expression, override val position: Position? = null) :
+    Expression(position) {
+
+    override fun render(): String {
+        return "%SIZE(${this.value.render()})"
+    }
+
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 @Serializable
 sealed class DurationCode
 @Serializable
