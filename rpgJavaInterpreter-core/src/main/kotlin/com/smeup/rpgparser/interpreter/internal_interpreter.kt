@@ -148,8 +148,8 @@ open class InternalInterpreter(
 
     override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    override operator fun get(data: AbstractDataDefinition) = if (logsEnabled()) getWithLogging(data) else globalSymbolTable[data]
-    override operator fun get(dataName: String) = if (logsEnabled()) getWithLogging(dataName) else globalSymbolTable[dataName]
+    override operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
+    override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     open operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
@@ -215,7 +215,7 @@ open class InternalInterpreter(
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
                 // deny reassignment if data is a constant
-                if (logsEnabled()) setWithLogging(data, value) else globalSymbolTable.set(data, coerce(value, data.type))?.let {
+                globalSymbolTable.set(data, coerce(value, data.type))?.let {
                     if (data.const) error("${data.name} is a const and cannot be assigned")
                 }
             }
@@ -1178,61 +1178,6 @@ open class InternalInterpreter(
     override fun onInterpretationEnd() {
         val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
         loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
-    }
-
-    private fun getWithLogging(data: String): Value {
-        val start = System.nanoTime()
-        val value = globalSymbolTable[data]
-        val elapsed = System.nanoTime() - start
-        val programName = interpretationContext.currentProgramName
-
-        renderLogInternal {
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData.fromProgram(programName) },
-                ProgramUsageType.SymbolTable,
-                SymbolTableAction.GET.name,
-                elapsed.nanoseconds
-            )
-        }
-
-        return value
-    }
-
-    private fun getWithLogging(data: AbstractDataDefinition): Value {
-        val start = System.nanoTime()
-        val value = globalSymbolTable[data]
-        val elapsed = System.nanoTime() - start
-        val programName = interpretationContext.currentProgramName
-
-        renderLogInternal {
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData(programName, data.startLine()) },
-                ProgramUsageType.SymbolTable,
-                SymbolTableAction.GET.name,
-                elapsed.nanoseconds
-            )
-        }
-
-        return value
-    }
-
-    private fun setWithLogging(data: AbstractDataDefinition, value: Value) {
-        fun setValue() {
-            globalSymbolTable.set(data, coerce(value, data.type))?.let {
-                if (data.const) error("${data.name} is a const and cannot be assigned")
-            }
-        }
-
-        val elapsed = measureNanoTime { setValue() }
-        val programName = interpretationContext.currentProgramName
-        renderLogInternal {
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData(programName, data.startLine()) },
-                ProgramUsageType.SymbolTable,
-                SymbolTableAction.SET.name,
-                elapsed.nanoseconds
-            )
-        }
     }
 }
 
