@@ -55,6 +55,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_sqrt() != null -> this.bif_sqrt().toAst(conf)
         this.bif_parms() != null -> this.bif_parms().toAst(conf)
         this.bif_open() != null -> this.bif_open().toAst(conf)
+        this.bif_size() != null -> this.bif_size().toAst(conf)
         else -> todo(conf = conf)
     }
 }
@@ -257,5 +258,11 @@ internal fun RpgParser.Bif_parmsContext.toAst(conf: ToAstConfiguration = ToAstCo
 internal fun RpgParser.Bif_openContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OpenExpr {
     return OpenExpr(
         this.identifier().text,
+        toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_sizeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SizeExpr {
+    return SizeExpr(
+        this.expression().toAst(conf),
         toPosition(conf.considerPosition))
 }
