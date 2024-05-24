@@ -246,15 +246,14 @@ abstract class AbstractTest {
      */
     protected fun String.outputOf(
         trimEnd: Boolean = true,
-        configuration: Configuration = Configuration(),
-        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {}
-
+        configuration: Configuration = Configuration()
+//        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {},
     ): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
-        afterSystemInterface.invoke(systemInterface)
+//        afterSystemInterface(systemInterface)
         executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
