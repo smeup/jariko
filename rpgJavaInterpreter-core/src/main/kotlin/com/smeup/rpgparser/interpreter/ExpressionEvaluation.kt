@@ -52,7 +52,6 @@ class ExpressionEvaluation(
         if (systemInterface.getAllLogHandlers().isEmpty()) return action()
 
         val programName = MainExecutionContext.getExecutionProgramName()
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
 
         val start = System.nanoTime()
         val value = action()

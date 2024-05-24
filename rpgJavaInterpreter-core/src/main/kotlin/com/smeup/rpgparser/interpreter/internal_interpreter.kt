@@ -331,7 +331,6 @@ open class InternalInterpreter(
 
         val initElapsed = (System.nanoTime() - start).nanoseconds
 
-        val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext()
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }

@@ -221,12 +221,12 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for the PERF channel
          * @see LogChannel
          */
-        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
-            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
-            return LazyLogEntry(entry) {
-                elapsed.inWholeMicroseconds.toString()
-            }
-        }
+//        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
+//            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
+//            return LazyLogEntry(entry) {
+//                elapsed.inWholeMicroseconds.toString()
+//            }
+//        }
 
         /**
          * Create a new LazyLogEntry for the PERF channel and updates AnalyticsContext with its data
