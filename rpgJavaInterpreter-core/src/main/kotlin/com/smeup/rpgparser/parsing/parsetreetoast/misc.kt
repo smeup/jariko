@@ -172,10 +172,13 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 }
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
-    if (put(dataDefinition.name, dataDefinition) != null)
+    val old = get(dataDefinition.name)
+    if (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) {
+        put(dataDefinition.name, dataDefinition)
+    } else {
         dataDefinition.error("${dataDefinition.name} has been defined twice")
+    }
 }
-
 internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val reloadConfig = MainExecutionContext.getConfiguration()
