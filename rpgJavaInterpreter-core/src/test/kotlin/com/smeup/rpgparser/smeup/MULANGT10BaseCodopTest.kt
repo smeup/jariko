@@ -75,6 +75,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * SCAN with special char
+     * @see LS24002777
+     */
+    @Test
+    fun executeMU103511() {
+        val expected = listOf("Found at: 3")
+        assertEquals(expected, "smeup/MU103511".outputOf())
+    }
+
+    /**
      * Utilization of `LIKEDS` with a `DataDefinition` defined in parent.
      * @see #271
      */
