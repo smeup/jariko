@@ -37,6 +37,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.insLineNumber
 import com.smeup.rpgparser.utils.parseTreeToXml
+import com.smeup.rpgparser.utils.popIfPresent
+import com.smeup.rpgparser.utils.pushIfNotAlreadyPresent
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.endPoint
@@ -452,7 +454,7 @@ class RpgParserFacade {
         inputStream: InputStream,
         sourceProgram: SourceProgram? = SourceProgram.RPGLE
     ): CompilationUnit {
-        MainExecutionContext.getParsingProgramStack().push(ParsingProgram(executionProgramName))
+        MainExecutionContext.getParsingProgramStack().pushIfNotAlreadyPresent(ParsingProgram(executionProgramName))
         val cu = if (sourceProgram?.sourceType == true) {
             (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
@@ -464,7 +466,10 @@ class RpgParserFacade {
             }
         }
         // This is a trick to pass the popped ParsingProgramStack for further processing
-        addLastPoppedParsingProgram(MainExecutionContext.getParsingProgramStack().pop())
+        MainExecutionContext.getParsingProgramStack().popIfPresent()?.apply {
+            addLastPoppedParsingProgram(this)
+        }
+
         return cu
     }
 
