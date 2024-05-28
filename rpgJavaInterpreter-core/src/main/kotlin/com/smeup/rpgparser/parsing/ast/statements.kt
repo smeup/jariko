@@ -677,13 +677,13 @@ data class CheckrStmt(
         if (wrongIndex != null) {
             interpreter.assign(wrongIndex, IntValue.ZERO)
         }
-        baseString.substring(start - 1)
+        baseString.substring(0, start)
             .mapIndexed { i, c -> Pair(i, c) }
             .reversed()
             .forEach { (i, c) ->
                 if (!charSet.contains(c)) {
                     if (wrongIndex != null) {
-                        interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
+                        interpreter.assign(wrongIndex, IntValue((i + 1).toLong()))
                     }
                     interpreter.getStatus().lastFound = true
                     return

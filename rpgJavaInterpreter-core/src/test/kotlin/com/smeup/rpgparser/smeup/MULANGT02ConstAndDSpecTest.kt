@@ -211,6 +211,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         )
     }
 
+    /**
+     * Instatement data definition not resolved because of CHECKR not implemented
+     * @see #LS24002758
+     */
     @Test
     fun executeMUDRNRAPU00204() {
         val expected = listOf("ok")
