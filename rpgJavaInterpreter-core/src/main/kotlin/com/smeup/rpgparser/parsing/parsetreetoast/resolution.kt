@@ -24,7 +24,10 @@ import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
+import com.smeup.rpgparser.parsing.facade.getExecutionProgramNameWithNoExtension
 import com.smeup.rpgparser.parsing.facade.getLastPoppedParsingProgram
+import com.smeup.rpgparser.utils.popIfPresent
+import com.smeup.rpgparser.utils.pushIfNotAlreadyPresent
 import com.strumenta.kolasu.model.*
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
@@ -119,14 +122,14 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
  */
 fun CompilationUnit.resolveAndValidate(): List<Error> {
     kotlin.runCatching {
-        val parsingProgram = ParsingProgram(MainExecutionContext.getExecutionProgramName())
+        val parsingProgram = ParsingProgram(getExecutionProgramNameWithNoExtension())
         parsingProgram.copyBlocks = this.copyBlocks
         parsingProgram.sourceLines = getLastPoppedParsingProgram()?.sourceLines
-        MainExecutionContext.getParsingProgramStack().push(parsingProgram)
+        MainExecutionContext.getParsingProgramStack().pushIfNotAlreadyPresent(parsingProgram)
         this.resolve()
         checkAstCreationErrors(AstHandlingPhase.Resolution)
         return this.validate().apply {
-            MainExecutionContext.getParsingProgramStack().pop()
+            MainExecutionContext.getParsingProgramStack().popIfPresent()
         }
     }.onFailure {
         this.source?.let { source ->

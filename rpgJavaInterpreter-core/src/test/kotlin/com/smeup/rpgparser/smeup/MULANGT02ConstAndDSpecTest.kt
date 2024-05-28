@@ -231,4 +231,13 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("Size: 8")
         assertEquals(expected, "smeup/MU024013".outputOf(configuration = smeupConfig))
     }
+
+    @Test
+    fun executeMUDRNRAPU00202() {
+        MULANGTLDbMock().use {
+            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+            val expected = listOf("ok")
+            assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
+        }
+    }
 }
