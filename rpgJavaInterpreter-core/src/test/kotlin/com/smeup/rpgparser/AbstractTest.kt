@@ -26,6 +26,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.SourceProgramFinder
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.PrintStream
 import kotlin.test.AfterTest
@@ -60,6 +61,9 @@ abstract class AbstractTest {
     fun afterTest() {
         System.setOut(defaultOut)
         System.setErr(defaultErr)
+
+        // Cleanup logging configurations injected at runtime
+        LogManager.shutdown()
     }
 
     /**
@@ -246,14 +250,14 @@ abstract class AbstractTest {
      */
     protected fun String.outputOf(
         trimEnd: Boolean = true,
-        configuration: Configuration = Configuration()
-//        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {},
+        configuration: Configuration = Configuration(),
+        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {}
     ): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
-//        afterSystemInterface(systemInterface)
+        afterSystemInterface(systemInterface)
         executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
