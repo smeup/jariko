@@ -212,6 +212,19 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Instatement data definition not resolved because of CHECKR not implemented
+     * @see #LS24002758
+     */
+    @Test
+    fun executeMUDRNRAPU00204() {
+        val expected = listOf("ok")
+        assertEquals(
+            expected = expected,
+            "smeup/MUDRNRAPU00204".outputOf(configuration = smeupConfig)
+        )
+    }
+
+    /**
      * Data definition where its field is initialized with the size of parent.
      * @see #LS24002756
      */

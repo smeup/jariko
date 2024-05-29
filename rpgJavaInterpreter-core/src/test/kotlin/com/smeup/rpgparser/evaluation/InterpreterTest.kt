@@ -1159,6 +1159,11 @@ Test 6
     }
 
     @Test
+    fun executeCHECKR() {
+        assertEquals(listOf("Wrong char at 1", "No wrong chars 0", "Wrong char at 6"), outputOf("CHECKR"))
+    }
+
+    @Test
     fun executeLOGICAL_conditions() {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }

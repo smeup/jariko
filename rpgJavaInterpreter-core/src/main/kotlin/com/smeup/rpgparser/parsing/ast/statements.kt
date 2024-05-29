@@ -655,6 +655,46 @@ data class CheckStmt(
 }
 
 @Serializable
+data class CheckrStmt(
+    val comparatorString: Expression, // Factor1
+    val baseString: Expression,
+    val start: Int = 1,
+    val wrongCharPosition: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CHECKR"
+
+    override fun execute(interpreter: InterpreterCore) {
+        var baseString = interpreter.eval(this.baseString).asString().value
+        if (this.baseString is DataRefExpr) {
+            baseString = baseString.padEnd(this.baseString.size())
+        }
+        val charSet = interpreter.eval(comparatorString).asString().value
+        val wrongIndex = wrongCharPosition
+        interpreter.getStatus().lastFound = false
+        if (wrongIndex != null) {
+            interpreter.assign(wrongIndex, IntValue.ZERO)
+        }
+        baseString.substring(0, start)
+            .mapIndexed { i, c -> Pair(i, c) }
+            .reversed()
+            .forEach { (i, c) ->
+                if (!charSet.contains(c)) {
+                    if (wrongIndex != null) {
+                        interpreter.assign(wrongIndex, IntValue((i + 1).toLong()))
+                    }
+                    interpreter.getStatus().lastFound = true
+                    return
+                }
+            }
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
 data class CallStmt(
     val expression: Expression,
     val params: List<PlistParam>,
