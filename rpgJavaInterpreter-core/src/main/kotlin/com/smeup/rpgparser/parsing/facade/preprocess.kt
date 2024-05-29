@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsing.facade
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
+import com.smeup.rpgparser.logging.ProgramUsageType
 import java.io.BufferedReader
 import java.io.InputStream
 import kotlin.system.measureNanoTime
@@ -27,7 +28,7 @@ fun InputStream.preprocess(
     }.apply {
         val endLogSource = { LogSourceData(programName, preprocessed.lines().size.toString()) }
         MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "PREPROP", "END"))
-        MainExecutionContext.log(LazyLogEntry.producePerformance(endLogSource, "PREPROP", this.nanoseconds))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(endLogSource, ProgramUsageType.Parsing, "PREPROP", this.nanoseconds))
     }
     return preprocessed
 }

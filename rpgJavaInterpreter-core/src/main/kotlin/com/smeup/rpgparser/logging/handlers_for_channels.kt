@@ -29,6 +29,7 @@ class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("EXPR")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -47,6 +48,7 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("PERF")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -65,6 +67,7 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("STMT")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -83,6 +86,7 @@ class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("DATA")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -100,6 +104,7 @@ class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
     private val logger = LogManager.getLogger(LogChannel.LOOP.getPropertyName())
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("LOOP")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -118,6 +123,7 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("RESL")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -136,6 +142,7 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("PARS")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -154,6 +161,7 @@ class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), In
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("ERR")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
@@ -172,6 +180,7 @@ class AnalyticsLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
 
     override fun render(renderer: LazyLogEntry): String {
         return buildString {
+            append(sep)
             append("ANALYTICS")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
