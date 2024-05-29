@@ -35,7 +35,7 @@ object MainExecutionContext {
     // default values in case jariko is not called from the command line program
     private val context: ThreadLocal<Context> by lazy { ThreadLocal<Context>() }
     private val noContextIdProvider: AtomicInteger by lazy { AtomicInteger() }
-    private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf<String, Any>() }
+    private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf() }
     private val noConfiguration: Configuration by lazy { Configuration() }
     private val noProgramStack: Stack<RpgProgram> by lazy { Stack<RpgProgram>() }
     private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
@@ -175,6 +175,11 @@ object MainExecutionContext {
         context.get()?.renderLog(renderer)
     }
 
+    /**
+     * Checks if logging is enabled
+     */
+    val isLoggingEnabled get() = context.get()?.isLoggingEnabled ?: false
+
     /***
      * Get DB File Factory
      */
@@ -211,7 +216,6 @@ data class Context(
         DBFileFactory(it.nativeAccessConfig)
     }
 ) {
-
     private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
         systemInterface.getAllLogHandlers()
     }
@@ -219,6 +223,8 @@ data class Context(
     fun renderLog(renderer: LazyLogEntry) {
         logHandlers.renderLog(renderer)
     }
+
+    val isLoggingEnabled get() = logHandlers.isNotEmpty()
 }
 
 data class ParsingProgram(val name: String) {

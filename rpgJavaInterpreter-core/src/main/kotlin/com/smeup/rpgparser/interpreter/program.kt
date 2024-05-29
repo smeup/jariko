@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -99,7 +100,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
         }
         this.systemInterface = systemInterface
-        val logSource = { LogSourceData(name, "") }
+        val logSource = { LogSourceData.fromProgram(name) }
         logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
         val changedInitialValues: List<Value>
         val elapsed = measureNanoTime {
@@ -154,8 +155,13 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             interpreter.doSomethingAfterExecution()
             MainExecutionContext.getProgramStack().pop()
         }.nanoseconds
+
         logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
-        logHandlers.renderLog(LazyLogEntry.producePerformance(logSource, "INTERPRETATION", elapsed))
+        logHandlers.renderLog(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Interpretation, "INTERPRETATION", elapsed))
+        if (MainExecutionContext.getProgramStack().isEmpty()) {
+            interpreter.onInterpretationEnd()
+        }
+
         return changedInitialValues
     }
 
