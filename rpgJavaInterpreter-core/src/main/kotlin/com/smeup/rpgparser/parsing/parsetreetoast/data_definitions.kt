@@ -765,10 +765,9 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: C
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
-
-    val isLike = this.keyword().map { keyword -> keyword.keyword_like() }.firstOrNull() != null
-    val keywordLike = if (isLike) this.keyword().first { it.keyword_like() != null }.keyword_like() else null
-    val like = if (isLike) keywordLike!!.simpleExpression().toAst(conf) as DataRefExpr else null
+    val like = this.keyword()
+        .firstOrNull { it.keyword_like() != null }
+        .let { if (it != null) it.keyword_like()?.simpleExpression()?.toAst(conf) as DataRefExpr else null }
 
     // Set the SORTA order
     val descend = this.keyword().find { it.keyword_descend() != null } != null
@@ -804,7 +803,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val arraySizeDeclared = this.arraySizeDeclared(conf)
-    val varName = if (isLike) like!!.variable.name else this.name
+    val varName = like?.variable?.name ?: this.name
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
