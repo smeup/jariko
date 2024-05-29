@@ -1893,7 +1893,8 @@ dir_api: (DIR_API
             (((library=copyText DIR_Slash)? file=copyText)? member=copyText)
             | (DIR_Slash? (copyText DIR_Slash)+ copyText)
            )
-          );
+          )
+          DIR_OtherText*;
 dir_include: (DIR_INCLUDE 
 		   (
 			(((library=copyText DIR_Slash)? file=copyText)? member=copyText)
