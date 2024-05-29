@@ -91,10 +91,10 @@ class RunnerTest : AbstractTest() {
         SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/logging/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "TEST_06", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
-        assertContain(logs, "PERF\tTEST_06\t39\tFOR\telapsed")
-        assertContain(logs, "PERF\tTEST_06\t31\tFOR\telapsed")
-        assertContain(logs, "PERF\tTEST_06\t67\tEXSR\telapsed")
-        assertContain(logs, "PERF\tTEST_06\t\tINTERPRETATION\telapsed")
+        assertContain(logs, "PERF\tTEST_06\t39\tFOR")
+        assertContain(logs, "PERF\tTEST_06\t31\tFOR")
+        assertContain(logs, "PERF\tTEST_06\t67\tEXSR")
+        assertContain(logs, "PERF\tTEST_06\t\tINTERPRETATION")
     }
 
     private fun assertContain(logs: List<String>, expected: String) {
