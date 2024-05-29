@@ -123,12 +123,10 @@ internal fun RpgParser.CsDOUxxContext.toAst(blockContext: BlockContext, conf: To
         else -> todo(conf = conf)
     }
 
-    val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
-
     return DOUxxStmt(
         comparisonOperator = comparison,
-        factor1 = this.factor1.content.toAst(conf = conf),
-        factor2 = factor2Ast,
+        factor1 = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf),
+        factor2 = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor1.error("Factor 2 cannot be null", conf = conf),
         position = toPosition(conf.considerPosition),
         body = blockContext.statement().map { it.toAst(conf) }
     )
@@ -322,12 +320,12 @@ internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, f
     val left = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf)
     val right = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor2.error("Factor 2 cannot be null", conf = conf)
     return when (this) {
-        ComparisonOperator.EQ -> EqualityExpr(left, right)
-        ComparisonOperator.NE -> DifferentThanExpr(left, right)
-        ComparisonOperator.GE -> GreaterEqualThanExpr(left, right)
-        ComparisonOperator.GT -> GreaterThanExpr(left, right)
-        ComparisonOperator.LE -> LessEqualThanExpr(left, right)
-        ComparisonOperator.LT -> LessThanExpr(left, right)
+        ComparisonOperator.EQ -> EqualityExpr(left, right, left.position)
+        ComparisonOperator.NE -> DifferentThanExpr(left, right, left.position)
+        ComparisonOperator.GE -> GreaterEqualThanExpr(left, right, left.position)
+        ComparisonOperator.GT -> GreaterThanExpr(left, right, left.position)
+        ComparisonOperator.LE -> LessEqualThanExpr(left, right, left.position)
+        ComparisonOperator.LT -> LessThanExpr(left, right, left.position)
     }
 }
 

@@ -1018,7 +1018,7 @@ class FieldsList(val fields: List<FieldInfo>) {
 internal fun RpgParser.Dcl_dsContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: Collection<DataDefinition>,
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
 ): DataDefinition? {
     val initializationValue: Expression? = null
     val size = this.declaredSize()
@@ -1032,16 +1032,16 @@ internal fun RpgParser.Dcl_dsContext.toAst(
         val prefixName = keywordPrefix?.getPrefixName()
 
         val fileDataDefinitions =
-            fileDefinitions.filter {
+            fileDefinitions?.filter {
                 val nameMatches = it.key.name.uppercase() == extName.uppercase()
                 val prefixIsNull = keywordPrefix == null && it.key.prefix == null
                 val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
                 val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
 
                 nameMatches && (prefixIsNull || prefixMatches)
-            }.values.flatten()
+            }?.values?.flatten()
 
-        if (fileDataDefinitions.isEmpty()) {
+        if (fileDataDefinitions.isNullOrEmpty()) {
             return null
         }
 

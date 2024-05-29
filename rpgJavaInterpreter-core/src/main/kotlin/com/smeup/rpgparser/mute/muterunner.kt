@@ -40,6 +40,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
+import com.smeup.rpgparser.utils.popIfPresent
 import com.strumenta.kolasu.validation.Error
 import java.io.*
 import java.nio.file.Files
@@ -242,7 +243,7 @@ fun RpgParserResult.executeMuteAnnotations(
     interpreter.execute(cu, parameters)
     interpreter.doSomethingAfterExecution()
     mainExecutionContext?.let {
-        it.parsingProgramStack.pop()
+        it.parsingProgramStack.popIfPresent()
         it.programStack.pop()
     }
     return interpreter.getSystemInterface().executedAnnotationInternal.toSortedMap()

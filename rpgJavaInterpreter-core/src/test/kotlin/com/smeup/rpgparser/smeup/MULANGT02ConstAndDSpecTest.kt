@@ -232,6 +232,15 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         assertEquals(expected, "smeup/MU024013".outputOf(configuration = smeupConfig))
     }
 
+    @Test
+    fun executeMUDRNRAPU00202() {
+        MULANGTLDbMock().use {
+            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+            val expected = listOf("ok")
+            assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
+        }
+    }
+
     /**
      * DS with EXTNAME and then a field with LIKE to another of file.
      * @see #LS24002827

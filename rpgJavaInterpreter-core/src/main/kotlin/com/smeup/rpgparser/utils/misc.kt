@@ -16,7 +16,9 @@
 
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.execution.ParsingProgram
 import java.math.BigDecimal
+import java.util.*
 import kotlin.system.measureTimeMillis
 
 fun measureAndPrint(block: () -> Unit) {
@@ -131,5 +133,27 @@ fun String.insLineNumber(padChars: Int, filter: (lineNumber: Int) -> Boolean): S
             }
         }
         sb.toString()
+    }
+}
+
+/**
+ * Push parsingProgram in a stack if it is not already present
+ * @param parsingProgram The element to push
+ * */
+internal fun Stack<ParsingProgram>.pushIfNotAlreadyPresent(parsingProgram: ParsingProgram) {
+    if (this.isEmpty() || this.peek() != parsingProgram) {
+        this.push(parsingProgram)
+    }
+}
+
+/**
+ * Pop a ParsingProgram from a stack if it is present
+ * @return The element popped or null if the stack is empty
+ * */
+internal fun Stack<ParsingProgram>.popIfPresent(): ParsingProgram? {
+    return if (this.isNotEmpty()) {
+        this.pop()
+    } else {
+        null
     }
 }

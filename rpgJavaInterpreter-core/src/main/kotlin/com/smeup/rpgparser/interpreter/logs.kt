@@ -19,6 +19,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.LogChannel
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.utils.asNonNullString
@@ -41,6 +42,7 @@ data class LogSourceData(
 ) {
     companion object {
         val UNKNOWN get() = LogSourceData("", "")
+        fun fromProgram(name: String) = LogSourceData(name, "")
     }
     val filename get() = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
     fun projectLine(newLine: String) = LogSourceData(programName, newLine)
@@ -219,13 +221,26 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * Create a new LazyLogEntry for the PERF channel
          * @see LogChannel
          */
-        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
+//        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
+//            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
+//            return LazyLogEntry(entry) {
+//                elapsed.inWholeMicroseconds.toString()
+//            }
+//        }
+
+        /**
+         * Create a new LazyLogEntry for the PERF channel and updates AnalyticsContext with its data
+         * @see LogChannel
+         */
+        fun producePerformanceAndUpdateAnalytics(source: LogSourceProvider, type: ProgramUsageType, entity: String, elapsed: Duration): LazyLogEntry {
             val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
+
+            val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
+            val programName = MainExecutionContext.getExecutionProgramName()
+            loggingContext?.recordUsage(programName, type, entity, elapsed)
+
             return LazyLogEntry(entry) {
-                buildString {
-                    append("elapsed ")
-                    append(elapsed.toString(DurationUnit.MICROSECONDS))
-                }
+                elapsed.inWholeMicroseconds.toString()
             }
         }
 
@@ -483,7 +498,8 @@ fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
         }
     }.nanoseconds
 
-    MainExecutionContext.getAnalyticsLoggingContext()?.recordRenderingDuration(time)
+    val programName = MainExecutionContext.getExecutionProgramName()
+    MainExecutionContext.getAnalyticsLoggingContext()?.recordUsage(programName, ProgramUsageType.LogRendering, "", time)
 }
 
 fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()

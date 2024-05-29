@@ -79,8 +79,7 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
 }
 
 internal object KnownDataDefinition {
-
-    fun getInstance(): MutableMap<String, DataDefinition> {
+    fun getInstance(): KnownDataDefinitionInstance {
         return if (MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getAttributes()
         } else {
@@ -91,55 +90,94 @@ internal object KnownDataDefinition {
     }
 }
 
-private fun RContext.getDataDefinitions(
+typealias KnownDataDefinitionInstance = MutableMap<String, DataDefinition>
+
+private fun List<StatementContext?>.getDataDefinition(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
-): List<DataDefinition> {
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
+    parentDataDefinitions: List<DataDefinition>? = null,
+    useKnownDataDefinitionInstance: Boolean = false
+): Pair<MutableList<DataDefinitionProvider>, KnownDataDefinitionInstance> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = KnownDataDefinition.getInstance()
+    val knownDataDefinitions = if (useKnownDataDefinitionInstance) KnownDataDefinition.getInstance() else mutableMapOf()
 
-    fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
-        dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
-    }
-    // First pass ignore exception and all the know definitions
-    dataDefinitionProviders.addAll(this.statement()
-        .mapNotNull {
-            it.toDataDefinitionProvider(
-                conf = conf,
-                knownDataDefinitions = knownDataDefinitions,
-                fileDefinitions = fileDefinitions
-            )
-        })
-    // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.statement()
-        .mapNotNull {
-            kotlin.runCatching {
-                when {
-                    it.dspec() != null -> {
-                        it.dspec()
-                            .toAst(conf, knownDataDefinitions.values.toList())
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.dcl_c() != null -> {
-                        it.dcl_c()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(
-                            conf = conf,
-                            dataDefinitionProviders = dataDefinitionProviders)
-                        )
-                    }
-                    else -> null
-                }
-            }.getOrNull()
+    fileDefinitions?.let {
+        it.values.flatten().toList().removeDuplicatedDataDefinition().forEach { def ->
+            dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
+    }
+
+    // Move the D specs with like because depending on other D specs definitions
+    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf)
+
+    // First pass ignore exception and all the know definitions
+    val firstPassProviders = sortedStatements.mapNotNull {
+        it.toDataDefinitionProvider(
+            conf = conf,
+            knownDataDefinitions = knownDataDefinitions,
+            fileDefinitions = fileDefinitions
+        )
+    }
+    dataDefinitionProviders.addAll(firstPassProviders)
+
+    // Second pass, everything, I mean everything
+    val secondPassProviders = sortedStatements.mapNotNull {
+        kotlin.runCatching {
+            when {
+                it.dspec() != null -> {
+                    it.dspec()
+                        .toAst(conf, knownDataDefinitions.values.toList(), parentDataDefinitions)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                }
+
+                it.dcl_c() != null -> {
+                    it.dcl_c()
+                        .toAst(conf)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                }
+
+                it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
+                    DataDefinitionCalculator(
+                        it.dcl_ds().toAstWithLikeDs(
+                            conf = conf,
+                            dataDefinitionProviders = dataDefinitionProviders,
+                            parentDataDefinitions = parentDataDefinitions
+                        )
+                    ).toDataDefinition().updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                }
+
+                else -> null
+            }
+        }.getOrNull()
+    }
+    dataDefinitionProviders.addAll(secondPassProviders)
+
+    return Pair(dataDefinitionProviders, knownDataDefinitions)
+}
+
+private fun RContext.getDataDefinitions(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+): List<DataDefinition> {
+    val (providers) = this.statement().getDataDefinition(
+        conf = conf,
+        fileDefinitions = fileDefinitions,
+        useKnownDataDefinitionInstance = true
     )
-    return dataDefinitionProviders.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
+    return providers.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
+}
+
+private fun List<StatementContext>.moveLikeStatementToTheEnd(conf: ToAstConfiguration): List<StatementContext> {
+    val likeStatements = this.filter {
+        it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false
+    }
+    val otherStatements = this.filter {
+        !(it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false)
+    }
+    return otherStatements + likeStatements
 }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
@@ -150,8 +188,12 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 }
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
-    if (put(dataDefinition.name, dataDefinition) != null)
+    val old = get(dataDefinition.name)
+    if (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) {
+        put(dataDefinition.name, dataDefinition)
+    } else {
         dataDefinition.error("${dataDefinition.name} has been defined twice")
+    }
 }
 
 internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
@@ -370,6 +412,10 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
     return (this.keyword().any { it.keyword_likeds() != null })
 }
 
+private fun DspecContext.useLike(): Boolean {
+    return this.keyword().any { it.keyword_like() != null }
+}
+
 private fun Dcl_dsContext.useExtName(): Boolean {
     return this.keyword().any { it.keyword_extname() != null }
 }
@@ -497,7 +543,7 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
 private fun StatementContext.toDataDefinitionProvider(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: MutableMap<String, DataDefinition>,
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
 ): DataDefinitionProvider? {
     return when {
         this.dcl_ds() != null -> {
@@ -524,60 +570,15 @@ private fun StatementContext.toDataDefinitionProvider(
 }
 
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): List<DataDefinition> {
-    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
-    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
-    // after them
-    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+    val (providers, knownDataDefinitions) = this.subprocedurestatement()
+        .map { it.statement() }
+        .getDataDefinition(
+            conf = conf,
+            parentDataDefinitions = parentDataDefinitions
+        )
 
-    // First pass ignore exception and all the know definitions
-    dataDefinitionProviders.addAll(this.subprocedurestatement()
-        .mapNotNull {
-            it.statement()?.toDataDefinitionProvider(
-                conf = conf,
-                knownDataDefinitions = knownDataDefinitions,
-                fileDefinitions = emptyMap()
-            )
-        })
-
-    // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.subprocedurestatement()
-        .mapNotNull {
-            kotlin.runCatching {
-                if (null != it.statement()) {
-                    when {
-                        it.statement().dspec() != null -> {
-                            it.statement().dspec()
-                                .toAst(conf, knownDataDefinitions.values.toList(), parentDataDefinitions)
-                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        }
-                        it.statement().dcl_c() != null -> {
-                            it.statement().dcl_c()
-                                .toAst(conf)
-                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        }
-                        it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
-                            DataDefinitionCalculator(
-                                it.statement().dcl_ds().toAstWithLikeDs(
-                                    conf = conf,
-                                    dataDefinitionProviders = dataDefinitionProviders,
-                                    parentDataDefinitions = parentDataDefinitions
-                                )
-                            )
-                        }
-                        else -> null
-                    }
-                } else {
-                    null
-                }
-            }.onFailure { error ->
-                it.error("Error on dataDefinitionProviders creation", error, conf)
-            }.getOrThrow()
-        })
-
-    // PROCEDURE PARAMETERS
-    // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.dcl_pi().pi_parm_fixed()
+    // PROCEDURE PARAMETERS pass
+    val paramProviders = this.dcl_pi().pi_parm_fixed()
         .mapNotNull {
             kotlin.runCatching {
                 when {
@@ -591,8 +592,10 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
             }.onFailure { error ->
                 it.error("Error on dataDefinitionProviders creation", error, conf)
             }.getOrThrow()
-        })
-    return dataDefinitionProviders.map { it.toDataDefinition() }
+        }
+    providers.addAll(paramProviders)
+
+    return providers.map { it.toDataDefinition() }
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -1011,7 +1014,7 @@ private fun annidatedReferenceExpression(
             } else {
                 IntLiteral(indexValue, computeNewPosition(position, text))
             }
-        expr = ArrayAccessExpr(expr, indexExpression)
+        expr = ArrayAccessExpr(expr, indexExpression, position)
     }
     return expr as AssignableExpression
 }
@@ -1423,7 +1426,9 @@ private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Ex
     if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
 
 private fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
-    val baseStringTokens = this.split(":")
+    val quoteAwareSplitPattern = Regex(""":(?=([^']*'[^']*')*[^']*$)""")
+    val baseStringTokens = this.split(quoteAwareSplitPattern)
+
     val startPosition =
         when (baseStringTokens.size) {
             !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression at line ${position?.line()}: $this")
