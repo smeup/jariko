@@ -51,6 +51,7 @@ private val modules = SerializersModule {
         subclass(CatStmt::class)
         subclass(ChainStmt::class)
         subclass(CheckStmt::class)
+        subclass(CheckrStmt::class)
         subclass(ClearStmt::class)
         subclass(CloseStmt::class)
         subclass(CompStmt::class)

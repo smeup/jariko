@@ -823,6 +823,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCHECK() != null -> this.csCHECK()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csCHECKR() != null -> this.csCHECKR()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csKLIST() != null -> this.csKLIST()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -1396,6 +1399,32 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     }
 
     return CheckStmt(
+        factor1,
+        expression,
+        startPosition ?: 1,
+        wrongCharExpression,
+        dataDefinition,
+        position
+    )
+}
+
+internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+
+    val result = this.cspec_fixed_standard_parts().result
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+
+    val eqIndicator = this.cspec_fixed_standard_parts().resultIndicator(2)?.text
+
+    val wrongCharExpression = when {
+        result != null && result.text.isNotBlank() -> result.toAst(conf)
+        !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
+        else -> null
+    }
+
+    return CheckrStmt(
         factor1,
         expression,
         startPosition ?: 1,
