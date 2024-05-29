@@ -36,7 +36,7 @@ class LoggingTest : AbstractTest() {
     private val varValue = "MYVALUE"
     private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
     // there is no time stamp reference
-    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
+    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "\\s*DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
 
     @After
     fun after() {

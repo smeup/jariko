@@ -201,10 +201,10 @@ The log records are generated at the end of statements block, measuring the
 time in microseconds.
 
 ```
-15:51:55.838 PERF   MULANGTC10      7       PLIST   elapsed 8.875us
-15:51:55.840 PERF   MULANGTC10      13      EVAL    elapsed 566us
-15:51:55.840 PERF   MULANGTC10      14      EVAL    elapsed 35.084us
-+---------------- header -----------------+--------+----- perf ----+
+13:21:41.347    PERF    MULANGTC10    11      DataRefExpr     60
+13:21:41.347    PERF    MULANGTC10    11      %CHAR           504
+13:21:41.347    PERF    MULANGTC10    11      PlusExpr        1048
++---------------- header -----------------+----- entity -----+-- time --+
 ```
 
 ## Parsing Channel PARS
@@ -243,33 +243,42 @@ of strategies used to locate a RPG/Java program.
 ## Analytics Channel ANALYTICS
 The analytics channel provides processed collected during the whole execution cycle. Information yield by this channel are derived by a LoggingContext where logging metadata are stored.
 
-Statement time analytics provide information about which statements were called during the program execution, how much time was spent totally to execute that statement and how many times each one was hit.
+Statement time analytics provide information about which statements and expressions were called during the program execution, how much time was spent totally to execute them and how many times each one was hit.
 
 ```
-12:25:35.612 ANALYTICS    MUTE10_10        STMT TIME    DISPLAY 204us   1
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    EXSR    450369us        1
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    SET     146us   1
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    TIME    3026us  2
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    DO      441230us        1
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    EVAL    3857us  2
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    ZADD    204600us        200000
-12:25:35.613 ANALYTICS    MUTE10_10        STMT TIME    SUBDUR  601us   1
-+------------- header ------------+--------+-------------------+----- analytics ------+
+12:42:44.064    ANALYTICS    T40_A20_P17        STMT TIME    MOVEA           7325609 200000
+12:42:44.065    ANALYTICS    T40_A20_P17        STMT TIME    EXSR            7458565 200000
+12:42:44.065    ANALYTICS    T40_A20_P17        STMT TIME    DO              9345378 2
+12:42:44.065    ANALYTICS    T40_A20_P17        STMT TIME    EVAL            4306    4
+12:42:44.065    ANALYTICS    T40_A20_P17        EXPR TIME    DataRefExpr     47253   200002
+12:42:44.066    ANALYTICS    T40_A20_P17        EXPR TIME    %TRIMR          92      1
+12:42:44.066    ANALYTICS    T40_A20_P17        EXPR TIME    StringLiteral   2       1
+12:42:44.066    ANALYTICS    T40_A20_P17        EXPR TIME    ArrayAccessExpr 42      1
+12:42:44.066    ANALYTICS    T40_A20_P17        EXPR TIME    IntLiteral      7       3
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    RPGLOAD         3027    1
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    PARSER          93840   1
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    CHKPTREE        514     1
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    AST             174884  1
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    LEXER           54853   1
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    PREPROP         5115    1
+12:42:44.066    ANALYTICS    T40_A20_P17        PARS TIME    RCONTEXT        161939  1
++---------- header ---------+------ prog ------+---------- entity ---------+- time -+- hit -+
 ```
 
-Symbol table analytics provide the same information of the statement analytics but referred to symbol table actions rather than statement execution.
+Symbol table analytics provide the same information of other analytics but referred to symbol table actions rather than statement execution.
 ```
-12:25:35.613 ANALYTICS    MUTE10_10        SYMTBL TIME    INIT    21429us    1
-12:25:35.613 ANALYTICS    MUTE10_10        SYMTBL TIME    LOAD    131us      1
-+------------- header ------------+--------+------------------+-- analytics --+
+12:42:44.066    ANALYTICS    T40_A20_P17        SYMTBL TIME  INIT            14457   1
+12:42:44.066    ANALYTICS    T40_A20_P17        SYMTBL TIME  LOAD            1051    1
+12:42:44.066    ANALYTICS    T40_A20_P17        SYMTBL TIME  GET             44663   400011
+12:42:44.066    ANALYTICS    T40_A20_P17        SYMTBL TIME  SET             164870  100007
++---------- header ---------+------ prog ------+---------- entity ---------+- time -+- hit -+
 ```
 
 There are also other analytics which provide their own informational data. Here are some examples:
 ```
-12:25:35.615 ANALYTICS    MUTE10_10        EXPR TIME       56195us    1300104
-12:25:35.615 ANALYTICS    MUTE10_10        LOG TIME        56177us    1300109
-12:25:35.615 ANALYTICS    MUTE10_10        PROGRAM TIME    1220526us
-+------------- header ------------+--------+---------------+--- analytics --+
+12:42:44.070    ANALYTICS                       LOG TIME                     61886   1900103
+12:42:44.070    ANALYTICS                       INTERPRETATION TIME          4706819 1
++---------- header ---------+------ prog ------+---------- entity ---------+- time -+- hit -+
 ```
 
 ## Error Channel ERR
