@@ -107,7 +107,11 @@ private fun RContext.getDataDefinitions(
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
-            it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
+            it.toDataDefinitionProvider(
+                conf = conf,
+                knownDataDefinitions = knownDataDefinitions,
+                fileDefinitions = fileDefinitions
+            )
         })
     // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
@@ -129,11 +133,6 @@ private fun RContext.getDataDefinitions(
                             conf = conf,
                             dataDefinitionProviders = dataDefinitionProviders)
                         )
-                    }
-                    it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
-                        fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
-                    } -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
                     }
                     else -> null
                 }
@@ -497,15 +496,19 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
 
 private fun StatementContext.toDataDefinitionProvider(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: MutableMap<String, DataDefinition>
+    knownDataDefinitions: MutableMap<String, DataDefinition>,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
 ): DataDefinitionProvider? {
     return when {
         this.dcl_ds() != null -> {
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
-                        .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        .toAst(
+                            conf = conf,
+                            knownDataDefinitions = knownDataDefinitions.values,
+                            fileDefinitions = fileDefinitions
+                        )?.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
                     null
@@ -530,8 +533,11 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()
         .mapNotNull {
-            it.statement()?.toDataDefinitionProvider(conf = conf,
-                knownDataDefinitions = knownDataDefinitions)
+            it.statement()?.toDataDefinitionProvider(
+                conf = conf,
+                knownDataDefinitions = knownDataDefinitions,
+                fileDefinitions = emptyMap()
+            )
         })
 
     // Second pass, everything, I mean everything

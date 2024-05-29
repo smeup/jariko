@@ -732,9 +732,18 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
 }
 
-internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: Collection<DataDefinition>): FieldsList {
+/**
+ * Prepares an object FieldsList with all calculated fields, that means
+ *  sequences and offsets.
+ * @param knownDataDefinitions pre calculated data definitions necessary, in example, to resolve LIKE.
+ * @param fieldsExtname got previously if the DS uses EXTNAME.
+ */
+internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
+    knownDataDefinitions: Collection<DataDefinition>,
+    fieldsExtname: List<FieldInfo> = listOf()
+): FieldsList {
     val caughtErrors = mutableListOf<Throwable>()
-    val fieldsList = FieldsList(this.parm_fixed().mapNotNull {
+    val fieldsList = FieldsList(fieldsExtname + this.parm_fixed().mapNotNull {
         kotlin.runCatching {
             it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
         }.onFailure {
@@ -1008,15 +1017,40 @@ class FieldsList(val fields: List<FieldInfo>) {
 
 internal fun RpgParser.Dcl_dsContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: Collection<DataDefinition>
-): DataDefinition {
+    knownDataDefinitions: Collection<DataDefinition>,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+): DataDefinition? {
     val initializationValue: Expression? = null
     val size = this.declaredSize()
 
+    var fieldsFile: List<FieldInfo> = listOf()
+    if (this.keyword().any { it.keyword_extname() != null }) {
+        val keywordExtName = getKeywordExtName()
+        val keywordPrefix = getKeywordPrefix()
+
+        val extName = keywordExtName.getExtName()
+        val prefixName = keywordPrefix?.getPrefixName()
+
+        val fileDataDefinitions =
+            fileDefinitions.filter {
+                val nameMatches = it.key.name.uppercase() == extName.uppercase()
+                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
+                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
+                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+
+                nameMatches && (prefixIsNull || prefixMatches)
+            }.values.flatten()
+
+        if (fileDataDefinitions.isEmpty()) {
+            return null
+        }
+
+        fieldsFile = extractFieldFromFileDataDefinitions(fileDataDefinitions, conf)
+    }
+
     // Calculating information about the DS and its fields is full of interdependecies
     // therefore we do that in steps
-
-    val fieldsList = calculateFieldInfos(knownDataDefinitions)
+    val fieldsList = calculateFieldInfos(knownDataDefinitions, fieldsFile)
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
 
@@ -1038,6 +1072,32 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     }
     dataDefinition.fields.forEach { it.parent = dataDefinition }
     return dataDefinition
+}
+
+private fun RpgParser.Dcl_dsContext.extractFieldFromFileDataDefinitions(
+    dataDefinitions: List<DataDefinition>,
+    conf: ToAstConfiguration
+): List<FieldInfo> {
+    var offset = 0
+    val fields = dataDefinitions.map {
+        FieldDefinition(
+            name = it.name,
+            type = it.type,
+            explicitStartOffset = offset,
+            explicitEndOffset = offset + it.type.size,
+            position = toPosition(conf.considerPosition)
+        ).apply { offset += type.size }
+    }
+
+    return fields.map {
+        FieldInfo(
+            name = it.name,
+            explicitStartOffset = it.explicitStartOffset,
+            explicitEndOffset = it.explicitEndOffset,
+            explicitElementType = it.type,
+            position = it.position
+        )
+    }
 }
 
 internal fun DataDefinition.setOverlayOn(fieldDefinition: FieldDefinition) {
@@ -1089,61 +1149,6 @@ internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
 internal fun RpgParser.Dcl_dsContext.getKeywordPrefix() = this.keyword().firstOrNull { it.keyword_prefix() != null }?.keyword_prefix()
 
 internal fun RpgParser.Keyword_prefixContext.getPrefixName() = prefix.text
-
-internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
-    conf: ToAstConfiguration = ToAstConfiguration(),
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
-): () -> DataDefinition {
-    return {
-        val keywordExtName = getKeywordExtName()
-        val keywordPrefix = getKeywordPrefix()
-
-        val extName = keywordExtName.getExtName()
-        val prefixName = keywordPrefix?.getPrefixName()
-
-        val dataDefinitions =
-            fileDefinitions.filter {
-                val nameMatches = it.key.name.uppercase() == extName.uppercase()
-                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
-                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
-                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
-
-                nameMatches && (prefixIsNull || prefixMatches)
-            }.values.flatten()
-
-        if (dataDefinitions.isEmpty()) {
-            keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
-        }
-
-        var offset = 0
-        val fields = dataDefinitions.map {
-            FieldDefinition(
-                name = it.name,
-                type = it.type,
-                explicitStartOffset = offset,
-                explicitEndOffset = offset + it.type.size,
-                position = toPosition(conf.considerPosition)
-            ).apply { offset += type.size }
-        }
-        val fieldInfos = fields.map {
-            FieldInfo(
-                name = it.name,
-                explicitStartOffset = it.explicitStartOffset,
-                explicitEndOffset = it.explicitEndOffset,
-                explicitElementType = it.type,
-                position = it.position
-            )
-        }
-        val dataDefinition = DataDefinition(
-            name = this.name,
-            type = type(size = fields.sumOf { it.type.size }, FieldsList(fieldInfos)),
-            fields = fields,
-            inz = this.keyword().any { it.keyword_inz() != null },
-            position = this.toPosition(true)
-        )
-        dataDefinition
-    }
-}
 
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     val text = this.FROM_POSITION().text.trim()
