@@ -49,7 +49,7 @@ class ExpressionEvaluation(
     private fun evalAsDecimal(expression: Expression): BigDecimal = expression.evalWith(this).asDecimal().value
 
     private inline fun proxyLogging(expression: Expression, action: () -> Value): Value {
-        if (systemInterface.getAllLogHandlers().isEmpty()) return action()
+        if (!MainExecutionContext.isLoggingEnabled) return action()
 
         val programName = MainExecutionContext.getExecutionProgramName()
 
