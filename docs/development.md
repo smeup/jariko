@@ -192,7 +192,8 @@ For example if you want to execute all tests trying the feature flag `jariko.fea
 | feature flag                              | description                                                                                       |
 |-------------------------------------------|---------------------------------------------------------------------------------------------------|
 | `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types |
-                                                                                                        |
+| `jariko.features.ChainCacheFlag`          | when `on` you ask jariko to use cache in the chain operations - default `on`                      |
+
 
 
 ## Creating a jar with all dependencies to run some examples

@@ -38,6 +38,13 @@ interface IFeaturesFactory {
             UnlimitedStringType
         } else create.invoke()
     }
+
+    /**
+     * @return true if the chain cache is enabled
+     * */
+    fun isChainCacheEnabled(): Boolean {
+        return FeatureFlag.ChainCacheFlag.isOn()
+    }
 }
 
 object FeaturesFactory {
@@ -120,13 +127,15 @@ class StandardFeaturesFactory : IFeaturesFactory {
     override fun createSymbolTable() = SymbolTable()
 }
 
-enum class FeatureFlag {
+enum class FeatureFlag(val on: Boolean = false) {
 
     /**
      * If "on" the alphanumeric [RpgType.ZONED] is handled like [RpgType.UNLIMITED_STRING].
      * Currently, the [RpgType.CHARACTER] is not yet handled because this cause a regression in some tests
      */
-    UnlimitedStringTypeFlag;
+    UnlimitedStringTypeFlag(on = false),
+    ChainCacheFlag(on = true),
+    ;
 
     fun getPropertyName() = "jariko.features.$name"
 
@@ -134,7 +143,7 @@ enum class FeatureFlag {
      * @return true if the system property [getPropertyName] is set to "1" "on" or "true"
      * */
     fun isOn(): Boolean {
-        val property = System.getProperty(getPropertyName(), "0")
+        val property = System.getProperty(getPropertyName(), this.on.toString())
         return property.lowercase().matches(Regex("1|on|true"))
     }
 }
