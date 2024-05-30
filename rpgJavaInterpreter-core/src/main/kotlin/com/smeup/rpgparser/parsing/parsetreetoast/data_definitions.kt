@@ -1045,7 +1045,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
             return null
         }
 
-        fieldsFile = extractFieldFromFileDataDefinitions(fileDataDefinitions, conf)
+        fieldsFile = extractFieldsFromFileDataDefinitions(fileDataDefinitions, conf)
     }
 
     // Calculating information about the DS and its fields is full of interdependecies
@@ -1074,7 +1074,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     return dataDefinition
 }
 
-private fun RpgParser.Dcl_dsContext.extractFieldFromFileDataDefinitions(
+private fun RpgParser.Dcl_dsContext.extractFieldsFromFileDataDefinitions(
     dataDefinitions: List<DataDefinition>,
     conf: ToAstConfiguration
 ): List<FieldInfo> {
