@@ -1004,6 +1004,15 @@ CS_Factor1_SPLAT_MSECONDS : SPLAT_MSECONDS {11+9<= getCharPositionInLine() && ge
 CS_Factor1_SPLAT_SECONDS : SPLAT_SECONDS {11+8<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(SPLAT_SECONDS);
 CS_Factor1_SPLAT_YEARS : SPLAT_YEARS {11+6<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(SPLAT_YEARS);
 CS_Factor1_SPLAT_Y : SPLAT_Y {11+2<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(SPLAT_Y);
+// Reserved
+CS_Factor1_UDATE : UDATE {11+5<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(UDATE);
+CS_Factor1_DATE : DATE {11+5<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(DATE);
+CS_Factor1_UMONTH : UMONTH {11+6<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(UMONTH);
+CS_Factor1_MONTH : MONTH {11+6<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(MONTH);
+CS_Factor1_UYEAR : UYEAR {11+5<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(UYEAR);
+CS_Factor1_YEAR : YEAR {11+5<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(YEAR);
+CS_Factor1_UDAY : UDAY {11+4<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(UDAY);
+CS_Factor1_DAY : DAY {11+4<= getCharPositionInLine() && getCharPositionInLine()<=24}? -> type(DAY);
 
 //Factor 2
 CS_Factor2_SPLAT_ALL : SPLAT_ALL {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_ALL);
@@ -1089,6 +1098,15 @@ CS_Factor2_SPLAT_MSECONDS : SPLAT_MSECONDS {35+9<= getCharPositionInLine() && ge
 CS_Factor2_SPLAT_SECONDS : SPLAT_SECONDS {35+8<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_SECONDS);
 CS_Factor2_SPLAT_YEARS : SPLAT_YEARS {35+6<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_YEARS);
 CS_Factor2_SPLAT_Y : SPLAT_Y {35+2<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_Y);
+// Reserved
+CS_Factor2_UDATE : UDATE {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(UDATE);
+CS_Factor2_DATE : DATE {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(DATE);
+CS_Factor2_UMONTH : UMONTH {35+6<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(UMONTH);
+CS_Factor2_MONTH : MONTH {35+6<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(MONTH);
+CS_Factor2_UYEAR : UYEAR {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(UYEAR);
+CS_Factor2_YEAR : YEAR {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(YEAR);
+CS_Factor2_UDAY : UDAY {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(UDAY);
+CS_Factor2_DAY : DAY {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(DAY);
 
 //Result 
 

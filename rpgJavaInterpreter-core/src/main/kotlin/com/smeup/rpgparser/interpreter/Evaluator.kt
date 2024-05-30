@@ -23,6 +23,10 @@ interface Evaluator {
     fun eval(expression: IntLiteral): Value
     fun eval(expression: RealLiteral): Value
     fun eval(expression: StringLiteral): Value
+    fun eval(expression: UDateRefExpr): Value
+    fun eval(expression: UYearRefExpr): Value
+    fun eval(expression: UMonthRefExpr): Value
+    fun eval(expression: UDayRefExpr): Value
     fun eval(expression: NumberOfElementsExpr): Value
     fun eval(expression: DataRefExpr): Value
     fun eval(expression: EqualityExpr): Value

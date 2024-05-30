@@ -266,4 +266,17 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             "smeup/MUDRNRAPU00205".outputOf(configuration = smeupConfig)
         )
     }
+
+    /**
+     * Data reference not resolved "UYEAR"
+     * @see #LS24002831
+     */
+    @Test
+    fun executeMUDRNRAPU00206() {
+        val expected = listOf("ok")
+        assertEquals(
+            expected = expected,
+            "smeup/MUDRNRAPU00206".outputOf(configuration = smeupConfig)
+        )
+    }
 }

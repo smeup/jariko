@@ -2661,6 +2661,10 @@ SPLAT_ALL
    | SPLAT_Y
    | SPLAT_YEARS
    | SPLAT_EXTDESC
+   | UDATE
+   | UMONTH
+   | UYEAR
+   | UDAY
    ;
 
 target:
