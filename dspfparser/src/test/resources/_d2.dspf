@@ -1,0 +1,9 @@
+                                            PRINT
+                R REC01
+                                            DSPATR(RI)
+                  FLD01          5A  O  1  2
+                                            CHGINPDFT(HI CS)
+                  FLD02         15A 2I  1  4
+                R REC11
+                  FLD11          3A  B 10  8
+                                            COLOR(RED)

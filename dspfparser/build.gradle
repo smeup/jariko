@@ -1,0 +1,40 @@
+buildscript {
+    ext.kotlinSerializationVersion = '1.6.2'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jlleitschuh.gradle.ktlint'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+}
+
+group = 'com.smeup.dspfparser'
+version = 'develop-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion"
+}
+
+compileKotlin {
+    sourceCompatibility = "$jvmVersion"
+    targetCompatibility = "$jvmVersion"
+    kotlinOptions.jvmTarget = "$jvmVersion"
+}
+
+
+test {
+    useJUnitPlatform()
+}

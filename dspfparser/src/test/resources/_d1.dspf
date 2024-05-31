@@ -1,0 +1,4 @@
+     A          R FMT1                      DSPATR(RI)
+     A          H                           DSPATR(RI)
+     A            £RASDI        15A  O  1  2DSPATR(HI)
+     A                                      CHGINPDFT(HI CS)
