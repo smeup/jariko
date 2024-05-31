@@ -182,7 +182,15 @@ data class JarikoCallback(
      * */
     var onApiInclusion: ((apiId: ApiId, api: Api) -> Unit) = { _, api ->
         api.compilationUnit.resolveAndValidate()
-    }
+    },
+
+    /**
+     * It allows overriding the feature flag check.
+     * @param featureFlag The feature flag
+     * @return true if the feature flag is on, false otherwise - default implementation returns the feature flag default value
+     * @see FeatureFlag.on
+     * */
+    var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on }
 )
 
 /**
