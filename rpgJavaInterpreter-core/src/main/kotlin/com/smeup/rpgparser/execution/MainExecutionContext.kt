@@ -176,6 +176,11 @@ object MainExecutionContext {
     }
 
     /**
+     * Get all the log handlers
+     */
+    val logHandlers get(): List<InterpreterLogHandler> = context.get()?.logHandlers ?: emptyList()
+
+    /**
      * Checks if logging is enabled
      */
     val isLoggingEnabled get() = context.get()?.isLoggingEnabled ?: false
@@ -199,6 +204,11 @@ object MainExecutionContext {
      * @return true if context is already created
      * */
     fun isCreated() = context.get() != null
+
+    /**
+     * @return true if error log channel is configured
+     * */
+    val isErrorChannelConfigured get() = context.get()?.logHandlers?.isErrorChannelConfigured() ?: false
 }
 
 data class Context(
@@ -216,7 +226,7 @@ data class Context(
         DBFileFactory(it.nativeAccessConfig)
     }
 ) {
-    private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
+    val logHandlers: MutableList<InterpreterLogHandler> by lazy {
         systemInterface.getAllLogHandlers()
     }
 
