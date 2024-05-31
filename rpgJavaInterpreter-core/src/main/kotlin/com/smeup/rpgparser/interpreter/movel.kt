@@ -2,6 +2,8 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 private fun clear(value: String, type: Type): String {
     return when (type) {
@@ -22,44 +24,50 @@ private fun clear(value: String, type: Type): String {
 fun movel(
     operationExtender: String?,
     target: AssignableExpression,
-    value: Expression,
+    source: Expression,
+    dataAttributes: Expression?,
     interpreterCore: InterpreterCore
 ): Value {
-    if (value !is FigurativeConstantRef) {
-        if (value.type() is ArrayType) {
-            throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
+    if (source is FigurativeConstantRef) {
+        return interpreterCore.assign(target, interpreterCore.eval(source))
+    }
+
+    return when (source.type()) {
+        is ArrayType -> throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
+        is DateType -> {
+            interpreterCore.assign(target, dateToString(source, dataAttributes, interpreterCore))
         }
-        val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
-        if (target.type() is ArrayType) {
-            // for each element of array apply move
-            val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
-            val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
-            arrayValue.elements.forEachIndexed { index, el ->
-                arrayValue.setElement(
-                    index + 1, stringToValue(
-                        movel(
-                            valueToMove,
-                            valueToString(el, valueToApplyMoveElementType),
-                            valueToApplyMoveElementType,
-                            operationExtender != null
-                        ),
-                        valueToApplyMoveElementType
+        else -> {
+            val valueToMove: String = valueToString(interpreterCore.eval(source), source.type())
+            if (target.type() is ArrayType) {
+                // for each element of array apply move
+                val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+                val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
+                arrayValue.elements.forEachIndexed { index, el ->
+                    arrayValue.setElement(
+                        index + 1, stringToValue(
+                            movel(
+                                valueToMove,
+                                valueToString(el, valueToApplyMoveElementType),
+                                valueToApplyMoveElementType,
+                                operationExtender != null
+                            ),
+                            valueToApplyMoveElementType
+                        )
+                    )
+                }
+                return interpreterCore.assign(target, arrayValue)
+            } else {
+                val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
+                return interpreterCore.assign(
+                    target,
+                    stringToValue(
+                        movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
+                        target.type()
                     )
                 )
             }
-            return interpreterCore.assign(target, arrayValue)
-        } else {
-            val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
-            return interpreterCore.assign(
-                target,
-                stringToValue(
-                    movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                    target.type()
-                )
-            )
         }
-    } else {
-        return interpreterCore.assign(target, interpreterCore.eval(value))
     }
 }
 
@@ -142,6 +150,20 @@ private fun move(
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(valueToMove.length - valueToApplyMove.length)
+    }
+}
+
+private fun dateToString(source: Expression, destinationFormat: Expression?, interpreterCore: InterpreterCore): Value {
+    val sourceEvaluated: DateValue = interpreterCore.eval(source) as DateValue
+    if (destinationFormat == null) {
+        return sourceEvaluated.asString()
+    }
+
+    return when(destinationFormat) {
+        is JulFormatExpr -> StringValue(LocalDate.parse(sourceEvaluated.value).format(DateTimeFormatter.ISO_ORDINAL_DATE)
+            .let { "${it.substring(2,4)}/${it.substring(5)}" })
+        is IsoFormatExpr -> StringValue(sourceEvaluated.value)
+        else -> throw UnsupportedOperationException("Unable to convert to $destinationFormat")
     }
 }
 

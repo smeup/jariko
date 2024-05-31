@@ -1513,7 +1513,15 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    return MoveLStmt(this.operationExtender?.text, resultExpression, dataDefinition, expression, position)
+    val dataAttributes = leftExpr(conf)
+    return MoveLStmt(
+        operationExtender = this.operationExtender?.text,
+        target = resultExpression,
+        dataDefinition = dataDefinition,
+        source = expression,
+        dataAttributes = dataAttributes,
+        position = position
+    )
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
