@@ -7,12 +7,14 @@ import com.smeup.dspfparser.positionals.Reserved
 import com.smeup.dspfparser.positionals.TypeOfName
 import kotlinx.serialization.Serializable
 
+const val SHOULD_GET_CONDITIONS_AND_KEYWORDS: Boolean = false
+
 @Serializable
 internal data class DSPFLine private constructor(
     val count: Int,
     val sequenceNumber: String,
     val a: Char,
-    val conditions: DSPFConditionsGroup,
+    val conditions: DSPFConditionsGroup? = null,
     val reserved: Reserved,
     val typeOfName: TypeOfName,
     val fieldName: String,
@@ -23,7 +25,7 @@ internal data class DSPFLine private constructor(
     val fieldType: FieldType,
     val y: Int? = null,
     val x: Int? = null,
-    val keywords: DSPFKeywordsGroup,
+    val keywords: DSPFKeywordsGroup? = null,
 ) {
     companion object {
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
@@ -58,9 +60,10 @@ internal data class DSPFLine private constructor(
             return lineSubstrings.a[0]
         }
 
-        private fun getCondition(lineSubstrings: DSPFLineSubstrings): DSPFConditionsGroup {
+        private fun getCondition(lineSubstrings: DSPFLineSubstrings): DSPFConditionsGroup? {
             // has singular name because in one line substrings there is only one condition
-            return DSPFConditionsGroup.fromString(lineSubstrings.condition)
+            return if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) DSPFConditionsGroup.fromString(lineSubstrings.condition)
+            else null
         }
 
         private fun getReserved(lineSubstrings: DSPFLineSubstrings): Reserved {
@@ -107,8 +110,9 @@ internal data class DSPFLine private constructor(
             return lineSubstrings.x.trim().toInt()
         }
 
-        private fun getKeywords(lineSubstrings: DSPFLineSubstrings): DSPFKeywordsGroup {
-            return DSPFKeywordsGroup.fromString(lineSubstrings.keywords)
+        private fun getKeywords(lineSubstrings: DSPFLineSubstrings): DSPFKeywordsGroup? {
+            return if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) DSPFKeywordsGroup.fromString(lineSubstrings.keywords)
+            else null
         }
     }
 

@@ -4,12 +4,6 @@ import com.smeup.dspfparser.domain.DSPF
 import com.smeup.dspfparser.linesprocessor.DSPFLine
 import kotlinx.serialization.Serializable
 
-private enum class CurrentContext {
-    FILE,
-    RECORD,
-    FIELD,
-}
-
 @Serializable
 internal data class DSPFSpecifications(
     override val name: String?,
@@ -35,6 +29,14 @@ internal data class DSPFSpecifications(
     }
 }
 
+private enum class CurrentContext {
+    FILE,
+    RECORD,
+    FIELD,
+}
+
+const val SHOULD_ADD_RELATED_AND_FILE: Boolean = false
+
 private class DSPFSpecificationsFactory {
     private var context: CurrentContext = CurrentContext.FILE
     private var isLineNone: Boolean = false
@@ -52,7 +54,7 @@ private class DSPFSpecificationsFactory {
     }
 
     private fun tryAddToFile(line: DSPFLine) {
-        if (this.context == CurrentContext.FILE && this.isLineNone) {
+        if (this.context == CurrentContext.FILE && this.isLineNone && SHOULD_ADD_RELATED_AND_FILE) {
             this.result.file.related.add(line)
         }
     }
@@ -65,13 +67,13 @@ private class DSPFSpecificationsFactory {
     }
 
     private fun tryAddToRecord(line: DSPFLine) {
-        if (this.context == CurrentContext.RECORD && this.isLineNone) {
+        if (this.context == CurrentContext.RECORD && this.isLineNone && SHOULD_ADD_RELATED_AND_FILE) {
             this.result.records.last().related.add(line)
         }
     }
 
     private fun tryAddToField(line: DSPFLine) {
-        if (this.context == CurrentContext.FIELD && this.isLineNone) {
+        if (this.context == CurrentContext.FIELD && this.isLineNone && SHOULD_ADD_RELATED_AND_FILE) {
             this.result.records.last().fields.last().related.add(line)
         }
     }
