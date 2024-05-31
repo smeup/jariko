@@ -27,7 +27,6 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.JulianFields
 import java.util.*
 
 const val PAD_CHAR = ' '
@@ -482,16 +481,24 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
     }
 }
 
+/**
+ * @param value in ISO format for easy conversion if is needed. (See MU022501)
+ * @param format between MDY, DMY, YMD, JUL, ISO, USA, EUR, and JIS.
+ *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
+ */
 @Serializable
-data class DateValue(val value: String, val type: DateFormat) : Value {
+data class DateValue(val value: String, val format: DateFormat) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is DateType
     }
 
     override fun copy(): Value = this
 
-    override fun asString(): StringValue {
-        TODO("Not yet implemented")
+    override fun asString(): StringValue = StringValue(adapt())
+
+    private fun adapt() = when(format) {
+        DateFormat.JUL -> LocalDate.parse(value).format(DateTimeFormatter.ISO_ORDINAL_DATE).let { "${it.substring(2,4)}/${it.substring(5)}" }
+        DateFormat.ISO -> value
     }
 }
 

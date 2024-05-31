@@ -38,6 +38,9 @@ enum class RpgType(val rpgType: String) {
     UNLIMITED_STRING("0")
 }
 
+/**
+ * See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
+ */
 enum class DateFormat(val dateFormat: String) {
     JUL("*JUL"),
     ISO("*ISO")

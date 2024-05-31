@@ -176,6 +176,11 @@ object TimeStampType : Type() {
         get() = 26
 }
 
+/**
+ * @param value in ISO format for easy conversion if is needed. (See MU022501)
+ * @param format between MDY, DMY, YMD, JUL, ISO, USA, EUR, and JIS.
+ *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
+ */
 @Serializable
 data class DateType(var format: DateFormat) : Type() {
     override val size: Int
