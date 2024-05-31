@@ -5,6 +5,7 @@ import com.smeup.dspfparser.domain.DSPFFieldType
 import com.smeup.dspfparser.linesprocessor.DSPFLine
 import com.smeup.dspfparser.positionals.FieldType
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 internal data class DSPFFieldSpecifications private constructor(
@@ -16,17 +17,17 @@ internal data class DSPFFieldSpecifications private constructor(
     override val x: Int,
     override val y: Int,
     override var hasError: Boolean = false,
-    val declaration: DSPFLine,
+    @Transient val declaration: DSPFLine = DSPFLine.fake(),
 ) : DSPFField {
     val related: MutableList<DSPFLine> = mutableListOf()
 
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFFieldSpecifications {
             val isNumeric = declaration.decimalsPositions != null
-            // val initialValue = if (isNumeric) 0 else ""
+            val initialValue = if (isNumeric) "0" else ""
 
             return DSPFFieldSpecifications(
-                value = DSPFFieldValue(""),
+                value = DSPFFieldValue(initialValue),
                 isNumeric = isNumeric,
                 length = declaration.length,
                 precision = declaration.decimalsPositions,
