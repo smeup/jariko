@@ -118,6 +118,7 @@ private fun List<StatementContext?>.getDataDefinition(
         it.toDataDefinitionProvider(
             conf = conf,
             knownDataDefinitions = knownDataDefinitions,
+            parentDataDefinitions = parentDataDefinitions,
             fileDefinitions = fileDefinitions
         )
     }
@@ -137,16 +138,6 @@ private fun List<StatementContext?>.getDataDefinition(
                     it.dcl_c()
                         .toAst(conf)
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-
-                it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                    DataDefinitionCalculator(
-                        it.dcl_ds().toAstWithLikeDs(
-                            conf = conf,
-                            dataDefinitionProviders = dataDefinitionProviders,
-                            parentDataDefinitions = parentDataDefinitions
-                        )
-                    ).toDataDefinition().updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
 
                 else -> null
@@ -543,6 +534,7 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
 private fun StatementContext.toDataDefinitionProvider(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: MutableMap<String, DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
 ): DataDefinitionProvider? {
     return when {
@@ -553,6 +545,7 @@ private fun StatementContext.toDataDefinitionProvider(
                         .toAst(
                             conf = conf,
                             knownDataDefinitions = knownDataDefinitions.values,
+                            parentDataDefinitions = parentDataDefinitions,
                             fileDefinitions = fileDefinitions
                         )?.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors

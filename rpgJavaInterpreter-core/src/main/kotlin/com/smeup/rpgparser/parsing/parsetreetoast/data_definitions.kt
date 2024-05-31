@@ -1015,14 +1015,42 @@ class FieldsList(val fields: List<FieldInfo>) {
     fun isNotEmpty() = fields.isNotEmpty()
 }
 
+/**
+ * Generates AST for a DS.
+ * This implementation considers if the DS uses `LIKEDS` or `EXTNAME`. In first case returns the DS with its name and the fields
+ *  from the other DS. In second case returns a DS like this:
+ *   - firstly, all fields from file;
+ *   - then, fields if declared in source code.
+ * In additions, out from `LIKEDS` case, this method calculates sequences, offsets and overlays for its fields.
+ * @param conf Ast' configuration
+ * @param knownDataDefinitions Collection of other data definitions previously declared. Is necessary to resolve `LIKE` and `LIKEDS`.
+ * @param parentDataDefinitions Like to `knownDataDefinitions`, but to find out from actual scope.
+ * @param fileDefinitions Necessary for `EXTNAME` case to load its fields.
+ * @return DataDefinition for DS or null: for `LIKEDS` if there is not the DS from getting the fields; for `EXTNAME` if there is not the file from getting the fields.
+ */
 internal fun RpgParser.Dcl_dsContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: Collection<DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
 ): DataDefinition? {
+    // Using `LIKEDS`
+    if (this.keyword().any { it.keyword_likeds() != null }) {
+        val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)
+        val dataDefinition = DataDefinition(
+            this.name,
+            referredDs.type,
+            referredDs.fields,
+            position = this.toPosition(true)
+        )
+        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        return dataDefinition
+    }
+
     val initializationValue: Expression? = null
     val size = this.declaredSize()
 
+    // Using `EXTNAME`
     var fieldsFile: List<FieldInfo> = listOf()
     if (this.keyword().any { it.keyword_extname() != null }) {
         val keywordExtName = getKeywordExtName()
@@ -1048,8 +1076,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
         fieldsFile = extractFieldsFromFile(fileDataDefinitions, conf)
     }
 
-    // Calculating information about the DS and its fields is full of interdependecies
-    // therefore we do that in steps
+    // Calculating information about the DS and its fields is full of interdependecies, therefore we do that in steps.
     val fieldsList = calculateFieldInfos(knownDataDefinitions, fieldsFile)
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
@@ -1062,7 +1089,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
         inz = inz != null,
         position = this.toPosition(true))
 
-    // set the "overlayingOn" value for all field definitions
+    // Set the "overlayingOn" value for all field definitions.
     fieldsList.fields.forEach { fieldInfo ->
         if (fieldInfo.overlayInfo != null) {
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
@@ -1074,6 +1101,36 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     return dataDefinition
 }
 
+/**
+ * Finds the DS and prepare the new DataDefinition for a DS that uses `LIKEDS`.
+ * @param knownDataDefinitions Collection of other data definitions previously declared. Is necessary to resolve `LIKE`.
+ * @param parentDataDefinitions Like to `knownDataDefinitions`, but to find out from actual scope.
+ * @param conf Ast' configuration
+ * @return DataDefinition found.
+ * @see RpgParser.Dcl_dsContext.toAst for its utilization.
+ */
+private fun RpgParser.Dcl_dsContext.findDs(
+    knownDataDefinitions: Collection<DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
+    conf: ToAstConfiguration
+): DataDefinition {
+    val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() })
+        .first().data_structure_name.identifier().free_identifier()
+        .idOrKeyword().ID().text
+    val referredDataDefinition = knownDataDefinitions.find { it.name == likeDsName }
+        ?: parentDataDefinitions?.find { it.name == likeDsName }
+        ?: this.error("Data definition $likeDsName not found", conf = conf)
+
+    return referredDataDefinition
+}
+
+/**
+ * Finds the file and prepare extracts the fields for a DS that uses `EXTNAME`.
+ * @param dataDefinitions Collection of other data definitions previously declared.
+ * @param conf Ast' configuration
+ * @return List of fields.
+ * @see RpgParser.Dcl_dsContext.toAst for its utilization.
+ */
 private fun RpgParser.Dcl_dsContext.extractFieldsFromFile(
     dataDefinitions: List<DataDefinition>,
     conf: ToAstConfiguration
@@ -1109,36 +1166,6 @@ internal fun DataDefinition.setOverlayOn(fieldDefinition: FieldDefinition) {
                 fieldDefinition.name == it
             }
         }
-    }
-}
-
-internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
-    conf: ToAstConfiguration = ToAstConfiguration(),
-    dataDefinitionProviders: List<DataDefinitionProvider>,
-    parentDataDefinitions: List<DataDefinition>? = null
-):
-        () -> DataDefinition {
-    return {
-        if (this.TO_POSITION().text.trim().isNotEmpty()) {
-            this.TO_POSITION().text.asInt()
-        } else {
-            null
-        }
-
-        val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
-
-        val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
-        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName }
-            ?: parentDataDefinitions?.find { it.name == likeDsName }
-            ?: this.error("Data definition $likeDsName not found", conf = conf)
-
-        val dataDefinition = DataDefinition(
-                this.name,
-                referredDataDefinition.type,
-                referredDataDefinition.fields,
-                position = this.toPosition(true))
-        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
-        dataDefinition
     }
 }
 
