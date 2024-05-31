@@ -17,6 +17,7 @@
 @file:JvmName("StandardFeaturesFactory")
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import kotlin.reflect.full.createInstance
 
@@ -127,23 +128,35 @@ class StandardFeaturesFactory : IFeaturesFactory {
     override fun createSymbolTable() = SymbolTable()
 }
 
+/**
+ * Enumeration of feature flags that can be enabled or disabled.
+ *
+ * @property on The default value of the feature flag. Defaults to false if not specified.
+ */
 enum class FeatureFlag(val on: Boolean = false) {
 
     /**
      * If "on" the alphanumeric [RpgType.ZONED] is handled like [RpgType.UNLIMITED_STRING].
-     * Currently, the [RpgType.CHARACTER] is not yet handled because this cause a regression in some tests
+     * Currently, the [RpgType.CHARACTER] is not yet handled because this cause a regression in some tests.
+     * Default off
      */
     UnlimitedStringTypeFlag(on = false),
+    /**
+     * If "on" the chain cache is enabled.
+     * Default on
+     */
     ChainCacheFlag(on = true),
     ;
 
     fun getPropertyName() = "jariko.features.$name"
 
     /**
-     * @return true if the system property [getPropertyName] is set to "1" "on" or "true"
+     * @return true if the system property [getPropertyName] is set to "1" "on" or "true" or
+     * the value returned by JarikoCallback.featureFlagIsOn is true
      * */
     fun isOn(): Boolean {
-        val property = System.getProperty(getPropertyName(), this.on.toString())
+        val isOn = MainExecutionContext.getConfiguration().jarikoCallback.featureFlagIsOn.invoke(this)
+        val property = System.getProperty(getPropertyName(), isOn.toString())
         return property.lowercase().matches(Regex("1|on|true"))
     }
 }
