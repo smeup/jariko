@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.JulianFields
 import java.util.*
 
 const val PAD_CHAR = ' '
@@ -480,6 +482,19 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
     }
 }
 
+@Serializable
+data class DateValue(val value: String, val type: DateFormat) : Value {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is DateType
+    }
+
+    override fun copy(): Value = this
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+}
+
 abstract class ArrayValue : Value {
     abstract fun arrayLength(): Int
     abstract fun elementSize(): Int
@@ -725,6 +740,34 @@ class AllValue(val charsToRepeat: String) : Value {
     }
 }
 
+object IsoValue : Value {
+    override fun copy() = this
+
+    override fun toString(): String {
+        return "IsoValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean = true
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+}
+
+object JulValue : Value {
+    override fun copy() = this
+
+    override fun toString(): String {
+        return "JulValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean = true
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+}
+
 /**
  * The container should always be a DS value
  */
@@ -844,6 +887,7 @@ fun Type.blank(): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
+        is DateType -> BlanksValue
         // TODO check this during the process of revision of DB access
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })

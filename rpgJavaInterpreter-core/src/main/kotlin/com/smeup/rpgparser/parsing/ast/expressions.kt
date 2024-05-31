@@ -107,6 +107,20 @@ data class AllExpr(val charsToRepeat: StringLiteral, override val position: Posi
 }
 
 // /
+// / Date formats
+// /
+
+@Serializable
+data class IsoFormatExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class JulFormatExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// /
 // / Comparisons
 // /
 

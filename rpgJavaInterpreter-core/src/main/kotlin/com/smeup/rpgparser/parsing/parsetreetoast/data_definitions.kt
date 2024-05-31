@@ -28,6 +28,7 @@ import kotlin.math.max
 enum class RpgType(val rpgType: String) {
     CHARACTER("A"),
     BOOLEAN("N"),
+    DATE("D"),
     TIMESTAMP("Z"),
     PACKED("P"),
     ZONED("S"),
@@ -35,6 +36,12 @@ enum class RpgType(val rpgType: String) {
     UNSIGNED("U"),
     BINARY("B"),
     UNLIMITED_STRING("0")
+}
+
+enum class DateFormat(val dateFormat: String) {
+    JUL("*JUL"),
+    ISO("*ISO")
+    // TODO: Add more
 }
 
 internal enum class DSFieldInitKeywordType(val keyword: String, val type: Type) {
@@ -317,6 +324,9 @@ internal fun RpgParser.DspecContext.toAst(
     var ascend: Boolean? = null
     var static = false
 
+    /* Default value is ISO. */
+    var dateFormat: DateFormat = DateFormat.ISO
+
     this.keyword().forEach {
         it.keyword_ascend()?.let {
             ascend = true
@@ -345,6 +355,13 @@ internal fun RpgParser.DspecContext.toAst(
         it.keyword_static()?.let {
             static = true
         }
+        it.keyword_datfmt()?.let {
+            dateFormat = when(it.simpleExpression()?.toAst(conf)) {
+                is IsoFormatExpr -> DateFormat.ISO
+                is JulFormatExpr -> DateFormat.JUL
+                else -> this.todo(message = "${it.simpleExpression().text} like Date format", conf = conf)
+            }
+        }
     }
 
     val elementSize = when {
@@ -370,6 +387,7 @@ internal fun RpgParser.DspecContext.toAst(
             RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
             RpgType.BOOLEAN.rpgType -> BooleanType
             RpgType.TIMESTAMP.rpgType -> TimeStampType
+            RpgType.DATE.rpgType -> DateType(dateFormat)
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */
