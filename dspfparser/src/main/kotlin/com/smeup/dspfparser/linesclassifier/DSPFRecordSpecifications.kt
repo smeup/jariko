@@ -8,7 +8,7 @@ import kotlinx.serialization.Transient
 @Serializable
 internal data class DSPFRecordSpecifications private constructor(
     override val name: String,
-    @Transient val declaration: DSPFLine = DSPFLine.fake(),
+    @Transient val declaration: DSPFLine = DSPFLine.fake()
 ) : DSPFRecord {
     override val fields: MutableList<DSPFFieldSpecifications> = mutableListOf()
     val related: MutableList<DSPFLine> = mutableListOf()
@@ -17,7 +17,7 @@ internal data class DSPFRecordSpecifications private constructor(
         fun fromLine(declaration: DSPFLine): DSPFRecordSpecifications {
             return DSPFRecordSpecifications(
                 name = declaration.fieldName,
-                declaration = declaration,
+                declaration = declaration
             )
         }
     }

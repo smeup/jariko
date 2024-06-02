@@ -32,12 +32,12 @@ internal data class DSPFLineSubstrings private constructor(
     val x: String,
     val keywords: String,
     val line: String,
-    val continuationChar: Char? = null,
+    val continuationChar: Char? = null
 ) {
     companion object {
         fun from(
             count: Int,
-            line: String,
+            line: String
         ): DSPFLineSubstrings {
             // simulates multiline by extending writable range
             val extendedLine = line.removeNewLineAndExtend(' ', LAST_COLUMN)
@@ -60,7 +60,7 @@ internal data class DSPFLineSubstrings private constructor(
                 this.getX(extendedLine),
                 this.getKeywords(extendedLine),
                 line,
-                this.getContinuationChar(extendedLine),
+                this.getContinuationChar(extendedLine)
             )
         }
 

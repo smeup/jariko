@@ -25,7 +25,7 @@ internal data class DSPFLine private constructor(
     val fieldType: FieldType,
     val y: Int? = null,
     val x: Int? = null,
-    val keywords: DSPFKeywordsGroup? = null,
+    val keywords: DSPFKeywordsGroup? = null
 ) {
     companion object {
         fun fake(): DSPFLine {
@@ -58,7 +58,7 @@ internal data class DSPFLine private constructor(
                 this.getFieldType(lineSubstrings),
                 this.getY(lineSubstrings),
                 this.getX(lineSubstrings),
-                this.getKeywords(lineSubstrings),
+                this.getKeywords(lineSubstrings)
             )
         }
 

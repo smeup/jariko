@@ -11,7 +11,7 @@ internal class ConditionsTest {
         assertEquals(BooleanNAryOperator.BLANK, default.op)
         assertEquals(
             mutableListOf(DSPFIndicator.fromString("N15"), DSPFIndicator.fromString(" 14"), DSPFIndicator.fromString(" 89")),
-            default.indicators,
+            default.indicators
         )
     }
 
@@ -21,7 +21,7 @@ internal class ConditionsTest {
         assertEquals(BooleanNAryOperator.A, and.op)
         assertEquals(
             mutableListOf(DSPFIndicator.fromString("N15"), DSPFIndicator.fromString(" 17"), DSPFIndicator.fromString(" 90")),
-            and.indicators,
+            and.indicators
         )
     }
 
@@ -31,7 +31,7 @@ internal class ConditionsTest {
         assertEquals(BooleanNAryOperator.O, or.op)
         assertEquals(
             mutableListOf(DSPFIndicator.fromString("N15"), DSPFIndicator.fromString(" 11"), DSPFIndicator.fromString(" 04")),
-            or.indicators,
+            or.indicators
         )
     }
 

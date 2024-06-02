@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFParameters private constructor(
-    val arguments: MutableList<String> = mutableListOf(),
+    val arguments: MutableList<String> = mutableListOf()
 ) {
     companion object {
         fun fromString(text: String): DSPFParameters {
@@ -23,7 +23,7 @@ internal data class DSPFParameters private constructor(
 
         private fun getArguments(text: String): MutableList<String> {
             val arguments: MutableList<String> = mutableListOf()
-            this.removeBrackets(text).split(' ')?.forEach {
+            this.removeBrackets(text).split(' ').forEach {
                 arguments.add(this.tryRemoveSurroundingSingleQuotes(it))
             }
             return arguments

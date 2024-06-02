@@ -17,7 +17,7 @@ internal data class DSPFFieldSpecifications private constructor(
     override val x: Int,
     override val y: Int,
     override var hasError: Boolean = false,
-    @Transient val declaration: DSPFLine = DSPFLine.fake(),
+    @Transient val declaration: DSPFLine = DSPFLine.fake()
 ) : DSPFField {
     val related: MutableList<DSPFLine> = mutableListOf()
 
@@ -34,7 +34,7 @@ internal data class DSPFFieldSpecifications private constructor(
                 type = this.getType(declaration),
                 x = declaration.x!!,
                 y = declaration.y!!,
-                declaration = declaration,
+                declaration = declaration
             )
         }
 

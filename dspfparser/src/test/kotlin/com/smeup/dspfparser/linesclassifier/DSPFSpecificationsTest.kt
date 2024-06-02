@@ -3,7 +3,6 @@ package com.smeup.dspfparser.linesclassifier
 import com.smeup.dspfparser.domain.DSPFFieldType
 import com.smeup.dspfparser.linesprocessor.DSPFKeywordsGroup
 import com.smeup.dspfparser.linesprocessor.SHOULD_GET_CONDITIONS_AND_KEYWORDS
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -78,13 +77,13 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
 
     @Test
     fun getRecordsByName() {
-        assertEquals("REC01", this.specifications.getRecord("REC01")?.declaration?.fieldName)
-        assertEquals("REC11", this.specifications.getRecord("REC11")?.declaration?.fieldName)
+        assertEquals("REC01", this.specifications.getRecord("REC01").declaration.fieldName)
+        assertEquals("REC11", this.specifications.getRecord("REC11").declaration.fieldName)
     }
 
     @Test
     fun firstRecordFirstFields() {
-        val field = this.specifications.getRecord("REC01")!!.fields.first()
+        val field = this.specifications.getRecord("REC01").fields.first()
         assertFalse { field.isNumeric }
         assertTrue { field.type == DSPFFieldType.OUTPUT }
         assertEquals(5, field.length)
@@ -94,7 +93,7 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
 
     @Test
     fun firstRecordSecondField() {
-        val field = this.specifications.getRecord("REC01")!!.fields[1]
+        val field = this.specifications.getRecord("REC01").fields[1]
         assertTrue { field.isNumeric }
         assertTrue { field.type == DSPFFieldType.INPUT }
         assertEquals(15, field.length)
@@ -104,7 +103,7 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
 
     @Test
     fun secondRecordFirstField() {
-        val field = this.specifications.getRecord("REC11")!!.fields[0]
+        val field = this.specifications.getRecord("REC11").fields[0]
         assertFalse { field.isNumeric }
         assertTrue { field.type == DSPFFieldType.INPUT_OUTPUT }
         assertEquals(3, field.length)

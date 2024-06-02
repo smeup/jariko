@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFCondition private constructor(
     val op: BooleanNAryOperator,
-    val indicators: MutableList<DSPFIndicator> = mutableListOf(),
+    val indicators: MutableList<DSPFIndicator> = mutableListOf()
 ) {
     companion object {
         fun fromString(text: String): DSPFCondition {

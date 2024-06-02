@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFFileSpecifications private constructor(
-    val related: MutableList<DSPFLine> = mutableListOf(),
+    val related: MutableList<DSPFLine> = mutableListOf()
 ) {
     companion object {
         fun create(): DSPFFileSpecifications {

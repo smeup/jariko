@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFKeyword private constructor(
     val name: String? = null,
-    val parameters: MutableList<DSPFParameters> = mutableListOf(),
+    val parameters: MutableList<DSPFParameters> = mutableListOf()
 ) {
     companion object {
         fun fromString(text: String): DSPFKeyword {

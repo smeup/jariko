@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFConditionsGroup private constructor(
-    val group: MutableList<DSPFCondition> = mutableListOf(),
+    val group: MutableList<DSPFCondition> = mutableListOf()
 ) {
     companion object {
         fun fromString(text: String): DSPFConditionsGroup {

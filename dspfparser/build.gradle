@@ -34,7 +34,6 @@ compileKotlin {
     kotlinOptions.jvmTarget = "$jvmVersion"
 }
 
-
 test {
     useJUnitPlatform()
 }

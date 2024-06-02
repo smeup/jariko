@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFIndicator private constructor(
     val op: BooleanUnaryOperator = BooleanUnaryOperator.BLANK,
-    val id: Int,
+    val id: Int
 ) {
     companion object {
         fun fromString(text: String): DSPFIndicator {

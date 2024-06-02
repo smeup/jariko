@@ -2,7 +2,7 @@ package com.smeup.dspfparser.utils
 
 internal fun String.extend(
     with: Char,
-    until: Int,
+    until: Int
 ): String {
     if (this.isEmpty()) {
         return with.toString().repeat(until)
@@ -13,7 +13,7 @@ internal fun String.extend(
 
 internal fun String.removeNewLineAndExtend(
     with: Char,
-    until: Int,
+    until: Int
 ): String {
     var line = this.replace("\n", "")
     if (until < line.length) throw Exception("Line length (${line.length}) is greater than $until")

@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFSpecifications(
-    override val name: String?,
+    override val name: String?
 ) : DSPF {
     val file: DSPFFileSpecifications = DSPFFileSpecifications.create()
     val records: MutableList<DSPFRecordSpecifications> = mutableListOf()
@@ -14,7 +14,7 @@ internal data class DSPFSpecifications(
     companion object {
         fun fromLines(
             lines: MutableList<DSPFLine>,
-            name: String? = null,
+            name: String? = null
         ): DSPFSpecifications {
             return DSPFSpecificationsFactory(name, lines).create()
         }
