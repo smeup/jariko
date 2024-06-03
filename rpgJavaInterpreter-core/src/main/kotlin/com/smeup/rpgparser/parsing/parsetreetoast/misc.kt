@@ -304,7 +304,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     )
 
     if (null == procedures) {
-        if (!procerurePrototypes.isEmpty()) {
+        if (procerurePrototypes.isNotEmpty()) {
             procedures = procerurePrototypes
         }
     } else {
@@ -552,7 +552,8 @@ private fun StatementContext.toDataDefinitionProvider(
     knownDataDefinitions: MutableMap<String, DataDefinition>
 ): DataDefinitionProvider? {
     return when {
-        this.dcl_ds() != null -> {
+        this.dcl_ds() != null && !this.dcl_ds().useExtName() -> {
+            // DS-spec based on EXTNAME are resolved in a different step
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
