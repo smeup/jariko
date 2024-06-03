@@ -26,6 +26,7 @@ repositories {
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion"
+    api project(":rpgJavaInterpreter-core")
 }
 
 compileKotlin {
