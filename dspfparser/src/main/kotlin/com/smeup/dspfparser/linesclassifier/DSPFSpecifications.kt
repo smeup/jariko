@@ -2,7 +2,6 @@ package com.smeup.dspfparser.linesclassifier
 
 import com.smeup.dspfparser.domain.DSPF
 import com.smeup.dspfparser.linesprocessor.DSPFLine
-import com.smeup.rpgparser.interpreter.DbField
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -27,10 +26,6 @@ internal data class DSPFSpecifications(
 
     override fun getFieldsFromRecord(name: String): MutableList<DSPFFieldSpecifications> {
         return this.records.first { it.declaration.fieldName == name }.fields
-    }
-
-    override fun getDbFields(): List<DbField> {
-        TODO("Not yet implemented")
     }
 }
 
