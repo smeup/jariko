@@ -79,6 +79,8 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
     fun getRecordsByName() {
         assertEquals("REC01", this.specifications.getRecord("REC01").name)
         assertEquals("REC11", this.specifications.getRecord("REC11").name)
+        assertEquals("REC01", this.specifications.getRecord("rec01").name)
+        assertEquals("REC11", this.specifications.getRecord("rec11").name)
     }
 
     @Test
@@ -109,5 +111,11 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         assertEquals(3, field.length)
         assertEquals(10, field.y)
         assertEquals(8, field.x)
+    }
+
+    @Test
+    fun getFieldsFromRecordName() {
+        assertEquals(2, this.specifications.getFieldsFromRecord("REC01").size)
+        assertEquals(1, this.specifications.getFieldsFromRecord("REC11").size)
     }
 }
