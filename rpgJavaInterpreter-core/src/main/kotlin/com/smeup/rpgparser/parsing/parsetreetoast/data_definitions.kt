@@ -23,6 +23,8 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.math.BigDecimal
+import java.util.Date
+import kotlin.collections.HashMap
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -359,7 +361,7 @@ internal fun RpgParser.DspecContext.toAst(
             static = true
         }
         it.keyword_datfmt()?.let {
-            dateFormat = when(it.simpleExpression()?.toAst(conf)) {
+            dateFormat = when (it.simpleExpression()?.toAst(conf)) {
                 is IsoFormatExpr -> DateFormat.ISO
                 is JulFormatExpr -> DateFormat.JUL
                 else -> this.todo(message = "${it.simpleExpression().text} like Date format", conf = conf)
@@ -390,7 +392,37 @@ internal fun RpgParser.DspecContext.toAst(
             RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
             RpgType.BOOLEAN.rpgType -> BooleanType
             RpgType.TIMESTAMP.rpgType -> TimeStampType
-            RpgType.DATE.rpgType -> DateType(dateFormat)
+            RpgType.DATE.rpgType -> {
+                val type = DateType(dateFormat)
+
+                if (initializationValue != null) {
+                    val dateInzSplit = (initializationValue as StringLiteral).value.split("-").map { it.toInt() }
+                    val dateInz = Date(dateInzSplit[0] - 1900, dateInzSplit[1] - 1, dateInzSplit[2])
+                    initializationValue = IntLiteral(
+                        value = dateInz.time,
+                        position = initializationValue?.position
+                    )
+
+                    /*
+                     * Every date format has a valid range:
+                     *  - JUL, between 1940 and 2039;
+                     *  - ISO, between 0001 and 9999.
+                     * For more information, or if you want to add another format, see: https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type
+                     */
+                    when (type.format) {
+                        DateFormat.JUL -> require(
+                            dateInz.after(Date(1939 - 1900, 0, 0)) && dateInz.before(Date(2040 - 1900, 0, 0)),
+                            { "For JUL format the date must be between 1940 and 2039" }
+                        )
+                        DateFormat.ISO -> require(
+                            dateInz.after(Date(-1900, 0, 0)) && dateInz.before(Date(2040 - 1900, 0, 1)),
+                            { "For JUL format the date must be between 0001 and 9999" }
+                        )
+                    }
+                }
+
+                DateType(dateFormat)
+            }
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */

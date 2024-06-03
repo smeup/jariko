@@ -487,18 +487,24 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
  *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
  */
 @Serializable
-data class DateValue(val value: String, val format: DateFormat) : Value {
+data class DateValue(val value: Long, val format: DateFormat) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is DateType
     }
 
     override fun copy(): Value = this
 
-    override fun asString(): StringValue = StringValue(adapt())
+    override fun asString(): StringValue = StringValue(adapt(format))
 
-    private fun adapt() = when(format) {
-        DateFormat.JUL -> LocalDate.parse(value).format(DateTimeFormatter.ISO_ORDINAL_DATE).let { "${it.substring(2,4)}/${it.substring(5)}" }
-        DateFormat.ISO -> value
+    fun adapt(format: DateFormat): String {
+        val dateISO = SimpleDateFormat("YYYY-MM-dd").format(Date(value))
+        return when (format) {
+            DateFormat.JUL -> {
+                LocalDate.parse(dateISO).format(DateTimeFormatter.ISO_ORDINAL_DATE)
+                    .let { "${it.substring(2, 4)}/${it.substring(5)}" }
+            }
+            DateFormat.ISO -> dateISO
+        }
     }
 }
 

@@ -184,7 +184,7 @@ object TimeStampType : Type() {
 @Serializable
 data class DateType(var format: DateFormat) : Type() {
     override val size: Int
-        get() = when(format) {
+        get() = when (format) {
             DateFormat.ISO -> 10
             DateFormat.JUL -> 6
         }

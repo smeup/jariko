@@ -1,9 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 private fun clear(value: String, type: Type): String {
     return when (type) {
@@ -159,10 +158,9 @@ private fun dateToString(source: Expression, destinationFormat: Expression?, int
         return sourceEvaluated.asString()
     }
 
-    return when(destinationFormat) {
-        is JulFormatExpr -> StringValue(LocalDate.parse(sourceEvaluated.value).format(DateTimeFormatter.ISO_ORDINAL_DATE)
-            .let { "${it.substring(2,4)}/${it.substring(5)}" })
-        is IsoFormatExpr -> StringValue(sourceEvaluated.value)
+    return when (destinationFormat) {
+        is JulFormatExpr -> StringValue(sourceEvaluated.adapt(DateFormat.JUL))
+        is IsoFormatExpr -> StringValue(sourceEvaluated.adapt(DateFormat.ISO))
         else -> throw UnsupportedOperationException("Unable to convert to $destinationFormat")
     }
 }

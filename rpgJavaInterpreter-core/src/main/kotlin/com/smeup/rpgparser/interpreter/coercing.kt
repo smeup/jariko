@@ -177,7 +177,6 @@ private fun coerceString(value: StringValue, type: Type): Value {
             return UnlimitedStringValue(value.value)
         }
         is TimeStampType -> TimeStampValue.of(value.value)
-        is DateType -> DateValue(value.value, type.format)
         else -> TODO("Converting String to $type")
     }
 }
@@ -267,6 +266,7 @@ fun coerce(value: Value, type: Type): Value {
         is IntValue -> {
             when (type) {
                 is StringType -> StringValue(value.value.toString(), varying = type.varying)
+                is DateType -> DateValue(value.value, type.format)
                 else -> value
             }
         }
