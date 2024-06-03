@@ -281,6 +281,19 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Additional field on an EXTNAME DS
+     * @see #LS24002872
+     */
+    @Test
+    fun executeMUDRNRAPU00207() {
+        val expected = listOf("ok")
+        assertEquals(
+            expected = expected,
+            "smeup/MUDRNRAPU00207".outputOf(configuration = smeupConfig)
+        )
+    }
+
+    /**
      * DS with EXTNAME and then a field with LIKE to another of file.
      * @see #LS24002827
      */
