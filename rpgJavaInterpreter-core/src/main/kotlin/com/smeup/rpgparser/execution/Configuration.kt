@@ -194,7 +194,7 @@ data class JarikoCallback(
         // If SystemInterface is not in the main execution context or in the SystemInterface there is no
         // logging configuration, the error event must be shown as before, else we run the risk to miss very helpful information
         MainExecutionContext.getSystemInterface()?.apply {
-            if (getAllLogHandlers().isErrorChannelConfigured()) {
+            if (MainExecutionContext.isErrorChannelConfigured) {
                 MainExecutionContext.log(LazyLogEntry.produceError(errorEvent))
             } else {
                 System.err.println(errorEvent)
