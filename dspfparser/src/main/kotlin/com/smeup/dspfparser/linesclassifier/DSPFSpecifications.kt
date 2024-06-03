@@ -35,8 +35,6 @@ private enum class CurrentContext {
     FIELD,
 }
 
-internal const val SHOULD_ADD_RELATED_AND_FILE: Boolean = false
-
 private class DSPFSpecificationsFactory {
     private var context: CurrentContext = CurrentContext.FILE
     private var isLineNone: Boolean = false
@@ -53,28 +51,10 @@ private class DSPFSpecificationsFactory {
         return this.result
     }
 
-    private fun tryAddToFile(line: DSPFLine) {
-        if (this.context == CurrentContext.FILE && this.isLineNone && SHOULD_ADD_RELATED_AND_FILE) {
-            this.result.file.related.add(line)
-        }
-    }
-
     private fun tryInsertNewRecord(line: DSPFLine) {
         if (this.isLineRecord) {
             this.result.records.add(DSPFRecordSpecifications.fromLine(line))
             this.context = CurrentContext.RECORD
-        }
-    }
-
-    private fun tryAddToRecord(line: DSPFLine) {
-        if (this.context == CurrentContext.RECORD && this.isLineNone && SHOULD_ADD_RELATED_AND_FILE) {
-            this.result.records.last().related.add(line)
-        }
-    }
-
-    private fun tryAddToField(line: DSPFLine) {
-        if (this.context == CurrentContext.FIELD && this.isLineNone && SHOULD_ADD_RELATED_AND_FILE) {
-            this.result.records.last().fields.last().related.add(line)
         }
     }
 
@@ -98,12 +78,9 @@ private class DSPFSpecificationsFactory {
             this.isLineRecord = it.isRecord()
 
             // order is important, do not change it
-            this.tryAddToFile(it)
             this.tryInsertNewRecord(it)
-            this.tryAddToRecord(it)
             this.tryInsertNewFieldOnFieldContext(it)
             this.tryInsertNewFieldOnRecordContext(it)
-            this.tryAddToField(it)
         }
     }
 }

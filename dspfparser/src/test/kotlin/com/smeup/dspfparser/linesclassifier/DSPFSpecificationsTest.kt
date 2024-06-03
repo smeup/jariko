@@ -1,25 +1,12 @@
 package com.smeup.dspfparser.linesclassifier
 
 import com.smeup.dspfparser.domain.DSPFFieldType
-import com.smeup.dspfparser.linesprocessor.DSPFKeywordsGroup
-import com.smeup.dspfparser.linesprocessor.SHOULD_GET_CONDITIONS_AND_KEYWORDS
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/resources/D2.dspf") {
-    @Test
-    fun file() {
-        if (SHOULD_ADD_RELATED_AND_FILE) {
-            val first = this.specifications.file.related[0]
-            assertEquals(1, this.specifications.file.related.size)
-
-            if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) {
-                assertEquals(DSPFKeywordsGroup.fromString("PRINT"), first.keywords)
-            }
-        }
-    }
 
     @Test
     fun records() {
@@ -28,17 +15,6 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         assertEquals(2, this.specifications.records.size)
         assertEquals("REC01", first.name)
         assertEquals("REC11", second.name)
-
-        if (SHOULD_ADD_RELATED_AND_FILE) {
-            assertEquals(emptyList(), second.related)
-        }
-
-        if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) {
-            assertEquals(
-                DSPFKeywordsGroup.fromString("DSPATR(RI)"),
-                first.related[0].keywords
-            )
-        }
     }
 
     @Test
@@ -48,17 +24,6 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         assertEquals(2, this.specifications.records[0].fields.size)
         assertEquals("FLD01", first.name)
         assertEquals("FLD02", second.name)
-
-        if (SHOULD_ADD_RELATED_AND_FILE) {
-            assertEquals(emptyList(), second.related)
-        }
-
-        if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) {
-            assertEquals(
-                DSPFKeywordsGroup.fromString("CHGINPDFT(HI CS)"),
-                first.related[0].keywords
-            )
-        }
     }
 
     @Test
@@ -66,13 +31,6 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         val first = this.specifications.records[1].fields[0]
         assertEquals(1, this.specifications.records[1].fields.size)
         assertEquals("FLD11", first.name)
-
-        if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) {
-            assertEquals(
-                DSPFKeywordsGroup.fromString("COLOR(RED)"),
-                first.related[0].keywords
-            )
-        }
     }
 
     @Test

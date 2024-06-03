@@ -7,14 +7,11 @@ import com.smeup.dspfparser.positionals.Reserved
 import com.smeup.dspfparser.positionals.TypeOfName
 import kotlinx.serialization.Serializable
 
-internal const val SHOULD_GET_CONDITIONS_AND_KEYWORDS: Boolean = false
-
 @Serializable
 internal data class DSPFLine private constructor(
     val count: Int,
     val sequenceNumber: String,
     val a: Char,
-    val conditions: DSPFConditionsGroup? = null,
     val reserved: Reserved,
     val typeOfName: TypeOfName,
     val fieldName: String,
@@ -24,8 +21,7 @@ internal data class DSPFLine private constructor(
     val decimalsPositions: Int? = null,
     val fieldType: FieldType,
     val y: Int? = null,
-    val x: Int? = null,
-    val keywords: DSPFKeywordsGroup? = null
+    val x: Int? = null
 ) {
     companion object {
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
@@ -33,7 +29,6 @@ internal data class DSPFLine private constructor(
                 this.getCount(lineSubstrings),
                 this.getSequenceNumber(lineSubstrings),
                 this.getA(lineSubstrings),
-                this.getCondition(lineSubstrings),
                 this.getReserved(lineSubstrings),
                 this.getTypeOfName(lineSubstrings),
                 this.getFieldName(lineSubstrings),
@@ -43,8 +38,7 @@ internal data class DSPFLine private constructor(
                 this.getDecimalsPositions(lineSubstrings),
                 this.getFieldType(lineSubstrings),
                 this.getY(lineSubstrings),
-                this.getX(lineSubstrings),
-                this.getKeywords(lineSubstrings)
+                this.getX(lineSubstrings)
             )
         }
 
@@ -60,11 +54,7 @@ internal data class DSPFLine private constructor(
             return lineSubstrings.a[0]
         }
 
-        private fun getCondition(lineSubstrings: DSPFLineSubstrings): DSPFConditionsGroup? {
-            // has singular name because in one line substrings there is only one condition
-            return if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) DSPFConditionsGroup.fromString(lineSubstrings.condition)
-            else null
-        }
+        // Could-Have: getCondition
 
         private fun getReserved(lineSubstrings: DSPFLineSubstrings): Reserved {
             return Reserved.values().first { it.value == lineSubstrings.reserved[0] }
@@ -110,10 +100,7 @@ internal data class DSPFLine private constructor(
             return lineSubstrings.x.trim().toInt()
         }
 
-        private fun getKeywords(lineSubstrings: DSPFLineSubstrings): DSPFKeywordsGroup? {
-            return if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) DSPFKeywordsGroup.fromString(lineSubstrings.keywords)
-            else null
-        }
+        // Could-Have: getKeywords
     }
 
     fun isHelp(): Boolean {
