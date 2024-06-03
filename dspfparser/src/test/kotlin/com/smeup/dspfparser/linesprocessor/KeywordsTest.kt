@@ -1,6 +1,5 @@
 package com.smeup.dspfparser.linesprocessor
 
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,10 +20,5 @@ internal class KeywordsTest {
     fun constant() {
         val constant = DSPFKeyword.fromString("'* Constant message! *'")
         assertEquals("* Constant message! *", constant.name)
-    }
-
-    @Test @Ignore
-    fun group() {
-        val keywords = DSPFKeywordsGroup.fromString("'* Constant message! *' SFL DATSEP('-')")
     }
 }
