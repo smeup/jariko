@@ -7,7 +7,7 @@ import com.smeup.dspfparser.positionals.Reserved
 import com.smeup.dspfparser.positionals.TypeOfName
 import kotlinx.serialization.Serializable
 
-const val SHOULD_GET_CONDITIONS_AND_KEYWORDS: Boolean = false
+internal const val SHOULD_GET_CONDITIONS_AND_KEYWORDS: Boolean = false
 
 @Serializable
 internal data class DSPFLine private constructor(

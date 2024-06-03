@@ -40,7 +40,7 @@ private enum class CurrentContext {
     FIELD,
 }
 
-const val SHOULD_ADD_RELATED_AND_FILE: Boolean = false
+internal const val SHOULD_ADD_RELATED_AND_FILE: Boolean = false
 
 private class DSPFSpecificationsFactory {
     private var context: CurrentContext = CurrentContext.FILE
