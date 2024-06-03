@@ -11,19 +11,6 @@ import java.io.InputStream
 abstract class DisplayFileParser {
     companion object {
         /**
-         * Parse a source display file given an input stream.
-         * @param stream
-         * @return a [DSPF] instance representing the display file
-         */
-        fun parse(stream: InputStream): DSPF {
-            val buffer = stream.bufferedReader()
-            val processor = LinesProcessor(buffer)
-            processor.createLines()
-            val specifications = DSPFSpecifications.fromLines(processor.lines)
-            return specifications
-        }
-
-        /**
          * Parse a source display file given a buffered reader.
          * @param buffer
          * @return a [DSPF] instance representing the display file
