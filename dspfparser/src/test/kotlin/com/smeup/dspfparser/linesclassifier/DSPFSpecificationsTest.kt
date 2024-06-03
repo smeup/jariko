@@ -26,8 +26,8 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         val first = this.specifications.records[0]
         val second = this.specifications.records[1]
         assertEquals(2, this.specifications.records.size)
-        assertEquals("REC01", first.declaration.fieldName)
-        assertEquals("REC11", second.declaration.fieldName)
+        assertEquals("REC01", first.name)
+        assertEquals("REC11", second.name)
 
         if (SHOULD_ADD_RELATED_AND_FILE) {
             assertEquals(emptyList(), second.related)
@@ -46,8 +46,8 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         val first = this.specifications.records[0].fields[0]
         val second = this.specifications.records[0].fields[1]
         assertEquals(2, this.specifications.records[0].fields.size)
-        assertEquals("FLD01", first.declaration.fieldName)
-        assertEquals("FLD02", second.declaration.fieldName)
+        assertEquals("FLD01", first.name)
+        assertEquals("FLD02", second.name)
 
         if (SHOULD_ADD_RELATED_AND_FILE) {
             assertEquals(emptyList(), second.related)
@@ -65,7 +65,7 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
     fun secondRecordFields() {
         val first = this.specifications.records[1].fields[0]
         assertEquals(1, this.specifications.records[1].fields.size)
-        assertEquals("FLD11", first.declaration.fieldName)
+        assertEquals("FLD11", first.name)
 
         if (SHOULD_GET_CONDITIONS_AND_KEYWORDS) {
             assertEquals(
@@ -77,8 +77,8 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
 
     @Test
     fun getRecordsByName() {
-        assertEquals("REC01", this.specifications.getRecord("REC01").declaration.fieldName)
-        assertEquals("REC11", this.specifications.getRecord("REC11").declaration.fieldName)
+        assertEquals("REC01", this.specifications.getRecord("REC01").name)
+        assertEquals("REC11", this.specifications.getRecord("REC11").name)
     }
 
     @Test

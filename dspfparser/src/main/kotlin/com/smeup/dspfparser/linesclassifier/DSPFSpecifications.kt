@@ -21,11 +21,11 @@ internal data class DSPFSpecifications(
     }
 
     override fun getRecord(name: String): DSPFRecordSpecifications {
-        return this.records.first { it.declaration.fieldName == name }
+        return this.records.first { it.name == name }
     }
 
     override fun getFieldsFromRecord(name: String): MutableList<DSPFFieldSpecifications> {
-        return this.records.first { it.declaration.fieldName == name }.fields
+        return this.records.first { it.name == name }.fields
     }
 }
 
