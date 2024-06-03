@@ -29,7 +29,9 @@ import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 import kotlin.math.pow
@@ -49,7 +51,7 @@ class ExpressionEvaluation(
     private fun evalAsDecimal(expression: Expression): BigDecimal = expression.evalWith(this).asDecimal().value
 
     private inline fun proxyLogging(expression: Expression, action: () -> Value): Value {
-        if (systemInterface.getAllLogHandlers().isEmpty()) return action()
+        if (!MainExecutionContext.isLoggingEnabled) return action()
 
         val programName = MainExecutionContext.getExecutionProgramName()
 
@@ -72,6 +74,30 @@ class ExpressionEvaluation(
     override fun eval(expression: StringLiteral): Value = proxyLogging(expression) { StringValue(expression.value) }
     override fun eval(expression: IntLiteral) = proxyLogging(expression) { IntValue(expression.value) }
     override fun eval(expression: RealLiteral) = proxyLogging(expression) { DecimalValue(expression.value) }
+
+    override fun eval(expression: UDateRefExpr) = proxyLogging(expression) {
+        val formatter = DateTimeFormatter.ofPattern("ddMMyy")
+        val date = LocalDate.now().format(formatter)
+        StringValue(date)
+    }
+
+    override fun eval(expression: UYearRefExpr) = proxyLogging(expression) {
+        val formatter = DateTimeFormatter.ofPattern("yy")
+        val year = LocalDate.now().format(formatter)
+        StringValue(year)
+    }
+
+    override fun eval(expression: UMonthRefExpr) = proxyLogging(expression) {
+        val formatter = DateTimeFormatter.ofPattern("MM")
+        val month = LocalDate.now().format(formatter)
+        StringValue(month)
+    }
+
+    override fun eval(expression: UDayRefExpr) = proxyLogging(expression) {
+        val formatter = DateTimeFormatter.ofPattern("dd")
+        val day = LocalDate.now().format(formatter)
+        StringValue(day)
+    }
 
     override fun eval(expression: NumberOfElementsExpr): Value = proxyLogging(expression) {
         return@proxyLogging when (val value = expression.value.evalWith(this)) {

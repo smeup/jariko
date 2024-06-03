@@ -155,9 +155,10 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             interpreter.doSomethingAfterExecution()
             MainExecutionContext.getProgramStack().pop()
         }.nanoseconds
-
-        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
-        logHandlers.renderLog(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Interpretation, "INTERPRETATION", elapsed))
+        if (MainExecutionContext.isLoggingEnabled) {
+            logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
+            logHandlers.renderLog(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Interpretation, "INTERPRETATION", elapsed))
+        }
         if (MainExecutionContext.getProgramStack().isEmpty()) {
             interpreter.onInterpretationEnd()
         }

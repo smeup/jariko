@@ -684,6 +684,10 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
         }
+        this.UDATE() != null -> UDateRefExpr(position)
+        this.UYEAR() != null -> UYearRefExpr(position)
+        this.UMONTH() != null -> UMonthRefExpr(position)
+        this.UDAY() != null -> UDayRefExpr(position)
         else -> todo(conf = conf)
     }
 }

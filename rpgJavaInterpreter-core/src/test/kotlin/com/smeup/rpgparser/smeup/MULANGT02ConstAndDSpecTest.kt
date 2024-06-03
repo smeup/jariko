@@ -268,6 +268,19 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Data reference not resolved "UYEAR"
+     * @see #LS24002831
+     */
+    @Test
+    fun executeMUDRNRAPU00206() {
+        val expected = listOf("ok")
+        assertEquals(
+            expected = expected,
+            "smeup/MUDRNRAPU00206".outputOf(configuration = smeupConfig)
+        )
+    }
+
+    /**
      * DS with EXTNAME and then a field with LIKE to another of file.
      * @see #LS24002827
      */
