@@ -1,7 +1,5 @@
 package com.smeup.dspfparser.domain
 
-import com.smeup.rpgparser.interpreter.DbField
-
 /**
  * Models a display file as a whole logical unit.
  */
@@ -21,10 +19,4 @@ interface DSPF {
      * @return [List]<[DSPFField]>
      */
     fun getFieldsFromRecord(name: String): List<DSPFField>
-
-    /**
-     * Retrieve a list containing all file video fields as a [DbField] instances
-     * @return [List]<[DbField]>
-     */
-    fun getDbFields(): List<DbField>
 }
