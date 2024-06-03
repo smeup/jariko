@@ -28,20 +28,6 @@ internal data class DSPFLine private constructor(
     val keywords: DSPFKeywordsGroup? = null
 ) {
     companion object {
-        fun fake(): DSPFLine {
-            return DSPFLine(
-                count = -1,
-                sequenceNumber = "",
-                a = ' ',
-                reserved = Reserved.BLANK,
-                typeOfName = TypeOfName.BLANK,
-                fieldName = "",
-                reference = Reference.BLANK,
-                dataTypeKeyboardShift = DTKBS.BLANK,
-                fieldType = FieldType.BLANK
-            )
-        }
-
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
             return DSPFLine(
                 this.getCount(lineSubstrings),
