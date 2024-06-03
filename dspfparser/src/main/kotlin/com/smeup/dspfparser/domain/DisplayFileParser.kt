@@ -3,7 +3,6 @@ package com.smeup.dspfparser.domain
 import com.smeup.dspfparser.linesclassifier.DSPFSpecifications
 import com.smeup.dspfparser.linesprocessor.LinesProcessor
 import java.io.BufferedReader
-import java.io.InputStream
 
 /**
  * Entry point to request a display file parse.
