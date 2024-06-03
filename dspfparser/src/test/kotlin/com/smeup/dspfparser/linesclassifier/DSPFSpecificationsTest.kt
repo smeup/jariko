@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/resources/_d2.dspf") {
+internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/resources/D2.dspf") {
     @Test
     fun file() {
         if (SHOULD_ADD_RELATED_AND_FILE) {

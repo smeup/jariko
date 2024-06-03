@@ -3,7 +3,7 @@ package com.smeup.dspfparser.linesprocessor
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resources/_d1.dspf") {
+internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resources/D1.dspf") {
     init {
         this.linesProcessor.createLines()
     }

@@ -3,7 +3,7 @@ package com.smeup.dspfparser.linesprocessor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class LineSubstringsTest : LinesProcessorLoader("./src/test/resources/_fake.dspf") {
+internal class LineSubstringsTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf") {
     init {
         this.linesProcessor.createLinesSubstrings()
     }
