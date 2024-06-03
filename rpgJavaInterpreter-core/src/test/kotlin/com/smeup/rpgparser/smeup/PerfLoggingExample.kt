@@ -10,7 +10,7 @@ class PerfLoggingExample : MULANGTTest() {
     @Test
     fun testMUTE10_10() {
         val si = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
         }
         executePgm(programName = "performance/MUTE10_10", systemInterface = si)
     }
@@ -18,7 +18,7 @@ class PerfLoggingExample : MULANGTTest() {
     @Test
     fun testT10_A60_P02() {
         val si = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE, LogChannel.ANALYTICS)
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
         }
         executePgm(programName = "smeup/T10_A60_P02", systemInterface = si)
     }
