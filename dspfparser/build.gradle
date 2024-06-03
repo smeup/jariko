@@ -1,6 +1,4 @@
 buildscript {
-    ext.kotlinSerializationVersion = '1.6.2'
-
     repositories {
         mavenCentral()
     }
@@ -25,7 +23,7 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerializationVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
 }
 
 compileKotlin {
