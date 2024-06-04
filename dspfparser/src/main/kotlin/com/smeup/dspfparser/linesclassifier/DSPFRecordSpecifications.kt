@@ -9,7 +9,6 @@ internal data class DSPFRecordSpecifications private constructor(
     override val name: String
 ) : DSPFRecord {
     override val fields: MutableList<DSPFFieldSpecifications> = mutableListOf()
-    val related: MutableList<DSPFLine> = mutableListOf()
 
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFRecordSpecifications {

@@ -8,7 +8,6 @@ import kotlinx.serialization.Serializable
 internal data class DSPFSpecifications(
     override val name: String?
 ) : DSPF {
-    val file: DSPFFileSpecifications = DSPFFileSpecifications.create()
     val records: MutableList<DSPFRecordSpecifications> = mutableListOf()
 
     companion object {

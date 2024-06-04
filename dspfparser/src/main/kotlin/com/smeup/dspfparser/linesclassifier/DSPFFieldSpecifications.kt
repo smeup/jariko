@@ -18,7 +18,6 @@ internal data class DSPFFieldSpecifications private constructor(
     override val y: Int,
     override var hasError: Boolean = false
 ) : DSPFField {
-    val related: MutableList<DSPFLine> = mutableListOf()
 
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFFieldSpecifications {
