@@ -79,7 +79,7 @@ publishing {
         mavenJava(MavenPublication) {
             customizePom(pom)
             groupId jarikoGroupId
-            artifactId 'dspfarser'
+            artifactId 'dspfparser'
             version jarikoVersion
         }
     }
