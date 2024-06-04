@@ -73,7 +73,10 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
 
     @Test
     fun getFieldsFromRecordName() {
-        assertEquals(2, this.specifications.getFieldsFromRecord("REC01").size)
-        assertEquals(1, this.specifications.getFieldsFromRecord("REC11").size)
+        val first = this.specifications.getFieldsFromRecord("REC01")
+        val second = this.specifications.getFieldsFromRecord("REC11")
+        assertEquals("FLD01", first[0].name)
+        assertEquals("FLD02", first[1].name)
+        assertEquals("FLD11", second[0].name)
     }
 }
