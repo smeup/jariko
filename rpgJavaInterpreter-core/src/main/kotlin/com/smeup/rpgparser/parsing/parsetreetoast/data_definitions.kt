@@ -411,14 +411,6 @@ internal fun RpgParser.DspecContext.toAst(
                      * For more information, or if you want to add another format, see: https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type
                      */
                     when (type.format) {
-                        DateFormat.JUL -> require(
-                            dateInz.after(Date(1939 - 1900, 0, 0)) && dateInz.before(Date(2040 - 1900, 0, 0)),
-                            { "For JUL format the date must be between 1940 and 2039" }
-                        )
-                        DateFormat.ISO -> require(
-                            dateInz.after(Date(-1900, 0, 0)) && dateInz.before(Date(2040 - 1900, 0, 1)),
-                            { "For JUL format the date must be between 0001 and 9999" }
-                        )
                         DateFormat.JUL -> if (
                             !dateInz.after(Date(1939 - 1900, 11, 31)) || !dateInz.before(Date(2040 - 1900, 0, 1))
                         ) error(message = "For JUL format the date must be between 1940 and 2039", conf = conf)
