@@ -79,7 +79,6 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
 }
 
 internal object KnownDataDefinition {
-
     fun getInstance(): KnownDataDefinitionInstance {
         return if (MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getAttributes()
@@ -116,7 +115,12 @@ private fun List<StatementContext?>.getDataDefinition(
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
-        it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
+        it.toDataDefinitionProvider(
+            conf = conf,
+            knownDataDefinitions = knownDataDefinitions,
+            parentDataDefinitions = parentDataDefinitions,
+            fileDefinitions = fileDefinitions
+        )
     }
     dataDefinitionProviders.addAll(firstPassProviders)
 
@@ -134,27 +138,6 @@ private fun List<StatementContext?>.getDataDefinition(
                     it.dcl_c()
                         .toAst(conf)
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-
-                it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                    DataDefinitionCalculator(
-                        it.dcl_ds().toAstWithLikeDs(
-                            conf = conf,
-                            dataDefinitionProviders = dataDefinitionProviders,
-                            parentDataDefinitions = parentDataDefinitions
-                        )
-                    ).toDataDefinition().updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-
-                it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions != null && fileDefinitions.keys.any { fileDefinition ->
-                    fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
-                } -> {
-                    DataDefinitionCalculator(
-                        it.dcl_ds().toAstWithExtName(
-                            conf = conf,
-                            fileDefinitions = fileDefinitions
-                        )
-                    ).toDataDefinition().updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
 
                 else -> null
@@ -203,6 +186,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
     }
 }
+
 internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val reloadConfig = MainExecutionContext.getConfiguration()
@@ -304,7 +288,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     )
 
     if (null == procedures) {
-        if (!procerurePrototypes.isEmpty()) {
+        if (procerurePrototypes.isNotEmpty()) {
             procedures = procerurePrototypes
         }
     } else {
@@ -549,15 +533,21 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
 
 private fun StatementContext.toDataDefinitionProvider(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: MutableMap<String, DataDefinition>
+    knownDataDefinitions: MutableMap<String, DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
 ): DataDefinitionProvider? {
     return when {
         this.dcl_ds() != null -> {
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
-                        .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        .toAst(
+                            conf = conf,
+                            knownDataDefinitions = knownDataDefinitions.values,
+                            parentDataDefinitions = parentDataDefinitions,
+                            fileDefinitions = fileDefinitions
+                        )?.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
                     null
@@ -573,10 +563,12 @@ private fun StatementContext.toDataDefinitionProvider(
 }
 
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): List<DataDefinition> {
-    val (providers, knownDataDefinitions) = this.subprocedurestatement().map { it.statement() }.getDataDefinition(
-        conf = conf,
-        parentDataDefinitions = parentDataDefinitions
-    )
+    val (providers, knownDataDefinitions) = this.subprocedurestatement()
+        .map { it.statement() }
+        .getDataDefinition(
+            conf = conf,
+            parentDataDefinitions = parentDataDefinitions
+        )
 
     // PROCEDURE PARAMETERS pass
     val paramProviders = this.dcl_pi().pi_parm_fixed()
@@ -694,6 +686,10 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
         }
+        this.UDATE() != null -> UDateRefExpr(position)
+        this.UYEAR() != null -> UYearRefExpr(position)
+        this.UMONTH() != null -> UMonthRefExpr(position)
+        this.UDAY() != null -> UDayRefExpr(position)
         else -> todo(conf = conf)
     }
 }

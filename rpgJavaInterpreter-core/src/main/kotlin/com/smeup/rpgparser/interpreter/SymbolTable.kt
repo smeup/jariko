@@ -49,17 +49,17 @@ class SymbolTable : ISymbolTable {
         }
 
         val elapsed = System.nanoTime() - start
-
-        val programName = MainExecutionContext.getExecutionProgramName()
-        MainExecutionContext.log(
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData.fromProgram(programName) },
-                ProgramUsageType.SymbolTable,
-                SymbolTableAction.SET.name,
-                elapsed.nanoseconds
+        if (MainExecutionContext.isLoggingEnabled) {
+            val programName = MainExecutionContext.getExecutionProgramName()
+            MainExecutionContext.log(
+                LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                    { LogSourceData.fromProgram(programName) },
+                    ProgramUsageType.SymbolTable,
+                    SymbolTableAction.SET.name,
+                    elapsed.nanoseconds
+                )
             )
-        )
-
+        }
         return output
     }
 

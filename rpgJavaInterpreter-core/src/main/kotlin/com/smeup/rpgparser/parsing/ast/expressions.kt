@@ -106,6 +106,34 @@ data class AllExpr(val charsToRepeat: StringLiteral, override val position: Posi
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+@Serializable
+data class UDateRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UYearRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UMonthRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UDayRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // /
 // / Date formats
 // /
