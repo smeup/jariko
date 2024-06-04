@@ -181,7 +181,7 @@ object TimeStampType : Type() {
  *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
  */
 @Serializable
-data class DateType(var format: DateFormat) : Type() {
+data class DateType(val format: DateFormat) : Type() {
     override val size: Int
         get() = when (format) {
             DateFormat.ISO -> 10
