@@ -1,0 +1,49 @@
+{"name": "AUTOAP0F",
+  "tableName": "AUTOAP0F",
+  "recordFormat": "AUTOAPR",
+  "fields": [
+    { "fieldName": "AA£UTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AA£FUN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":40, "varying":false}}
+  , { "fieldName": "AA£CAA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AA£O01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£O10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AA£VLS",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "AADTIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AAORIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AAUSIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AAOGIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AADTAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AAORAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "AAUSAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "AAOGAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  ], "accessFields": []}

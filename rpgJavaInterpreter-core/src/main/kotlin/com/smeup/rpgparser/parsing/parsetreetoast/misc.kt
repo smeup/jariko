@@ -288,7 +288,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     )
 
     if (null == procedures) {
-        if (!procerurePrototypes.isEmpty()) {
+        if (procerurePrototypes.isNotEmpty()) {
             procedures = procerurePrototypes
         }
     } else {
