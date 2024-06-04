@@ -682,7 +682,7 @@ class JarikoCallbackTest : AbstractTest() {
                             .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
                             .map { it.contains(lines) }
             Assert.assertTrue(
-                "Errors don't correspond",
+                "Errors doesn't correspond",
                 found.filter { it }.size.equals(lines.size)
             )
         }
