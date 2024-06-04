@@ -523,6 +523,14 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR24CallBackTest() {
+        executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+        ))
+    }
+
+    @Test
     fun executeERROR23SourceLineTest() {
         executeSourceLineTest("ERROR23")
     }

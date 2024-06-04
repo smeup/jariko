@@ -396,6 +396,7 @@ internal fun RpgParser.DspecContext.toAst(
                 val type = DateType(dateFormat)
 
                 if (initializationValue != null) {
+                    if (!(initializationValue as StringLiteral).value.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}"))) error(message = "Initialization value is incorrect. Must be 'YYYY-MM-DD'", conf = conf)
                     val dateInzSplit = (initializationValue as StringLiteral).value.split("-").map { it.toInt() }
                     val dateInz = Date(dateInzSplit[0] - 1900, dateInzSplit[1] - 1, dateInzSplit[2])
                     initializationValue = IntLiteral(
