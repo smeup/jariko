@@ -27,6 +27,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.abs
 
 const val PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
@@ -1007,6 +1008,14 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
 fun Int.asValue() = IntValue(this.toLong())
 fun Boolean.asValue() = BooleanValue(this)
+
+infix fun Value.distanceFrom(other: Value): Long {
+    val a = this.asInt()
+    val b = other.asInt()
+    return (b - a).value
+}
+
+infix fun Value.absoluteDistanceFrom(other: Value): Long = abs(this distanceFrom other)
 
 fun areEquals(value1: Value, value2: Value): Boolean {
     return when {
