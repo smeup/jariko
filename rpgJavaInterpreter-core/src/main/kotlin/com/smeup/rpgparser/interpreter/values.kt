@@ -760,7 +760,7 @@ object IsoValue : Value {
         return "IsoValue"
     }
 
-    override fun assignableTo(expectedType: Type): Boolean = true
+    override fun assignableTo(expectedType: Type): Boolean = false
 
     override fun asString(): StringValue {
         TODO("Not yet implemented")
@@ -774,7 +774,7 @@ object JulValue : Value {
         return "JulValue"
     }
 
-    override fun assignableTo(expectedType: Type): Boolean = true
+    override fun assignableTo(expectedType: Type): Boolean = false
 
     override fun asString(): StringValue {
         TODO("Not yet implemented")
