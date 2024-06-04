@@ -496,6 +496,12 @@ data class DateValue(val value: Long, val format: DateFormat) : Value {
 
     override fun asString(): StringValue = StringValue(adapt(format))
 
+    /**
+     * Adapts the value stored, in epoch time, to a specific format. This means the value
+     *  of the object doesn't change, but a string is returned.
+     * @param format for conversion, by those declared in DateFormat enum.
+     * @return String with date formatted.
+     */
     fun adapt(format: DateFormat): String {
         val dateISO = SimpleDateFormat("YYYY-MM-dd").format(Date(value))
         return when (format) {
