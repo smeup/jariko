@@ -1,8 +1,8 @@
      V* ==============================================================
      D* 06/06/24
      D* Purpose: Must fire the following errors
-     D* line 8 - Incorrect by empty string
-     D* line y - Incorrect by wrong format date
+     D* line 8 - Incorrect for left of range
+     D* line 9 - Incorrect for right of range
      V* ==============================================================
 
      D DATE1           S               D   DATFMT(*JUL) INZ(D'1939-12-31')
