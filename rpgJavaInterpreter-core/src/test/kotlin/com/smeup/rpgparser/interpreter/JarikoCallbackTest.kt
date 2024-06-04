@@ -531,6 +531,14 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR25CallBackTest() {
+        executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
+            8 to "For JUL format the date must be between 1940 and 2039",
+            9 to "For JUL format the date must be between 1940 and 2039"
+        ))
+    }
+
+    @Test
     fun executeERROR23SourceLineTest() {
         executeSourceLineTest("ERROR23")
     }
