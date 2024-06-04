@@ -42,6 +42,10 @@ interface Evaluator {
     fun eval(expression: MultExpr): Value
     fun eval(expression: CharExpr): Value
     fun eval(expression: LookupExpr): Value
+    fun eval(expression: LookupGtExpr): Value
+    fun eval(expression: LookupGeExpr): Value
+    fun eval(expression: LookupLtExpr): Value
+    fun eval(expression: LookupLeExpr): Value
     fun eval(expression: ArrayAccessExpr): Value
     fun eval(expression: HiValExpr): HiValValue
     fun eval(expression: LowValExpr): LowValValue

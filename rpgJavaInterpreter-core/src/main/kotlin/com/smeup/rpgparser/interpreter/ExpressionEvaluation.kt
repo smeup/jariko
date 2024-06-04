@@ -20,10 +20,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
-import com.smeup.rpgparser.utils.asBigDecimal
-import com.smeup.rpgparser.utils.asLong
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.moveEndingString
+import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
@@ -33,10 +30,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import kotlin.math.abs
-import kotlin.math.pow
-import kotlin.math.roundToLong
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.time.Duration.Companion.nanoseconds
 
 class ExpressionEvaluation(
@@ -248,25 +242,58 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LookupExpr): Value = proxyLogging(expression) {
-        val searchValued = expression.searchedValued.evalWith(this)
-        val array = expression.array.evalWith(this) as ArrayValue
-        var index = array.elements().indexOfFirst {
-            areEquals(it, searchValued)
-        }
-        // If 'start' and/or 'length' specified (both optional)
-        // Start: is the index of array element to start search
-        // Length: is the limit number of elements to search forward
-        var start = expression.start?.evalWith(this)?.asInt()
-        start = start?.minus(1.asValue()) ?: 0.asValue()
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValued.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.EQ
+        )
+    }
 
-        val arrayElements = expression.array.type().numberOfElements().asValue()
-        val length = expression.length?.evalWith(this)?.asInt() ?: arrayElements
+    override fun eval(expression: LookupGtExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.GT
+        )
+    }
 
-        val lowerLimit = start.value
-        val upperLimit = start.plus(length).value - 1
-        if (lowerLimit > index || upperLimit < index) index = -1
+    override fun eval(expression: LookupGeExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.GE
+        )
+    }
 
-        return@proxyLogging if (index == -1) 0.asValue() else (index + 1).asValue()
+    override fun eval(expression: LookupLtExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.LT
+        )
+    }
+
+    override fun eval(expression: LookupLeExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.LE
+        )
     }
 
     override fun eval(expression: ArrayAccessExpr): Value = proxyLogging(expression) {
@@ -787,6 +814,66 @@ class ExpressionEvaluation(
             //  - multiple-occurrence data structure{:*ALL}
             else -> throw UnsupportedOperationException("I do not know how to handle ${expression.value} with %SIZE. Is '${expression.value.javaClass.simpleName}' class.")
         }
+    }
+
+    private inline fun lookupLinearSearch(values: List<Value>, predicate: (Value) -> Boolean, operator: ComparisonOperator): Int {
+        val stopOnFirstMatch = when (operator) {
+            ComparisonOperator.EQ, ComparisonOperator.NE -> true
+            ComparisonOperator.GE, ComparisonOperator.GT, ComparisonOperator.LE, ComparisonOperator.LT -> false
+        }
+
+        var selectedIndex = -1
+        for ((index, value) in values.withIndex()) {
+            val matchesCondition = predicate(value)
+            if (!matchesCondition) continue
+            if (stopOnFirstMatch) return index
+            selectedIndex = index
+        }
+
+        return selectedIndex
+    }
+
+    private fun lookup(
+        array: ArrayValue,
+        arrayType: ArrayType,
+        searchedValue: Value,
+        start: IntValue?,
+        length: IntValue?,
+        operator: ComparisonOperator
+    ): Value {
+        val arrayLength = arrayType.numberOfElements()
+        val isSequenced = arrayType.ascend != null
+
+        when (operator) {
+            ComparisonOperator.GE, ComparisonOperator.GT, ComparisonOperator.LE, ComparisonOperator.LT -> {
+                if (!isSequenced)
+                    throw UnsupportedOperationException("Array must be defined with ASCEND or DESCEND keyword")
+            }
+            else -> {}
+        }
+
+        val computedLength = length?.value?.toInt() ?: arrayLength
+        val lowerBound: Int = start?.value?.let { it - 1 }?.toInt() ?: 0
+        val upperBound = min(lowerBound + computedLength, arrayLength)
+        val searchRange = array.elements().slice(lowerBound until upperBound)
+
+        val searchFn: (Value) -> Boolean = when (operator) {
+            ComparisonOperator.EQ -> { it: Value -> areEquals(it, searchedValue) }
+            ComparisonOperator.NE -> { it: Value -> !areEquals(it, searchedValue) }
+            ComparisonOperator.LT -> { it: Value -> it < searchedValue }
+            ComparisonOperator.GT -> { it: Value -> it > searchedValue }
+            ComparisonOperator.GE -> { it: Value -> it >= searchedValue }
+            ComparisonOperator.LE -> { it: Value -> it <= searchedValue }
+        }
+
+        /*
+         * TODO: Consider implementing binary search strategy for sequenced arrays
+         * see https://www.ibm.com/docs/en/i/7.5?topic=functions-lookupxx-look-up-array-element
+         */
+        val index = lookupLinearSearch(searchRange, searchFn, operator)
+
+        val offsetIndex = if (index == -1) 0 else index + lowerBound + 1
+        return offsetIndex.asValue()
     }
 
     private fun cleanNumericString(s: String): String {
