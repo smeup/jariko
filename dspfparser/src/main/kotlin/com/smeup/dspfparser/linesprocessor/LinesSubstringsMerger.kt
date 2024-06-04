@@ -14,24 +14,24 @@ internal fun merge(linesSubstrings: MutableList<DSPFLineSubstrings>): DSPFLineSu
     linesSubstrings.forEach {
         if (it.continuationChar != null) {
             if (continuesAtAnyColumn == null) {
-                count = it.count!!
-                line += it.line!!.removeLast(it.continuationChar!!.toString())
+                count = it.count
+                line += it.line.removeLast(it.continuationChar.toString())
                 conditions += it.condition
             } else {
                 if (continuesAtAnyColumn == true) {
-                    line += it.line!!.trim().removeLast(it.continuationChar!!.toString())
+                    line += it.line.trim().removeLast(it.continuationChar.toString())
                 }
                 if (continuesAtAnyColumn == false) {
-                    line += it.keywords!!.trim().removeLast(it.continuationChar!!.toString())
+                    line += it.keywords.trim().removeLast(it.continuationChar.toString())
                     conditions += it.condition
                 }
             }
             if (it.continuesAtAnyColumn()) continuesAtAnyColumn = true
             if (it.continuesAtColumn45()) continuesAtAnyColumn = false
         } else {
-            if (continuesAtAnyColumn == true) line += it.line!!.trim()
+            if (continuesAtAnyColumn == true) line += it.line.trim()
             if (continuesAtAnyColumn == false) {
-                line += it.keywords!!.trim()
+                line += it.keywords.trim()
                 conditions += it.condition
             }
         }
