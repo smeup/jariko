@@ -22,11 +22,6 @@ import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 
 // %LOOKUP
-// To be supported:
-// * %LOOKUPLT
-// * %LOOKUPLE
-// * %LOOKUPGT
-// * %LOOKUPGE
 @Serializable
 data class LookupExpr(
     var searchedValued: Expression,
@@ -37,6 +32,62 @@ data class LookupExpr(
 ) : Expression(position) {
     override val loggableEntityName: String
         get() = "%LOOKUP"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPGT
+@Serializable
+data class LookupGtExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPGT"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPGE
+@Serializable
+data class LookupGeExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPGE"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPLT
+@Serializable
+data class LookupLtExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPLT"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPLE
+@Serializable
+data class LookupLeExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPLE"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
