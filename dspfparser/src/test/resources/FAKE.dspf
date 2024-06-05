@@ -1,0 +1,10 @@
+00101A N01 02N03R RECORD0001R   45W10B 12 22TEXT('Hello')
+      * This is a line with a comment!
+                                            '* Test with line break -
+                                            starting at column 45 *'
+                                            '* Test with line break +
+             starting at any column *'
+                                       12 22'Line break -
+                                            with something before'
+       N01 02 03                            'Line break -
+        07                                  with conditions'
