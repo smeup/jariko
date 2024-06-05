@@ -469,6 +469,9 @@ class ExpressionEvaluation(
 
     override fun eval(expression: OffRefExpr) = proxyLogging(expression) { BooleanValue.FALSE } as BooleanValue
 
+    override fun eval(expression: IsoFormatExpr) = proxyLogging(expression) { IsoValue } as IsoValue
+    override fun eval(expression: JulFormatExpr) = proxyLogging(expression) { JulValue } as JulValue
+
     override fun eval(expression: NegationExpr): DecimalValue = proxyLogging(expression) {
         val value = expression.value1.evalWith(this).asDecimal().value
         DecimalValue(-value)

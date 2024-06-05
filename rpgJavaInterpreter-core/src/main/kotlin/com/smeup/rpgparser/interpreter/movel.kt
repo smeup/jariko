@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import java.math.BigDecimal
 
 private fun clear(value: String, type: Type): String {
@@ -23,12 +24,18 @@ fun movel(
     operationExtender: String?,
     target: AssignableExpression,
     value: Expression,
+    dataAttributes: Expression?,
     interpreterCore: InterpreterCore
 ): Value {
     if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
             throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
         }
+
+        if (value.type() is DateType) {
+            return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
+        }
+
         val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
         if (target.type() is ArrayType) {
             // for each element of array apply move
@@ -142,6 +149,19 @@ private fun move(
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(valueToMove.length - valueToApplyMove.length)
+    }
+}
+
+private fun dateToString(source: Expression, destinationFormat: Expression?, interpreterCore: InterpreterCore): Value {
+    val sourceEvaluated: DateValue = interpreterCore.eval(source) as DateValue
+    if (destinationFormat == null) {
+        return sourceEvaluated.asString()
+    }
+
+    return when (destinationFormat) {
+        is JulFormatExpr -> StringValue(sourceEvaluated.adapt(DateFormat.JUL))
+        is IsoFormatExpr -> StringValue(sourceEvaluated.adapt(DateFormat.ISO))
+        else -> throw UnsupportedOperationException("Unable to convert to $destinationFormat")
     }
 }
 

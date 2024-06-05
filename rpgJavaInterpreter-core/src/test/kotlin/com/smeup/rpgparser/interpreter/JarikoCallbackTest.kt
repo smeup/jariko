@@ -523,6 +523,30 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR24CallBackTest() {
+        executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+        ))
+    }
+
+    @Test
+    fun executeERROR25CallBackTest() {
+        executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
+            8 to "For JUL format the date must be between 1940 and 2039",
+            9 to "For JUL format the date must be between 1940 and 2039"
+        ))
+    }
+
+    @Test
+    fun executeERROR26CallBackTest() {
+        executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
+            8 to "For ISO format the date must be between 0001 and 9999",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+        ))
+    }
+
+    @Test
     fun executeERROR23SourceLineTest() {
         executeSourceLineTest("ERROR23")
     }
@@ -682,7 +706,7 @@ class JarikoCallbackTest : AbstractTest() {
                             .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
                             .map { it.contains(lines) }
             Assert.assertTrue(
-                "Errors don't correspond",
+                "Errors doesn't correspond",
                 found.filter { it }.size.equals(lines.size)
             )
         }
