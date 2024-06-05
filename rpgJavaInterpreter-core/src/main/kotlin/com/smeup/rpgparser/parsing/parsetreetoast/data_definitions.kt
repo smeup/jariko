@@ -732,9 +732,18 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
 }
 
-internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: Collection<DataDefinition>): FieldsList {
+/**
+ * Prepares an object FieldsList with all calculated fields, that means
+ *  sequences and offsets.
+ * @param knownDataDefinitions pre calculated data definitions necessary, in example, to resolve LIKE.
+ * @param fieldsExtname got previously if the DS uses EXTNAME.
+ */
+internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
+    knownDataDefinitions: Collection<DataDefinition>,
+    fieldsExtname: List<FieldInfo> = listOf()
+): FieldsList {
     val caughtErrors = mutableListOf<Throwable>()
-    val fieldsList = FieldsList(this.parm_fixed().mapNotNull {
+    val fieldsList = FieldsList(fieldsExtname + this.parm_fixed().mapNotNull {
         kotlin.runCatching {
             it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
         }.onFailure {
@@ -765,10 +774,9 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: C
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
-
-    val isLike = this.keyword().map { keyword -> keyword.keyword_like() }.firstOrNull() != null
-    val keywordLike = if (isLike) this.keyword().first { it.keyword_like() != null }.keyword_like() else null
-    val like = if (isLike) keywordLike!!.simpleExpression().toAst(conf) as DataRefExpr else null
+    val like = this.keyword()
+        .firstOrNull { it.keyword_like() != null }
+        .let { if (it != null) it.keyword_like()?.simpleExpression()?.toAst(conf) as DataRefExpr else null }
 
     // Set the SORTA order
     val descend = this.keyword().find { it.keyword_descend() != null } != null
@@ -804,7 +812,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val arraySizeDeclared = this.arraySizeDeclared(conf)
-    val varName = if (isLike) like!!.variable.name else this.name
+    val varName = like?.variable?.name ?: this.name
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
@@ -1007,17 +1015,69 @@ class FieldsList(val fields: List<FieldInfo>) {
     fun isNotEmpty() = fields.isNotEmpty()
 }
 
+/**
+ * Generates AST for a DS.
+ * This implementation considers if the DS uses `LIKEDS` or `EXTNAME`. In first case returns the DS with its name and the fields
+ *  from the other DS. In second case returns a DS like this:
+ *   - firstly, all fields from file;
+ *   - then, fields if declared in source code.
+ * In additions, out from `LIKEDS` case, this method calculates sequences, offsets and overlays for its fields.
+ * @param conf Ast' configuration
+ * @param knownDataDefinitions Collection of other data definitions previously declared. Is necessary to resolve `LIKE` and `LIKEDS`.
+ * @param parentDataDefinitions Like to `knownDataDefinitions`, but to find out from actual scope.
+ * @param fileDefinitions Necessary for `EXTNAME` case to load its fields.
+ * @return DataDefinition for DS or null: for `LIKEDS` if there is not the DS from getting the fields; for `EXTNAME` if there is not the file from getting the fields.
+ */
 internal fun RpgParser.Dcl_dsContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: Collection<DataDefinition>
-): DataDefinition {
+    knownDataDefinitions: Collection<DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
+): DataDefinition? {
+    // Using `LIKEDS`
+    if (this.keyword().any { it.keyword_likeds() != null }) {
+        val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)
+        val dataDefinition = DataDefinition(
+            this.name,
+            referredDs.type,
+            referredDs.fields,
+            position = this.toPosition(true)
+        )
+        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        return dataDefinition
+    }
+
     val initializationValue: Expression? = null
     val size = this.declaredSize()
 
-    // Calculating information about the DS and its fields is full of interdependecies
-    // therefore we do that in steps
+    // Using `EXTNAME`
+    var fieldsFile: List<FieldInfo> = listOf()
+    if (this.keyword().any { it.keyword_extname() != null }) {
+        val keywordExtName = getKeywordExtName()
+        val keywordPrefix = getKeywordPrefix()
 
-    val fieldsList = calculateFieldInfos(knownDataDefinitions)
+        val extName = keywordExtName.getExtName()
+        val prefixName = keywordPrefix?.getPrefixName()
+
+        val fileDataDefinitions =
+            fileDefinitions?.filter {
+                val nameMatches = it.key.name.uppercase() == extName.uppercase()
+                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
+                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
+                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+
+                nameMatches && (prefixIsNull || prefixMatches)
+            }?.values?.flatten()
+
+        if (fileDataDefinitions.isNullOrEmpty()) {
+            return null
+        }
+
+        fieldsFile = extractFieldsFromFile(fileDataDefinitions, conf)
+    }
+
+    // Calculating information about the DS and its fields is full of interdependecies, therefore we do that in steps.
+    val fieldsList = calculateFieldInfos(knownDataDefinitions, fieldsFile)
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
 
@@ -1029,7 +1089,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
         inz = inz != null,
         position = this.toPosition(true))
 
-    // set the "overlayingOn" value for all field definitions
+    // Set the "overlayingOn" value for all field definitions.
     fieldsList.fields.forEach { fieldInfo ->
         if (fieldInfo.overlayInfo != null) {
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
@@ -1039,6 +1099,62 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     }
     dataDefinition.fields.forEach { it.parent = dataDefinition }
     return dataDefinition
+}
+
+/**
+ * Finds the DS and prepare the new DataDefinition for a DS that uses `LIKEDS`.
+ * @param knownDataDefinitions Collection of other data definitions previously declared. Is necessary to resolve `LIKE`.
+ * @param parentDataDefinitions Like to `knownDataDefinitions`, but to find out from actual scope.
+ * @param conf Ast' configuration
+ * @return DataDefinition found.
+ * @see RpgParser.Dcl_dsContext.toAst for its utilization.
+ */
+private fun RpgParser.Dcl_dsContext.findDs(
+    knownDataDefinitions: Collection<DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
+    conf: ToAstConfiguration
+): DataDefinition {
+    val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() })
+        .first().data_structure_name.identifier().free_identifier()
+        .idOrKeyword().ID().text
+    val referredDataDefinition = knownDataDefinitions.find { it.name == likeDsName }
+        ?: parentDataDefinitions?.find { it.name == likeDsName }
+        ?: this.error("Data definition $likeDsName not found", conf = conf)
+
+    return referredDataDefinition
+}
+
+/**
+ * Finds the file and prepare extracts the fields for a DS that uses `EXTNAME`.
+ * @param dataDefinitions Collection of other data definitions previously declared.
+ * @param conf Ast' configuration
+ * @return List of fields.
+ * @see RpgParser.Dcl_dsContext.toAst for its utilization.
+ */
+private fun RpgParser.Dcl_dsContext.extractFieldsFromFile(
+    dataDefinitions: List<DataDefinition>,
+    conf: ToAstConfiguration
+): List<FieldInfo> {
+    var offset = 0
+    val fields = dataDefinitions.map {
+        FieldDefinition(
+            name = it.name,
+            type = it.type,
+            explicitStartOffset = offset,
+            explicitEndOffset = offset + it.type.size,
+            position = toPosition(conf.considerPosition)
+        ).apply { offset += type.size }
+    }
+
+    return fields.map {
+        FieldInfo(
+            name = it.name,
+            explicitStartOffset = it.explicitStartOffset,
+            explicitEndOffset = it.explicitEndOffset,
+            explicitElementType = it.type,
+            position = it.position
+        )
+    }
 }
 
 internal fun DataDefinition.setOverlayOn(fieldDefinition: FieldDefinition) {
@@ -1053,36 +1169,6 @@ internal fun DataDefinition.setOverlayOn(fieldDefinition: FieldDefinition) {
     }
 }
 
-internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
-    conf: ToAstConfiguration = ToAstConfiguration(),
-    dataDefinitionProviders: List<DataDefinitionProvider>,
-    parentDataDefinitions: List<DataDefinition>? = null
-):
-        () -> DataDefinition {
-    return {
-        if (this.TO_POSITION().text.trim().isNotEmpty()) {
-            this.TO_POSITION().text.asInt()
-        } else {
-            null
-        }
-
-        val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
-
-        val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
-        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName }
-            ?: parentDataDefinitions?.find { it.name == likeDsName }
-            ?: this.error("Data definition $likeDsName not found", conf = conf)
-
-        val dataDefinition = DataDefinition(
-                this.name,
-                referredDataDefinition.type,
-                referredDataDefinition.fields,
-                position = this.toPosition(true))
-        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
-        dataDefinition
-    }
-}
-
 internal fun RpgParser.Dcl_dsContext.getKeywordExtName() = this.keyword().first { it.keyword_extname() != null }.keyword_extname()
 
 internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
@@ -1090,61 +1176,6 @@ internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
 internal fun RpgParser.Dcl_dsContext.getKeywordPrefix() = this.keyword().firstOrNull { it.keyword_prefix() != null }?.keyword_prefix()
 
 internal fun RpgParser.Keyword_prefixContext.getPrefixName() = prefix.text
-
-internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
-    conf: ToAstConfiguration = ToAstConfiguration(),
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
-): () -> DataDefinition {
-    return {
-        val keywordExtName = getKeywordExtName()
-        val keywordPrefix = getKeywordPrefix()
-
-        val extName = keywordExtName.getExtName()
-        val prefixName = keywordPrefix?.getPrefixName()
-
-        val dataDefinitions =
-            fileDefinitions.filter {
-                val nameMatches = it.key.name.uppercase() == extName.uppercase()
-                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
-                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
-                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
-
-                nameMatches && (prefixIsNull || prefixMatches)
-            }.values.flatten()
-
-        if (dataDefinitions.isEmpty()) {
-            keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
-        }
-
-        var offset = 0
-        val fields = dataDefinitions.map {
-            FieldDefinition(
-                name = it.name,
-                type = it.type,
-                explicitStartOffset = offset,
-                explicitEndOffset = offset + it.type.size,
-                position = toPosition(conf.considerPosition)
-            ).apply { offset += type.size }
-        }
-        val fieldInfos = fields.map {
-            FieldInfo(
-                name = it.name,
-                explicitStartOffset = it.explicitStartOffset,
-                explicitEndOffset = it.explicitEndOffset,
-                explicitElementType = it.type,
-                position = it.position
-            )
-        }
-        val dataDefinition = DataDefinition(
-            name = this.name,
-            type = type(size = fields.sumOf { it.type.size }, FieldsList(fieldInfos)),
-            fields = fields,
-            inz = this.keyword().any { it.keyword_inz() != null },
-            position = this.toPosition(true)
-        )
-        dataDefinition
-    }
-}
 
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     val text = this.FROM_POSITION().text.trim()
