@@ -32,7 +32,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'unit:junit:4.13.1'
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
