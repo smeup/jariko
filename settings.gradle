@@ -2,3 +2,4 @@ rootProject.name = "RpgJavaInterpreter"
 include 'rpgJavaInterpreter-core'
 include 'examples'
 include 'kolasu'
+include 'dspfparser'
