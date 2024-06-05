@@ -837,23 +837,16 @@ class ExpressionEvaluation(
         while (left <= right) {
             val mid = left + (right - left) / 2
             val currentValue = values[mid]
+            val matchesCondition = predicate(currentValue)
+            if (matchesCondition) bestCandidateIndex = mid
 
-            if (predicate(currentValue)) {
-                bestCandidateIndex = mid
-                when {
-                    isAscending && searchingForLower -> left = mid + 1
-                    isAscending && !searchingForLower -> right = mid - 1
-                    !isAscending && searchingForLower -> right = mid - 1
-                    !isAscending && !searchingForLower -> left = mid + 1
-                }
-            } else {
-                when {
-                    isAscending && searchingForLower -> right = mid - 1
-                    isAscending && !searchingForLower -> left = mid + 1
-                    !isAscending && searchingForLower -> left = mid + 1
-                    !isAscending && !searchingForLower -> right = mid - 1
-                }
-            }
+            /*
+             * Detect if sorting order follows search direction in order to decide which endpoint to move
+             * - if it follows direction: move left on match and move right else-wise
+             * - if it does not follow direction: move right on match and move left else-wise
+             */
+            val shouldSearchRight = if (isAscending == searchingForLower) matchesCondition else !matchesCondition
+            if (shouldSearchRight) left = mid + 1 else right = mid - 1
         }
 
         return bestCandidateIndex
