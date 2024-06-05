@@ -395,7 +395,7 @@ data class MoveLStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    var source: Expression,
+    var value: Expression,
     val dataAttributes: Expression? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
@@ -413,7 +413,7 @@ data class MoveLStmt(
         movel(
             operationExtender = operationExtender,
             target = target,
-            source = source,
+            value = value,
             dataAttributes = dataAttributes,
             interpreterCore = interpreter
         )
@@ -422,7 +422,7 @@ data class MoveLStmt(
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
-            sep -> "${this.loggableEntityName}${sep}${this.source.render()} TO ${target.render()}"
+            sep -> "${this.loggableEntityName}${sep}${this.value.render()} TO ${target.render()}"
         }
     }
 }

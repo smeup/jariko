@@ -1514,7 +1514,7 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         operationExtender = this.operationExtender?.text,
         target = resultExpression,
         dataDefinition = dataDefinition,
-        source = expression,
+        value = expression,
         dataAttributes = dataAttributes,
         position = position
     )

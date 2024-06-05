@@ -23,21 +23,21 @@ private fun clear(value: String, type: Type): String {
 fun movel(
     operationExtender: String?,
     target: AssignableExpression,
-    source: Expression,
+    value: Expression,
     dataAttributes: Expression?,
     interpreterCore: InterpreterCore
 ): Value {
-    if (source is FigurativeConstantRef) {
-        return interpreterCore.assign(target, interpreterCore.eval(source))
+    if (value is FigurativeConstantRef) {
+        return interpreterCore.assign(target, interpreterCore.eval(value))
     }
 
-    return when (source.type()) {
+    return when (value.type()) {
         is ArrayType -> throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
         is DateType -> {
-            interpreterCore.assign(target, dateToString(source, dataAttributes, interpreterCore))
+            interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
         }
         else -> {
-            val valueToMove: String = valueToString(interpreterCore.eval(source), source.type())
+            val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
             if (target.type() is ArrayType) {
                 // for each element of array apply move
                 val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
