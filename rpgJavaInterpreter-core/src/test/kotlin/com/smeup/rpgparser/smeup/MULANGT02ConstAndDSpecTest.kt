@@ -151,6 +151,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Definition of DATE(D).
+     * @see #LS24002856
+     */
+    @Test
+    fun executeMU022501() {
+        val expected = listOf("*JUL: 24/151; *ISO: 2024-05-30.")
+        assertEquals(expected, "smeup/MU022501".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Definition with both Like and Overlay.
      * @see #266
      */

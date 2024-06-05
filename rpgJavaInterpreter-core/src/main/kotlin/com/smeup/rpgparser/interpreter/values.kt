@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -481,6 +482,39 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
     }
 }
 
+/**
+ * @param value in ISO format for easy conversion if is needed. (See MU022501)
+ * @param format between MDY, DMY, YMD, JUL, ISO, USA, EUR, and JIS.
+ *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
+ */
+@Serializable
+data class DateValue(val value: Long, val format: DateFormat) : Value {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is DateType
+    }
+
+    override fun copy(): Value = this
+
+    override fun asString(): StringValue = StringValue(adapt(format))
+
+    /**
+     * Adapts the value stored, in epoch time, to a specific format. This means the value
+     *  of the object doesn't change, but a string is returned.
+     * @param format for conversion, by those declared in DateFormat enum.
+     * @return String with date formatted.
+     */
+    fun adapt(format: DateFormat): String {
+        val dateISO = SimpleDateFormat("YYYY-MM-dd").format(Date(value))
+        return when (format) {
+            DateFormat.JUL -> {
+                LocalDate.parse(dateISO).format(DateTimeFormatter.ISO_ORDINAL_DATE)
+                    .let { "${it.substring(2, 4)}/${it.substring(5)}" }
+            }
+            DateFormat.ISO -> dateISO
+        }
+    }
+}
+
 abstract class ArrayValue : Value {
     abstract fun arrayLength(): Int
     abstract fun elementSize(): Int
@@ -726,6 +760,34 @@ class AllValue(val charsToRepeat: String) : Value {
     }
 }
 
+object IsoValue : Value {
+    override fun copy() = this
+
+    override fun toString(): String {
+        return "IsoValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean = false
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+}
+
+object JulValue : Value {
+    override fun copy() = this
+
+    override fun toString(): String {
+        return "JulValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean = false
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+}
+
 /**
  * The container should always be a DS value
  */
@@ -845,6 +907,7 @@ fun Type.blank(): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
+        is DateType -> BlanksValue
         // TODO check this during the process of revision of DB access
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })

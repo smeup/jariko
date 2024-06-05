@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
@@ -173,6 +174,19 @@ object LowValType : Type() {
 object TimeStampType : Type() {
     override val size: Int
         get() = 26
+}
+
+/**
+ * @param format between MDY, DMY, YMD, JUL, ISO, USA, EUR, and JIS.
+ *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
+ */
+@Serializable
+data class DateType(val format: DateFormat) : Type() {
+    override val size: Int
+        get() = when (format) {
+            DateFormat.ISO -> 10
+            DateFormat.JUL -> 6
+        }
 }
 
 /**

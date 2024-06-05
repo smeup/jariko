@@ -63,6 +63,8 @@ interface Evaluator {
     fun eval(expression: SubarrExpr): Value
     fun eval(expression: LenExpr): Value
     fun eval(expression: OffRefExpr): BooleanValue
+    fun eval(expression: IsoFormatExpr): IsoValue
+    fun eval(expression: JulFormatExpr): JulValue
     fun eval(expression: IndicatorExpr): BooleanValue
     fun eval(expression: FunctionCall): Value
     fun eval(expression: TimeStampExpr): Value

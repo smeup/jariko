@@ -156,6 +156,8 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
         "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
         "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
+        "*ISO" -> IsoFormatExpr(toPosition(conf.considerPosition))
+        "*JUL" -> JulFormatExpr(toPosition(conf.considerPosition))
         else -> variableExpression(conf)
     }
 }
