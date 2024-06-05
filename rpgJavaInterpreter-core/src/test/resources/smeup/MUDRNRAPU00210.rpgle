@@ -9,41 +9,41 @@
      D* Routine
       *---------------------------------------------------------------
      C     ROUTINE       BEGSR
-      * GT - last item is greater
-     C                   EVAL      INDEX=%LOOKUPGT('AAAAA':ARRAY:1:3)
+      * GT - some items are greater
+     C                   EVAL      INDEX=%LOOKUPGT('CCCCC':ARRAY:1:6)
+     C     INDEX         DSPLY
+      * GT - no item is greater
+     C                   EVAL      INDEX=%LOOKUPGT('IIIII':ARRAY:1:6)
      C     INDEX         DSPLY
       * GT - last item is equal
-     C                   EVAL      INDEX=%LOOKUPGT('CCCCC':ARRAY:1:3)
+     C                   EVAL      INDEX=%LOOKUPGT('FFFFF':ARRAY:1:6)
      C     INDEX         DSPLY
-      * GT - no item found
-     C                   EVAL      INDEX=%LOOKUPGT('DDDDD':ARRAY:1:3)
+      * GE - some items are greater
+     C                   EVAL      INDEX=%LOOKUPGE('CCCCC':ARRAY:1:6)
      C     INDEX         DSPLY
-      * GE - last item is greater
-     C                   EVAL      INDEX=%LOOKUPGE('BBBBB':ARRAY:1:3)
+      * GE - no item is greater
+     C                   EVAL      INDEX=%LOOKUPGE('IIIII':ARRAY:1:6)
      C     INDEX         DSPLY
       * GE - last item is equal
-     C                   EVAL      INDEX=%LOOKUPGE('CCCCC':ARRAY:1:3)
+     C                   EVAL      INDEX=%LOOKUPGE('FFFFF':ARRAY:1:6)
      C     INDEX         DSPLY
-      * GE - no item found
-     C                   EVAL      INDEX=%LOOKUPGE('DDDDD':ARRAY:1:3)
+      * LT - first item is equal
+     C                   EVAL      INDEX=%LOOKUPLT('BBBBB':ARRAY:2:4)
      C     INDEX         DSPLY
-      * LT - no item found
-     C                   EVAL      INDEX=%LOOKUPLT('BBBBB':ARRAY:2:2)
+      * LT - some items are less
+     C                   EVAL      INDEX=%LOOKUPLT('DDDDD':ARRAY:2:4)
      C     INDEX         DSPLY
-      * LT - one item found
-     C                   EVAL      INDEX=%LOOKUPLT('DDDDD':ARRAY:2:2)
+      * LT - no item is less
+     C                   EVAL      INDEX=%LOOKUPLT('AAAAA':ARRAY:2:4)
      C     INDEX         DSPLY
-      * LT - one item equal
-     C                   EVAL      INDEX=%LOOKUPLT('CCCCC':ARRAY:2:2)
+      * LE - first item is equal
+     C                   EVAL      INDEX=%LOOKUPLE('BBBBB':ARRAY:2:4)
      C     INDEX         DSPLY
-      * LE - no item found
-     C                   EVAL      INDEX=%LOOKUPLE('BBBBB':ARRAY:2:2)
+      * LE - some items are less
+     C                   EVAL      INDEX=%LOOKUPLE('DDDDD':ARRAY:2:4)
      C     INDEX         DSPLY
-      * LE - one item found
-     C                   EVAL      INDEX=%LOOKUPLE('DDDDD':ARRAY:2:2)
-     C     INDEX         DSPLY
-      * LE - one item equal
-     C                   EVAL      INDEX=%LOOKUPLE('CCCCC':ARRAY:2:2)
+      * LE - no item is less
+     C                   EVAL      INDEX=%LOOKUPLE('AAAAA':ARRAY:2:4)
      C     INDEX         DSPLY
       *
      C                   ENDSR

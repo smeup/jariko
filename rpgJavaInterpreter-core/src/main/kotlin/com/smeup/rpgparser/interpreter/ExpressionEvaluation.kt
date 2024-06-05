@@ -816,21 +816,90 @@ class ExpressionEvaluation(
         }
     }
 
-    private inline fun lookupLinearSearch(values: List<Value>, predicate: (Value) -> Boolean, operator: ComparisonOperator): Int {
-        val stopOnFirstMatch = when (operator) {
-            ComparisonOperator.EQ, ComparisonOperator.NE -> true
-            ComparisonOperator.GE, ComparisonOperator.GT, ComparisonOperator.LE, ComparisonOperator.LT -> false
-        }
-
-        var selectedIndex = -1
+    private fun lookupLinearSearch(values: List<Value>, target: Value): Int {
         for ((index, value) in values.withIndex()) {
-            val matchesCondition = predicate(value)
-            if (!matchesCondition) continue
-            if (stopOnFirstMatch) return index
-            selectedIndex = index
+            if (areEquals(value, target))
+                return index
         }
 
-        return selectedIndex
+        return -1
+    }
+
+    private inline fun lookupBinarySearchWithComparator(
+        values: List<Value>,
+        predicate: (Value) -> Boolean,
+        isAscending: Boolean,
+        searchingForLower: Boolean
+    ): Int {
+        var (left, right) = Pair(0, values.lastIndex)
+        var bestCandidateIndex = -1
+
+        while (left <= right) {
+            val mid = left + (right - left) / 2
+            val currentValue = values[mid]
+
+            if (predicate(currentValue)) {
+                bestCandidateIndex = mid
+                when {
+                    isAscending && searchingForLower -> left = mid + 1
+                    isAscending && !searchingForLower -> right = mid - 1
+                    !isAscending && searchingForLower -> right = mid - 1
+                    !isAscending && !searchingForLower -> left = mid + 1
+                }
+            } else {
+                when {
+                    isAscending && searchingForLower -> right = mid - 1
+                    isAscending && !searchingForLower -> left = mid + 1
+                    !isAscending && searchingForLower -> left = mid + 1
+                    !isAscending && !searchingForLower -> right = mid - 1
+                }
+            }
+        }
+
+        return bestCandidateIndex
+    }
+
+    private inline fun lookupBinarySearchWithCondition(values: List<Value>, predicate: (Value) -> Boolean, target: Value): Int {
+        var (left, right) = Pair(0, values.lastIndex)
+
+        while (left <= right) {
+            val mid = left + (right - left) / 2
+            val currentValue = values[mid]
+
+            if (predicate(currentValue)) {
+                return mid
+            }
+
+            if (currentValue < target) {
+                right = mid - 1
+                continue
+            }
+
+            // This means currentValue > target
+            left = mid + 1
+        }
+
+        return -1
+    }
+
+    private fun lookupBinarySearch(
+        values: List<Value>,
+        target: Value,
+        operator: ComparisonOperator,
+        isAscending: Boolean
+    ): Int {
+        return when (operator) {
+            ComparisonOperator.LE ->
+                lookupBinarySearchWithComparator(values, { it <= target }, isAscending, true)
+            ComparisonOperator.LT ->
+                lookupBinarySearchWithComparator(values, { it < target }, isAscending, true)
+            ComparisonOperator.GE ->
+                lookupBinarySearchWithComparator(values, { it >= target }, isAscending, false)
+            ComparisonOperator.GT ->
+                lookupBinarySearchWithComparator(values, { it > target }, isAscending, false)
+            ComparisonOperator.EQ -> lookupBinarySearchWithCondition(values, { areEquals(it, target) }, target)
+            else -> -1
+        }
     }
 
     private fun lookup(
@@ -857,20 +926,9 @@ class ExpressionEvaluation(
         val upperBound = min(lowerBound + computedLength, arrayLength)
         val searchRange = array.elements().slice(lowerBound until upperBound)
 
-        val searchFn: (Value) -> Boolean = when (operator) {
-            ComparisonOperator.EQ -> { it: Value -> areEquals(it, searchedValue) }
-            ComparisonOperator.NE -> { it: Value -> !areEquals(it, searchedValue) }
-            ComparisonOperator.LT -> { it: Value -> it < searchedValue }
-            ComparisonOperator.GT -> { it: Value -> it > searchedValue }
-            ComparisonOperator.GE -> { it: Value -> it >= searchedValue }
-            ComparisonOperator.LE -> { it: Value -> it <= searchedValue }
-        }
-
-        /*
-         * TODO: Consider implementing binary search strategy for sequenced arrays
-         * see https://www.ibm.com/docs/en/i/7.5?topic=functions-lookupxx-look-up-array-element
-         */
-        val index = lookupLinearSearch(searchRange, searchFn, operator)
+        val index = if (isSequenced)
+            lookupBinarySearch(searchRange, searchedValue, operator, arrayType.ascend!!)
+        else lookupLinearSearch(searchRange, searchedValue)
 
         val offsetIndex = if (index == -1) 0 else index + lowerBound + 1
         return offsetIndex.asValue()

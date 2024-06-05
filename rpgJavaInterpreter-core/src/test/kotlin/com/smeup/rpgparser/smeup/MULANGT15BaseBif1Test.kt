@@ -61,7 +61,7 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00210() {
-        val expected = listOf("3", "0", "0", "3", "3", "0", "0", "3", "2", "2", "3", "3")
+        val expected = listOf("4", "0", "0", "3", "0", "6", "0", "3", "0", "2", "4", "0")
         assertEquals(expected, "smeup/MUDRNRAPU00210".outputOf())
     }
 
