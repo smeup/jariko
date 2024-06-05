@@ -27,46 +27,46 @@ fun movel(
     dataAttributes: Expression?,
     interpreterCore: InterpreterCore
 ): Value {
-    if (value is FigurativeConstantRef) {
-        return interpreterCore.assign(target, interpreterCore.eval(value))
-    }
-
-    return when (value.type()) {
-        is ArrayType -> throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
-        is DateType -> {
-            interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
+    if (value !is FigurativeConstantRef) {
+        if (value.type() is ArrayType) {
+            throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
         }
-        else -> {
-            val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
-            if (target.type() is ArrayType) {
-                // for each element of array apply move
-                val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
-                val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
-                arrayValue.elements.forEachIndexed { index, el ->
-                    arrayValue.setElement(
-                        index + 1, stringToValue(
-                            movel(
-                                valueToMove,
-                                valueToString(el, valueToApplyMoveElementType),
-                                valueToApplyMoveElementType,
-                                operationExtender != null
-                            ),
-                            valueToApplyMoveElementType
-                        )
-                    )
-                }
-                return interpreterCore.assign(target, arrayValue)
-            } else {
-                val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
-                return interpreterCore.assign(
-                    target,
-                    stringToValue(
-                        movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                        target.type()
+
+        if (value.type() is DateType) {
+            return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
+        }
+
+        val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
+        if (target.type() is ArrayType) {
+            // for each element of array apply move
+            val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+            val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
+            arrayValue.elements.forEachIndexed { index, el ->
+                arrayValue.setElement(
+                    index + 1, stringToValue(
+                        movel(
+                            valueToMove,
+                            valueToString(el, valueToApplyMoveElementType),
+                            valueToApplyMoveElementType,
+                            operationExtender != null
+                        ),
+                        valueToApplyMoveElementType
                     )
                 )
             }
+            return interpreterCore.assign(target, arrayValue)
+        } else {
+            val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
+            return interpreterCore.assign(
+                target,
+                stringToValue(
+                    movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
+                    target.type()
+                )
+            )
         }
+    } else {
+        return interpreterCore.assign(target, interpreterCore.eval(value))
     }
 }
 
