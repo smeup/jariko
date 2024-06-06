@@ -223,6 +223,38 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     return dataDefinitions
 }
 
+private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> = toDataDefinitions()
+
+private fun FileDefinition.loadDisplayFileMetadata(): List<DataDefinition> {
+    val dataDefinitions = mutableListOf<DataDefinition>()
+    val dspfConfig = MainExecutionContext.getConfiguration()
+        .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
+    val metadata = kotlin.runCatching {
+        dspfConfig.metadataProducer.invoke(name)
+    }.onFailure { error ->
+        error("Not found display file for $this", error)
+    }.getOrNull() ?: error("Not found display file for $this")
+
+    // in a file declaration of type WORKSTN the executed record name is never available
+    // internalFormatName is always null
+    // record name will be available further in EXFMT statement
+
+    dataDefinitions.addAll(
+        metadata.fields.map { dspfField ->
+            dspfField.toDataDefinition(prefix = prefix, position = position).apply {
+                createDbFieldDataDefinitionRelation(dspfField.fieldName, name)
+            }
+        }
+    )
+
+    return dataDefinitions
+}
+
+internal fun FileDefinition.loadMetadata(): List<DataDefinition> {
+    if (fileType == FileType.DB) return loadDbFileMetadata()
+    return loadDisplayFileMetadata()
+}
+
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
         .mapNotNull { statement ->
