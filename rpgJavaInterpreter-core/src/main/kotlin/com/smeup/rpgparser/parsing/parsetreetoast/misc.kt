@@ -187,7 +187,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
     }
 }
 
-internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
+private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val reloadConfig = MainExecutionContext.getConfiguration()
         .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
@@ -223,8 +223,6 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     return dataDefinitions
 }
 
-private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> = toDataDefinitions()
-
 private fun FileDefinition.loadDisplayFileMetadata(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val dspfConfig = MainExecutionContext.getConfiguration()
@@ -250,7 +248,7 @@ private fun FileDefinition.loadDisplayFileMetadata(): List<DataDefinition> {
     return dataDefinitions
 }
 
-internal fun FileDefinition.loadMetadata(): List<DataDefinition> {
+internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     if (fileType == FileType.DB) return loadDbFileMetadata()
     return loadDisplayFileMetadata()
 }

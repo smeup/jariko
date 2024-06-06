@@ -13,7 +13,7 @@ import java.io.File
 @Serializable
 internal data class SimpleDspfConfig(var displayFilePath: String? = null) {
 
-    fun getMetadata(displayFile: String): FileMetadata {
+    internal fun getMetadata(displayFile: String): FileMetadata {
         val videoFile = File(displayFilePath, "$displayFile.dspf")
         require(videoFile.exists()) { "$videoFile doesn't exist" }
         val dspf = DisplayFileParser.parse(videoFile.bufferedReader())
