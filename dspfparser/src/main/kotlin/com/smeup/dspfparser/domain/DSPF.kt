@@ -5,6 +5,7 @@ package com.smeup.dspfparser.domain
  */
 interface DSPF {
     val name: String?
+    val records: List<DSPFRecord>
 
     /**
      * Retrieve a [DSPFRecord] given its name.
