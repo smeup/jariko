@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFSpecifications(
-    override val name: String?
+    override val name: String? = null
 ) : DSPF {
     override val records: MutableList<DSPFRecordSpecifications> = mutableListOf()
 
