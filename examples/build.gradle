@@ -22,7 +22,7 @@ dependencies {
     implementation project(":rpgJavaInterpreter-core")
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
 }
 
 task javadocJar(type: Jar) {
