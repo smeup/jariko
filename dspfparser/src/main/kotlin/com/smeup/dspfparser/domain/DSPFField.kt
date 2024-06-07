@@ -10,7 +10,7 @@ interface DSPFField {
     val length: Int?
     val precision: Int?
     val type: DSPFFieldType
-    val x: Int
-    val y: Int
+    val x: Int?
+    val y: Int?
     val hasError: Boolean
 }
