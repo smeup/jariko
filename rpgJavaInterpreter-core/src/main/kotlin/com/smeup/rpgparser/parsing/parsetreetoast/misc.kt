@@ -187,16 +187,39 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
     }
 }
 
-private fun FileDefinition.createMetadataFrom(metadataProducer: () -> FileMetadata): FileMetadata {
-    return kotlin.runCatching {
-        metadataProducer()
-    }.onFailure { error ->
-        error("Not found metadata for $this", error)
-    }.getOrNull() ?: error("Not found metadata for $this")
+private fun FileDefinition.loadMetadata(): FileMetadata {
+    return when {
+        (fileType == FileType.DB) -> {
+            val reloadConfig = MainExecutionContext.getConfiguration()
+                .reloadConfig
+                ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+
+            kotlin.runCatching {
+                reloadConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
+        }
+        (fileType == FileType.VIDEO) -> {
+            val dspfConfig = MainExecutionContext.getConfiguration()
+                .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
+
+            kotlin.runCatching {
+                dspfConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
+        }
+        else -> TODO()
+    }
 }
 
-private fun FileDefinition.createDataDefinitionsFrom(metadata: FileMetadata): MutableList<DataDefinition> {
+internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
+    val metadata = loadMetadata()
+
+    if (internalFormatName == null) internalFormatName = metadata.recordFormat
+
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
             dbField.toDataDefinition(prefix = prefix, position = position).apply {
@@ -204,16 +227,6 @@ private fun FileDefinition.createDataDefinitionsFrom(metadata: FileMetadata): Mu
             }
         }
     )
-    return dataDefinitions
-}
-
-private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> {
-    val reloadConfig = MainExecutionContext.getConfiguration()
-        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
-    val metadata = createMetadataFrom { reloadConfig.metadataProducer.invoke(name) }
-    val dataDefinitions = createDataDefinitionsFrom(metadata)
-
-    if (internalFormatName == null) internalFormatName = metadata.recordFormat
 
     // These are the fields related the record format, these fields will
     // be used in assignment operation to lookup for the DataDefinitions related these fields
@@ -222,29 +235,18 @@ private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> {
         FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
     }
 
-    val recordFormatDefinition = DataDefinition(
-        internalFormatName!!,
-        type = RecordFormatType,
-        position = position,
-        fields = fieldsDefinition
-    )
+    if (fileType == FileType.DB) {
+        val recordFormatDefinition = DataDefinition(
+            internalFormatName!!,
+            type = RecordFormatType,
+            position = position,
+            fields = fieldsDefinition
+        )
 
-    dataDefinitions.add(recordFormatDefinition)
+        dataDefinitions.add(recordFormatDefinition)
+    }
 
     return dataDefinitions
-}
-
-private fun FileDefinition.loadDisplayFileMetadata(): List<DataDefinition> {
-    val dspfConfig = MainExecutionContext.getConfiguration()
-        .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
-    val metadata = createMetadataFrom { dspfConfig.metadataProducer.invoke(name) }
-    val dataDefinitions = createDataDefinitionsFrom(metadata)
-    return dataDefinitions
-}
-
-internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
-    if (fileType == FileType.DB) return loadDbFileMetadata()
-    return loadDisplayFileMetadata()
 }
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
