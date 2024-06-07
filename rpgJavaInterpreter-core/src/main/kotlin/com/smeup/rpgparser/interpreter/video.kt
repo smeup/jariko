@@ -9,14 +9,20 @@ internal fun DSPF.getDbFields(): List<DbField> {
         record.fields.forEach { field ->
             var type: Type
             var rpgType: String
+            // currently parser can't handle REFFLD so I created random fallback values
+            val fallbackLength = 10
+            val fallbackPrecision = 10
 
             if (field.isNumeric) {
                 if (field.precision!! > 0) rpgType = "Z"
                 else rpgType = "S"
 
-                type = NumberType(field.length!!, field.precision!!, rpgType)
+                type = NumberType(
+                    field.length ?: fallbackLength,
+                    field.precision ?: fallbackPrecision, rpgType
+                )
             } else {
-                type = StringType.createInstance(field.length!!)
+                type = StringType.createInstance(field.length ?: fallbackLength)
             }
             fields.add(DbField(fieldName = field.name, type = type))
         }
