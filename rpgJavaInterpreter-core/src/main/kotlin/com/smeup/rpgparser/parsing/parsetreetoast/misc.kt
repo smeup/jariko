@@ -210,7 +210,7 @@ private fun FileDefinition.loadMetadata(): FileMetadata {
                 error("Not found metadata for $this", error)
             }.getOrNull() ?: error("Not found metadata for $this")
         }
-        else -> TODO()
+        else -> error("Unhandled file type $fileType")
     }
 }
 
