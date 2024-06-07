@@ -75,6 +75,8 @@ data class CompilationUnit(
 
     private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
 
+    fun getInStatementDataDefinitions() = inStatementsDataDefinitions
+
     fun addInStatementDataDefinitions(dataDefinitions: List<InStatementDataDefinition>) {
         inStatementsDataDefinitions.addAll(dataDefinitions)
     }
