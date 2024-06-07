@@ -187,16 +187,16 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
     }
 }
 
-private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> {
-    val dataDefinitions = mutableListOf<DataDefinition>()
-    val reloadConfig = MainExecutionContext.getConfiguration()
-        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
-    val metadata = kotlin.runCatching {
-        reloadConfig.metadataProducer.invoke(name)
+private fun FileDefinition.createMetadataFrom(metadataProducer: () -> FileMetadata): FileMetadata {
+    return kotlin.runCatching {
+        metadataProducer()
     }.onFailure { error ->
         error("Not found metadata for $this", error)
     }.getOrNull() ?: error("Not found metadata for $this")
-    if (internalFormatName == null) internalFormatName = metadata.recordFormat
+}
+
+private fun FileDefinition.createDataDefinitionsFrom(metadata: FileMetadata): MutableList<DataDefinition> {
+    val dataDefinitions = mutableListOf<DataDefinition>()
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
             dbField.toDataDefinition(prefix = prefix, position = position).apply {
@@ -204,47 +204,41 @@ private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> {
             }
         }
     )
+    return dataDefinitions
+}
+
+private fun FileDefinition.loadDbFileMetadata(): List<DataDefinition> {
+    val reloadConfig = MainExecutionContext.getConfiguration()
+        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+    val metadata = createMetadataFrom { reloadConfig.metadataProducer.invoke(name) }
+    val dataDefinitions = createDataDefinitionsFrom(metadata)
+
+    if (internalFormatName == null) internalFormatName = metadata.recordFormat
+
     // These are the fields related the record format, these fields will
     // be used in assignment operation to lookup for the DataDefinitions related these fields
     val fieldsDefinition = dataDefinitions.map {
         // explicitStartOffset and explicitEndOffsets set to zero are wanted
         FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
     }
-    // record format possibly for file video is unuseful
-    if (fileType == FileType.DB) {
-        val recordFormatDefinition = DataDefinition(
-            internalFormatName!!,
-            type = RecordFormatType,
-            position = position,
-            fields = fieldsDefinition
-        )
-        dataDefinitions.add(recordFormatDefinition)
-    }
+
+    val recordFormatDefinition = DataDefinition(
+        internalFormatName!!,
+        type = RecordFormatType,
+        position = position,
+        fields = fieldsDefinition
+    )
+
+    dataDefinitions.add(recordFormatDefinition)
+
     return dataDefinitions
 }
 
 private fun FileDefinition.loadDisplayFileMetadata(): List<DataDefinition> {
-    val dataDefinitions = mutableListOf<DataDefinition>()
     val dspfConfig = MainExecutionContext.getConfiguration()
         .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
-    val metadata = kotlin.runCatching {
-        dspfConfig.metadataProducer.invoke(name)
-    }.onFailure { error ->
-        error("Not found display file for $this", error)
-    }.getOrNull() ?: error("Not found display file for $this")
-
-    // in a file declaration of type WORKSTN the executed record name is never available
-    // internalFormatName is always null
-    // record name will be available further in EXFMT statement
-
-    dataDefinitions.addAll(
-        metadata.fields.map { dspfField ->
-            dspfField.toDataDefinition(prefix = prefix, position = position).apply {
-                createDbFieldDataDefinitionRelation(dspfField.fieldName, name)
-            }
-        }
-    )
-
+    val metadata = createMetadataFrom { dspfConfig.metadataProducer.invoke(name) }
+    val dataDefinitions = createDataDefinitionsFrom(metadata)
     return dataDefinitions
 }
 
