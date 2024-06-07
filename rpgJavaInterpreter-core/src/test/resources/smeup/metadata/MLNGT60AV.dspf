@@ -1,0 +1,30 @@
+     A*%%TS  SD  20240119  112614  GUAGIA      REL-V7R4M0  5770-WDS
+     A*%%EC
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      REF(*LIBL/DIZ_BR)
+     A                                      CHGINPDFT(HI CS)
+     A                                      PRINT
+     A                                      CA22
+     A                                      CF02
+     A          R FMT1
+     A*%%TS  SD  20240119  112614  GUAGIA      REL-V7R4M0  5770-WDS
+     A                                      TEXT('Videata Guida')
+     A                                      CF03
+     A                                      CF14
+     A            £RASDI        15A  O  1  2DSPATR(HI)
+     A                                  1 26'**   GESTIONE ARTICOLI (Menu)  **'
+     A                                      DSPATR(RI)
+     A                                  1 60SYSNAME
+     A            £PDSNP        10A  O  1 71
+     A                                  2  2DATE
+     A                                      EDTCDE(Y)
+     A                                  2 34'Formato guida'
+     A                                      DSPATR(HI)
+     A            £PDSJN        10A  O  2 60
+     A            £PDSNU        10A  O  2 71
+     A                                 22  2'F14=Entra nella schermata'
+     A                                 23  2'F03=Fine Lavoro'
+     A  60        W$MESV        76A  O 24  2DSPATR(RI)
+     A            W$RISC         8A  B  3 72
+     A  62                                  DSPATR(RI)
+     A  62                                  DSPATR(PC)
