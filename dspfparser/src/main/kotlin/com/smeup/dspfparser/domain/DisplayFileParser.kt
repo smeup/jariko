@@ -14,10 +14,10 @@ abstract class DisplayFileParser {
          * @param buffer
          * @return a [DSPF] instance representing the display file
          */
-        fun parse(name: String, buffer: BufferedReader): DSPF {
+        fun parse(buffer: BufferedReader): DSPF {
             val processor = LinesProcessor(buffer)
             processor.createLines()
-            val specifications = DSPFSpecifications.fromLines(name, processor.lines)
+            val specifications = DSPFSpecifications.fromLines(processor.lines)
             return specifications
         }
     }
