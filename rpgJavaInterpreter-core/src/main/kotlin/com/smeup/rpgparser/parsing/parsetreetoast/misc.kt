@@ -267,6 +267,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
+    val displayFiles = fileDefinitions.keys.toList().toDSPF()
+
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
@@ -333,7 +335,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures = procedures,
         source = source,
-        copyBlocks = copyBlocks
+        copyBlocks = copyBlocks,
+        displayFiles = displayFiles
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
