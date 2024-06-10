@@ -1,4 +1,4 @@
-     FB£DIR40V  CF   E             WORKSTN SFILE(B£DIR40VSUB:RRN)
+     FUNLOCK_MV CF   E             WORKSTN SFILE(SUB:RRN)
      F                                     INFDS(DSSF01)
 
      D MSG             S             50          VARYING

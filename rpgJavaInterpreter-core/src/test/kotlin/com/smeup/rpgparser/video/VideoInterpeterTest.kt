@@ -5,7 +5,6 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -29,19 +28,19 @@ class VideoInterpeterTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
     }
 
-    @Test @Ignore("Will be tested further")
+    @Test
     fun executeEXFMT_MOCK() {
         val expected = listOf("")
         assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
     }
 
-    @Test @Ignore("Will be tested further")
+    @Test
     fun executeREADC_MOCK() {
         val expected = listOf("")
         assertEquals(expected = expected, actual = "video/READC_MOCK".outputOf(configuration = configuration))
     }
 
-    @Test @Ignore("Will be tested further")
+    @Test
     fun executeUNLOCK_MOCK() {
         val expected = listOf("")
         assertEquals(expected = expected, actual = "video/UNLOCK_MOCK".outputOf(configuration = configuration))
