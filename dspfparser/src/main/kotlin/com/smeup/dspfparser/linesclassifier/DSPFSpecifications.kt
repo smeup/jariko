@@ -6,16 +6,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFSpecifications(
-    override val name: String?
+    override val records: MutableList<DSPFRecordSpecifications> = mutableListOf()
 ) : DSPF {
-    val records: MutableList<DSPFRecordSpecifications> = mutableListOf()
-
     companion object {
         fun fromLines(
-            lines: MutableList<DSPFLine>,
-            name: String? = null
+            lines: MutableList<DSPFLine>
         ): DSPFSpecifications {
-            return DSPFSpecificationsFactory(name, lines).create()
+            return DSPFSpecificationsFactory(lines).create()
         }
     }
 
@@ -39,10 +36,9 @@ private class DSPFSpecificationsFactory {
     private var isLineNone: Boolean = false
     private var isLineRecord: Boolean = false
     private var isLineField: Boolean = false
-    private var result: DSPFSpecifications
+    private var result: DSPFSpecifications = DSPFSpecifications()
 
-    constructor(name: String?, lines: MutableList<DSPFLine>) {
-        this.result = DSPFSpecifications(name)
+    constructor(lines: MutableList<DSPFLine>) {
         this.updateResultWith(lines)
     }
 

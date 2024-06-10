@@ -14,8 +14,8 @@ internal data class DSPFFieldSpecifications private constructor(
     override val length: Int? = null,
     override val precision: Int? = null,
     override val type: DSPFFieldType,
-    override val x: Int,
-    override val y: Int,
+    override val x: Int?,
+    override val y: Int?,
     override var hasError: Boolean = false
 ) : DSPFField {
 
@@ -31,8 +31,8 @@ internal data class DSPFFieldSpecifications private constructor(
                 length = declaration.length,
                 precision = declaration.decimalsPositions,
                 type = this.getType(declaration),
-                x = declaration.x!!,
-                y = declaration.y!!
+                x = declaration.x,
+                y = declaration.y
             )
         }
 

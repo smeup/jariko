@@ -1,0 +1,59 @@
+     A*%%TS  SD  20230912  144404  DESVER      REL-V7R4M0  5770-WDS
+     A*%%EC
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      REF(*LIBL/DIZ_BR)
+     A                                      CHGINPDFT(HI CS)
+     A                                      PRINT
+     A                                      CA22
+     A                                      CF02
+     A          R SFL1                      SFL
+     A*%%TS  SD  20230907  103200  DESVER      REL-V7R4M0  5770-WDS
+     A                                      TEXT('Videata Lista (Subfile)')
+     A            SHDEAR    R        H      REFFLD(DEAR)
+     A            S$OPZI         2A  B  7  2
+     A  63                                  DSPATR(RI)
+     A  63                                  DSPATR(PC)
+     A  54                                  DSPATR(PR)
+     A N54                                  DSPATR(CS)
+     A            X$FLD1        50A  B  7  5DSPATR(HI)
+     A  42                                  DSPATR(PR)
+     A N42                                  DSPATR(CS)
+     A          R SFC1                      SFLCTL(SFL1)
+     A*%%TS  SD  20230912  144404  DESVER      REL-V7R4M0  5770-WDS
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0013)
+     A                                      TEXT('Videata Lista (Controller)')
+     A                                      CA12
+     A                                      ROLLUP(96)
+     A                                      CA03
+     A                                      CA05
+     A                                      CA06
+     A                                      OVERLAY
+     A                                      PUTRETAIN
+     A N92N93                               SFLDSP
+     A N92                                  SFLDSPCTL
+     A  92                                  SFLCLR
+     A  94                                  SFLEND(*MORE)
+     A            RRN01          4S 0H      SFLRCDNBR(CURSOR)
+     A            £RASDI        15A  O  1  2DSPATR(HI)
+     A                                  1 60SYSNAME
+     A            £PDSNP        10A  O  1 71
+     A            £PDSJN        10A  O  2 60
+     A            £PDSNU        10A  O  2 71
+     A                                  6  2'Op'
+     A                                      DSPATR(HI)
+     A                                      DSPATR(UL)
+     A                                  6  5'              INTESTAZIONE COLONNA-
+     A                                                      '
+     A                                      DSPATR(UL)
+     A                                      DSPATR(HI)
+     A                                  1 21'TEST SFL CHE CHIAMA ALTRO SFL'
+     A                                      DSPATR(HI)
+     A                                      COLOR(PNK)
+     A                                  3  2'X=Scelta'
+     A                                      DSPATR(HI)
+     A          R SFP1
+     A                                      TEXT('Videata Lista (Piede)')
+     A                                 23 11'F12=Ritorno'
+     A  60        W$MESV        76A  O 24  2DSPATR(RI)
+     A                                 23  2'F03=Fine'
