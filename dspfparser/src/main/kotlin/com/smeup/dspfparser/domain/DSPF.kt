@@ -4,7 +4,7 @@ package com.smeup.dspfparser.domain
  * Models a display file as a whole logical unit.
  */
 interface DSPF {
-    val name: String?
+    val name: String
     val records: List<DSPFRecord>
 
     /**

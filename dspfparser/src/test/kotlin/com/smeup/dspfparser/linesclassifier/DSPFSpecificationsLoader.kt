@@ -7,6 +7,6 @@ internal open class DSPFSpecificationsLoader : LinesProcessorLoader {
 
     constructor(source: String) : super(source) {
         this.linesProcessor.createLines()
-        this.specifications = DSPFSpecifications.fromLines(this.linesProcessor.lines)
+        this.specifications = DSPFSpecifications.fromLines(source, this.linesProcessor.lines)
     }
 }
