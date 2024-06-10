@@ -18,6 +18,7 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.domain.DSPF
+import com.smeup.dspfparser.domain.DSPFField
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.Api
 import com.smeup.rpgparser.parsing.ast.ApiId
@@ -174,6 +175,13 @@ data class JarikoCallback(
      * **This callback will be called only if [Options.debuggingInformation] is set to true**.
      * */
     var onExitCopy: (copyId: CopyId) -> Unit = { },
+
+    /**
+     * It is invoked on EXFMT execution.
+     */
+    var onExfmt: (fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
+        _, _ -> null
+    },
 
     /**
      * It is invoked before statement execution.
