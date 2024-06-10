@@ -4,7 +4,9 @@ import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ConnectionConfig
+import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.ReloadConfig
+import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -46,6 +48,10 @@ abstract class MULANGTTest : AbstractTest() {
                 )
             }),
             metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+        val dspfConfig = SimpleDspfConfig(displayFilePath = path)
+        smeupConfig.dspfConfig = DspfConfig { displayFile ->
+            dspfConfig.getMetadata(displayFile)
+        }
     }
 
     @AfterTest()

@@ -187,16 +187,39 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
     }
 }
 
+private fun FileDefinition.loadMetadata(): FileMetadata {
+    return when {
+        (fileType == FileType.DB) -> {
+            val reloadConfig = MainExecutionContext.getConfiguration()
+                .reloadConfig
+                ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+
+            kotlin.runCatching {
+                reloadConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
+        }
+        (fileType == FileType.VIDEO) -> {
+            val dspfConfig = MainExecutionContext.getConfiguration()
+                .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
+
+            kotlin.runCatching {
+                dspfConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
+        }
+        else -> error("Unhandled file type $fileType")
+    }
+}
+
 internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
-    val reloadConfig = MainExecutionContext.getConfiguration()
-        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
-    val metadata = kotlin.runCatching {
-        reloadConfig.metadataProducer.invoke(name)
-    }.onFailure { error ->
-        error("Not found metadata for $this", error)
-    }.getOrNull() ?: error("Not found metadata for $this")
+    val metadata = loadMetadata()
+
     if (internalFormatName == null) internalFormatName = metadata.recordFormat
+
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
             dbField.toDataDefinition(prefix = prefix, position = position).apply {
@@ -204,6 +227,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             }
         }
     )
+
     // These are the fields related the record format, these fields will
     // be used in assignment operation to lookup for the DataDefinitions related these fields
     val fieldsDefinition = dataDefinitions.map {
@@ -218,8 +242,10 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             position = position,
             fields = fieldsDefinition
         )
+
         dataDefinitions.add(recordFormatDefinition)
     }
+
     return dataDefinitions
 }
 

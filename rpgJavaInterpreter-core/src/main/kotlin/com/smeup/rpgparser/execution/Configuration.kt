@@ -43,14 +43,15 @@ data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
     var jarikoCallback: JarikoCallback = JarikoCallback(),
     var reloadConfig: ReloadConfig? = null,
+    var dspfConfig: DspfConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this(memorySliceStorage, JarikoCallback(), null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this(memorySliceStorage, JarikoCallback(), null, null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
 
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this(memorySliceStorage, JarikoCallback(), null, defaultActivationGroupName, Options())
+            this(memorySliceStorage, JarikoCallback(), null, null, defaultActivationGroupName, Options())
 }
 
 /**
@@ -62,6 +63,14 @@ data class Configuration(
 data class ReloadConfig(
     val nativeAccessConfig: DBNativeAccessConfig,
     val metadataProducer: (dbFile: String) -> FileMetadata
+)
+
+/**
+ * DSPF parser configuration
+ * @param metadataProducer Produce metadata for a displayFile
+ * */
+data class DspfConfig(
+    val metadataProducer: (displayFile: String) -> FileMetadata
 )
 
 /**

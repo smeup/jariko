@@ -680,6 +680,16 @@ fun compileAllMutes(
                         ?: error("resource $dbFile.json not found in $metadataPaths")
                 }
             )
+
+            dspfConfig = DspfConfig { displayFile ->
+                metadataPaths.asSequence()
+                    .map { Path.of(rpgTestSrcDir, it) }
+                    .map { it.resolve("$displayFile.dspf").toFile() }
+                    .firstOrNull { it.exists() }?.let {
+                        SimpleDspfConfig(displayFilePath = it!!.parent).getMetadata(displayFile)
+                    } ?: error("resource $displayFile.dspf not found in $metadataPaths")
+            }
+
             options = Options(debuggingInformation = true)
             jarikoCallback.onError = { error ->
                 error.sourceReference?.let { sourceReference ->
