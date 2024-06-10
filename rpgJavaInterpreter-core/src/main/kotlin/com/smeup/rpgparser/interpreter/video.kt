@@ -8,9 +8,9 @@ internal fun DSPF.getDbFields(): List<DbField> {
 
     records.forEach { record ->
         record.fields.forEach { field ->
-            var type: Type
-            var rpgType: RpgType
-            // currently parser can't handle REFFLD so I created random fallback values
+            val type: Type
+            val rpgType: RpgType
+            // currently parser can't handle REFFLD, so I created random fallback values
             val fallbackLength = 10
             val fallbackPrecision = 10
 
