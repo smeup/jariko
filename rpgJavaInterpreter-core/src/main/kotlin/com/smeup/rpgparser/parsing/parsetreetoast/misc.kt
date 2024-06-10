@@ -189,32 +189,29 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
 
 private fun FileDefinition.loadMetadata(): FileMetadata {
     return when {
-        (fileType == FileType.DB) -> {
-            tryLoadMetadataFromReloadConfig()
+        (fileType == FileType.DB || MainExecutionContext.getConfiguration().dspfConfig == null) -> {
+            val reloadConfig = MainExecutionContext.getConfiguration()
+                .reloadConfig
+                ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+
+            return kotlin.runCatching {
+                reloadConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
         }
         (fileType == FileType.VIDEO) -> {
             val dspfConfig = MainExecutionContext.getConfiguration()
                 .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
 
-            kotlin.runCatching {
+            return kotlin.runCatching {
                 dspfConfig.metadataProducer.invoke(name)
             }.onFailure { error ->
-                return tryLoadMetadataFromReloadConfig(throwsInCaseOfError = error)
+                error("Not found metadata for $this", error)
             }.getOrNull() ?: error("Not found metadata for $this")
         }
         else -> error("Unhandled file type $fileType")
     }
-}
-
-private fun FileDefinition.tryLoadMetadataFromReloadConfig(throwsInCaseOfError: Throwable? = null): FileMetadata {
-    val reloadConfig = MainExecutionContext.getConfiguration()
-        .reloadConfig
-        ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
-    return kotlin.runCatching {
-        reloadConfig.metadataProducer.invoke(name)
-    }.onFailure { error ->
-        error("Not found metadata for $this", throwsInCaseOfError ?: error)
-    }.getOrNull() ?: error("Not found metadata for $this")
 }
 
 internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
