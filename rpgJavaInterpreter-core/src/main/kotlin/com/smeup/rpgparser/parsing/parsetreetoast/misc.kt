@@ -194,7 +194,7 @@ private fun FileDefinition.loadMetadata(): FileMetadata {
                 .reloadConfig
                 ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
 
-            return kotlin.runCatching {
+            kotlin.runCatching {
                 reloadConfig.metadataProducer.invoke(name)
             }.onFailure { error ->
                 error("Not found metadata for $this", error)
@@ -204,7 +204,7 @@ private fun FileDefinition.loadMetadata(): FileMetadata {
             val dspfConfig = MainExecutionContext.getConfiguration()
                 .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
 
-            return kotlin.runCatching {
+            kotlin.runCatching {
                 dspfConfig.metadataProducer.invoke(name)
             }.onFailure { error ->
                 error("Not found metadata for $this", error)
