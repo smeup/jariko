@@ -1,11 +1,13 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     @BeforeTest
@@ -321,5 +323,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00213() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00213".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * D spec defined LIKE PARM is not resolved when DEFINE statement throws an error
+     * @see #LS24002936
+     */
+    @Test
+    fun executeMUDRNRAPU00214() {
+        assertFailsWith<AstResolutionError> {
+            "smeup/MUDRNRAPU00214".outputOf()
+        }
     }
 }
