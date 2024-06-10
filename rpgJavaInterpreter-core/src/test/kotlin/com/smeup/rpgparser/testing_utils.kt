@@ -682,11 +682,12 @@ fun compileAllMutes(
             )
 
             dspfConfig = DspfConfig { displayFile ->
-                val file = metadataPaths.asSequence()
+                metadataPaths.asSequence()
                     .map { Path.of(rpgTestSrcDir, it) }
                     .map { it.resolve("$displayFile.dspf").toFile() }
-                    .firstOrNull { it.exists() }
-                SimpleDspfConfig(displayFilePath = file!!.parent).getMetadata(displayFile)
+                    .firstOrNull { it.exists() }?.let {
+                        SimpleDspfConfig(displayFilePath = it!!.parent).getMetadata(displayFile)
+                    } ?: error("resource $displayFile.dspf not found in $metadataPaths")
             }
 
             options = Options(debuggingInformation = true)
