@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dspfparser.domain.DSPF
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.Api
 import com.smeup.rpgparser.parsing.ast.ApiId
@@ -70,7 +71,8 @@ data class ReloadConfig(
  * @param metadataProducer Produce metadata for a displayFile
  * */
 data class DspfConfig(
-    val metadataProducer: (displayFile: String) -> FileMetadata
+    val metadataProducer: (displayFile: String) -> FileMetadata,
+    val dspfProducer: (displayFile: String) -> DSPF
 )
 
 /**
