@@ -29,6 +29,10 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
             position = position
         )
         this.bif_lookup() != null -> this.bif_lookup().toAst(conf)
+        this.bif_lookupge() != null -> this.bif_lookupge().toAst(conf)
+        this.bif_lookupgt() != null -> this.bif_lookupgt().toAst(conf)
+        this.bif_lookuple() != null -> this.bif_lookuple().toAst(conf)
+        this.bif_lookuplt() != null -> this.bif_lookuplt().toAst(conf)
         this.bif_xlate() != null -> this.bif_xlate().toAst(conf)
         this.bif_scan() != null -> this.bif_scan().toAst(conf)
         this.bif_check() != null -> this.bif_check().toAst(conf)
@@ -247,6 +251,46 @@ internal fun RpgParser.Bif_lookupContext.toAst(conf: ToAstConfiguration = ToAstC
             this.bif_lookupargs().startindex?.toAst(conf),
             this.bif_lookupargs().numberelements?.toAst(conf),
             toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_lookupgeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupGeExpr {
+    return LookupGeExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_lookupgtContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupGtExpr {
+    return LookupGtExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_lookupleContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupLeExpr {
+    return LookupLeExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_lookupltContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupLtExpr {
+    return LookupLtExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
 }
 
 internal fun RpgParser.Bif_parmsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ParmsExpr {

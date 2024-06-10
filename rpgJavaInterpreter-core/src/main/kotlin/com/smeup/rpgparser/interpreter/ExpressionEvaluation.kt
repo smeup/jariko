@@ -20,10 +20,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
-import com.smeup.rpgparser.utils.asBigDecimal
-import com.smeup.rpgparser.utils.asLong
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.moveEndingString
+import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
@@ -33,10 +30,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import kotlin.math.abs
-import kotlin.math.pow
-import kotlin.math.roundToLong
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.time.Duration.Companion.nanoseconds
 
 class ExpressionEvaluation(
@@ -248,25 +242,58 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LookupExpr): Value = proxyLogging(expression) {
-        val searchValued = expression.searchedValued.evalWith(this)
-        val array = expression.array.evalWith(this) as ArrayValue
-        var index = array.elements().indexOfFirst {
-            areEquals(it, searchValued)
-        }
-        // If 'start' and/or 'length' specified (both optional)
-        // Start: is the index of array element to start search
-        // Length: is the limit number of elements to search forward
-        var start = expression.start?.evalWith(this)?.asInt()
-        start = start?.minus(1.asValue()) ?: 0.asValue()
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValued.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.EQ
+        )
+    }
 
-        val arrayElements = expression.array.type().numberOfElements().asValue()
-        val length = expression.length?.evalWith(this)?.asInt() ?: arrayElements
+    override fun eval(expression: LookupGtExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.GT
+        )
+    }
 
-        val lowerLimit = start.value
-        val upperLimit = start.plus(length).value - 1
-        if (lowerLimit > index || upperLimit < index) index = -1
+    override fun eval(expression: LookupGeExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.GE
+        )
+    }
 
-        return@proxyLogging if (index == -1) 0.asValue() else (index + 1).asValue()
+    override fun eval(expression: LookupLtExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.LT
+        )
+    }
+
+    override fun eval(expression: LookupLeExpr): Value = proxyLogging(expression) {
+        lookup(
+            array = expression.array.evalWith(this) as ArrayValue,
+            arrayType = expression.array.type() as ArrayType,
+            searchedValue = expression.searchedValue.evalWith(this),
+            start = expression.start?.evalWith(this)?.asInt(),
+            length = expression.length?.evalWith(this)?.asInt(),
+            operator = ComparisonOperator.LE
+        )
     }
 
     override fun eval(expression: ArrayAccessExpr): Value = proxyLogging(expression) {
@@ -790,6 +817,117 @@ class ExpressionEvaluation(
             //  - multiple-occurrence data structure{:*ALL}
             else -> throw UnsupportedOperationException("I do not know how to handle ${expression.value} with %SIZE. Is '${expression.value.javaClass.simpleName}' class.")
         }
+    }
+
+    private fun lookupLinearSearch(values: List<Value>, target: Value): Int {
+        for ((index, value) in values.withIndex()) {
+            if (areEquals(value, target))
+                return index
+        }
+
+        return -1
+    }
+
+    private inline fun lookupBinarySearchWithComparator(
+        values: List<Value>,
+        predicate: (Value) -> Boolean,
+        isAscending: Boolean,
+        searchingForLower: Boolean
+    ): Int {
+        var (left, right) = Pair(0, values.lastIndex)
+        var bestCandidateIndex = -1
+
+        while (left <= right) {
+            val mid = left + (right - left) / 2
+            val currentValue = values[mid]
+            val matchesCondition = predicate(currentValue)
+            if (matchesCondition) bestCandidateIndex = mid
+
+            /*
+             * Detect if sorting order follows search direction in order to decide which endpoint to move
+             * - if it follows direction: move left on match and move right else-wise
+             * - if it does not follow direction: move right on match and move left else-wise
+             */
+            val shouldSearchRight = if (isAscending == searchingForLower) matchesCondition else !matchesCondition
+            if (shouldSearchRight) left = mid + 1 else right = mid - 1
+        }
+
+        return bestCandidateIndex
+    }
+
+    private inline fun lookupBinarySearchWithCondition(values: List<Value>, predicate: (Value) -> Boolean, target: Value): Int {
+        var (left, right) = Pair(0, values.lastIndex)
+
+        while (left <= right) {
+            val mid = left + (right - left) / 2
+            val currentValue = values[mid]
+
+            if (predicate(currentValue)) {
+                return mid
+            }
+
+            if (currentValue < target) {
+                right = mid - 1
+                continue
+            }
+
+            // This means currentValue > target
+            left = mid + 1
+        }
+
+        return -1
+    }
+
+    private fun lookupBinarySearch(
+        values: List<Value>,
+        target: Value,
+        operator: ComparisonOperator,
+        isAscending: Boolean
+    ): Int {
+        return when (operator) {
+            ComparisonOperator.LE ->
+                lookupBinarySearchWithComparator(values, { it <= target }, isAscending, true)
+            ComparisonOperator.LT ->
+                lookupBinarySearchWithComparator(values, { it < target }, isAscending, true)
+            ComparisonOperator.GE ->
+                lookupBinarySearchWithComparator(values, { it >= target }, isAscending, false)
+            ComparisonOperator.GT ->
+                lookupBinarySearchWithComparator(values, { it > target }, isAscending, false)
+            ComparisonOperator.EQ -> lookupBinarySearchWithCondition(values, { areEquals(it, target) }, target)
+            else -> -1
+        }
+    }
+
+    private fun lookup(
+        array: ArrayValue,
+        arrayType: ArrayType,
+        searchedValue: Value,
+        start: IntValue?,
+        length: IntValue?,
+        operator: ComparisonOperator
+    ): Value {
+        val arrayLength = arrayType.numberOfElements()
+        val isSequenced = arrayType.ascend != null
+
+        when (operator) {
+            ComparisonOperator.GE, ComparisonOperator.GT, ComparisonOperator.LE, ComparisonOperator.LT -> {
+                if (!isSequenced)
+                    throw UnsupportedOperationException("Array must be defined with ASCEND or DESCEND keyword")
+            }
+            else -> {}
+        }
+
+        val computedLength = length?.value?.toInt() ?: arrayLength
+        val lowerBound: Int = start?.value?.let { it - 1 }?.toInt() ?: 0
+        val upperBound = min(lowerBound + computedLength, arrayLength)
+        val searchRange = array.elements().slice(lowerBound until upperBound)
+
+        val index = if (isSequenced)
+            lookupBinarySearch(searchRange, searchedValue, operator, arrayType.ascend!!)
+        else lookupLinearSearch(searchRange, searchedValue)
+
+        val offsetIndex = if (index == -1) 0 else index + lowerBound + 1
+        return offsetIndex.asValue()
     }
 
     private fun cleanNumericString(s: String): String {

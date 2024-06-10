@@ -312,4 +312,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("A40DS1(ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(BCDEFGHIJK) DS1_FL1(2)(LMNOPQRSTU) | A40DS1(A88        LMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(88        ) DS1_FL1(2)(LMNOPQRSTU) | A40DS1(A88        00        VWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(88        ) DS1_FL1(2)(00        )")
         assertEquals(expected, "smeup/MU024014".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * DefineStmt on instatement data definitions
+     * @see #LS24002930
+     */
+    @Test
+    fun executeMUDRNRAPU00213() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00213".outputOf(configuration = smeupConfig))
+    }
 }

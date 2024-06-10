@@ -1188,7 +1188,10 @@ data class DefineStmt(
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
+        // Search standalone 'D spec' or InStatement definition
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+            ?: containingCU.getInStatementDataDefinitions().find { it.name == originalName }
+
         // If definition was not found as a 'standalone' 'D spec' declaration,
         // maybe it can be found as a sub-field of DS in 'D specs' declarations
         containingCU.dataDefinitions.forEach {

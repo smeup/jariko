@@ -2,6 +2,7 @@ package com.smeup.rpgparser.smeup
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 open class MULANGT15BaseBif1Test : MULANGTTest() {
     /**
@@ -52,5 +53,26 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
     fun executeT15_A80_P09() {
         val expected = listOf("1(10 - North York) 2(5 - North) 3(15 - North          )")
         assertEquals(expected, "smeup/T15_A80_P09".outputOf())
+    }
+
+    /**
+     * %LOOKUPxx tests
+     * @see #LS24002887
+     */
+    @Test
+    fun executeMUDRNRAPU00210() {
+        val expected = listOf("4", "0", "0", "3", "0", "6", "0", "3", "0", "2", "4", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00210".outputOf())
+    }
+
+    /**
+     * %LOOKUPxx fails with arrays that are not sequenced
+     * @see #LS24002887
+     */
+    @Test
+    fun executeMUDRNRAPU00211() {
+        assertFailsWith(RuntimeException::class) {
+            "smeup/MUDRNRAPU00211".outputOf(configuration = smeupConfig)
+        }
     }
 }
