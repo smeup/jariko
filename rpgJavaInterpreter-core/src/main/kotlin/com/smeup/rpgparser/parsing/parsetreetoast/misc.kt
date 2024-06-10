@@ -234,7 +234,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
         // explicitStartOffset and explicitEndOffsets set to zero are wanted
         FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
     }
-
+    // record format possibly for file video is unuseful
     if (fileType == FileType.DB) {
         val recordFormatDefinition = DataDefinition(
             internalFormatName!!,
