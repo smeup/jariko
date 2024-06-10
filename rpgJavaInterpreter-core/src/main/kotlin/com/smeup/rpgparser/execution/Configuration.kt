@@ -36,6 +36,9 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
  * @param memorySliceStorage Allows to implement a symbol table storaging.
  * If null, symbol table persistence will be skipped
  * @param jarikoCallback Several callback.
+ * @param reloadConfig Reload configuration, it is mandatory for rpgle programs containing RLA operations
+ * @param dspfConfig DSPF parser configuration, if null metadata information related to display files will be loaded
+ * from reloadConfig
  * @param defaultActivationGroupName Default activation group. If not specified it assumes "*DEFACTGRP"
  * */
 
