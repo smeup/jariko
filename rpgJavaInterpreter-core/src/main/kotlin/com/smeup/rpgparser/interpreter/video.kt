@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.domain.DSPF
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 
 internal fun DSPF.getDbFields(): List<DbField> {
     val fields = mutableListOf<DbField>()
@@ -8,14 +9,14 @@ internal fun DSPF.getDbFields(): List<DbField> {
     records.forEach { record ->
         record.fields.forEach { field ->
             var type: Type
-            var rpgType: String
+            var rpgType: RpgType
             // currently parser can't handle REFFLD so I created random fallback values
             val fallbackLength = 10
             val fallbackPrecision = 10
 
             if (field.isNumeric) {
-                if (field.precision!! > 0) rpgType = "Z"
-                else rpgType = "S"
+                if (field.precision!! > 0) rpgType = RpgType.ZONED
+                else rpgType = RpgType.INTEGER
 
                 type = NumberType(
                     field.length ?: fallbackLength,
