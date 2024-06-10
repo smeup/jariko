@@ -15,8 +15,9 @@ internal data class SimpleDspfConfig(var displayFilePath: String? = null) {
 
     internal fun getMetadata(displayFile: String): FileMetadata {
         val videoFile = File(displayFilePath, "$displayFile.dspf")
+        require(videoFile.exists()) { "$videoFile doesn't exist" }
+
         return videoFile.bufferedReader().use { reader ->
-            require(videoFile.exists()) { "$videoFile doesn't exist" }
             val dspf = DisplayFileParser.parse(reader)
             val fields = dspf.getDbFields()
 
