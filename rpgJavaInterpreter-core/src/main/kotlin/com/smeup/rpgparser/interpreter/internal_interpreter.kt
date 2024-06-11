@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.dspfparser.domain.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -63,7 +64,8 @@ class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
-    var params: Int = 0
+    var params: Int = 0,
+    val displayFiles: Map<String, DSPF>? = null
 ) {
     var inzsrExecuted = false
     var lastFound = false
@@ -81,7 +83,8 @@ class InterpreterStatus(
 
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
-    private val localizationContext: LocalizationContext = LocalizationContext()
+    private val localizationContext: LocalizationContext = LocalizationContext(),
+    private val displayFiles: Map<String, DSPF>? = null
 ) : InterpreterCore {
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
@@ -119,7 +122,7 @@ open class InternalInterpreter(
 
     private fun logsEnabled() = logHandlers.isNotEmpty()
 
-    private val status = InterpreterStatus(globalSymbolTable, indicators)
+    private val status = InterpreterStatus(globalSymbolTable, indicators, displayFiles = displayFiles)
     override fun getStatus(): InterpreterStatus {
         return status
     }
