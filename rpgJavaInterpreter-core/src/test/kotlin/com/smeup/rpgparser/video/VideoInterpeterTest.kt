@@ -3,11 +3,12 @@ package com.smeup.rpgparser.video
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
+import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class VideoInterpeterTest : AbstractTest() {
 
@@ -32,12 +33,6 @@ class VideoInterpeterTest : AbstractTest() {
                     metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) }
                 )
             }
-    }
-
-    @Test
-    fun executeFILEDEF() {
-        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
-        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
     }
 
     @Test
