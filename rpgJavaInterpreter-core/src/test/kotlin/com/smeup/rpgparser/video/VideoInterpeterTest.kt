@@ -7,6 +7,7 @@ import com.smeup.rpgparser.execution.SimpleDspfConfig
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class VideoInterpeterTest : AbstractTest() {
 
@@ -21,6 +22,13 @@ class VideoInterpeterTest : AbstractTest() {
             metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
+    }
+
+    @Test
+    fun checkDisplayFilesNotNull() {
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles)
+        }
     }
 
     @Test

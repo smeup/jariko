@@ -37,10 +37,11 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
     val displayFiles = mutableMapOf<String, DSPF>()
     val configuration = MainExecutionContext.getConfiguration().dspfConfig
 
-    configuration ?: error("Missing property dspfConfig in configuration")
-
-    this.forEach {
-        if (it.fileType == FileType.VIDEO) displayFiles[it.name] = configuration.dspfProducer(it.name)
+    this.filter { it.fileType == FileType.VIDEO } .forEach {
+        require(configuration != null) {
+            "dspfConfig must be not null"
+        }
+        displayFiles[it.name] = configuration.dspfProducer(it.name)
     }
 
     return displayFiles
