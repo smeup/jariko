@@ -17,8 +17,8 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
-import com.smeup.dspfparser.domain.DSPF
-import com.smeup.dspfparser.domain.DSPFField
+import com.smeup.dspfparser.linesclassifier.DSPF
+import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.Api
 import com.smeup.rpgparser.parsing.ast.ApiId

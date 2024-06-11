@@ -18,7 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
-import com.smeup.dspfparser.domain.DSPF
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext

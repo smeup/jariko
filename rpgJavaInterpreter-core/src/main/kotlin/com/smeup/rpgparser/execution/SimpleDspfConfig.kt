@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.dspfparser.domain.DSPF
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.domain.DisplayFileParser
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.getDbFields

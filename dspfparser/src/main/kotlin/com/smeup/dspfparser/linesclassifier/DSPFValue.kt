@@ -1,9 +1,12 @@
-package com.smeup.dspfparser.domain
+package com.smeup.dspfparser.linesclassifier
+
+import kotlinx.serialization.Serializable
 
 /**
  * Value assigned to a [DSPFField] object.
  */
-interface DSPFValue<T> {
+@Serializable
+sealed interface DSPFValue<T> {
     /**
      * Real value that a [DSPFValue] instance holds.
      */

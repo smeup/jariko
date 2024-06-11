@@ -16,7 +16,7 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.dspfparser.domain.DSPF
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
