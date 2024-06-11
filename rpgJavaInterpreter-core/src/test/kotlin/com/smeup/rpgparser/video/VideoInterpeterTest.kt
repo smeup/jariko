@@ -35,36 +35,36 @@ class VideoInterpeterTest : AbstractTest() {
     @Test
     fun executeFILEDEF() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
-        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
         configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles?.get("FILEDEF"))
+            assertNotNull(it.displayFiles?.get("FILEDEFV"))
         }
+        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
     }
 
     @Test
     fun executeEXFMT_MOCK() {
         val expected = listOf("")
-        assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
         configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles?.get("EXFMT_MOCK"))
+            assertNotNull(it.displayFiles?.get("EXFMT_MV"))
         }
+        assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
     }
 
     @Test
     fun executeREADC_MOCK() {
         val expected = listOf("")
-        assertEquals(expected = expected, actual = "video/READC_MOCK".outputOf(configuration = configuration))
         configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles?.get("READC_MOCK"))
+            assertNotNull(it.displayFiles?.get("READC_MV"))
         }
+        assertEquals(expected = expected, actual = "video/READC_MOCK".outputOf(configuration = configuration))
     }
 
     @Test
     fun executeUNLOCK_MOCK() {
         val expected = listOf("")
-        assertEquals(expected = expected, actual = "video/UNLOCK_MOCK".outputOf(configuration = configuration))
         configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles?.get("UNLOCK_MOCK"))
+            assertNotNull(it.displayFiles?.get("UNLOCK_MV"))
         }
+        assertEquals(expected = expected, actual = "video/UNLOCK_MOCK".outputOf(configuration = configuration))
     }
 }
