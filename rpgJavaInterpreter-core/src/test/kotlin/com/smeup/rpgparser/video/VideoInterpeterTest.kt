@@ -18,7 +18,8 @@ class VideoInterpeterTest : AbstractTest() {
         val path = javaClass.getResource("/video/metadata")!!.path
         val dspfConfig = SimpleDspfConfig(displayFilePath = path)
         configuration.dspfConfig = DspfConfig(
-            metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) }
+            metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
+            dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
     }
 

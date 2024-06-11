@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.dspfparser.domain.DSPF
 import com.smeup.dspfparser.domain.DisplayFileParser
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.getDbFields
@@ -12,6 +13,15 @@ import java.io.File
  * */
 @Serializable
 internal data class SimpleDspfConfig(var displayFilePath: String? = null) {
+
+    internal fun dspfProducer(displayFile: String): DSPF {
+        val videoFile = File(displayFilePath, "$displayFile.dspf")
+        require(videoFile.exists()) { "$videoFile doesn't exist" }
+
+        return videoFile.bufferedReader().use { reader ->
+            DisplayFileParser.parse(reader)
+        }
+    }
 
     internal fun getMetadata(displayFile: String): FileMetadata {
         val videoFile = File(displayFilePath, "$displayFile.dspf")
