@@ -719,10 +719,14 @@ class JarikoCallbackTest : AbstractTest() {
             val found = errorEvents
                             .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
                             .map { it.contains(lines) }
-            val filtered = if (onlySpecified) found else found.filter { it }
+            val errorsCorrespond = if (onlySpecified) {
+                found.size == found.filter { it }.size && found.size == lines.size
+            } else {
+                found.filter { it }.size == lines.size
+            }
             Assert.assertTrue(
                 "Errors doesn't correspond",
-                filtered.size == lines.size
+                errorsCorrespond
             )
         }
     }
