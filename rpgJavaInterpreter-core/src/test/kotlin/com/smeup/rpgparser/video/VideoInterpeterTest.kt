@@ -26,13 +26,6 @@ class VideoInterpeterTest : AbstractTest() {
     }
 
     @Test
-    fun checkDisplayFilesNotNull() {
-        configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles)
-        }
-    }
-
-    @Test
     fun executeFILEDEF() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
         configuration.jarikoCallback.afterAstCreation = {
