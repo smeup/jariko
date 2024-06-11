@@ -8,6 +8,6 @@
      D OLDIPG          S                   LIKE(§CRIPG)
      C     OLDIPG        DSPLY
      C     DTAARA        DEFINE    *LDA          £UDLDA
-     C*                   IN        £UDLDA
+     C                   IN        £UDLDA
      C     *ENTRY        PLIST
      C                   PARM                    §CRIPG           10

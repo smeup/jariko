@@ -552,6 +552,19 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR27CallBackTest() {
+        executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
+            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA, position=Position(start=Line 10, Column 25, end=Line 10, Column 81))",
+            11 to "An operation is not implemented: IN£UDLDA"
+        ), true)
+    }
+
+    @Test
+    fun executeERROR27SourceLineTest() {
+        executeSourceLineTest("ERROR27")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -683,8 +696,9 @@ class JarikoCallbackTest : AbstractTest() {
      * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
      * @param sourceId The expected identifier of the source where the error is expected to occur.
      * @param lines The map of lines, number and message, expected.
+     * @param onlySpecified Determines whether we should pass the test allowing no more than the specified errors
      */
-    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: Map<Int, String>) {
+    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: Map<Int, String>, onlySpecified: Boolean = false) {
         val errorEvents = mutableListOf<ErrorEvent>()
         runCatching {
             val configuration = Configuration().apply {
@@ -705,9 +719,10 @@ class JarikoCallbackTest : AbstractTest() {
             val found = errorEvents
                             .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
                             .map { it.contains(lines) }
+            val filtered = if (onlySpecified) found else found.filter { it }
             Assert.assertTrue(
                 "Errors doesn't correspond",
-                found.filter { it }.size.equals(lines.size)
+                filtered.size == lines.size
             )
         }
     }
