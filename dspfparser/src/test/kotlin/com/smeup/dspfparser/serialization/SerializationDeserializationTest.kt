@@ -10,14 +10,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class SerializationDeserializationTest : DSPFSpecificationsLoader("./src/test/resources/D2.dspf") {
-    // should ignore "type" key that is produced from serialization of DSPF interface
-    private val json = Json { prettyPrint = true; ignoreUnknownKeys = true }
+    private val json = Json { prettyPrint = true }
 
     @Test
     fun serialize() {
-        val initial = this.specifications
-        val string = json.encodeToString(initial as DSPF)
-        val deserialized = json.decodeFromString<DSPFSpecifications>(string) as DSPF
+        val initial = this.specifications as DSPF
+        val string = json.encodeToString(initial)
+        val deserialized = json.decodeFromString<DSPF>(string)
         assertEquals(initial, deserialized)
     }
 }
