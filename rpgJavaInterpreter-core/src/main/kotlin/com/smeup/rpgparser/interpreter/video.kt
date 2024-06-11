@@ -37,7 +37,7 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
     val displayFiles = mutableMapOf<String, DSPF>()
     val configuration = MainExecutionContext.getConfiguration().dspfConfig
 
-    this.filter { it.fileType == FileType.VIDEO } .forEach {
+    this.filter { it.fileType == FileType.VIDEO }.forEach {
         require(configuration != null) {
             "dspfConfig must be not null"
         }
