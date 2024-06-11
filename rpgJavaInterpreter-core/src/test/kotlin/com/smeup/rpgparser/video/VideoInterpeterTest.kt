@@ -5,7 +5,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

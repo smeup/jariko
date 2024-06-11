@@ -48,12 +48,28 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
     return displayFiles
 }
 
-internal fun loadDSPFFieldsOf(formatName: String): List<DSPFField> {
+internal fun loadDSPFFields(interpreter: InterpreterCore, formatName: String): List<DSPFField> {
     val fields = mutableListOf<DSPFField>()
+    val symbolTable = interpreter.getGlobalSymbolTable()
+
+    interpreter.getStatus().displayFiles?.forEach { dspf ->
+        dspf.value.records.first { record -> record.name == formatName }.let {
+            it.fields.forEach { field ->
+                field.value.primitive = symbolTable[it.name].asString().value
+            }
+        }
+    }
 
     return fields
 }
 
-internal fun unloadDSPFFields(response: OnExfmtResponse) {
-    TODO()
+internal fun unloadDSPFFields(interpreter: InterpreterCore, response: OnExfmtResponse) {
+    val fields = mutableListOf<DSPFField>()
+    val symbolTable = interpreter.getGlobalSymbolTable()
+
+    response.values.forEach { field ->
+        val dataDefinition = symbolTable.dataDefinitionByName(field.key)
+        dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
+        // assign value in symbol table...
+    }
 }
