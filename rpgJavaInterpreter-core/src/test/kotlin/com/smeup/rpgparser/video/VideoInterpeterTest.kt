@@ -4,6 +4,7 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
+import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -63,7 +64,12 @@ class VideoInterpeterTest : AbstractTest() {
 
     @Test
     fun executeEXFMT1() {
-        val expected = listOf("")
+        val expected = listOf("NEW_VALUE")
+        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, String>()
+//            map[fields[0].name] = "NEW_VALUE"
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
         configuration.jarikoCallback.afterAstCreation = {
             assertNotNull(it.displayFiles?.get("EXFMT1V"))
         }

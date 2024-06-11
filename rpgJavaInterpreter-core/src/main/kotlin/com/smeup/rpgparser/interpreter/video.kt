@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.domain.DSPF
+import com.smeup.dspfparser.domain.DSPFField
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 
@@ -45,4 +46,14 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
     }
 
     return displayFiles
+}
+
+internal fun loadDSPFFieldsOf(formatName: String): List<DSPFField> {
+    val fields = mutableListOf<DSPFField>()
+
+    return fields
+}
+
+internal fun unloadDSPFFields(response: OnExfmtResponse) {
+    TODO()
 }
