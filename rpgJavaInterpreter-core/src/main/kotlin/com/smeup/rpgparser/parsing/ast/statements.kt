@@ -2382,12 +2382,20 @@ data class ResetStmt(
 
 @Serializable
 data class ExfmtStmt(
-    override val position: Position? = null
+    override val position: Position? = null,
+    val factor2: String
 ) : Statement(position), MockStatement {
     override val loggableEntityName: String
         get() = "EXFMT"
 
-    override fun execute(interpreter: InterpreterCore) {}
+    override fun execute(interpreter: InterpreterCore) {
+        val response = MainExecutionContext.getConfiguration().jarikoCallback.onExfmt(
+            loadDSPFFieldsOf(factor2),
+            RuntimeInterpreterSnapshot()
+        )
+        response ?: error("EXFMT response is null, program should terminate")
+        unloadDSPFFields(response)
+    }
 }
 
 @Serializable

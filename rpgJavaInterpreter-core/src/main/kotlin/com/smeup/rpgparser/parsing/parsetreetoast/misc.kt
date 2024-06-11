@@ -2081,7 +2081,8 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 // TODO
 internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    return ExfmtStmt(position)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("Line ${position?.line()}: EXFMT operation requires factor 2: ${this.text}")
+    return ExfmtStmt(position, factor2)
 }
 
 // TODO
