@@ -1,10 +1,8 @@
 package com.smeup.rpgparser.video
 
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.DspfConfig
-import com.smeup.rpgparser.execution.SimpleDspfConfig
-import com.smeup.rpgparser.interpreter.OnExfmtResponse
+import com.smeup.rpgparser.execution.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,6 +12,7 @@ import kotlin.test.assertTrue
 class VideoInterpeterTest : AbstractTest() {
 
     lateinit var configuration: Configuration
+    lateinit var configurationForRetroCompatibilityTest: Configuration
 
     @BeforeTest
     fun setUp() {
@@ -24,6 +23,27 @@ class VideoInterpeterTest : AbstractTest() {
             metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
+        // If dspfConfig is null metadata must be loaded from reloadConfig, as previously
+        configurationForRetroCompatibilityTest = Configuration(dspfConfig = null)
+            .apply {
+                val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
+                this.reloadConfig = ReloadConfig(
+                    nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+                    metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) }
+                )
+            }
+    }
+
+    @Test
+    fun executeFILEDEF() {
+        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeFILEDEF1() {
+        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        assertEquals(expected = expected, actual = "video/FILEDEF1".outputOf(configuration = configurationForRetroCompatibilityTest))
     }
 
     @Test

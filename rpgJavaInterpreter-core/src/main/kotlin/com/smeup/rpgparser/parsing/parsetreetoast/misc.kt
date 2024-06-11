@@ -189,7 +189,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
 
 private fun FileDefinition.loadMetadata(): FileMetadata {
     return when {
-        (fileType == FileType.DB) -> {
+        (fileType == FileType.DB || MainExecutionContext.getConfiguration().dspfConfig == null) -> {
             val reloadConfig = MainExecutionContext.getConfiguration()
                 .reloadConfig
                 ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
