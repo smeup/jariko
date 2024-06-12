@@ -2390,11 +2390,11 @@ data class ExfmtStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
-        val fields = copyDataDefinitionIntoRecordFields(interpreter, factor2)
+        val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
         val snapshot = RuntimeInterpreterSnapshot()
         val response = jarikoCallback.onExfmt(fields, snapshot)
         response ?: error("EXFMT response is null, program should terminate")
-        copyRecordFieldsIntoDataDefinition(interpreter, response)
+        copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }
 

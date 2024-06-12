@@ -54,7 +54,7 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
  * Fields of specified record will be returned and updated with the latest
  * value of the corrisponding data definition just before EXFMT starts.
  */
-internal fun copyDataDefinitionIntoRecordFields(interpreter: InterpreterCore, recordName: String): List<DSPFField> {
+internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): List<DSPFField> {
     val fields = mutableListOf<DSPFField>()
     val symbolTable = interpreter.getGlobalSymbolTable()
     val displayFiles = interpreter.getStatus().displayFiles
@@ -74,16 +74,19 @@ internal fun copyDataDefinitionIntoRecordFields(interpreter: InterpreterCore, re
  * Fields edited will during EXFMT will be available just after returning from it as response
  * and used to update corresponding data definitions.
  */
-internal fun copyRecordFieldsIntoDataDefinition(interpreter: InterpreterCore, response: OnExfmtResponse) {
+internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, response: OnExfmtResponse) {
     val symbolTable = interpreter.getGlobalSymbolTable()
 
     response.values.forEach { field ->
         val dataDefinition = symbolTable.dataDefinitionByName(field.key)
         dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
-        when (dataDefinition.type) {
-            is StringType -> symbolTable[dataDefinition] = StringValue(field.value)
-            is NumberType -> symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal())
-            else -> error("Unhandled data type")
+
+        val isString = runCatching { symbolTable[dataDefinition] = StringValue(field.value) }
+        val isDecimal = runCatching { symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal()) }
+        val isInt = runCatching { symbolTable[dataDefinition] = IntValue(field.value.toLong()) }
+
+        require(isString.isSuccess || isDecimal.isSuccess || isInt.isSuccess) {
+            "Unhandled value type"
         }
     }
 }

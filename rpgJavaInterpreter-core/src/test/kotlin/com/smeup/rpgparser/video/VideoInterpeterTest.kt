@@ -80,31 +80,26 @@ class VideoInterpeterTest : AbstractTest() {
 
     @Test
     fun executeEXFMT1() {
-        val expected = listOf("FLD01:NEW_VALUE")
+        val expected = listOf("FLD01:NEW_VALUE", "STR:uppercase", "INT:124", "DEC:124.45")
         configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, String>()
-            // simulates user typing something in FLD01
+
+            // simulates user typing something new in FLD01
             map["FLD01"] = "NEW_VALUE"
+
+            // user edits existing field value
+            val str = fields.find { it.name == "STR" }!!.value.primitive.lowercase()
+            map["STR"] = str
+            val int = fields.find { it.name == "INT" }!!.value.primitive.toLong() + 1
+            map["INT"] = int.toString()
+            val dec = fields.find { it.name == "DEC" }!!.value.primitive.toBigDecimal().inc()
+            map["DEC"] = dec.toString()
+
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
         configuration.jarikoCallback.afterAstCreation = {
             assertNotNull(it.displayFiles?.get("EXFMT1V"))
         }
         assertEquals(expected = expected, actual = "video/EXFMT1".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeEXFMT2() {
-        val expected = listOf("FLD01:uppercase")
-        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
-            val map = mutableMapOf<String, String>()
-            // edit previously stored value to ensure it arrives here correctly
-            map["FLD01"] = fields.find { it.name == "FLD01" }!!.value.primitive.lowercase()
-            OnExfmtResponse(runtimeInterpreterSnapshot, map)
-        }
-        configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles?.get("EXFMT2V"))
-        }
-        assertEquals(expected = expected, actual = "video/EXFMT2".outputOf(configuration = configuration))
     }
 }
