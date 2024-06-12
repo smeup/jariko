@@ -71,6 +71,7 @@ class VideoInterpeterTest : AbstractTest() {
     fun executeFILEDEF1() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
         // no onExfmt needed, there is no EXFMT spec in this RPGLE file
+        // this uses fallback config (reload), so displayFiles attribute should be null
         configuration.jarikoCallback.afterAstCreation = {
             assertEquals(null, it.displayFiles)
         }
