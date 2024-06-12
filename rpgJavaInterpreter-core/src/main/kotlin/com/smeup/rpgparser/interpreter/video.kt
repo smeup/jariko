@@ -77,6 +77,5 @@ internal fun unloadDSPFFields(interpreter: InterpreterCore, response: OnExfmtRes
             is NumberType -> symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal())
             else -> error("Unhandled data type")
         }
-
     }
 }
