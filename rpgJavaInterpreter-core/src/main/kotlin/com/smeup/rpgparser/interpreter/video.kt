@@ -53,12 +53,13 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
 internal fun loadDSPFFields(interpreter: InterpreterCore, formatName: String): List<DSPFField> {
     val fields = mutableListOf<DSPFField>()
     val symbolTable = interpreter.getGlobalSymbolTable()
+    val displayFiles = interpreter.getStatus().displayFiles
 
-    interpreter.getStatus().displayFiles?.forEach { dspf ->
-        dspf.value.records.first { record -> record.name == formatName }.let {
-            it.fields.forEach { field ->
-                field.value.primitive = symbolTable[it.name].asString().value
-            }
+    displayFiles?.forEach { dspf ->
+        val record = dspf.value.records.first { it.name == formatName }
+        record.fields.forEach { field ->
+            field.value.primitive = symbolTable[field.name].asString().value
+            fields.add(field)
         }
     }
 

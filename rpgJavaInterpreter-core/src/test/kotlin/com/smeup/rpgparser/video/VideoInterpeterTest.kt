@@ -60,6 +60,7 @@ class VideoInterpeterTest : AbstractTest() {
     @Test
     fun executeFILEDEF() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        // no onExfmt needed, there is no EXFMT spec in this RPGLE file
         configuration.jarikoCallback.afterAstCreation = {
             assertNotNull(it.displayFiles?.get("FILEDEFV"))
         }
@@ -69,6 +70,10 @@ class VideoInterpeterTest : AbstractTest() {
     @Test
     fun executeFILEDEF1() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        // no onExfmt needed, there is no EXFMT spec in this RPGLE file
+        configuration.jarikoCallback.afterAstCreation = {
+            assertEquals(null, it.displayFiles)
+        }
         assertEquals(expected = expected, actual = "video/FILEDEF1".outputOf(configuration = configurationForRetroCompatibilityTest))
     }
 
@@ -85,5 +90,20 @@ class VideoInterpeterTest : AbstractTest() {
             assertNotNull(it.displayFiles?.get("EXFMT1V"))
         }
         assertEquals(expected = expected, actual = "video/EXFMT1".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeEXFMT2() {
+        val expected = listOf("FLD01:uppercase")
+        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, String>()
+            // edit previously stored value
+            map["FLD01"] = fields.find { it.name == "FLD01" }!!.value.primitive.lowercase()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("EXFMT2V"))
+        }
+        assertEquals(expected = expected, actual = "video/EXFMT2".outputOf(configuration = configuration))
     }
 }
