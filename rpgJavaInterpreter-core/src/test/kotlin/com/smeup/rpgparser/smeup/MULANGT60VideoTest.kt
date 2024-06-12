@@ -26,4 +26,14 @@ open class MULANGT60VideoTest : MULANGTTest() {
         val expected = listOf("5")
         assertEquals(expected, "smeup/T60_A40_P01".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * TODO
+     * @see TODO
+     */
+    @Test
+    fun executeMU604002() {
+        val expected = listOf("FMT01 :: AAAAAA() BBBBBB() CCCCCC() DDDDDD() EEEEEE()")
+        assertEquals(expected, "smeup/MU604002".outputOf(configuration = smeupConfig))
+    }
 }
