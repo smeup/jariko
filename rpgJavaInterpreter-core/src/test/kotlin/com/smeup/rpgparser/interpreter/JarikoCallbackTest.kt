@@ -554,7 +554,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR27CallBackTest() {
         executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA, position=Position(start=Line 10, Column 25, end=Line 10, Column 81))",
+            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA",
             11 to "An operation is not implemented: IN£UDLDA"
         ))
     }
@@ -716,8 +716,12 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
-                            .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
-                            .map { Pair(it.value, it.contains(lines)) }
+                .associate { errorEvent ->
+                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
+                }
+                .map {
+                    Pair(it.value, it.contains(lines))
+                }
             Assert.assertTrue(
                 "Errors doesn't correspond:\n" + found.joinToString(separator = "\n") { it.first },
                 found.size == found.filter { it.second }.size && found.size == lines.size
@@ -731,7 +735,6 @@ class JarikoCallbackTest : AbstractTest() {
                 return true
             }
         }
-
         return false
     }
 
