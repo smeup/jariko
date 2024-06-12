@@ -98,7 +98,7 @@ class VideoInterpeterTest : AbstractTest() {
         val expected = listOf("FLD01:uppercase")
         configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, String>()
-            // edit previously stored value
+            // edit previously stored value to ensure it arrives here correctly
             map["FLD01"] = fields.find { it.name == "FLD01" }!!.value.primitive.lowercase()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }

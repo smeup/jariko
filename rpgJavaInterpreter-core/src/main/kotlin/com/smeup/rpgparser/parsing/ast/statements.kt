@@ -2389,12 +2389,12 @@ data class ExfmtStmt(
         get() = "EXFMT"
 
     override fun execute(interpreter: InterpreterCore) {
-        val response = MainExecutionContext.getConfiguration().jarikoCallback.onExfmt(
-            loadDSPFFields(interpreter, factor2),
-            RuntimeInterpreterSnapshot()
-        )
+        val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
+        val fields = copyDataDefinitionIntoRecordFields(interpreter, factor2)
+        val snapshot = RuntimeInterpreterSnapshot()
+        val response = jarikoCallback.onExfmt(fields, snapshot)
         response ?: error("EXFMT response is null, program should terminate")
-        unloadDSPFFields(interpreter, response)
+        copyRecordFieldsIntoDataDefinition(interpreter, response)
     }
 }
 

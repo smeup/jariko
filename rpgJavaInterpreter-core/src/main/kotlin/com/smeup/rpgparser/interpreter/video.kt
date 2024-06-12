@@ -50,13 +50,17 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
     return if (dspfConfig != null) displayFiles else null
 }
 
-internal fun loadDSPFFields(interpreter: InterpreterCore, formatName: String): List<DSPFField> {
+/**
+ * Fields of specified record will be returned and updated with the latest
+ * value of the corrisponding data definition just before EXFMT starts.
+ */
+internal fun copyDataDefinitionIntoRecordFields(interpreter: InterpreterCore, recordName: String): List<DSPFField> {
     val fields = mutableListOf<DSPFField>()
     val symbolTable = interpreter.getGlobalSymbolTable()
     val displayFiles = interpreter.getStatus().displayFiles
 
     displayFiles?.forEach { dspf ->
-        val record = dspf.value.records.first { it.name == formatName }
+        val record = dspf.value.records.first { it.name == recordName }
         record.fields.forEach { field ->
             field.value.primitive = symbolTable[field.name].asString().value
             fields.add(field)
@@ -66,7 +70,11 @@ internal fun loadDSPFFields(interpreter: InterpreterCore, formatName: String): L
     return fields
 }
 
-internal fun unloadDSPFFields(interpreter: InterpreterCore, response: OnExfmtResponse) {
+/**
+ * Fields edited will during EXFMT will be available just after returning from it as response
+ * and used to update corresponding data definitions.
+ */
+internal fun copyRecordFieldsIntoDataDefinition(interpreter: InterpreterCore, response: OnExfmtResponse) {
     val symbolTable = interpreter.getGlobalSymbolTable()
 
     response.values.forEach { field ->
