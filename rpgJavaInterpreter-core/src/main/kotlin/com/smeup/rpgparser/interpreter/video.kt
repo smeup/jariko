@@ -82,7 +82,12 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
 
         val isString = runCatching { symbolTable[dataDefinition] = StringValue(field.value) }
+        // assignment as decimal is performed before because
+        // to a decimal value can't be assigned an integer value
+        // but
+        // to an integer value can be assigned a decimal value
         val isDecimal = runCatching { symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal()) }
+        // so if to symbol was already assigned a decimal value this will fail for sure
         val isInt = runCatching { symbolTable[dataDefinition] = IntValue(field.value.toLong()) }
 
         require(isString.isSuccess || isDecimal.isSuccess || isInt.isSuccess) {
