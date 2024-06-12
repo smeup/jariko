@@ -2384,7 +2384,7 @@ data class ResetStmt(
 data class ExfmtStmt(
     override val position: Position? = null,
     val factor2: String
-) : Statement(position), MockStatement {
+) : Statement(position) {
     override val loggableEntityName: String
         get() = "EXFMT"
 

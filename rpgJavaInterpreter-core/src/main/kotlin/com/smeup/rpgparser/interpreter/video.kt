@@ -36,16 +36,18 @@ internal fun DSPF.getDbFields(): List<DbField> {
 
 internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
     val displayFiles = mutableMapOf<String, DSPF>()
-    val configuration = MainExecutionContext.getConfiguration().dspfConfig
+    val dspfConfig = MainExecutionContext.getConfiguration().dspfConfig
 
     this.filter { it.fileType == FileType.VIDEO }.forEach {
-        require(configuration != null) {
-            "dspfConfig must be not null"
+        if (dspfConfig != null) {
+            displayFiles[it.name] = dspfConfig.dspfProducer.invoke(it.name)
         }
-        displayFiles[it.name] = configuration.dspfProducer(it.name)
+        // if dspfConfig == null then display file fields have already been loaded into
+        // data definitions from .json metadata (reloadConfig is used as fallback)
     }
 
-    return displayFiles
+    // should I return null or an empty map?
+    return if (dspfConfig != null) displayFiles else null
 }
 
 internal fun loadDSPFFields(interpreter: InterpreterCore, formatName: String): List<DSPFField> {
@@ -64,12 +66,16 @@ internal fun loadDSPFFields(interpreter: InterpreterCore, formatName: String): L
 }
 
 internal fun unloadDSPFFields(interpreter: InterpreterCore, response: OnExfmtResponse) {
-    val fields = mutableListOf<DSPFField>()
     val symbolTable = interpreter.getGlobalSymbolTable()
 
     response.values.forEach { field ->
         val dataDefinition = symbolTable.dataDefinitionByName(field.key)
         dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
-        // assign value in symbol table...
+        when (dataDefinition.type) {
+            is StringType -> symbolTable[dataDefinition] = StringValue(field.value)
+            is NumberType -> symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal())
+            else -> error("Unhandled data type")
+        }
+
     }
 }

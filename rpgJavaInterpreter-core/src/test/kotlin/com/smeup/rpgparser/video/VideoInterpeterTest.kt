@@ -35,23 +35,13 @@ class VideoInterpeterTest : AbstractTest() {
     }
 
     @Test
-    fun executeFILEDEF1() {
-        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
-        assertEquals(expected = expected, actual = "video/FILEDEF1".outputOf(configuration = configurationForRetroCompatibilityTest))
-    }
-
-    @Test
-    fun executeEXFMT_MOCK() {
-        val expected = listOf("")
-        configuration.jarikoCallback.afterAstCreation = {
-            assertNotNull(it.displayFiles?.get("EXFMT_MV"))
-        }
-        assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeREADC_MOCK() {
         val expected = listOf("")
+        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, String>()
+            // leave all fields unchanged
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
         configuration.jarikoCallback.afterAstCreation = {
             assertNotNull(it.displayFiles?.get("READC_MV"))
         }
@@ -77,11 +67,18 @@ class VideoInterpeterTest : AbstractTest() {
     }
 
     @Test
+    fun executeFILEDEF1() {
+        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        assertEquals(expected = expected, actual = "video/FILEDEF1".outputOf(configuration = configurationForRetroCompatibilityTest))
+    }
+
+    @Test
     fun executeEXFMT1() {
-        val expected = listOf("NEW_VALUE")
+        val expected = listOf("FLD01:NEW_VALUE")
         configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, String>()
-//            map[fields[0].name] = "NEW_VALUE"
+            // simulates user typing something in FLD01
+            map["FLD01"] = "NEW_VALUE"
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
         configuration.jarikoCallback.afterAstCreation = {
