@@ -51,6 +51,7 @@ open class RpgParserOverlayTest03 : AbstractTest() {
         val interpreter = InternalInterpreter(JavaSystemInterface().apply {
             rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         })
+        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)

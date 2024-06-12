@@ -64,13 +64,13 @@ class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
-    var params: Int = 0,
-    val displayFiles: Map<String, DSPF>? = null
+    var params: Int = 0
 ) {
     var inzsrExecuted = false
     var lastFound = false
     var lastDBFile: DBFile? = null
     val dbFileMap = DBFileMap()
+    var displayFiles: Map<String, DSPF>? = null
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
         val tmpValue = symbolTable[abstractDataDefinition]
@@ -83,8 +83,7 @@ class InterpreterStatus(
 
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
-    private val localizationContext: LocalizationContext = LocalizationContext(),
-    private val displayFiles: Map<String, DSPF>? = null
+    private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
@@ -122,7 +121,7 @@ open class InternalInterpreter(
 
     private fun logsEnabled() = logHandlers.isNotEmpty()
 
-    private val status = InterpreterStatus(globalSymbolTable, indicators, displayFiles = displayFiles)
+    private val status = InterpreterStatus(globalSymbolTable, indicators)
     override fun getStatus(): InterpreterStatus {
         return status
     }

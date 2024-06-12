@@ -493,6 +493,7 @@ fun execute(
     }
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
+    interpreter.getStatus().displayFiles = cu.displayFiles
     try {
         // create just to pass to interpreter programName
         val interpretationContext = object : InterpretationContext {

@@ -33,6 +33,7 @@ open class RpgDeceditTest09 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
+        interpreter.getStatus().displayFiles = cu.displayFiles
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
@@ -49,6 +50,7 @@ open class RpgDeceditTest09 : AbstractTest() {
 
         val localizationContext = LocalizationContext(decedit = DecEdit.COMMA)
         val interpreter = InternalInterpreter(JavaSystemInterface(), localizationContext)
+        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)
@@ -63,6 +65,7 @@ open class RpgDeceditTest09 : AbstractTest() {
         cu.resolveAndValidate()
         val localizationContext = LocalizationContext(decedit = DecEdit.ZERO_COMMA)
         val interpreter = InternalInterpreter(JavaSystemInterface(), localizationContext)
+        interpreter.getStatus().displayFiles = cu.displayFiles
         // Changes the default decedit
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
