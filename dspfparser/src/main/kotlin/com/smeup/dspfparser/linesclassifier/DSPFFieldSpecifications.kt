@@ -2,7 +2,6 @@ package com.smeup.dspfparser.linesclassifier
 
 import com.smeup.dspfparser.linesprocessor.DSPFLine
 import com.smeup.dspfparser.positionals.FieldType
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,7 +11,7 @@ internal data class DSPFFieldSpecifications private constructor(
     override val isNumeric: Boolean,
     override val length: Int? = null,
     override val precision: Int? = null,
-    @SerialName("fieldType") override val type: DSPFFieldType,
+    override val type: DSPFFieldType,
     override val x: Int?,
     override val y: Int?,
     override var hasError: Boolean = false

@@ -1,7 +1,6 @@
 package com.smeup.dspfparser.serialization
 
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.dspfparser.linesclassifier.DSPFSpecifications
 import com.smeup.dspfparser.linesclassifier.DSPFSpecificationsLoader
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString

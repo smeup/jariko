@@ -1,6 +1,5 @@
 package com.smeup.dspfparser.linesclassifier
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,7 +12,7 @@ sealed interface DSPFField {
     val isNumeric: Boolean
     val length: Int?
     val precision: Int?
-    @SerialName("fieldType") val type: DSPFFieldType
+    val type: DSPFFieldType
     val x: Int?
     val y: Int?
     val hasError: Boolean
