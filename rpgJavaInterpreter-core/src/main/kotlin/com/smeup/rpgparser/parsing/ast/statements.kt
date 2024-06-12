@@ -107,7 +107,13 @@ abstract class Statement(
 /**
  * For statements with this interface there isn't execution but will be called the callback `onMockStatement`.
  */
-interface MockStatement
+interface MockStatement {
+    /**
+     * Callback method called for this statement on mock execution.
+     * It is the equivalent of the [Statement.execute] method for mock statements.
+     */
+    fun onMock() = Unit
+}
 
 interface CompositeStatement {
     val body: List<Statement>
@@ -2408,6 +2414,19 @@ data class UnlockStmt(
         get() = "UNLOCK"
 
     override fun execute(interpreter: InterpreterCore) {}
+}
+
+@Serializable
+data class ExceptStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "EXCEPT"
+
+    override fun execute(interpreter: InterpreterCore) {}
+    override fun onMock() {
+        throw NotImplementedError("EXCEPT statement is not implemented yet")
+    }
 }
 
 @Serializable
