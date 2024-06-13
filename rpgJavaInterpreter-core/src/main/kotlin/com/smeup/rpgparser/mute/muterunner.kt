@@ -240,7 +240,6 @@ fun RpgParserResult.executeMuteAnnotations(
                 }
         })
     }
-    interpreter.getStatus().displayFiles = cu.displayFiles
     interpreter.execute(cu, parameters)
     interpreter.doSomethingAfterExecution()
     mainExecutionContext?.let {
