@@ -95,6 +95,7 @@ typealias KnownDataDefinitionInstance = MutableMap<String, DataDefinition>
 private fun List<StatementContext?>.getDataDefinition(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
+    inputSpecifications: List<InputSpecificationGroup> = emptyList(),
     parentDataDefinitions: List<DataDefinition>? = null,
     useKnownDataDefinitionInstance: Boolean = false
 ): Pair<MutableList<DataDefinitionProvider>, KnownDataDefinitionInstance> {
@@ -105,7 +106,8 @@ private fun List<StatementContext?>.getDataDefinition(
     val knownDataDefinitions = if (useKnownDataDefinitionInstance) KnownDataDefinition.getInstance() else mutableMapOf()
 
     fileDefinitions?.let {
-        it.values.flatten().toList().removeDuplicatedDataDefinition().forEach { def ->
+        val postProcessedFileDefinitions = it.processWithSpecifications(inputSpecifications)
+        postProcessedFileDefinitions.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
             dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
     }
@@ -151,11 +153,13 @@ private fun List<StatementContext?>.getDataDefinition(
 
 private fun RContext.getDataDefinitions(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    inputSpecifications: List<InputSpecificationGroup> = emptyList()
 ): List<DataDefinition> {
     val (providers) = this.statement().getDataDefinition(
         conf = conf,
         fileDefinitions = fileDefinitions,
+        inputSpecifications = inputSpecifications,
         useKnownDataDefinitionInstance = true
     )
     return providers.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
@@ -264,7 +268,11 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
-    val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
+    val inputSpecifications = this.findAllDescendants(Ispec_fixedContext::class).mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+
+    val dataDefinitions = getDataDefinitions(conf, fileDefinitions, inputSpecifications.grouped())
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
     val mainStmts = this.statement().mapNotNull {
@@ -2221,6 +2229,48 @@ private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat()
     return this.filterNot { dataDef ->
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
     }
+}
+
+private fun List<DataDefinition>.renameFields(externalFieldSpecs: List<ExternalFieldInputSpecification>): List<DataDefinition> {
+    return this.map {
+        val match = externalFieldSpecs.find { spec -> spec.originalName == it.name }
+        match ?: return@map it
+        it.renamed(match.newName)
+    }
+}
+
+private fun List<InputSpecification>.grouped(): List<InputSpecificationGroup> {
+    if (this.isEmpty()) return emptyList()
+    val files = this.withIndex().filter { it.value is FileNameInputSpecification }
+    val output: MutableList<InputSpecificationGroup> = ArrayList<InputSpecificationGroup>(files.size)
+
+    var lastFile = files.first()
+    fun addGroup(index: Int) {
+        val nestedSpecifications = this.slice(lastFile.index + 1 until index)
+        val group = InputSpecificationGroup(lastFile.value as FileNameInputSpecification, nestedSpecifications)
+        output.add(group)
+    }
+
+    files.slice(1..files.lastIndex).forEach {
+        addGroup(it.index)
+        lastFile = it
+    }
+
+    // Last pass if necessary
+    if (output.size < files.size) addGroup(this.size)
+
+    return output
+}
+
+private fun Map<FileDefinition, List<DataDefinition>>.processWithSpecifications(specifications: List<InputSpecificationGroup>): Map<FileDefinition, List<DataDefinition>> {
+    val buffer = this.toMutableMap()
+    specifications.forEach {
+        val target = buffer.entries.firstOrNull { entry -> (entry.key.internalFormatName ?: entry.key.name) == it.fileName.name }
+        target ?: error("No FileDefinition named ${it.fileName.name}")
+        val externalFieldSpecifications = it.specifications.filterIsInstance<ExternalFieldInputSpecification>()
+        buffer[target.key] = target.value.renameFields(externalFieldSpecifications)
+    }
+    return buffer
 }
 
 private fun String.isStringLiteral(): Boolean = startsWith('\'') && endsWith('\'')

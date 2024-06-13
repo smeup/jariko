@@ -241,6 +241,13 @@ data class DataDefinition(
     override fun hashCode() = name.hashCode()
 
     override fun equals(other: Any?) = other?.let { this.name == (other as AbstractDataDefinition).name } ?: false
+
+    /**
+     * Get a [DataDefinition] identical to this but with a different name
+     */
+    fun renamed(newName: String) = DataDefinition(
+        newName, type, fields, initializationValue, inz, position, const, paramPassedBy, paramOptions, defaultValue, static
+    )
 }
 
 fun Type.toDataStructureValue(value: Value): StringValue {
