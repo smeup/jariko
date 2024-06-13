@@ -53,7 +53,6 @@ open class RpgParserOverlayTest11 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(createSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)
@@ -85,7 +84,6 @@ open class RpgParserOverlayTest11 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(createSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)
@@ -110,7 +108,6 @@ open class RpgParserOverlayTest11 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(createSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)

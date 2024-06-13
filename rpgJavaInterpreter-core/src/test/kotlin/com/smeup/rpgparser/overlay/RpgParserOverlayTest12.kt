@@ -69,7 +69,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
@@ -181,7 +180,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
@@ -217,7 +215,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
     }
 
@@ -226,7 +223,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         val failed: Int = executeAnnotations(annotations)
@@ -250,7 +246,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_04", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         val failed: Int = executeAnnotations(annotations)
@@ -275,7 +270,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
@@ -300,7 +294,6 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/MUTE12_06", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()

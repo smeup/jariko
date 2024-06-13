@@ -284,7 +284,6 @@ open class RpgParserDataStruct : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
@@ -308,7 +307,6 @@ open class RpgParserDataStruct : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()

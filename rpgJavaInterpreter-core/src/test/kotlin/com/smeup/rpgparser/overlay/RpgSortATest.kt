@@ -56,7 +56,6 @@ open class RpgSortATest : AbstractTest() {
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.getStatus().displayFiles = cu.displayFiles
         interpreter.execute(cu, mapOf())
         val YFLD_FIL = cu.getDataOrFieldDefinition("YFLD_FIL") as FieldDefinition
         val YFLD_FLD = cu.getDataOrFieldDefinition("YFLD_FLD") as FieldDefinition
