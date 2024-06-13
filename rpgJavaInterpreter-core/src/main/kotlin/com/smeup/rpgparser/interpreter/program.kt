@@ -40,7 +40,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
 
     private val interpreter: InternalInterpreter by lazy {
         val interpreterCore = InternalInterpreter(this.systemInterface!!)
-        interpreterCore.getStatus().displayFiles = cu.displayFiles
         MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(interpreterCore)
         interpreterCore
     }

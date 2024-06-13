@@ -386,6 +386,7 @@ open class InternalInterpreter(
         kotlin.runCatching {
             configureLogHandlers()
 
+            this.status.displayFiles = compilationUnit.displayFiles
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
             execINZSR(compilationUnit)
