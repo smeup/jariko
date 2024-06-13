@@ -2393,7 +2393,7 @@ data class ExfmtStmt(
         val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
         val snapshot = RuntimeInterpreterSnapshot()
         val response = jarikoCallback.onExfmt(fields, snapshot)
-        response ?: error("EXFMT response is null")
+        response ?: error("RuntimeInterpreterSnapshot is not yet handled")
         copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }
