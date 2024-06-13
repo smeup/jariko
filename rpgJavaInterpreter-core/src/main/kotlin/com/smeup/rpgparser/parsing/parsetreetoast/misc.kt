@@ -36,6 +36,7 @@ import java.util.*
 
 enum class AstHandlingPhase {
     FileDefinitionsCreation,
+    InputSpecificationsCreation,
     DataDefinitionsCreation,
     MainStatementsCreation,
     SubroutinesCreation,
@@ -271,6 +272,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     val inputSpecifications = this.findAllDescendants(Ispec_fixedContext::class).mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.InputSpecificationsCreation)
 
     val dataDefinitions = getDataDefinitions(conf, fileDefinitions, inputSpecifications.grouped())
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
