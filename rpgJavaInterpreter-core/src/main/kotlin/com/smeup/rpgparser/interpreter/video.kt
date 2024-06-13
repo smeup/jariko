@@ -71,7 +71,7 @@ internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, r
 }
 
 /**
- * Fields edited will during EXFMT will be available just after returning from it as response
+ * Fields edited during EXFMT will be available just after returning from it as response
  * and used to update corresponding data definitions.
  */
 internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, response: OnExfmtResponse) {
@@ -81,14 +81,13 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         val dataDefinition = symbolTable.dataDefinitionByName(field.key)
         dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
 
-        val isString = runCatching { symbolTable[dataDefinition] = StringValue(field.value) }
-        // assignment as decimal is performed before because
-        // to a decimal value can't be assigned an integer value
-        // but
-        // to an integer value can be assigned a decimal value
+        // to a decimal can't be assigned an integer but to an integer can be assigned a decimal
         val isDecimal = runCatching { symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal()) }
         // so if to symbol was already assigned a decimal value this will fail for sure
         val isInt = runCatching { symbolTable[dataDefinition] = IntValue(field.value.toLong()) }
+        // other data types will be checked here
+        // finally if all failed try string...
+        val isString = runCatching { symbolTable[dataDefinition] = StringValue(field.value) }
 
         require(isString.isSuccess || isDecimal.isSuccess || isInt.isSuccess) {
             "Unhandled value type"
