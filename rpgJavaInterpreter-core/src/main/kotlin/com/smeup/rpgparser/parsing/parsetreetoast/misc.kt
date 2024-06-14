@@ -218,7 +218,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
     val metadata = loadMetadata()
 
-    if (internalFormatName == null) internalFormatName = metadata.recordFormat
+    if (internalFormatName == null) internalFormatName = metadata.recordFormat.ifEmpty { metadata.name }
 
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
