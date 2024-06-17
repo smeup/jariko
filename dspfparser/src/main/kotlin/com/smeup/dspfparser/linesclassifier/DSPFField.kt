@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface DSPFField {
     val name: String
-    val value: DSPFValue<String>
+    var value: DSPFValue?
     val isNumeric: Boolean
     val length: Int?
     val precision: Int?

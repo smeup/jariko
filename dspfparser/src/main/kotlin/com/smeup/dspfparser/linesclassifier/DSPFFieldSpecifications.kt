@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFFieldSpecifications private constructor(
     override val name: String,
-    override val value: DSPFFieldValue<String>,
+    override var value: DSPFValue? = null,
     override val isNumeric: Boolean,
     override val length: Int? = null,
     override val precision: Int? = null,
@@ -20,11 +20,10 @@ internal data class DSPFFieldSpecifications private constructor(
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFFieldSpecifications {
             val isNumeric = declaration.decimalsPositions != null
-            val initialValue = if (isNumeric) "0" else ""
 
             return DSPFFieldSpecifications(
                 name = declaration.fieldName,
-                value = DSPFFieldValue(initialValue),
+                value = null,
                 isNumeric = isNumeric,
                 length = declaration.length,
                 precision = declaration.decimalsPositions,

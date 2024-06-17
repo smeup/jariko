@@ -62,7 +62,7 @@ internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, r
     displayFiles?.forEach { dspf ->
         val record = dspf.value.records.first { it.name == recordName }
         record.fields.forEach { field ->
-            field.value.primitive = symbolTable[field.name].asString().value
+            field.value = symbolTable[field.name]
             fields.add(field)
         }
     }
@@ -82,12 +82,12 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
 
         // to a decimal can't be assigned an integer but to an integer can be assigned a decimal
-        val isDecimal = runCatching { symbolTable[dataDefinition] = DecimalValue(field.value.toBigDecimal()) }
+        val isDecimal = runCatching { symbolTable[dataDefinition] = field.value }
         // so if to symbol was already assigned a decimal value this will fail for sure
-        val isInt = runCatching { symbolTable[dataDefinition] = IntValue(field.value.toLong()) }
+        val isInt = runCatching { symbolTable[dataDefinition] = field.value }
         // other data types will be checked here
         // finally if all failed try string...
-        val isString = runCatching { symbolTable[dataDefinition] = StringValue(field.value) }
+        val isString = runCatching { symbolTable[dataDefinition] = field.value }
 
         require(isString.isSuccess || isDecimal.isSuccess || isInt.isSuccess) {
             "Unhandled value type"

@@ -3,7 +3,11 @@ package com.smeup.rpgparser.video
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
+import com.smeup.rpgparser.interpreter.DecimalValue
+import com.smeup.rpgparser.interpreter.IntValue
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
+import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,7 +42,7 @@ class VideoInterpeterTest : AbstractTest() {
     fun executeREADC_MOCK() {
         val expected = listOf("")
         configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
-            val map = mutableMapOf<String, String>()
+            val map = mutableMapOf<String, Value>()
             // leave all fields unchanged
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
@@ -82,18 +86,18 @@ class VideoInterpeterTest : AbstractTest() {
     fun executeEXFMT1() {
         val expected = listOf("FLD01:NEW_VALUE", "STR:uppercase", "INT:124", "DEC:124.45")
         configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
-            val map = mutableMapOf<String, String>()
+            val map = mutableMapOf<String, Value>()
 
             // simulates user typing something new in FLD01
-            map["FLD01"] = "NEW_VALUE"
+            map["FLD01"] = StringValue("NEW_VALUE")
 
             // user edits existing field value
-            val str = fields.find { it.name == "STR" }!!.value.primitive.lowercase()
-            map["STR"] = str
-            val int = fields.find { it.name == "INT" }!!.value.primitive.toLong() + 1
-            map["INT"] = int.toString()
-            val dec = fields.find { it.name == "DEC" }!!.value.primitive.toBigDecimal().inc()
-            map["DEC"] = dec.toString()
+            val str = fields.find { it.name == "STR" }!!.value as StringValue
+            map["STR"] = StringValue(str.asString().value.lowercase())
+            val int = fields.find { it.name == "INT" }!!.value as IntValue
+            map["INT"] = int.plus(IntValue(1))
+            val dec = fields.find { it.name == "DEC" }!!.value as DecimalValue
+            map["DEC"] = dec.increment(1)
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
