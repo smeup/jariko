@@ -81,16 +81,6 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         val dataDefinition = symbolTable.dataDefinitionByName(field.key)
         dataDefinition ?: error("Data definition ${field.key} does not exists in symbol table")
 
-        // to a decimal can't be assigned an integer but to an integer can be assigned a decimal
-        val isDecimal = runCatching { interpreter.assign(dataDefinition, field.value) }
-        // so if to symbol was already assigned a decimal value this will fail for sure
-        val isInt = runCatching { interpreter.assign(dataDefinition, field.value) }
-        // other data types will be checked here
-        // finally if all failed try string...
-        val isString = runCatching { interpreter.assign(dataDefinition, field.value) }
-
-        require(isString.isSuccess || isDecimal.isSuccess || isInt.isSuccess) {
-            "Unhandled value type"
-        }
+        interpreter.assign(dataDefinition, field.value)
     }
 }
