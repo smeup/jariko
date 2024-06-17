@@ -965,6 +965,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csUNLOCK() != null -> this.csUNLOCK()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csEXCEPT() != null -> this.csEXCEPT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csFEOD() != null -> this.csFEOD()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -2095,6 +2098,12 @@ internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return UnlockStmt(position)
+}
+
+// TODO
+internal fun CsEXCEPTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return ExceptStmt(position)
 }
 
 internal fun CsTESTNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TestnStmt {

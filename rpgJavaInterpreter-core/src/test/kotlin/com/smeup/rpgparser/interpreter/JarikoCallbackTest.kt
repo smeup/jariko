@@ -552,6 +552,19 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR27CallBackTest() {
+        executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
+            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA",
+            11 to "An operation is not implemented: IN£UDLDA"
+        ))
+    }
+
+    @Test
+    fun executeERROR27SourceLineTest() {
+        executeSourceLineTest("ERROR27")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -703,11 +716,15 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
-                            .associate { errorEvent -> errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!! }
-                            .map { it.contains(lines) }
+                .associate { errorEvent ->
+                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
+                }
+                .map {
+                    Pair(it.value, it.contains(lines))
+                }
             Assert.assertTrue(
-                "Errors doesn't correspond",
-                found.filter { it }.size.equals(lines.size)
+                "Errors doesn't correspond:\n" + found.joinToString(separator = "\n") { it.first },
+                found.size == found.filter { it.second }.size && found.size == lines.size
             )
         }
     }
@@ -718,7 +735,6 @@ class JarikoCallbackTest : AbstractTest() {
                 return true
             }
         }
-
         return false
     }
 

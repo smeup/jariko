@@ -122,4 +122,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("51=1,52=0,53=0")
         assertEquals(expected, "smeup/MU102501".outputOf())
     }
+
+    /**
+     * EXCEPT statement is supported
+     * @see #LS24002974
+     */
+    @Test
+    fun executeMUDRNRAPU00216() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00216".outputOf())
+    }
 }
