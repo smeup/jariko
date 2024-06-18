@@ -1,6 +1,5 @@
 package com.smeup.dspfparser.linesclassifier
 
-import com.smeup.dspfparser.domain.DSPFRecord
 import com.smeup.dspfparser.linesprocessor.DSPFLine
 import kotlinx.serialization.Serializable
 

@@ -1,4 +1,4 @@
-package com.smeup.dspfparser.domain
+package com.smeup.dspfparser.linesclassifier
 
 /**
  * All possible values of a field type (what it can be used for).
