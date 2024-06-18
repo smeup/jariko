@@ -118,6 +118,7 @@ private val modules = SerializersModule {
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)
+        subclass(AddrExpr::class)
         subclass(AllExpr::class)
         subclass(AllocExpr::class)
         subclass(ArrayAccessExpr::class)

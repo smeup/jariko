@@ -8,5 +8,6 @@
      C                   EVAL      SRIG_PTI = %Alloc(%Size(SRIG) * nRIGAll)
      C                   EVAL      SRIG_PTI =%ReAlloc(SRIG_PTR :
      C                              %Size(SRIG) * (nRIGAll+nElAgg))
+     C                   EVAL      SRIG_PTI =%Addr(SRIG_PTR)
      C                   EVAL      £DBG_Str='ok'
      C     £DBG_Str      DSPLY

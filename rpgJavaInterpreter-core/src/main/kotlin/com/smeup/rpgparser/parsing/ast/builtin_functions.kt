@@ -456,6 +456,13 @@ data class SizeExpr(var value: Expression, override val position: Position? = nu
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %ADDR
+@Serializable
+data class AddrExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override fun render() = "%ADDR"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %ALLOC
 @Serializable
 data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
