@@ -61,7 +61,7 @@ private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
         fields.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
     }
 
-    fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null}.forEach {
+    fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
         if (it.isNumeric && it.precision!! == 0)
             variablesAndValues[it.name] = IntValue(updatedVariables[it.name]!!.toLong())
         if (it.isNumeric && it.precision!! > 0)
