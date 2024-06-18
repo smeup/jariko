@@ -977,6 +977,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTESTN() != null -> this.csTESTN()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csDEALLOC() != null -> this.csDEALLOC()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -2132,6 +2135,11 @@ internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
         dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
         position = position
     )
+}
+
+internal fun CsDEALLOCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return DeallocStmt(position = position)
 }
 
 /**

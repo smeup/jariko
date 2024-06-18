@@ -2493,3 +2493,10 @@ data class TestnStmt(
         }
     }
 }
+
+@Serializable
+data class DeallocStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override fun execute(interpreter: InterpreterCore) { }
+}
