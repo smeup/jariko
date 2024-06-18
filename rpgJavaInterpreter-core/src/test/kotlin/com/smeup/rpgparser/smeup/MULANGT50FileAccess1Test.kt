@@ -24,4 +24,14 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
         val expected = listOf("Test")
         assertEquals(expected, "smeup/MU500802".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * I-Spec definitions on a renamed file definition
+     * @see #LS24002977
+     */
+    @Test
+    fun executeMU500901() {
+        val expected = listOf("TSSYST(IBMI) TSLIBR() TSFILE() TATIPO(3) TBPROG(MULANGT12) AAAAAA(A03) BBBBBB(P01) CCCCCC()")
+        assertEquals(expected, "smeup/MU500901".outputOf(configuration = smeupConfig))
+    }
 }
