@@ -18,8 +18,8 @@ import java.io.File
 
 // UI control functions
 
-class UnknownVariable(name: String) : Exception("Variable name $name")
-class WrongInputSyntax : Exception("Input syntax is `VAR1=VALUE;VAR2=23`")
+class UnknownVariable(name: String) : Exception("`$name`")
+class WrongInputSyntax : Exception("Should be: `VAR1=VALUE;VAR2=23`")
 
 private fun parseInput(input: String): Map<String, String> {
     try {
@@ -58,7 +58,7 @@ private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
     val updatedVariables = parseInput(line)
 
     updatedVariables.keys.forEach { variable ->
-        fields.find { field -> field.name == variable } ?: throw WrongInputSyntax()
+        fields.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
     }
 
     fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null}.forEach {
