@@ -26,8 +26,8 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
     }
 
     /**
-     * TODO
-     * @see TODO
+     * I-Spec definitions on a renamed file definition
+     * @see #LS24002977
      */
     @Test
     fun executeMU500901() {

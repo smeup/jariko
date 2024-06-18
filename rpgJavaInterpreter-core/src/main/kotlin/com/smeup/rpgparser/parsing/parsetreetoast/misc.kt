@@ -2237,7 +2237,7 @@ private fun List<DataDefinition>.renameFields(externalFieldSpecs: List<ExternalF
     return this.map {
         val match = externalFieldSpecs.find { spec -> spec.originalName == it.name }
         match ?: return@map it
-        it.renamed(match.newName)
+        it.copy(name = match.newName)
     }
 }
 
