@@ -322,4 +322,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00213".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Dynamic array based on pointer
+     * @see #LS24002988
+     */
+    @Test
+    fun executeMUDRNRAPU00217() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00217".outputOf(configuration = smeupConfig))
+    }
 }
