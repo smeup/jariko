@@ -18,16 +18,23 @@ import java.io.File
 
 // UI control functions
 
+class UnknownVariable(name: String) : Exception("Variable name $name")
+class WrongInputSyntax : Exception("Input syntax is `VAR1=VALUE;VAR2=23`")
+
 private fun parseInput(input: String): Map<String, String> {
-    val assignments = input.split(';')
-    val variablesAndValues = mutableMapOf<String, String>()
+    try {
+        val assignments = input.split(';')
+        val variablesAndValues = mutableMapOf<String, String>()
 
-    assignments.forEach {
-        val tokens = it.split('=')
-        variablesAndValues[tokens[0]] = tokens[1]
+        assignments.forEach {
+            val tokens = it.split('=')
+            variablesAndValues[tokens[0]] = tokens[1]
+        }
+
+        return variablesAndValues
+    } catch (e: Exception) {
+        throw WrongInputSyntax()
     }
-
-    return variablesAndValues
 }
 
 private fun printFields(fields: List<DSPFField>) {
@@ -50,7 +57,11 @@ private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
     val line = readln()
     val updatedVariables = parseInput(line)
 
-    fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
+    updatedVariables.keys.forEach { variable ->
+        fields.find { field -> field.name == variable } ?: throw WrongInputSyntax()
+    }
+
+    fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null}.forEach {
         if (it.isNumeric && it.precision!! == 0)
             variablesAndValues[it.name] = IntValue(updatedVariables[it.name]!!.toLong())
         if (it.isNumeric && it.precision!! > 0)
@@ -99,7 +110,7 @@ private fun createConfig(): Configuration {
 }
 
 fun main() {
-    val programSource = "TRIM01.rpgle"
+    val programSource = "ADD01.rpgle"
     val programFinders = listOf(DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg")!!.path)),)
     val program = getProgram(nameOrSource = programSource, programFinders = programFinders)
 
