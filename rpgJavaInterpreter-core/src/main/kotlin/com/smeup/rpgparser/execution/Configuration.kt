@@ -17,6 +17,8 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dspfparser.linesclassifier.DSPF
+import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
@@ -70,7 +72,8 @@ data class ReloadConfig(
  * @param metadataProducer Produce metadata for a displayFile
  * */
 data class DspfConfig(
-    val metadataProducer: (displayFile: String) -> FileMetadata
+    val metadataProducer: (displayFile: String) -> FileMetadata,
+    val dspfProducer: (displayFile: String) -> DSPF
 )
 
 /**
@@ -172,6 +175,13 @@ data class JarikoCallback(
      * **This callback will be called only if [Options.debuggingInformation] is set to true**.
      * */
     var onExitCopy: (copyId: CopyId) -> Unit = { },
+
+    /**
+     * It is invoked on EXFMT execution.
+     */
+    var onExfmt: (fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
+        _, _ -> null
+    },
 
     /**
      * It is invoked before statement execution.

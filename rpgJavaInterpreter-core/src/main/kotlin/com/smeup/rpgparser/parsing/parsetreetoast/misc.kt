@@ -267,6 +267,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
+    val displayFiles = fileDefinitions.keys.toList().toDSPF()
+
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
@@ -333,7 +335,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures = procedures,
         source = source,
-        copyBlocks = copyBlocks
+        copyBlocks = copyBlocks,
+        displayFiles = displayFiles
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
@@ -2084,7 +2087,8 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 // TODO
 internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    return ExfmtStmt(position)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("Line ${position?.line()}: EXFMT operation requires factor 2: ${this.text}")
+    return ExfmtStmt(position, factor2)
 }
 
 // TODO

@@ -1,5 +1,6 @@
 package com.smeup.dspfparser.domain
 
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.linesclassifier.DSPFSpecifications
 import com.smeup.dspfparser.linesprocessor.LinesProcessor
 import java.io.BufferedReader

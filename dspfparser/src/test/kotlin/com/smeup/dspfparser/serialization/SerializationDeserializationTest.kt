@@ -1,6 +1,6 @@
 package com.smeup.dspfparser.serialization
 
-import com.smeup.dspfparser.linesclassifier.DSPFSpecifications
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.linesclassifier.DSPFSpecificationsLoader
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -13,9 +13,9 @@ internal class SerializationDeserializationTest : DSPFSpecificationsLoader("./sr
 
     @Test
     fun serialize() {
-        val initial = this.specifications
+        val initial = this.specifications as DSPF
         val string = json.encodeToString(initial)
-        val deserialized = json.decodeFromString<DSPFSpecifications>(string)
+        val deserialized = json.decodeFromString<DSPF>(string)
         assertEquals(initial, deserialized)
     }
 }

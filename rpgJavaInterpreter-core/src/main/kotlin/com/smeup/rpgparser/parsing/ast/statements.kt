@@ -2382,12 +2382,20 @@ data class ResetStmt(
 
 @Serializable
 data class ExfmtStmt(
-    override val position: Position? = null
-) : Statement(position), MockStatement {
+    override val position: Position? = null,
+    val factor2: String
+) : Statement(position) {
     override val loggableEntityName: String
         get() = "EXFMT"
 
-    override fun execute(interpreter: InterpreterCore) {}
+    override fun execute(interpreter: InterpreterCore) {
+        val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
+        val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
+        val snapshot = RuntimeInterpreterSnapshot()
+        val response = jarikoCallback.onExfmt(fields, snapshot)
+        response ?: error("RuntimeInterpreterSnapshot is not yet handled")
+        copyRecordFieldsIntoDataDefinitions(interpreter, response)
+    }
 }
 
 @Serializable

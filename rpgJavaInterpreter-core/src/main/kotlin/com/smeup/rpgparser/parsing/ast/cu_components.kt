@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
@@ -47,7 +48,8 @@ data class CompilationUnit(
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
     val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
     val source: String? = null,
-    val copyBlocks: CopyBlocks? = null
+    val copyBlocks: CopyBlocks? = null,
+    val displayFiles: Map<String, DSPF>? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()

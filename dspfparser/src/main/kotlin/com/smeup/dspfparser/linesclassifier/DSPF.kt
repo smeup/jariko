@@ -1,9 +1,12 @@
-package com.smeup.dspfparser.domain
+package com.smeup.dspfparser.linesclassifier
+
+import kotlinx.serialization.Serializable
 
 /**
  * Models a display file as a whole logical unit.
  */
-interface DSPF {
+@Serializable
+sealed interface DSPF {
     val records: List<DSPFRecord>
 
     /**

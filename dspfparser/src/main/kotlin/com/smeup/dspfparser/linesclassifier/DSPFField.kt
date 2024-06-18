@@ -1,11 +1,14 @@
-package com.smeup.dspfparser.domain
+package com.smeup.dspfparser.linesclassifier
+
+import kotlinx.serialization.Serializable
 
 /**
  * Models a [DSPFRecord] field (that can be seen as a variable, with its record as scope).
  */
-interface DSPFField {
+@Serializable
+sealed interface DSPFField {
     val name: String
-    val value: DSPFValue<String>
+    var value: DSPFValue?
     val isNumeric: Boolean
     val length: Int?
     val precision: Int?
