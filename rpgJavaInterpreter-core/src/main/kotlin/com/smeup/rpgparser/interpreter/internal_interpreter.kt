@@ -461,7 +461,7 @@ open class InternalInterpreter(
                 }
 
                 if (statement is MockStatement) {
-                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement
+                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement(statement)
                 } else {
                     if (logsEnabled())
                         executeWithLogging(statement)
