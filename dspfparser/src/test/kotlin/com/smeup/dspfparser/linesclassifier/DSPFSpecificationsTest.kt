@@ -1,6 +1,5 @@
 package com.smeup.dspfparser.linesclassifier
 
-import com.smeup.dspfparser.domain.DSPFFieldType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

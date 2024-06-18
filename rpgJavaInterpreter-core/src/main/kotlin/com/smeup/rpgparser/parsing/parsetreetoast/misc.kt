@@ -36,6 +36,7 @@ import java.util.*
 
 enum class AstHandlingPhase {
     FileDefinitionsCreation,
+    InputSpecificationsCreation,
     DataDefinitionsCreation,
     MainStatementsCreation,
     SubroutinesCreation,
@@ -95,6 +96,7 @@ typealias KnownDataDefinitionInstance = MutableMap<String, DataDefinition>
 private fun List<StatementContext?>.getDataDefinition(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
+    inputSpecifications: List<InputSpecificationGroup> = emptyList(),
     parentDataDefinitions: List<DataDefinition>? = null,
     useKnownDataDefinitionInstance: Boolean = false
 ): Pair<MutableList<DataDefinitionProvider>, KnownDataDefinitionInstance> {
@@ -105,7 +107,8 @@ private fun List<StatementContext?>.getDataDefinition(
     val knownDataDefinitions = if (useKnownDataDefinitionInstance) KnownDataDefinition.getInstance() else mutableMapOf()
 
     fileDefinitions?.let {
-        it.values.flatten().toList().removeDuplicatedDataDefinition().forEach { def ->
+        val postProcessedFileDefinitions = it.processWithSpecifications(inputSpecifications)
+        postProcessedFileDefinitions.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
             dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
     }
@@ -151,11 +154,13 @@ private fun List<StatementContext?>.getDataDefinition(
 
 private fun RContext.getDataDefinitions(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    inputSpecifications: List<InputSpecificationGroup> = emptyList()
 ): List<DataDefinition> {
     val (providers) = this.statement().getDataDefinition(
         conf = conf,
         fileDefinitions = fileDefinitions,
+        inputSpecifications = inputSpecifications,
         useKnownDataDefinitionInstance = true
     )
     return providers.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
@@ -264,8 +269,15 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
-    val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
+    val inputSpecifications = this.findAllDescendants(Ispec_fixedContext::class).mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+    checkAstCreationErrors(phase = AstHandlingPhase.InputSpecificationsCreation)
+
+    val dataDefinitions = getDataDefinitions(conf, fileDefinitions, inputSpecifications.grouped())
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
+
+    val displayFiles = fileDefinitions.keys.toList().toDSPF()
 
     val mainStmts = this.statement().mapNotNull {
         when {
@@ -333,7 +345,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures = procedures,
         source = source,
-        copyBlocks = copyBlocks
+        copyBlocks = copyBlocks,
+        displayFiles = displayFiles
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
@@ -2081,7 +2094,8 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 // TODO
 internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    return ExfmtStmt(position)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("Line ${position?.line()}: EXFMT operation requires factor 2: ${this.text}")
+    return ExfmtStmt(position, factor2)
 }
 
 // TODO
@@ -2221,6 +2235,48 @@ private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat()
     return this.filterNot { dataDef ->
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
     }
+}
+
+private fun List<DataDefinition>.renameFields(externalFieldSpecs: List<ExternalFieldInputSpecification>): List<DataDefinition> {
+    return this.map {
+        val match = externalFieldSpecs.find { spec -> spec.originalName == it.name }
+        match ?: return@map it
+        it.copy(name = match.newName)
+    }
+}
+
+private fun List<InputSpecification>.grouped(): List<InputSpecificationGroup> {
+    if (this.isEmpty()) return emptyList()
+    val files = this.withIndex().filter { it.value is FileNameInputSpecification }
+    val output: MutableList<InputSpecificationGroup> = ArrayList<InputSpecificationGroup>(files.size)
+
+    var lastFile = files.first()
+    fun addGroup(index: Int) {
+        val nestedSpecifications = this.slice(lastFile.index + 1 until index)
+        val group = InputSpecificationGroup(lastFile.value as FileNameInputSpecification, nestedSpecifications)
+        output.add(group)
+    }
+
+    files.slice(1..files.lastIndex).forEach {
+        addGroup(it.index)
+        lastFile = it
+    }
+
+    // Last pass if necessary
+    if (output.size < files.size) addGroup(this.size)
+
+    return output
+}
+
+private fun Map<FileDefinition, List<DataDefinition>>.processWithSpecifications(specifications: List<InputSpecificationGroup>): Map<FileDefinition, List<DataDefinition>> {
+    val buffer = this.toMutableMap()
+    specifications.forEach {
+        val target = buffer.entries.firstOrNull { entry -> (entry.key.internalFormatName ?: entry.key.name) == it.fileName.name }
+        target ?: error("No FileDefinition named ${it.fileName.name}")
+        val externalFieldSpecifications = it.specifications.filterIsInstance<ExternalFieldInputSpecification>()
+        buffer[target.key] = target.value.renameFields(externalFieldSpecifications)
+    }
+    return buffer
 }
 
 private fun String.isStringLiteral(): Boolean = startsWith('\'') && endsWith('\'')

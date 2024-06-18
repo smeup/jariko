@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -69,6 +70,7 @@ class InterpreterStatus(
     var lastFound = false
     var lastDBFile: DBFile? = null
     val dbFileMap = DBFileMap()
+    var displayFiles: Map<String, DSPF>? = null
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
         val tmpValue = symbolTable[abstractDataDefinition]
@@ -384,6 +386,7 @@ open class InternalInterpreter(
         kotlin.runCatching {
             configureLogHandlers()
 
+            this.status.displayFiles = compilationUnit.displayFiles
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
             execINZSR(compilationUnit)

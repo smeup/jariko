@@ -49,9 +49,10 @@ abstract class MULANGTTest : AbstractTest() {
             }),
             metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
         val dspfConfig = SimpleDspfConfig(displayFilePath = path)
-        smeupConfig.dspfConfig = DspfConfig { displayFile ->
-            dspfConfig.getMetadata(displayFile)
-        }
+        smeupConfig.dspfConfig = DspfConfig(
+            metadataProducer = { displayFile -> dspfConfig.getMetadata(displayFile) },
+            dspfProducer = { displayFile -> dspfConfig.dspfProducer(displayFile) }
+        )
     }
 
     @AfterTest()
