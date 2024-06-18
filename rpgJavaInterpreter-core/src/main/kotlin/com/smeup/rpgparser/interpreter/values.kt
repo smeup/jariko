@@ -533,19 +533,17 @@ abstract class ArrayValue : Value {
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        if (expectedType is DataStructureType) {
-            // FIXME
-            return true
-        }
-        if (expectedType is ArrayType) {
-            return elements().all {
-                it.assignableTo(expectedType.element)
+        return when (expectedType) {
+            is DataStructureType -> true // FIXME
+            is ArrayType -> {
+                elements().all {
+                    it.assignableTo(expectedType.element)
+                }
             }
+
+            is StringType -> expectedType.length >= arrayLength() * elementSize()
+            else -> false
         }
-        if (expectedType is StringType) {
-            return expectedType.length >= arrayLength() * elementSize()
-        }
-        return false
     }
     override fun render(): String {
         return "Array(${elements().size})"
