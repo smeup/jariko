@@ -8,13 +8,13 @@ import kotlinx.serialization.Serializable
 import java.io.File
 
 /**
- * Helper class used to load dspf configuration from a display file
+ * Helper class used to load dspf configuration from a display file.
  * @param displayFilePath path where display file is located
  * */
 @Serializable
-internal data class SimpleDspfConfig(var displayFilePath: String? = null) {
+data class SimpleDspfConfig(var displayFilePath: String? = null) {
 
-    internal fun dspfProducer(displayFile: String): DSPF {
+    fun dspfProducer(displayFile: String): DSPF {
         val videoFile = File(displayFilePath, "$displayFile.dspf")
         require(videoFile.exists()) { "$videoFile doesn't exist" }
 
@@ -23,7 +23,7 @@ internal data class SimpleDspfConfig(var displayFilePath: String? = null) {
         }
     }
 
-    internal fun getMetadata(displayFile: String): FileMetadata {
+    fun getMetadata(displayFile: String): FileMetadata {
         val videoFile = File(displayFilePath, "$displayFile.dspf")
         require(videoFile.exists()) { "$videoFile doesn't exist" }
 
