@@ -806,8 +806,8 @@ class ExpressionEvaluation(
         BooleanValue(enrichedDBFile.open)
     }
 
-    override fun eval(expression: SizeExpr): Value {
-        return when (expression.value) {
+    override fun eval(expression: SizeExpr): Value = proxyLogging(expression) {
+        return@proxyLogging when (expression.value) {
             is DataRefExpr -> (expression.value as DataRefExpr).variable.referred?.type?.size?.let { IntValue(it.toLong()) }
                 ?: throw UnsupportedOperationException("${(expression.value as DataRefExpr).variable.name} not referred with %SIZE")
             // Could be:
@@ -817,6 +817,11 @@ class ExpressionEvaluation(
             //  - multiple-occurrence data structure{:*ALL}
             else -> throw UnsupportedOperationException("I do not know how to handle ${expression.value} with %SIZE. Is '${expression.value.javaClass.simpleName}' class.")
         }
+    }
+
+    override fun eval(expression: MockExpression): Value {
+        MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
+        return NullValue
     }
 
     private fun lookupLinearSearch(values: List<Value>, target: Value): Int {
