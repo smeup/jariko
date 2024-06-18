@@ -5,7 +5,6 @@ import com.smeup.dspfparser.linesclassifier.DSPFFieldType
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.DecimalValue
@@ -31,12 +30,19 @@ private fun parseInput(input: String): Map<String, String> {
     return variablesAndValues
 }
 
-private fun printOutputFields(fields: List<DSPFField>) {
-    print("OUTPUT fields:\t")
+private fun printFields(fields: List<DSPFField>) {
+    println()
+    print("OUTPUT fields:\n")
     fields.filter { it.type == DSPFFieldType.OUTPUT }.forEach {
-        print("${it.name} = ${(it.value as Value).asString().value}")
+        println("\t|${it.name}=${(it.value as Value).asString().value}|")
     }
-    print("\t")
+    println()
+    print("INPUT fields:\n")
+    fields.filter { it.type == DSPFFieldType.INPUT }.forEach {
+        println("\t|${it.name}=${(it.value as Value).asString().value}|")
+    }
+    println()
+    println("Insert input: ")
 }
 
 private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
@@ -57,7 +63,7 @@ private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
 }
 
 private fun onExfmt(fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot): OnExfmtResponse? {
-    printOutputFields(fields)
+    printFields(fields)
     while (true) {
         try {
             val variablesAndValues = askInputFor(fields)
@@ -93,7 +99,7 @@ private fun createConfig(): Configuration {
 }
 
 fun main() {
-    val programSource = "ADD01.rpgle"
+    val programSource = "TRIM01.rpgle"
     val programFinders = listOf(DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg")!!.path)),)
     val program = getProgram(nameOrSource = programSource, programFinders = programFinders)
 
