@@ -71,10 +71,6 @@ private fun onExfmt(fields: List<DSPFField>, runtimeInterpreterSnapshot: Runtime
 
 // Jariko call setup functions
 
-private fun createOptions(): Options {
-    return Options(callProgramHandler = createCallProgramHandler())
-}
-
 private fun createDspfConfig(): DspfConfig {
     val simpleDspfConfig = SimpleDspfConfig({ }.javaClass.getResource("/metadata")!!.path)
     return DspfConfig(
@@ -91,15 +87,15 @@ private fun createJarikoCallback(): JarikoCallback {
 
 private fun createConfig(): Configuration {
     return Configuration(
-        options = createOptions(),
         dspfConfig = createDspfConfig(),
         jarikoCallback = createJarikoCallback()
     )
 }
 
 fun main() {
+    val programSource = "ADD01.rpgle"
     val programFinders = listOf(DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg")!!.path)),)
-    val program = getProgram(nameOrSource = "ADD01.rpgle", programFinders = programFinders)
+    val program = getProgram(nameOrSource = programSource, programFinders = programFinders)
 
     program.singleCall(emptyList(), configuration = createConfig())
 }
