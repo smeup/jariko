@@ -111,7 +111,7 @@ private fun createConfig(): Configuration {
 
 fun main() {
     val programSource = "ADD01.rpgle"
-    val programFinders = listOf(DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg")!!.path)),)
+    val programFinders = listOf(DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg")!!.path)))
     val program = getProgram(nameOrSource = programSource, programFinders = programFinders)
 
     program.singleCall(emptyList(), configuration = createConfig())
