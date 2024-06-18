@@ -21,6 +21,11 @@ import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 
+/**
+ * For expressions with this interface there isn't resolution but will be called the callback `onMockExpression` and returned a null value.
+ */
+interface MockExpression
+
 // %LOOKUP
 @Serializable
 data class LookupExpr(
@@ -448,6 +453,20 @@ data class SizeExpr(var value: Expression, override val position: Position? = nu
         return "%SIZE(${this.value.render()})"
     }
 
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %ALLOC
+@Serializable
+data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override fun render() = "%ALLOC"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %REALLOC
+@Serializable
+data class ReallocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override fun render() = "%REALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
