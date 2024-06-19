@@ -21,6 +21,11 @@ internal object StatementCounter : Stack<Int>() {
         return super.pop()
     }
 
+    fun reset() {
+        this.state = StatementCounterState.EX_NOVO
+        this.set(emptyList(), -1)
+    }
+
     fun useAsExNovo() {
         this.state = StatementCounterState.EX_NOVO
     }
@@ -46,7 +51,15 @@ internal object StatementCounter : Stack<Int>() {
             return 0
         }
 
-        this.pointer++
-        return this[this.pointer - 1]
+        if (this.pointer < this.size - 1) {
+            this.pointer++
+            return this[this.pointer - 1]
+        }
+
+        if (this.pointer == -1) {
+            this.push(0)
+        }
+
+        return this[this.pointer]
     }
 }

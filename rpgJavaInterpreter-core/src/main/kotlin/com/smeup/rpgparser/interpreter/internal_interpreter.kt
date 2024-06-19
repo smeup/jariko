@@ -437,7 +437,6 @@ open class InternalInterpreter(
         while (i < statements.size) {
             StatementCounter.push(i)
             try {
-
                 executeWithMute(statements[i++])
             } catch (e: GotoException) {
                 i = e.indexOfTaggedStatement(statements)

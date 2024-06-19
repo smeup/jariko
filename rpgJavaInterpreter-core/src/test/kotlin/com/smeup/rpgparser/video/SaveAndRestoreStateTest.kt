@@ -22,13 +22,14 @@ class SaveAndRestoreStateTest : AbstractTest() {
             metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
+        StatementCounter.reset()
     }
 
     @Test
     fun executeSTM01FromStart() {
         val expected = listOf("A:1", "B:1")
         StatementCounter.useAsRestored()
-        StatementCounter.set(listOf(0), 0)
+        StatementCounter.set(emptyList(), -1)
         assertEquals(expected = expected, actual = "video/STM01".outputOf(configuration = configuration))
     }
 
@@ -40,10 +41,33 @@ class SaveAndRestoreStateTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/STM01".outputOf(configuration = configuration))
     }
 
+    @Test
+    fun executeSTM02FromStart() {
+        val expected = listOf("A:10")
+        StatementCounter.useAsRestored()
+        StatementCounter.set(emptyList(), -1)
+        assertEquals(expected = expected, actual = "video/STM02".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSTM02FromHalf() {
+        val expected = listOf("")
+        StatementCounter.useAsRestored()
+        StatementCounter.set(listOf(2), 0)
+        assertEquals(expected = expected, actual = "video/STM02".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSTM03FromStart() {
+        val expected = listOf("A:10", "B:10")
+        StatementCounter.useAsRestored()
+        StatementCounter.set(emptyList(), -1)
+        assertEquals(expected = expected, actual = "video/STM03".outputOf(configuration = configuration))
+    }
+
     @AfterTest
     fun clean() {
-        StatementCounter.useAsExNovo()
-        StatementCounter.set(listOf(), -1)
+        StatementCounter.reset()
     }
 
 }
