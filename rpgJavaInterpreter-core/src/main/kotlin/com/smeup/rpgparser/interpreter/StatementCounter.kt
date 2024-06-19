@@ -4,7 +4,7 @@ import java.util.Stack
 
 private enum class StatementCounterState {
     EX_NOVO,
-    RESTORED,
+    FIRST_STATEMENT,
     RESUMED
 }
 
@@ -23,16 +23,12 @@ internal object StatementCounter : Stack<Int>() {
     }
 
     fun reset() {
-        this.useAsExNovo()
+        this.state = StatementCounterState.EX_NOVO
         this.set(emptyList(), -1)
     }
 
-    private fun useAsExNovo() {
-        this.state = StatementCounterState.EX_NOVO
-    }
-
-    fun useAsRestored() {
-        this.state = StatementCounterState.RESTORED
+    fun prepareForRestore() {
+        this.state = StatementCounterState.FIRST_STATEMENT
     }
 
     fun set(stack: List<Int>, pointer: Int) {
