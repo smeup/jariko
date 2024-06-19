@@ -4,7 +4,8 @@ import java.util.Stack
 
 private enum class StatementCounterState {
     EX_NOVO,
-    RESTORED
+    RESTORED,
+    RESUMED
 }
 
 internal object StatementCounter : Stack<Int>() {
@@ -22,11 +23,11 @@ internal object StatementCounter : Stack<Int>() {
     }
 
     fun reset() {
-        this.state = StatementCounterState.EX_NOVO
+        this.useAsExNovo()
         this.set(emptyList(), -1)
     }
 
-    fun useAsExNovo() {
+    private fun useAsExNovo() {
         this.state = StatementCounterState.EX_NOVO
     }
 
@@ -51,13 +52,18 @@ internal object StatementCounter : Stack<Int>() {
             return 0
         }
 
+        if (this.state == StatementCounterState.RESUMED) {
+            return 0
+        }
+
+        this.state = StatementCounterState.RESUMED
+        if (this.pointer == -1) {
+            return 0
+        }
+
         if (this.pointer < this.size - 1) {
             this.pointer++
             return this[this.pointer - 1]
-        }
-
-        if (this.pointer == -1) {
-            this.push(0)
         }
 
         return this[this.pointer]
