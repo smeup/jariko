@@ -215,6 +215,15 @@ private fun FileDefinition.loadMetadata(): FileMetadata {
                 error("Not found metadata for $this", error)
             }.getOrNull() ?: error("Not found metadata for $this")
         }
+        fileType == FileType.PRINTER -> {
+            FileMetadata(
+                name = this.name,
+                tableName = this.name,
+                recordFormat = this.internalFormatName ?: this.name,
+                fields = emptyList(),
+                accessFields = emptyList()
+            )
+        }
         else -> error("Unhandled file type $fileType")
     }
 }
