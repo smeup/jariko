@@ -55,6 +55,7 @@ private val modules = SerializersModule {
         subclass(ClearStmt::class)
         subclass(CloseStmt::class)
         subclass(CompStmt::class)
+        subclass(DeallocStmt::class)
         subclass(DefineStmt::class)
         subclass(DeleteStmt::class)
         subclass(DisplayStmt::class)
@@ -117,7 +118,9 @@ private val modules = SerializersModule {
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)
+        subclass(AddrExpr::class)
         subclass(AllExpr::class)
+        subclass(AllocExpr::class)
         subclass(ArrayAccessExpr::class)
         subclass(AssignmentExpr::class)
         subclass(BlanksRefExpr::class)
@@ -173,6 +176,7 @@ private val modules = SerializersModule {
         subclass(IndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(RealLiteral::class)
+        subclass(ReallocExpr::class)
         subclass(RemExpr::class)
         subclass(ReplaceExpr::class)
         subclass(ScanExpr::class)

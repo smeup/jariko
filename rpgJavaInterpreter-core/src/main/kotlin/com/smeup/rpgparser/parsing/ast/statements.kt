@@ -2501,3 +2501,12 @@ data class TestnStmt(
         }
     }
 }
+
+@Serializable
+data class DeallocStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        throw NotImplementedError("DEALLOC statement is not implemented yet")
+    }
+}

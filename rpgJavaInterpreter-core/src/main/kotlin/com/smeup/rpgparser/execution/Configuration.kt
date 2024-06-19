@@ -20,10 +20,7 @@ import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.Api
-import com.smeup.rpgparser.parsing.ast.ApiId
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.MockStatement
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -248,7 +245,14 @@ data class JarikoCallback(
      * Default implementation provides a simple println with the name of the mock statement.
      * @param mockStatement The mock statement
      */
-    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock: ${it.javaClass.simpleName}") },
+    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock statement: ${it.javaClass.simpleName}") },
+
+    /**
+     * If specified, it allows customizing the behavior of the mock statements.
+     * Default implementation provides a simple println with the name of the mock expression.
+     * @param mockExpression The mock expression
+     */
+    var onMockExpression: ((mockExpression: MockExpression) -> Unit) = { System.err.println("Executing mock expression: ${it.javaClass.simpleName}") },
 
     /**
      * If specified, it allows overriding the default mechanism of API validation.
