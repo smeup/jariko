@@ -1,0 +1,4 @@
+                R FMT01
+                  STR           10   I  0  0
+                  TRM           10   O  0  0
+                  PGMCTL         1  0I  0  0
