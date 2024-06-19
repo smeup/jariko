@@ -432,10 +432,13 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        var i = 0
+        StatementCounter.prepare()
+        var i = StatementCounter.peekPointer()
         while (i < statements.size) {
             try {
+                StatementCounter.push(i)
                 executeWithMute(statements[i++])
+                StatementCounter.pop()
             } catch (e: GotoException) {
                 i = e.indexOfTaggedStatement(statements)
                 if (i < 0 || i >= statements.size) throw e
