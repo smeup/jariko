@@ -38,13 +38,6 @@ internal object StatementCounter : Stack<Int>() {
     fun prepare() {
         if (this.state == StatementCounterState.EX_NOVO) {
             this.push(0)
-//            if (this.empty()) {
-//                this.pointer = -1
-//                this.push(0)
-//            }
-//            if (this.pointer == this.size - 1) {
-//                this.push(0)
-//            }
         }
     }
 
@@ -52,6 +45,7 @@ internal object StatementCounter : Stack<Int>() {
         if (this.state == StatementCounterState.EX_NOVO) {
             return 0
         }
+
         this.pointer++
         return this[this.pointer - 1]
     }

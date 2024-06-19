@@ -4,9 +4,8 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
-import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.StatementCounter
-import com.smeup.rpgparser.interpreter.Value
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -40,4 +39,11 @@ class SaveAndRestoreStateTest : AbstractTest() {
         StatementCounter.set(listOf(3), 0)
         assertEquals(expected = expected, actual = "video/STM01".outputOf(configuration = configuration))
     }
+
+    @AfterTest
+    fun clean() {
+        StatementCounter.useAsExNovo()
+        StatementCounter.set(listOf(), -1)
+    }
+
 }
