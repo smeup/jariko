@@ -65,6 +65,14 @@ class SaveAndRestoreStateTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/STM03".outputOf(configuration = configuration))
     }
 
+    @Test
+    fun executeSTM03FromHalf() {
+        val expected = listOf("B:10")
+        StatementCounter.prepareForRestore()
+        StatementCounter.set(listOf(3), 0)
+        assertEquals(expected = expected, actual = "video/STM03".outputOf(configuration = configuration))
+    }
+
     @AfterTest
     fun clean() {
         StatementCounter.reset()
