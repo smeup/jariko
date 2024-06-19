@@ -435,14 +435,15 @@ open class InternalInterpreter(
         StatementCounter.prepare()
         var i = StatementCounter.peekPointer()
         while (i < statements.size) {
+            StatementCounter.push(i)
             try {
-                StatementCounter.push(i)
+
                 executeWithMute(statements[i++])
-                StatementCounter.pop()
             } catch (e: GotoException) {
                 i = e.indexOfTaggedStatement(statements)
                 if (i < 0 || i >= statements.size) throw e
             }
+            StatementCounter.pop()
         }
     }
 

@@ -37,21 +37,22 @@ internal object StatementCounter : Stack<Int>() {
 
     fun prepare() {
         if (this.state == StatementCounterState.EX_NOVO) {
-            if (this.empty()) {
-                this.pointer = -1
-                this.push(0)
-            }
-            if (this.pointer == this.size - 1) {
-                this.push(0)
-            }
+            this.push(0)
+//            if (this.empty()) {
+//                this.pointer = -1
+//                this.push(0)
+//            }
+//            if (this.pointer == this.size - 1) {
+//                this.push(0)
+//            }
         }
     }
 
     fun peekPointer(): Int {
-        if (this.pointer < this.size - 1) {
-            this.pointer++
-            return this[this.pointer - 1]
+        if (this.state == StatementCounterState.EX_NOVO) {
+            return 0
         }
-        return this[this.pointer]
+        this.pointer++
+        return this[this.pointer - 1]
     }
 }
