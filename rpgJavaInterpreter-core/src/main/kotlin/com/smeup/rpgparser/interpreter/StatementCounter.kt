@@ -53,12 +53,6 @@ internal object StatementCounter : Stack<Int>() {
         this.state = StatementCounterState.RESUME
     }
 
-    fun prepare() {
-        if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
-            this.push(0)
-        }
-    }
-
     fun peekPointer(): Int {
         if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
             return 0

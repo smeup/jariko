@@ -18,6 +18,8 @@ import kotlin.test.assertEquals
  * This test class provides a way to test if a stack can really be used to restore computation
  * from a custom point. Program is restored without using a symbol to set variables values to the state
  * they are at restored point; these tests should be adapted to complain with further project changes.
+ * STKR* stands for Stack Read
+ * STKW* stands for Stack Write
  */
 class SaveAndRestoreStateTest : AbstractTest() {
     lateinit var configuration: Configuration
@@ -32,6 +34,23 @@ class SaveAndRestoreStateTest : AbstractTest() {
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
         StatementCounter.reset()
+    }
+
+    @Test
+    fun executeSTKW01CheckStatementCounter() {
+        val expected = listOf("A:1", "B:1")
+        val firstEXFMTStack = Stack<Int>()
+        firstEXFMTStack.addAll(listOf(0, 1, 1))
+        val savedStacks: MutableList<Stack<Int>> = mutableListOf()
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
+
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        assertEquals(expected = expected, actual = "video/STKW01".outputOf(configuration = configuration))
+        assertEquals(firstEXFMTStack, savedStacks[0])
+        assertEquals(Stack(), StatementCounter)
     }
 
     @Test
@@ -138,23 +157,6 @@ class SaveAndRestoreStateTest : AbstractTest() {
         StatementCounter.prepareForRestore()
         StatementCounter.forceSet(listOf(0, 1, 1), 0)
         assertEquals(expected = expected, actual = "video/STKR06".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSTKW01CheckStatementCounter() {
-        val expected = listOf("A:1", "B:1")
-        val firstEXFMTStack = Stack<Int>()
-        firstEXFMTStack.addAll(listOf(0, 1, 1))
-        val savedStacks: MutableList<Stack<Int>> = mutableListOf()
-        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
-
-            val map = mutableMapOf<String, Value>()
-            OnExfmtResponse(runtimeInterpreterSnapshot, map)
-        }
-        assertEquals(expected = expected, actual = "video/STKW01".outputOf(configuration = configuration))
-        assertEquals(savedStacks[0], firstEXFMTStack)
-        assertEquals(Stack(), StatementCounter)
     }
 
     @AfterTest
