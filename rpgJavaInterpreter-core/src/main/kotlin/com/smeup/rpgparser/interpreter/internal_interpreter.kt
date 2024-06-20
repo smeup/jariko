@@ -434,7 +434,6 @@ open class InternalInterpreter(
     override fun execute(statements: List<Statement>) {
         StatementCounter.prepare()
         var i = StatementCounter.peekPointer()
-        i
         while (i < statements.size) {
             StatementCounter.push(i)
             try {
