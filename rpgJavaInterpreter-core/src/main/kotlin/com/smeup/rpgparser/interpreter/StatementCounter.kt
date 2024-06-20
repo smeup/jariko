@@ -4,64 +4,79 @@ import java.util.Stack
 
 private enum class StatementCounterState {
     EX_NOVO,
-    FIRST_STATEMENT,
-    RESUMED
+    RESUME,
+//    MIDDLE_STATEMENTS,
+    CONTINUE
 }
 
 internal object StatementCounter : Stack<Int>() {
     private var pointer: Int = -1
     private var state: StatementCounterState = StatementCounterState.EX_NOVO
 
+    fun forceSet(stack: List<Int>, pointer: Int) {
+        this.removeAllElements()
+        stack.forEach {
+            // Should be independent to state
+            this.pointer++
+            super.push(it)
+        }
+        this.pointer = pointer
+    }
+
     override fun push(item: Int?): Int {
-        this.pointer++
-        return super.push(item)
+        if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
+            this.pointer++
+            return super.push(item)
+        }
+        return 0
     }
 
     override fun pop(): Int {
-        this.pointer--
-        return super.pop()
+        if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
+            this.pointer--
+            return super.pop()
+        }
+        return 0
     }
 
     fun reset() {
         this.state = StatementCounterState.EX_NOVO
-        this.set(emptyList(), -1)
+        this.forceSet(emptyList(), -1)
     }
 
     fun prepareForRestore() {
-        this.state = StatementCounterState.FIRST_STATEMENT
-    }
-
-    fun set(stack: List<Int>, pointer: Int) {
-        this.removeAllElements()
-        stack.forEach { this.push(it) }
-        this.pointer = pointer
+        this.state = StatementCounterState.RESUME
     }
 
     fun prepare() {
-        if (this.state == StatementCounterState.EX_NOVO) {
+        if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
             this.push(0)
         }
     }
 
     fun peekPointer(): Int {
-        if (this.state == StatementCounterState.EX_NOVO) {
+        if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
             return 0
         }
 
-        if (this.state == StatementCounterState.RESUMED) {
-            return 0
-        }
+        // this.state == StatementCounterState.RESUME
+        // suppose pointer is already set to 0 (watch then increment)
 
-        this.state = StatementCounterState.RESUMED
         if (this.pointer == -1) {
+            // this equals to start from first statement of the program
             return 0
         }
 
-        if (this.pointer < this.size - 1) {
-            this.pointer++
-            return this[this.pointer - 1]
-        }
+        return this[this.pointer++]
 
-        return this[this.pointer]
+
+//
+//        if (this.pointer < this.size - 1) {
+//            this.pointer++
+//            return this[this.pointer - 1]
+//        }
+//
+//        this.state = StatementCounterState.CONTINUE
+//        return this[this.pointer]
     }
 }
