@@ -7,8 +7,8 @@ import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.interpreter.IntValue
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.StatementCounter
-import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.Value
+import java.util.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -138,6 +138,23 @@ class SaveAndRestoreStateTest : AbstractTest() {
         StatementCounter.prepareForRestore()
         StatementCounter.forceSet(listOf(0, 1, 1), 0)
         assertEquals(expected = expected, actual = "video/STM06".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSTM07CheckStatementCounter() {
+        val expected = listOf("A:1", "B:1")
+        val firstEXFMTStack = Stack<Int>()
+        firstEXFMTStack.addAll(listOf(0, 1, 1))
+        val savedStacks: MutableList<Stack<Int>> = mutableListOf()
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
+
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        assertEquals(expected = expected, actual = "video/STKW01".outputOf(configuration = configuration))
+        assertEquals(savedStacks[0], firstEXFMTStack)
+        assertEquals(Stack(), StatementCounter)
     }
 
     @AfterTest
