@@ -823,6 +823,8 @@ class ExpressionEvaluation(
         }
     }
 
+    override fun eval(expression: NullValExpr): Value = proxyLogging(expression) { NullValue }
+
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
         return NullValue
