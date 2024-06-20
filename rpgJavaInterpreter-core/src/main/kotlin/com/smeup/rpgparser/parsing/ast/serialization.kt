@@ -165,6 +165,7 @@ private val modules = SerializersModule {
         subclass(MinusExpr::class)
         subclass(MultExpr::class)
         subclass(NotExpr::class)
+        subclass(NullValExpr::class)
         subclass(NumberOfElementsExpr::class)
         subclass(OnRefExpr::class)
         subclass(OffRefExpr::class)
