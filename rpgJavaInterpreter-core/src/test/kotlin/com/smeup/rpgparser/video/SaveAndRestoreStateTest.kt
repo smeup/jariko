@@ -14,13 +14,12 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * This test class provides a way to test if a stack can really be used to restore computation
- * from a custom point. Program is restored without using a symbol to set variables values to the state
- * they are at restored point; these tests should be adapted to complain with further project changes.
- * STKR* stands for Stack Read
- * STKW* stands for Stack Write
- */
+// Test files categories:
+// STKR* stands for STacK Read (does not use symbol table)
+// STKW* stands for STacK Write (does not use symbol table)
+// Program is restored without using a symbol to set variables values to the state
+// they are at restored point; these tests should be adapted to complain with further project changes.
+
 class SaveAndRestoreStateTest : AbstractTest() {
     lateinit var configuration: Configuration
 
@@ -176,6 +175,20 @@ class SaveAndRestoreStateTest : AbstractTest() {
 
     @Test
     fun executeSTKR06FromEXFMT() {
+        val expected = listOf("A:3", "B:3")
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            map["A"] = IntValue(3)
+            map["B"] = IntValue(3)
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        StatementCounter.prepareForRestore()
+        StatementCounter.forceSet(listOf(0, 1, 1), 0)
+        assertEquals(expected = expected, actual = "video/STKR06".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSSR01() {
         val expected = listOf("A:3", "B:3")
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
