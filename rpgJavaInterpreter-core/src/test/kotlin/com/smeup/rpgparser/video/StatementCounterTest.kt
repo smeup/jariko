@@ -80,7 +80,6 @@ class StatementCounterTest : AbstractTest() {
         assertEquals(Stack(), StatementCounter)
     }
 
-
     @Test
     fun executeSTKR01FromStart() {
         val expected = listOf("A:1", "B:1")
@@ -191,5 +190,4 @@ class StatementCounterTest : AbstractTest() {
     fun clean() {
         StatementCounter.reset()
     }
-
 }
