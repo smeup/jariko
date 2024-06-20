@@ -4,12 +4,10 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
-import com.smeup.rpgparser.interpreter.IntValue
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.StatementCounter
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.Value
-import java.util.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -36,7 +34,7 @@ class SaveAndRestoreStateTest : AbstractTest() {
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
-            
+
             // try to alter symbol table to check if it will be set successfully
             // the variable changed is not in the display file
             val msg = runtimeInterpreterSnapshot.symbolTable.dataDefinitionByName("MSG")!!
