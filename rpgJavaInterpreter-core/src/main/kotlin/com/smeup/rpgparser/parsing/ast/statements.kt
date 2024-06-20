@@ -2391,7 +2391,7 @@ data class ExfmtStmt(
     override fun execute(interpreter: InterpreterCore) {
         val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
         val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
-        val snapshot = RuntimeInterpreterSnapshot()
+        val snapshot = RuntimeInterpreterSnapshot(interpreter.getGlobalSymbolTable())
         val response = jarikoCallback.onExfmt(fields, snapshot)
         response ?: error("RuntimeInterpreterSnapshot is not yet handled")
         copyRecordFieldsIntoDataDefinitions(interpreter, response)

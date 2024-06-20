@@ -5,13 +5,18 @@ import java.util.Stack
 private enum class StatementCounterState {
     EX_NOVO,
     RESUME,
-//    MIDDLE_STATEMENTS,
     CONTINUE
 }
 
 internal object StatementCounter : Stack<Int>() {
     private var pointer: Int = -1
     private var state: StatementCounterState = StatementCounterState.EX_NOVO
+
+    override fun clone(): Stack<Int> {
+        val stack = Stack<Int>()
+        stack.addAll(this)
+        return stack
+    }
 
     fun forceSet(stack: List<Int>, pointer: Int) {
         this.removeAllElements()
