@@ -67,16 +67,11 @@ internal object StatementCounter : Stack<Int>() {
             return 0
         }
 
+        if (this.pointer == this.size - 1) {
+            this.state = StatementCounterState.CONTINUE
+            return this[this.pointer]
+        }
+
         return this[this.pointer++]
-
-
-//
-//        if (this.pointer < this.size - 1) {
-//            this.pointer++
-//            return this[this.pointer - 1]
-//        }
-//
-//        this.state = StatementCounterState.CONTINUE
-//        return this[this.pointer]
     }
 }
