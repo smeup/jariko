@@ -4,7 +4,11 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
+import com.smeup.rpgparser.interpreter.IntValue
+import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.StatementCounter
+import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -108,6 +112,32 @@ class SaveAndRestoreStateTest : AbstractTest() {
         StatementCounter.prepareForRestore()
         StatementCounter.forceSet(listOf(0, 2, 2), 0)
         assertEquals(expected = expected, actual = "video/STM05".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSTM06FromStart() {
+        val expected = listOf("A:1", "B:1")
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        StatementCounter.prepareForRestore()
+        StatementCounter.forceSet(emptyList(), -1)
+        assertEquals(expected = expected, actual = "video/STM06".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSTM06FromEXFMT() {
+        val expected = listOf("A:3", "B:3")
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            map["A"] = IntValue(3)
+            map["B"] = IntValue(3)
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        StatementCounter.prepareForRestore()
+        StatementCounter.forceSet(listOf(0, 1, 1), 0)
+        assertEquals(expected = expected, actual = "video/STM06".outputOf(configuration = configuration))
     }
 
     @AfterTest
