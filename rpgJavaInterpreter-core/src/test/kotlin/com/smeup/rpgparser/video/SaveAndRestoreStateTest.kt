@@ -10,6 +10,11 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+/**
+ * This test class provides a way to test if a stack can really be used to restore computation
+ * from a custom point. Program is restored without using a symbol to set variables values to the state
+ * they are at restored point; these tests should be adapted to complain with further project changes.
+ */
 class SaveAndRestoreStateTest : AbstractTest() {
     lateinit var configuration: Configuration
 
