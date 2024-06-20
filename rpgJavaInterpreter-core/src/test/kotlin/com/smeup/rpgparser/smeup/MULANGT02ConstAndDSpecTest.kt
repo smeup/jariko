@@ -342,4 +342,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00218".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Reassign value to pointer variable
+     * @see #LS24003047
+     */
+    @Test
+    fun executeMUDRNRAPU00219() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00219".outputOf(configuration = smeupConfig))
+    }
 }
