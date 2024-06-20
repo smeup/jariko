@@ -97,6 +97,11 @@ open class InternalInterpreter(
     override fun getGlobalSymbolTable(): ISymbolTable {
         return globalSymbolTable
     }
+    override fun setGlobalSymbolTable(symbolTable: ISymbolTable) {
+        symbolTable.getValues().forEach {
+            this.globalSymbolTable[it.key] = it.value
+        }
+    }
 
     private val indicators = HashMap<IndicatorKey, BooleanValue>()
     override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {

@@ -17,8 +17,6 @@ import kotlin.test.assertEquals
 // Test files categories:
 // STKR* stands for STacK Read (does not use symbol table)
 // STKW* stands for STacK Write (does not use symbol table)
-// Program is restored without using a symbol to set variables values to the state
-// they are at restored point; these tests should be adapted to complain with further project changes.
 
 class StatementCounterTest : AbstractTest() {
     lateinit var configuration: Configuration
