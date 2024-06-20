@@ -37,21 +37,50 @@ class SaveAndRestoreStateTest : AbstractTest() {
     }
 
     @Test
-    fun executeSTKW01CheckStatementCounter() {
+    fun executeSTKW01() {
         val expected = listOf("A:1", "B:1")
         val firstEXFMTStack = Stack<Int>()
         firstEXFMTStack.addAll(listOf(0, 1, 1))
         val savedStacks: MutableList<Stack<Int>> = mutableListOf()
+
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
 
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
+
         assertEquals(expected = expected, actual = "video/STKW01".outputOf(configuration = configuration))
         assertEquals(firstEXFMTStack, savedStacks[0])
         assertEquals(Stack(), StatementCounter)
     }
+
+    @Test
+    fun executeSTKW02() {
+        val expected = listOf("A:10", "B:10")
+        val firstEXFMTStack = Stack<Int>()
+        firstEXFMTStack.addAll(listOf(0))
+        val secondEXFMTStack = Stack<Int>()
+        secondEXFMTStack.addAll(listOf(1, 1, 1))
+        val thirdEXFMTStack = Stack<Int>()
+        thirdEXFMTStack.addAll(listOf(2))
+
+        val savedStacks: MutableList<Stack<Int>> = mutableListOf()
+
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
+
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+
+        assertEquals(expected = expected, actual = "video/STKW02".outputOf(configuration = configuration))
+        assertEquals(firstEXFMTStack, savedStacks[0])
+        assertEquals(secondEXFMTStack, savedStacks[1])
+        assertEquals(thirdEXFMTStack, savedStacks[2])
+        assertEquals(Stack(), StatementCounter)
+    }
+
 
     @Test
     fun executeSTKR01FromStart() {

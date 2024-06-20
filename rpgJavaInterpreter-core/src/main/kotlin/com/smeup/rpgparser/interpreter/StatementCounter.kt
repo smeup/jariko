@@ -58,8 +58,7 @@ internal object StatementCounter : Stack<Int>() {
             return 0
         }
 
-        // this.state == StatementCounterState.RESUME
-        // suppose pointer is already set to 0 (watch then increment)
+        // At this point this.state == StatementCounterState.RESUME
 
         if (this.pointer == -1) {
             // this equals to start from first statement of the program
