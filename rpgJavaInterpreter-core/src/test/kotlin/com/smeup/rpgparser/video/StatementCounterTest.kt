@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 // Program is restored without using a symbol to set variables values to the state
 // they are at restored point; these tests should be adapted to complain with further project changes.
 
-class SaveAndRestoreStateTest : AbstractTest() {
+class StatementCounterTest : AbstractTest() {
     lateinit var configuration: Configuration
 
     @BeforeTest
@@ -175,20 +175,6 @@ class SaveAndRestoreStateTest : AbstractTest() {
 
     @Test
     fun executeSTKR06FromEXFMT() {
-        val expected = listOf("A:3", "B:3")
-        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            val map = mutableMapOf<String, Value>()
-            map["A"] = IntValue(3)
-            map["B"] = IntValue(3)
-            OnExfmtResponse(runtimeInterpreterSnapshot, map)
-        }
-        StatementCounter.prepareForRestore()
-        StatementCounter.forceSet(listOf(0, 1, 1), 0)
-        assertEquals(expected = expected, actual = "video/STKR06".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSSR01() {
         val expected = listOf("A:3", "B:3")
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
