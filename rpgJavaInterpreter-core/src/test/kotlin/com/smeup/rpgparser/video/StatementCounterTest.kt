@@ -41,7 +41,7 @@ class StatementCounterTest : AbstractTest() {
         val savedStacks: MutableList<Stack<Int>> = mutableListOf()
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
+            savedStacks.add(StatementCounter.clone())
 
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
@@ -65,7 +65,7 @@ class StatementCounterTest : AbstractTest() {
         val savedStacks: MutableList<Stack<Int>> = mutableListOf()
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            savedStacks.add(runtimeInterpreterSnapshot.statementCounter.clone())
+            savedStacks.add(StatementCounter.clone())
 
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)

@@ -10,8 +10,11 @@ import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+
+// SSRS stands for Synchronous Save and Restore State
 
 class SaveAndRestoreStateTest : AbstractTest() {
     lateinit var configuration: Configuration
@@ -28,7 +31,7 @@ class SaveAndRestoreStateTest : AbstractTest() {
         StatementCounter.reset()
     }
 
-    @Test
+    @Test @Ignore("Should be replaced, no symbol table or call stack will actually be passed in snapshot!")
     fun executeSSRS01() {
         val expected = listOf("MSG:New message set to variable!")
 
@@ -37,8 +40,8 @@ class SaveAndRestoreStateTest : AbstractTest() {
 
             // try to alter symbol table to check if it will be set successfully
             // the variable changed is not in the display file
-            val msg = runtimeInterpreterSnapshot.symbolTable.dataDefinitionByName("MSG")!!
-            runtimeInterpreterSnapshot.symbolTable[msg] = StringValue("New message set to variable!")
+            // val msg = runtimeInterpreterSnapshot.symbolTable.dataDefinitionByName("MSG")!!
+            // runtimeInterpreterSnapshot.symbolTable[msg] = StringValue("New message set to variable!")
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
