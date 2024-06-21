@@ -84,3 +84,14 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         interpreter.assign(dataDefinition, field.value)
     }
 }
+
+internal fun saveSnapshotAndTerminate(
+    runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot,
+    interpreter: InterpreterCore
+) {
+    val snapshotConfig = MainExecutionContext.getConfiguration().snapshotConfig
+    snapshotConfig ?: error("Cannot take snaphot because missing property snapshotConfig in configuration")
+
+    val uuid = runtimeInterpreterSnapshot.toString()
+    snapshotConfig.save("uuid", interpreter)
+}
