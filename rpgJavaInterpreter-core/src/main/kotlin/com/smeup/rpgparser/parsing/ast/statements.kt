@@ -2394,7 +2394,7 @@ data class ExfmtStmt(
         val snapshot = RuntimeInterpreterSnapshot()
         val response = jarikoCallback.onExfmt(fields, snapshot)
 
-        if (response == null) saveSnapshotAndTerminate(snapshot, interpreter)
+        if (response == null) saveSnapshotAndTerminate(snapshot, interpreter.getGlobalSymbolTable())
         else copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }

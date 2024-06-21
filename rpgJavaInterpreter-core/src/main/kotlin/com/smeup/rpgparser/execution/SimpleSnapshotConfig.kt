@@ -18,6 +18,7 @@ import com.smeup.rpgparser.interpreter.TimeStampValue
 import com.smeup.rpgparser.interpreter.UnlimitedStringValue
 import com.smeup.rpgparser.interpreter.Value
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -53,21 +54,22 @@ private val json = Json {
 @Serializable
 data class SimpleSnapshotConfig(var snapshotPath: String? = null) {
 
-    fun save(runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, interpreter: InterpreterCore) {
+    fun save(runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, symbolTable: ISymbolTable) {
         val snapshotFile = "uuid"
         val file = File(snapshotPath, "$snapshotFile.json")
 
         file.bufferedWriter().use {
-            it.write(json.encodeToString(interpreter.getGlobalSymbolTable()))
+            it.write(json.encodeToString(symbolTable))
         }
     }
 
-    fun restore(runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) {
+    fun restore(runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot): ISymbolTable {
         val snapshotFile = "uuid"
         val file = File(snapshotPath, "$snapshotFile.json")
 
-        file.bufferedReader().use {
-            //
+        return file.bufferedReader().use {
+            // should read line by line not as a whole block
+            json.decodeFromString<ISymbolTable>(it.readText())
         }
     }
 }

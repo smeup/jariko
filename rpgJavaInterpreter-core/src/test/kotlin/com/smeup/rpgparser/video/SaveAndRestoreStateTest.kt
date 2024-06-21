@@ -6,6 +6,7 @@ import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.execution.SimpleSnapshotConfig
 import com.smeup.rpgparser.execution.SnapshotConfig
+import com.smeup.rpgparser.interpreter.ISymbolTable
 import com.smeup.rpgparser.interpreter.InterpreterCore
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.StatementCounter
@@ -31,8 +32,8 @@ class SaveAndRestoreStateTest : AbstractTest() {
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
         configuration.snapshotConfig = SnapshotConfig(
-            save = { runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, interpreter: InterpreterCore ->
-                snapshotConfig.save(runtimeInterpreterSnapshot = runtimeInterpreterSnapshot, interpreter = interpreter)
+            save = { runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, symbolTable: ISymbolTable ->
+                snapshotConfig.save(runtimeInterpreterSnapshot = runtimeInterpreterSnapshot, symbolTable = symbolTable)
             },
             restore = { runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot ->
                 snapshotConfig.restore(runtimeInterpreterSnapshot)
@@ -45,19 +46,10 @@ class SaveAndRestoreStateTest : AbstractTest() {
     fun executeSRS01() {
         val expected = listOf("MSG:")
 
-        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            // val map = mutableMapOf<String, Value>()
-
-            // try to alter symbol table to check if it will be set successfully
-            // the variable changed is not in the display file
-            // val msg = runtimeInterpreterSnapshot.symbolTable.dataDefinitionByName("MSG")!!
-            // runtimeInterpreterSnapshot.symbolTable[msg] = StringValue("New message set to variable!")
-
-            // OnExfmtResponse(runtimeInterpreterSnapshot, map)
-            null
-        }
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertEquals(expected = expected, actual = "video/SRS01".outputOf(configuration = configuration))
+
     }
 
     @AfterTest

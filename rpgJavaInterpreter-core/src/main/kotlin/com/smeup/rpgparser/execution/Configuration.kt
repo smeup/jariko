@@ -82,8 +82,8 @@ data class DspfConfig(
  * @param save saves snapshot
  * */
 data class SnapshotConfig(
-    val save: (runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, interpreter: InterpreterCore) -> Unit,
-    val restore: (runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> Unit
+    val save: (runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, symbolTable: ISymbolTable) -> Unit,
+    val restore: (runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> ISymbolTable
 )
 
 /**
