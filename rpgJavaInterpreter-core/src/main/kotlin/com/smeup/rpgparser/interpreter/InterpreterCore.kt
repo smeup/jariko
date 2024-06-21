@@ -34,6 +34,8 @@ interface InterpreterCore {
     fun getGlobalSymbolTable(): ISymbolTable
     fun setGlobalSymbolTable(symbolTable: ISymbolTable)
     fun getLocalizationContext(): LocalizationContext
+    fun getStatementCounter(): StatementCounter
+    fun setStatementCounter(statementCounter: StatementCounter)
     fun renderLog(producer: () -> LazyLogEntry?)
     fun assign(target: AssignableExpression, value: Value): Value
     fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value

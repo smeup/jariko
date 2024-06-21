@@ -133,6 +133,14 @@ open class InternalInterpreter(
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
+    private var statementCounter: StatementCounter = StatementCounter()
+    override fun getStatementCounter(): StatementCounter {
+        return this.statementCounter
+    }
+    override fun setStatementCounter(statementCounter: StatementCounter) {
+        this.statementCounter = statementCounter
+    }
+
     override fun renderLog(producer: () -> LazyLogEntry?) = renderLogInternal(producer)
 
     /**
@@ -437,16 +445,16 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        var i = StatementCounter.peekPointer()
+        var i = this.statementCounter.peekPointer()
         while (i < statements.size) {
-            StatementCounter.push(i)
+            this.statementCounter.push(i)
             try {
                 executeWithMute(statements[i++])
             } catch (e: GotoException) {
                 i = e.indexOfTaggedStatement(statements)
                 if (i < 0 || i >= statements.size) throw e
             }
-            StatementCounter.pop()
+            this.statementCounter.pop()
         }
     }
 

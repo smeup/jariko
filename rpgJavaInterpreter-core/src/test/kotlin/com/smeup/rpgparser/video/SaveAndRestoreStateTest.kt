@@ -7,9 +7,7 @@ import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.execution.SimpleSnapshotConfig
 import com.smeup.rpgparser.execution.SnapshotConfig
 import com.smeup.rpgparser.interpreter.ISymbolTable
-import com.smeup.rpgparser.interpreter.InterpreterCore
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
-import com.smeup.rpgparser.interpreter.StatementCounter
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -39,7 +37,6 @@ class SaveAndRestoreStateTest : AbstractTest() {
                 snapshotConfig.restore(runtimeInterpreterSnapshot)
             }
         )
-        StatementCounter.reset()
     }
 
     @Test
@@ -49,11 +46,8 @@ class SaveAndRestoreStateTest : AbstractTest() {
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertEquals(expected = expected, actual = "video/SRS01".outputOf(configuration = configuration))
-
     }
 
     @AfterTest
-    fun clean() {
-        StatementCounter.reset()
-    }
+    fun clean() {}
 }

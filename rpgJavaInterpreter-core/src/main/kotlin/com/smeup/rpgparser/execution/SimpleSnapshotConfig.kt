@@ -9,7 +9,6 @@ import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.interpreter.DecimalValue
 import com.smeup.rpgparser.interpreter.ISymbolTable
 import com.smeup.rpgparser.interpreter.IntValue
-import com.smeup.rpgparser.interpreter.InterpreterCore
 import com.smeup.rpgparser.interpreter.OccurableDataStructValue
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.StringValue

@@ -8,17 +8,13 @@ private enum class StatementCounterState {
     CONTINUE
 }
 
-internal object StatementCounter : Stack<Int>() {
+class StatementCounter : Stack<Int> {
     private var pointer: Int = -1
     private var state: StatementCounterState = StatementCounterState.EX_NOVO
 
-    override fun clone(): Stack<Int> {
-        val stack = Stack<Int>()
-        stack.addAll(this)
-        return stack
-    }
+    constructor() : super()
 
-    fun forceSet(stack: List<Int>, pointer: Int) {
+    constructor(stack: List<Int>, pointer: Int) {
         this.removeAllElements()
         stack.forEach {
             // Should be independent to state
@@ -26,6 +22,12 @@ internal object StatementCounter : Stack<Int>() {
             super.push(it)
         }
         this.pointer = pointer
+    }
+
+    override fun clone(): Stack<Int> {
+        val stack = Stack<Int>()
+        stack.addAll(this)
+        return stack
     }
 
     override fun push(item: Int?): Int {
@@ -42,11 +44,6 @@ internal object StatementCounter : Stack<Int>() {
             return super.pop()
         }
         return 0
-    }
-
-    fun reset() {
-        this.state = StatementCounterState.EX_NOVO
-        this.forceSet(emptyList(), -1)
     }
 
     fun prepareForRestore() {
