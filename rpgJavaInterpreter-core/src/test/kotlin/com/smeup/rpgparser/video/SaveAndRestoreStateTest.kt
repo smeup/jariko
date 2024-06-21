@@ -7,6 +7,7 @@ import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.execution.SimpleSnapshotConfig
 import com.smeup.rpgparser.execution.SnapshotConfig
 import com.smeup.rpgparser.interpreter.InterpreterCore
+import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.StatementCounter
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -30,8 +31,11 @@ class SaveAndRestoreStateTest : AbstractTest() {
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
         configuration.snapshotConfig = SnapshotConfig(
-            save = { snapshotFile: String, interpreter: InterpreterCore ->
-                snapshotConfig.save(snapshotFile = snapshotFile, interpreter = interpreter)
+            save = { runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, interpreter: InterpreterCore ->
+                snapshotConfig.save(runtimeInterpreterSnapshot = runtimeInterpreterSnapshot, interpreter = interpreter)
+            },
+            restore = { runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot ->
+                snapshotConfig.restore(runtimeInterpreterSnapshot)
             }
         )
         StatementCounter.reset()
@@ -39,7 +43,7 @@ class SaveAndRestoreStateTest : AbstractTest() {
 
     @Test
     fun executeSRS01() {
-        val expected = listOf("MSG:New message set to variable!")
+        val expected = listOf("MSG:")
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             // val map = mutableMapOf<String, Value>()

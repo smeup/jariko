@@ -18,8 +18,10 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
+import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.nanoseconds
 
+@Serializable
 class SymbolTable : ISymbolTable {
     private val values = LinkedHashMap<AbstractDataDefinition, Value>()
     private val names = mutableMapOf<String, AbstractDataDefinition>()

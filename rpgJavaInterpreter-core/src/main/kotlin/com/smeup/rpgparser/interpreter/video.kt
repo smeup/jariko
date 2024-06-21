@@ -92,6 +92,7 @@ internal fun saveSnapshotAndTerminate(
     val snapshotConfig = MainExecutionContext.getConfiguration().snapshotConfig
     snapshotConfig ?: error("Cannot take snaphot because missing property snapshotConfig in configuration")
 
-    val uuid = runtimeInterpreterSnapshot.toString()
-    snapshotConfig.save("uuid", interpreter)
+    snapshotConfig.save(runtimeInterpreterSnapshot, interpreter)
 }
+
+// restoreSnapshot ... 
