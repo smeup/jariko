@@ -8,10 +8,6 @@ private enum class StatementCounterState {
     CONTINUE
 }
 
-interface IStatementCounterStorage {
-
-}
-
 class StatementCounter : Stack<Int> {
     private var pointer: Int = -1
     private var state: StatementCounterState = StatementCounterState.EX_NOVO
