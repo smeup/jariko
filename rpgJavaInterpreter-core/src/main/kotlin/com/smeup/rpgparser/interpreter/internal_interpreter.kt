@@ -97,11 +97,6 @@ open class InternalInterpreter(
     override fun getGlobalSymbolTable(): ISymbolTable {
         return globalSymbolTable
     }
-    override fun setGlobalSymbolTable(symbolTable: ISymbolTable) {
-        symbolTable.getValues().forEach {
-            this.globalSymbolTable[it.key] = it.value
-        }
-    }
 
     private val indicators = HashMap<IndicatorKey, BooleanValue>()
     override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
@@ -445,7 +440,7 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        var i = this.statementCounter.peekPointer()
+        var i = this.statementCounter.peek()
         while (i < statements.size) {
             this.statementCounter.push(i)
             try {

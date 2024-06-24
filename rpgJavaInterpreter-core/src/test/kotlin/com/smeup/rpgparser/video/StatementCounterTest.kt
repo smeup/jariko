@@ -84,9 +84,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR01FromStart() {
         val expected = listOf("A:1", "B:1")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(emptyList(), -1)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(emptyList(), -1))
         }
         assertEquals(expected = expected, actual = "video/STKR01".outputOf(configuration = configuration))
     }
@@ -95,9 +93,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR01FromHalf() {
         val expected = listOf("B:1")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(listOf(3), 0)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(listOf(3), 0))
         }
         assertEquals(expected = expected, actual = "video/STKR01".outputOf(configuration = configuration))
     }
@@ -106,9 +102,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR02FromStart() {
         val expected = listOf("A:10")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(emptyList(), -1)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(emptyList(), -1))
         }
         assertEquals(expected = expected, actual = "video/STKR02".outputOf(configuration = configuration))
     }
@@ -117,9 +111,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR02FromHalf() {
         val expected = listOf("")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(listOf(2), 0)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(listOf(2), 0))
         }
         assertEquals(expected = expected, actual = "video/STKR02".outputOf(configuration = configuration))
     }
@@ -128,9 +120,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR03FromStart() {
         val expected = listOf("A:10", "B:10")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(emptyList(), -1)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(emptyList(), -1))
         }
         assertEquals(expected = expected, actual = "video/STKR03".outputOf(configuration = configuration))
     }
@@ -139,9 +129,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR03FromHalf() {
         val expected = listOf("B:10")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(listOf(3), 0)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(listOf(3), 0))
         }
         assertEquals(expected = expected, actual = "video/STKR03".outputOf(configuration = configuration))
     }
@@ -150,9 +138,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR04FromStart() {
         val expected = listOf("A:1", "B:1")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(emptyList(), -1)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(emptyList(), -1))
         }
         assertEquals(expected = expected, actual = "video/STKR04".outputOf(configuration = configuration))
     }
@@ -161,9 +147,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR04FromHalf() {
         val expected = listOf("A:2", "B:2")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(listOf(0, 2, 0), 0)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(listOf(0, 2, 0), 0))
         }
         assertEquals(expected = expected, actual = "video/STKR04".outputOf(configuration = configuration))
     }
@@ -172,9 +156,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR05FromStart() {
         val expected = listOf("A:1", "B:1")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(emptyList(), -1)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(emptyList(), -1))
         }
         assertEquals(expected = expected, actual = "video/STKR05".outputOf(configuration = configuration))
     }
@@ -183,9 +165,7 @@ class StatementCounterTest : AbstractTest() {
     fun executeSTKR05FromHalf() {
         val expected = listOf("A:10", "B:10")
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(listOf(0, 2, 2), 0)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(listOf(0, 2, 2), 0))
         }
         assertEquals(expected = expected, actual = "video/STKR05".outputOf(configuration = configuration))
     }
@@ -198,9 +178,7 @@ class StatementCounterTest : AbstractTest() {
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(emptyList(), -1)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(emptyList(), -1))
         }
         assertEquals(expected = expected, actual = "video/STKR06".outputOf(configuration = configuration))
     }
@@ -215,9 +193,7 @@ class StatementCounterTest : AbstractTest() {
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
         configuration.jarikoCallback.onInterpreterCreation = {
-            val statementCounter = StatementCounter(listOf(0, 1, 1), 0)
-            statementCounter.prepareForRestore()
-            it.setStatementCounter(statementCounter)
+            it.setStatementCounter(StatementCounter.restoreFrom(listOf(0, 1, 1), 0))
         }
         assertEquals(expected = expected, actual = "video/STKR06".outputOf(configuration = configuration))
     }

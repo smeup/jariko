@@ -46,15 +46,14 @@ data class Configuration(
     var jarikoCallback: JarikoCallback = JarikoCallback(),
     var reloadConfig: ReloadConfig? = null,
     var dspfConfig: DspfConfig? = null,
-    var snapshotConfig: SnapshotConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this(memorySliceStorage, JarikoCallback(), null, null, null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this(memorySliceStorage, JarikoCallback(), null, null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
 
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this(memorySliceStorage, JarikoCallback(), null, null, null, defaultActivationGroupName, Options())
+            this(memorySliceStorage, JarikoCallback(), null, null, defaultActivationGroupName, Options())
 }
 
 /**
@@ -75,15 +74,6 @@ data class ReloadConfig(
 data class DspfConfig(
     val metadataProducer: (displayFile: String) -> FileMetadata,
     val dspfProducer: (displayFile: String) -> DSPF
-)
-
-/**
- * Snapshot configuration
- * @param save saves snapshot
- * */
-data class SnapshotConfig(
-    val save: (runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot, symbolTable: ISymbolTable) -> Unit,
-    val restore: (runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> ISymbolTable
 )
 
 /**

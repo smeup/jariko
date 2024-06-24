@@ -32,7 +32,6 @@ interface InterpreterCore {
     fun getIndicators(): HashMap<IndicatorKey, BooleanValue>
     fun getKlists(): HashMap<String, List<String>>
     fun getGlobalSymbolTable(): ISymbolTable
-    fun setGlobalSymbolTable(symbolTable: ISymbolTable)
     fun getLocalizationContext(): LocalizationContext
     fun getStatementCounter(): StatementCounter
     fun setStatementCounter(statementCounter: StatementCounter)

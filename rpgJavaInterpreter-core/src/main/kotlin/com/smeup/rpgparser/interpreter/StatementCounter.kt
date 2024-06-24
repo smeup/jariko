@@ -8,6 +8,10 @@ private enum class StatementCounterState {
     CONTINUE
 }
 
+interface IStatementCounterStorage {
+
+}
+
 class StatementCounter : Stack<Int> {
     private var pointer: Int = -1
     private var state: StatementCounterState = StatementCounterState.EX_NOVO
@@ -22,6 +26,10 @@ class StatementCounter : Stack<Int> {
             super.push(it)
         }
         this.pointer = pointer
+    }
+
+    fun prepareForRestore() {
+        this.state = StatementCounterState.RESUME
     }
 
     override fun clone(): Stack<Int> {
@@ -46,11 +54,7 @@ class StatementCounter : Stack<Int> {
         return 0
     }
 
-    fun prepareForRestore() {
-        this.state = StatementCounterState.RESUME
-    }
-
-    fun peekPointer(): Int {
+    override fun peek(): Int {
         if (this.state == StatementCounterState.EX_NOVO || this.state == StatementCounterState.CONTINUE) {
             return 0
         }
@@ -68,5 +72,13 @@ class StatementCounter : Stack<Int> {
         }
 
         return this[this.pointer++]
+    }
+
+    companion object {
+        fun restoreFrom(stack: List<Int>, pointer: Int): StatementCounter {
+            val statementCounter = StatementCounter(stack, pointer)
+            statementCounter.prepareForRestore()
+            return statementCounter
+        }
     }
 }

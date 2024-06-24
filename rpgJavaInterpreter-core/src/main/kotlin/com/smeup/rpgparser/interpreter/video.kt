@@ -84,20 +84,3 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         interpreter.assign(dataDefinition, field.value)
     }
 }
-
-internal fun saveSnapshotAndTerminate(
-    runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot,
-    symbolTable: ISymbolTable
-) {
-    val snapshotConfig = MainExecutionContext.getConfiguration().snapshotConfig
-    snapshotConfig ?: error("Cannot save snapshot because missing property snapshotConfig in configuration")
-
-    snapshotConfig.save(runtimeInterpreterSnapshot, symbolTable)
-}
-
-internal fun restoreSnapshot(runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot): ISymbolTable {
-    val snapshotConfig = MainExecutionContext.getConfiguration().snapshotConfig
-    snapshotConfig ?: error("Cannot restore snapshot because missing property snapshotConfig in configuration")
-
-    return snapshotConfig.restore(runtimeInterpreterSnapshot)
-}
