@@ -24,6 +24,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.io.File
+import java.io.IOException
 
 private val json = Json {
     prettyPrint = true
@@ -59,6 +60,7 @@ data class SimpleSnapshotConfig(var snapshotPath: String? = null) {
 
         file.bufferedWriter().use {
             it.write(json.encodeToString(symbolTable))
+            it.flush()
         }
     }
 
