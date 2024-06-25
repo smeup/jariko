@@ -85,6 +85,8 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
     }
 }
 
+class ExfmtSuspendException(message: String = "Suspended due to EXFMT execution") : Exception(message)
+
 internal fun saveSnapshot(
     runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot,
     interpreter: InterpreterCore
@@ -94,9 +96,11 @@ internal fun saveSnapshot(
     val statementCounterMgr = MainExecutionContext.getStatementCounterMgr()
     statementCounterMgr ?: error("Statement counter manager and storage not configured")
 
-    MainExecutionContext.getConfiguration().memorySliceStorage!!.fileName = runtimeInterpreterSnapshot.id
-    MainExecutionContext.getConfiguration().statementCounterStorage!!.fileName = runtimeInterpreterSnapshot.id
+    MainExecutionContext.getConfiguration().memorySliceStorage!!.snapshot = runtimeInterpreterSnapshot
+    MainExecutionContext.getConfiguration().statementCounterStorage!!.snapshot = runtimeInterpreterSnapshot
 
-    memorySliceMgr.afterMainProgramInterpretation()
+    memorySliceMgr.saveBeforeExfmtSuspend()
     statementCounterMgr.store(interpreter.getStatementCounter())
+
+    throw ExfmtSuspendException()
 }

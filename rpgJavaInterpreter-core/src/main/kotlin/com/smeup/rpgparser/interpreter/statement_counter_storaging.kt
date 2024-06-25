@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 interface IStatementCounterStorage : AutoCloseable {
-    var fileName: String
+    var snapshot: RuntimeInterpreterSnapshot
     fun load(): StatementCounter
     fun store(statementCounter: StatementCounter)
 }

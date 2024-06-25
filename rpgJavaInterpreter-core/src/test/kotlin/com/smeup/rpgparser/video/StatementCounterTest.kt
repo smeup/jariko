@@ -6,7 +6,6 @@ import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.interpreter.IntValue
-import com.smeup.rpgparser.interpreter.MemoryStorage
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.StatementCounter
 import com.smeup.rpgparser.interpreter.Value

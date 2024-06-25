@@ -7,7 +7,7 @@ import kotlin.time.Duration.Companion.nanoseconds
 
 interface IMemorySliceStorage : AutoCloseable {
 
-    var fileName: String
+    var snapshot: RuntimeInterpreterSnapshot
 
     /**
      * Open the storage
@@ -51,7 +51,7 @@ interface IMemorySliceStorage : AutoCloseable {
         fun createMemoryStorage(map: MutableMap<MemorySliceId, Map<String, Value>>): IMemorySliceStorage {
             return object : IMemorySliceStorage {
 
-                override var fileName: String = ""
+                override var snapshot: RuntimeInterpreterSnapshot = RuntimeInterpreterSnapshot.blank()
 
                 override fun open() {
                 }
@@ -113,6 +113,20 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
 
     private fun encodeDataDefinition(dataDefinition: AbstractDataDefinition): String {
         return dataDefinition.name
+    }
+
+    fun saveBeforeExfmtSuspend() {
+        val persistings = mutableMapOf<MemorySliceId, Boolean?>()
+        this.memorySlices.forEach {
+            persistings[it.key] = it.value.persist
+            it.value.persist = true
+        }
+        storage.use {
+            store()
+        }
+        persistings.forEach {
+            memorySlices[it.key]!!.persist = it.value
+        }
     }
 
     fun afterMainProgramInterpretation(ok: Boolean = true) {

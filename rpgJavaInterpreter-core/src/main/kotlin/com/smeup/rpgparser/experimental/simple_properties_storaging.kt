@@ -2,6 +2,7 @@ package com.smeup.rpgparser.experimental
 
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.MemorySliceId
+import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.interpreter.serialization.SerializationOption
 import kotlinx.serialization.decodeFromString
@@ -17,8 +18,7 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
 
     // Choose of binary serialization
     private val serializer = SerializationOption.stringSerializer
-
-    override var fileName: String = ""
+    override var snapshot: RuntimeInterpreterSnapshot = RuntimeInterpreterSnapshot.blank()
 
     override fun open() {
     }

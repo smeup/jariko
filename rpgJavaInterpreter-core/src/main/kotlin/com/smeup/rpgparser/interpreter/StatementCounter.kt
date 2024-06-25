@@ -24,8 +24,7 @@ class StatementCounter : Stack<Int> {
             // if stack is empty (just created for example with empty constructor)
             // then no need to resume, just start ex novo
             this.reset()
-        }
-        else {
+        } else {
             this.prepareForRestore()
             this.forceSet(statementCounter, statementCounter.pointer)
         }
