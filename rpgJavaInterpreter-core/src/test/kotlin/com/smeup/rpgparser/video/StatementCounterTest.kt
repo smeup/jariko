@@ -91,7 +91,7 @@ class StatementCounterTest : AbstractTest() {
     @Test
     fun executeSTKR01FromHalf() {
         val expected = listOf("B:1")
-        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(3), 0))
+        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(2), 0))
         assertEquals(expected = expected, actual = "video/STKR01".outputOf(configuration = configuration))
     }
 
@@ -104,7 +104,7 @@ class StatementCounterTest : AbstractTest() {
     @Test
     fun executeSTKR02FromHalf() {
         val expected = listOf("")
-        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(2), 0))
+        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(1), 0))
         assertEquals(expected = expected, actual = "video/STKR02".outputOf(configuration = configuration))
     }
 
@@ -117,7 +117,7 @@ class StatementCounterTest : AbstractTest() {
     @Test
     fun executeSTKR03FromHalf() {
         val expected = listOf("B:10")
-        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(3), 0))
+        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(2), 0))
         assertEquals(expected = expected, actual = "video/STKR03".outputOf(configuration = configuration))
     }
 
@@ -130,7 +130,7 @@ class StatementCounterTest : AbstractTest() {
     @Test
     fun executeSTKR04FromHalf() {
         val expected = listOf("A:2", "B:2")
-        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 2, 0), 0))
+        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 1), 0))
         assertEquals(expected = expected, actual = "video/STKR04".outputOf(configuration = configuration))
     }
 
@@ -143,7 +143,7 @@ class StatementCounterTest : AbstractTest() {
     @Test
     fun executeSTKR05FromHalf() {
         val expected = listOf("A:10", "B:10")
-        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 2, 2), 0))
+        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 2, -1), 0))
         assertEquals(expected = expected, actual = "video/STKR05".outputOf(configuration = configuration))
     }
 
@@ -160,7 +160,7 @@ class StatementCounterTest : AbstractTest() {
     @Test
     fun executeSTKR06FromEXFMT() {
         val expected = listOf("A:3", "B:3")
-        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 1, 1), 0))
+        configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 1, 0), 0))
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
             map["A"] = IntValue(3)

@@ -990,7 +990,7 @@ data class IfStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val condition = interpreter.eval(condition)
-        if (condition.asBoolean().value) {
+        if (condition.asBoolean().value || interpreter.getStatementCounter().isOnRestore()) {
             interpreter.execute(this.thenBody)
         } else {
             for (elseIfClause in elseIfClauses) {

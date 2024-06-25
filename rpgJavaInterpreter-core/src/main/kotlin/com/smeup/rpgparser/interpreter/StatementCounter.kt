@@ -18,6 +18,10 @@ class StatementCounter : Stack<Int> {
         this.forceSet(stack, pointer)
     }
 
+    fun isOnRestore(): Boolean {
+        return this.state == StatementCounterState.RESUME
+    }
+
     fun restoreFrom(manager: StatementCounterMgr?) {
         val statementCounter = manager?.load()
         if (statementCounter == null || statementCounter.empty()) {
@@ -25,8 +29,9 @@ class StatementCounter : Stack<Int> {
             // then no need to resume, just start ex novo
             this.reset()
         } else {
+            // pointer is 0, when restore pointer should start over again
             this.prepareForRestore()
-            this.forceSet(statementCounter, statementCounter.pointer)
+            this.forceSet(statementCounter, 0)
         }
     }
 
@@ -83,8 +88,11 @@ class StatementCounter : Stack<Int> {
         }
 
         if (this.pointer == this.size - 1) {
+            // when last statement on stack is reached, next statement to resume is last + 1
+            // otherwise if last is an EXFMT another exception is thrown (loops)
+            // should also handle properly if there is no last + 1 statement
             this.state = StatementCounterState.CONTINUE
-            return this[this.pointer]
+            return this[this.pointer] + 1
         }
 
         return this[this.pointer++]

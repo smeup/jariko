@@ -58,7 +58,7 @@ class SaveAndRestoreStateTest : AbstractTest() {
     fun executeSRS01() {
         val expected = listOf("A:2", "B:2")
         try {
-            "video/SRSR01".outputOf(configuration = configuration)
+            "video/SRS01".outputOf(configuration = configuration)
         } catch (e: Exception) {
             assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SRS01".outputOf(configuration = configuration))
