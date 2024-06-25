@@ -84,3 +84,19 @@ internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, r
         interpreter.assign(dataDefinition, field.value)
     }
 }
+
+internal fun saveSnapshot(
+    runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot,
+    interpreter: InterpreterCore
+) {
+    val memorySliceMgr = MainExecutionContext.getMemorySliceMgr()
+    memorySliceMgr ?: error("Memory slice manager and storage not configured")
+    val statementCounterMgr = MainExecutionContext.getStatementCounterMgr()
+    statementCounterMgr ?: error("Statement counter manager and storage not configured")
+
+    MainExecutionContext.getConfiguration().memorySliceStorage!!.fileName = runtimeInterpreterSnapshot.id
+    MainExecutionContext.getConfiguration().statementCounterStorage!!.fileName = runtimeInterpreterSnapshot.id
+
+    memorySliceMgr.afterMainProgramInterpretation()
+    statementCounterMgr.store(interpreter.getStatementCounter())
+}

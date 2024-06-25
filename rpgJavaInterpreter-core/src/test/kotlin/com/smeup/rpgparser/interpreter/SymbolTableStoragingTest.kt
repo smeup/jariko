@@ -43,6 +43,7 @@ import kotlin.test.assertTrue
 class MemoryStorage : IMemorySliceStorage {
 
     val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
+    override var fileName: String = ""
 
     /**
      * Open the storage

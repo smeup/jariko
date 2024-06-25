@@ -20,8 +20,11 @@ class StatementCounter : Stack<Int> {
 
     fun restoreFrom(manager: StatementCounterMgr?) {
         val statementCounter = manager?.load()
-        if (statementCounter == null) this.reset()
-        else this.forceSet(statementCounter, statementCounter.pointer)
+        if (statementCounter == null || statementCounter.empty()) this.reset()
+        else {
+            this.prepareForRestore()
+            this.forceSet(statementCounter, statementCounter.pointer)
+        }
     }
 
     private fun forceSet(stack: List<Int>, pointer: Int) {
@@ -38,7 +41,7 @@ class StatementCounter : Stack<Int> {
         this.forceSet(emptyList(), -1)
     }
 
-    fun prepareForRestore() {
+    private fun prepareForRestore() {
         this.state = StatementCounterState.RESUME
     }
 

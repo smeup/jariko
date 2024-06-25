@@ -7,6 +7,8 @@ import kotlin.time.Duration.Companion.nanoseconds
 
 interface IMemorySliceStorage : AutoCloseable {
 
+    var fileName: String
+
     /**
      * Open the storage
      * */
@@ -48,6 +50,8 @@ interface IMemorySliceStorage : AutoCloseable {
          * */
         fun createMemoryStorage(map: MutableMap<MemorySliceId, Map<String, Value>>): IMemorySliceStorage {
             return object : IMemorySliceStorage {
+
+                override var fileName: String = ""
 
                 override fun open() {
                 }

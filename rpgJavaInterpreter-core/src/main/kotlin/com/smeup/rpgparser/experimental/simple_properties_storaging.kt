@@ -18,6 +18,8 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
     // Choose of binary serialization
     private val serializer = SerializationOption.stringSerializer
 
+    override var fileName: String = ""
+
     override fun open() {
     }
 

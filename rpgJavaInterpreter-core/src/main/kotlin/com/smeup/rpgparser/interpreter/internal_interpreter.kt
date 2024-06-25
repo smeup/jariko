@@ -1090,6 +1090,12 @@ open class InternalInterpreter(
     open fun getMemorySliceMgr(): MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
 
     /**
+     * @return an instance of StatementCounterMgr, return null to disable serialization/deserialization
+     * of statement counter
+     * */
+    open fun getStatementCounterMgr(): StatementCounterMgr? = MainExecutionContext.getStatementCounterMgr()
+
+    /**
      * This function is called before the initialization of the interpreter.
      * */
     open fun beforeInitialization() {}
@@ -1099,6 +1105,7 @@ open class InternalInterpreter(
      * */
     open fun afterInitialization(initialValues: Map<String, Value>) {
         globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues)
+        statementCounter.restoreFrom(getStatementCounterMgr())
     }
 
     private fun isExitingInRTMode(): Boolean {

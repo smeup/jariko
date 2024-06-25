@@ -72,12 +72,20 @@ object MainExecutionContext {
                 MemorySliceMgr(configuration.memorySliceStorage)
             }
         } else null
+        val statementCounterMgr = if (isRootContext) {
+            if (configuration.statementCounterStorage == null) {
+                null
+            } else {
+                StatementCounterMgr(configuration.statementCounterStorage)
+            }
+        } else null
         try {
             if (isRootContext) {
                 context.set(
                     Context(
                         configuration = configuration,
                         memorySliceMgr = memorySliceMgr,
+                        statementCounterMgr = statementCounterMgr,
                         systemInterface = systemInterface
                     )
                 )
@@ -138,6 +146,11 @@ object MainExecutionContext {
      * @return an instance of memory slice manager
      * */
     fun getMemorySliceMgr() = context.get()?.memorySliceMgr
+
+    /**
+     * @return an instance of statement counter manager
+     * */
+    fun getStatementCounterMgr() = context.get()?.statementCounterMgr
 
     /**
      * @return program stack. This is an execution stack
@@ -217,6 +230,7 @@ data class Context(
     val configuration: Configuration,
     val logging: AnalyticsLoggingContext = AnalyticsLoggingContext(),
     val memorySliceMgr: MemorySliceMgr? = null,
+    val statementCounterMgr: StatementCounterMgr? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
