@@ -20,7 +20,11 @@ class StatementCounter : Stack<Int> {
 
     fun restoreFrom(manager: StatementCounterMgr?) {
         val statementCounter = manager?.load()
-        if (statementCounter == null || statementCounter.empty()) this.reset()
+        if (statementCounter == null || statementCounter.empty()) {
+            // if stack is empty (just created for example with empty constructor)
+            // then no need to resume, just start ex novo
+            this.reset()
+        }
         else {
             this.prepareForRestore()
             this.forceSet(statementCounter, statementCounter.pointer)
