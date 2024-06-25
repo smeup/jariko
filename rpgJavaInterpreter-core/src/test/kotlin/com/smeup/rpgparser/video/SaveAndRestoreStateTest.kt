@@ -11,7 +11,6 @@ import com.smeup.rpgparser.interpreter.StatementCounter
 import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -42,7 +41,7 @@ class SaveAndRestoreStateTest : AbstractTest() {
     @Test
     fun executeSRSR01() {
         val expected = listOf("A:15", "B:15")
-        val statementCounter = StatementCounter.restoredFrom(listOf(0, 1 ,1), 0)
+        val statementCounter = StatementCounter.restoredFrom(listOf(0, 1, 1), 0)
         configuration.statementCounterStorage!!.store(statementCounter)
         val memorySliceId = MemorySliceId("*DFTACTGRP", "SRSR01")
         val values = mutableMapOf<String, Value>()
@@ -52,7 +51,6 @@ class SaveAndRestoreStateTest : AbstractTest() {
 
         assertEquals(expected = expected, actual = "video/SRSR01".outputOf(configuration = configuration))
     }
-
 
     @Test
     fun executeSRS01() {
