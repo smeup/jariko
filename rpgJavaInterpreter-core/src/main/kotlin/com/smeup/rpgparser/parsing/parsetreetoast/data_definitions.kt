@@ -37,7 +37,8 @@ enum class RpgType(val rpgType: String) {
     INTEGER("I"),
     UNSIGNED("U"),
     BINARY("B"),
-    UNLIMITED_STRING("0")
+    UNLIMITED_STRING("0"),
+    POINTER("*")
 }
 
 /**
@@ -445,6 +446,9 @@ internal fun RpgParser.DspecContext.toAst(
             }
             RpgType.UNLIMITED_STRING.rpgType -> {
                 UnlimitedStringType
+            }
+            RpgType.POINTER.rpgType -> {
+                NumberType(NumberType.MAX_INTEGER_DIGITS, NumberType.INTEGER_DECIMAL_DIGITS, RpgType.POINTER.rpgType)
             }
             else -> todo("Unknown type: <${this.DATA_TYPE().text}>", conf)
     }

@@ -95,5 +95,6 @@ interface Evaluator {
     fun eval(expression: ParmsExpr): Value
     fun eval(expression: OpenExpr): Value
     fun eval(expression: SizeExpr): Value
+    fun eval(expression: NullValExpr): Value
     fun eval(expression: MockExpression): Value
 }

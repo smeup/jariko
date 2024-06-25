@@ -40,8 +40,8 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      * @see #LS24002987
      */
     @Test
-    fun executeMUDRNRAPU00219() {
+    fun executeMUDRNRAPU00220() {
         val expected = listOf("ok")
-        assertEquals(expected, "smeup/MUDRNRAPU00219".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00220".outputOf(configuration = smeupConfig))
     }
 }
