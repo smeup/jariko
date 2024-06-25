@@ -15,6 +15,16 @@ class StatementCounter : Stack<Int> {
     constructor() : super()
 
     constructor(stack: List<Int>, pointer: Int) {
+        this.forceSet(stack, pointer)
+    }
+
+    fun restoreFrom(manager: StatementCounterMgr?) {
+        val statementCounter = manager?.load()
+        if (statementCounter == null) this.reset()
+        else this.forceSet(statementCounter, statementCounter.pointer)
+    }
+
+    private fun forceSet(stack: List<Int>, pointer: Int) {
         this.removeAllElements()
         stack.forEach {
             // Should be independent to state
@@ -22,6 +32,10 @@ class StatementCounter : Stack<Int> {
             super.push(it)
         }
         this.pointer = pointer
+    }
+
+    fun reset() {
+        this.forceSet(emptyList(), -1)
     }
 
     fun prepareForRestore() {
@@ -71,7 +85,7 @@ class StatementCounter : Stack<Int> {
     }
 
     companion object {
-        fun restoreFrom(stack: List<Int>, pointer: Int): StatementCounter {
+        fun restoredFrom(stack: List<Int>, pointer: Int): StatementCounter {
             val statementCounter = StatementCounter(stack, pointer)
             statementCounter.prepareForRestore()
             return statementCounter
