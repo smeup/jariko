@@ -4,14 +4,17 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
+import com.smeup.rpgparser.interpreter.ExfmtSuspendException
 import com.smeup.rpgparser.interpreter.IntValue
 import com.smeup.rpgparser.interpreter.MemorySliceId
 import com.smeup.rpgparser.interpreter.StatementCounter
 import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 // SRSR stands for Save and Restore State Read
 // SRSW stands for Save and Restore State Write
@@ -50,10 +53,16 @@ class SaveAndRestoreStateTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/SRSR01".outputOf(configuration = configuration))
     }
 
+
     @Test
-    fun executeSRSR01_() {
-        val expected = listOf("A:0", "B:0")
-        assertEquals(expected = expected, actual = "video/SRSR01".outputOf(configuration = configuration))
+    fun executeSRS01() {
+        val expected = listOf("A:2", "B:2")
+        try {
+            "video/SRSR01".outputOf(configuration = configuration)
+        } catch (e: Exception) {
+            assertTrue { e is ExfmtSuspendException }
+            assertEquals(expected = expected, actual = "video/SRS01".outputOf(configuration = configuration))
+        }
     }
 
     @AfterTest
