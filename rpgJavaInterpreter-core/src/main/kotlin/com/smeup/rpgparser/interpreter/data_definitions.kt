@@ -137,7 +137,7 @@ data class Prefix(internal val prefix: String, private val numCharsReplaced: Int
 }
 
 enum class FileType(val keyword: String?) {
-    DB(null), VIDEO("C");
+    DB(null), VIDEO("C"), PRINTER("O");
 
     companion object {
         fun getByKeyword(keyword: String): FileType {
