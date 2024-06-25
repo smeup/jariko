@@ -34,4 +34,14 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
         val expected = listOf("TSSYST(IBMI) TSLIBR() TSFILE() TATIPO(3) TBPROG(MULANGT12) AAAAAA(A03) BBBBBB(P01) CCCCCC()")
         assertEquals(expected, "smeup/MU500901".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Printer file with O-specs
+     * @see #LS24002987
+     */
+    @Test
+    fun executeMUDRNRAPU00219() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00219".outputOf(configuration = smeupConfig))
+    }
 }
