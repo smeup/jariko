@@ -78,6 +78,7 @@ object MainExecutionContext {
                     Context(
                         configuration = configuration,
                         memorySliceMgr = memorySliceMgr,
+                        snapshotManager = configuration.snapshotManager,
                         systemInterface = systemInterface
                     )
                 )
@@ -138,6 +139,11 @@ object MainExecutionContext {
      * @return an instance of memory slice manager
      * */
     fun getMemorySliceMgr() = context.get()?.memorySliceMgr
+
+    /**
+     * @return an instance of runtime interpreter snapshot manager
+     */
+    fun getSnapshotManager() = context.get()?.snapshotManager
 
     /**
      * @return program stack. This is an execution stack
@@ -217,6 +223,7 @@ data class Context(
     val configuration: Configuration,
     val logging: AnalyticsLoggingContext = AnalyticsLoggingContext(),
     val memorySliceMgr: MemorySliceMgr? = null,
+    val snapshotManager: RuntimeInterpreterSnapshotManager? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
