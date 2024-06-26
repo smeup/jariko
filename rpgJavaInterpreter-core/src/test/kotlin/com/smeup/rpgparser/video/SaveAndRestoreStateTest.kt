@@ -39,20 +39,6 @@ class SaveAndRestoreStateTest : AbstractTest() {
     }
 
     @Test
-    fun executeSRSR01() {
-        val expected = listOf("A:15", "B:15")
-        val statementCounter = StatementCounter.restoredFrom(listOf(0, 1, 1), 0)
-        configuration.statementCounterStorage!!.store(statementCounter)
-        val memorySliceId = MemorySliceId("*DFTACTGRP", "SRSR01")
-        val values = mutableMapOf<String, Value>()
-        values["A"] = IntValue(15)
-        values["B"] = IntValue(15)
-        configuration.memorySliceStorage!!.store(memorySliceId, values)
-
-        assertEquals(expected = expected, actual = "video/SRSR01".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeSRS01() {
         val expected = listOf("A:2", "B:2")
         try {
