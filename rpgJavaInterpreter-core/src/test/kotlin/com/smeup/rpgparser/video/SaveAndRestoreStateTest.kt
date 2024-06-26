@@ -5,10 +5,6 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.interpreter.ExfmtSuspendException
-import com.smeup.rpgparser.interpreter.IntValue
-import com.smeup.rpgparser.interpreter.MemorySliceId
-import com.smeup.rpgparser.interpreter.StatementCounter
-import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
