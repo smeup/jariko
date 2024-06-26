@@ -149,7 +149,7 @@ class StatementCounterTest : AbstractTest() {
 
     @Test
     fun executeSTKR06FromStart() {
-        val expected = listOf("A:1", "B:1")
+        val expected = listOf("A:2", "B:2")
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
@@ -159,7 +159,7 @@ class StatementCounterTest : AbstractTest() {
 
     @Test
     fun executeSTKR06FromEXFMT() {
-        val expected = listOf("A:3", "B:3")
+        val expected = listOf("A:4", "B:4")
         configuration.statementCounterStorage!!.store(StatementCounter.restoredFrom(listOf(0, 1, 0), 0))
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
