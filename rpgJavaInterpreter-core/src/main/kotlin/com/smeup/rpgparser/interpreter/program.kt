@@ -139,7 +139,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                         }
                     }
                 activationGroupType.let {
-                    activationGroup = ActivationGroup(it, it.assignedName(this, caller))
+                    activationGroup = ActivationGroup(it, it.assignedName(caller))
                 }
             }
             MainExecutionContext.getProgramStack().push(this)
