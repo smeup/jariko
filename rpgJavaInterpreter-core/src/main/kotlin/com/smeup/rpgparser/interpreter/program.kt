@@ -130,17 +130,21 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 } else {
                     null
                 }
-                val activationGroupType = cu.activationGroupType() ?: when (caller) {
 
-                        // for main program, which does not have a caller, activation group is fixed by config
-                        null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
-                        else -> {
-                            CallerActivationGroup
-                        }
+                val activationGroupType = cu.activationGroupType()?.let {
+                    when {
+                        // When there is no caller use the default activation group
+                        it is CallerActivationGroup && caller == null ->
+                            NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                        else -> it
                     }
-                activationGroupType.let {
-                    activationGroup = ActivationGroup(it, it.assignedName(caller))
+                } ?: when (caller) {
+                    // for main program, which does not have a caller, activation group is fixed by config
+                    null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                    else -> CallerActivationGroup
                 }
+
+                activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
             }
             MainExecutionContext.getProgramStack().push(this)
             MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
