@@ -1,15 +1,19 @@
 package com.smeup.rpgparser.video.snapshot
 
-class StackTraceStorageMock : StackTraceStorage {
-    private val stackTrace: StackTrace = StackTrace()
+import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 
-    override fun store() {
+internal class StackTraceStorageMock : StackTraceStorage {
+    override fun store(
+        snapshot: RuntimeInterpreterSnapshot,
+        stackTrace: StackTrace
+    ) {
         TODO("Not yet implemented")
     }
 
-    override fun load() {
+    override fun load(snapshot: RuntimeInterpreterSnapshot): StackTrace {
         TODO("Not yet implemented")
     }
+
 
     override fun close() {
         TODO("Not yet implemented")

@@ -9,7 +9,7 @@ private enum class TraceState {
 }
 
 
-class StackTrace : Stack<Int> {
+internal class StackTrace : Stack<Int> {
     private var pointer: Int = -1
     private var state: TraceState = TraceState.EX_NOVO
 

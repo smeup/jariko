@@ -4,7 +4,7 @@ import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.MemorySliceId
 import com.smeup.rpgparser.interpreter.Value
 
-class MemorySliceStorageMock : IMemorySliceStorage {
+internal class MemorySliceStorageMock : IMemorySliceStorage {
     private val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
 
     override fun open() {}
