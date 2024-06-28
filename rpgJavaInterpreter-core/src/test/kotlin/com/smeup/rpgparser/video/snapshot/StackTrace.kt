@@ -1,12 +1,13 @@
-package com.smeup.rpgparser.video
+package com.smeup.rpgparser.video.snapshot
 
-import java.util.Stack
+import java.util.*
 
 private enum class TraceState {
     EX_NOVO,
     RESUME,
     CONTINUE
 }
+
 
 class StackTrace : Stack<Int> {
     private var pointer: Int = -1

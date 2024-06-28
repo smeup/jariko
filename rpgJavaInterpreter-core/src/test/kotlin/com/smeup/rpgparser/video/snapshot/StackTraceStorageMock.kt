@@ -1,13 +1,13 @@
-package com.smeup.rpgparser.video
+package com.smeup.rpgparser.video.snapshot
 
-class StackTraceMgr : AutoCloseable {
+class StackTraceStorageMock : StackTraceStorage {
     private val stackTrace: StackTrace = StackTrace()
 
-    fun store() {
+    override fun store() {
         TODO("Not yet implemented")
     }
 
-    fun load() {
+    override fun load() {
         TODO("Not yet implemented")
     }
 

@@ -7,7 +7,7 @@ interface RuntimeInterpreterSnapshotManager {
     /**
      * It is used as key to store or load a specific snapshot.
      */
-    var snapshot: RuntimeInterpreterSnapshot
+    var snapshot: RuntimeInterpreterSnapshot?
 
     fun take(): RuntimeInterpreterSnapshot
     fun store()
