@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.video
 
-import com.smeup.rpgparser.interpreter.StatementsExecuteTrace
 import java.util.Stack
 
 private enum class TraceState {
@@ -9,7 +8,7 @@ private enum class TraceState {
     CONTINUE
 }
 
-class StackTrace : StatementsExecuteTrace, Stack<Int> {
+class StackTrace : Stack<Int> {
     private var pointer: Int = -1
     private var state: TraceState = TraceState.EX_NOVO
 
