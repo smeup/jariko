@@ -8,7 +8,6 @@ private enum class TraceState {
     CONTINUE
 }
 
-
 internal class StackTrace : Stack<Int> {
     private var pointer: Int = -1
     private var state: TraceState = TraceState.EX_NOVO
@@ -22,19 +21,6 @@ internal class StackTrace : Stack<Int> {
     fun isOnRestore(): Boolean {
         return this.state == TraceState.RESUME
     }
-
-//    fun restoreFrom(manager: StatementCounterMgr?) {
-//        val statementCounter = manager?.load()
-//        if (statementCounter == null || statementCounter.empty()) {
-//            // if stack is empty (just created for example with empty constructor)
-//            // then no need to resume, just start ex novo
-//            this.reset()
-//        } else {
-//            // pointer is 0, when restore pointer should start over again
-//            this.prepareForRestore()
-//            this.forceSet(statementCounter, 0)
-//        }
-//    }
 
     private fun forceSet(stack: List<Int>, pointer: Int) {
         this.removeAllElements()

@@ -434,7 +434,7 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        var i = snapshotManager?.peekStatement() ?: 0
+        var i = snapshotManager?.beforeExecuteCycle() ?: 0
         while (i < statements.size) {
             snapshotManager?.beforeStatementExecution(i)
             try {

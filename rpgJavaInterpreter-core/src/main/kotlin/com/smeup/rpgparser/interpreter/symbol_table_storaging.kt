@@ -111,6 +111,20 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         return dataDefinition.name
     }
 
+    fun saveBeforeExfmtSuspend() {
+        val persistings = mutableMapOf<MemorySliceId, Boolean?>()
+        this.memorySlices.forEach {
+            persistings[it.key] = it.value.persist
+            it.value.persist = true
+        }
+        storage.use {
+            store()
+        }
+        persistings.forEach {
+            memorySlices[it.key]!!.persist = it.value
+        }
+    }
+
     fun afterMainProgramInterpretation(ok: Boolean = true) {
         storage.use {
             if (ok) {

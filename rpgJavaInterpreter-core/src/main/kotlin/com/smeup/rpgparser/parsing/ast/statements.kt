@@ -2394,7 +2394,7 @@ data class ExfmtStmt(
         val snapshotManager = MainExecutionContext.getSnapshotManager()
 
         if (snapshotManager == null) {
-            val snapshot = RuntimeInterpreterSnapshot()
+            val snapshot = RuntimeInterpreterSnapshot("")
             val response = jarikoCallback.onExfmt(fields, snapshot)
 
             response ?: error("Cannot handle async without a snapshot manager")
@@ -2406,7 +2406,6 @@ data class ExfmtStmt(
             if (response == null) snapshotManager.store()
             else copyRecordFieldsIntoDataDefinitions(interpreter, response)
         }
-
     }
 }
 

@@ -12,8 +12,8 @@ interface RuntimeInterpreterSnapshotManager {
     fun take(): RuntimeInterpreterSnapshot
     fun store()
     fun load()
-
-    fun peekStatement(): Int
+    fun isOnRestore(): Boolean
+    fun beforeExecuteCycle(): Int
     fun beforeStatementExecution(i: Int)
     fun afterStatementExecution()
 }

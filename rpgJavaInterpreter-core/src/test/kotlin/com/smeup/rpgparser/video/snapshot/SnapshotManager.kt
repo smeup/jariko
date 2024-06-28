@@ -1,37 +1,50 @@
 package com.smeup.rpgparser.video.snapshot
 
-import com.smeup.rpgparser.interpreter.IMemorySliceStorage
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
 
-class SnapshotManager(
-    private val memorySliceStorage: IMemorySliceStorage,
+internal class SnapshotManager(
+    private val memorySliceStorage: MemorySliceStorageMock,
     override var snapshot: RuntimeInterpreterSnapshot? = null
 ) : RuntimeInterpreterSnapshotManager {
-    private val stackTraceStorage: StackTraceStorage? = null
+    // there is no sense to create an instance of this class without a memory slice manager!
+    private val memorySliceMgr: MemorySliceMgr = MainExecutionContext.getMemorySliceMgr()!!
+    private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
+    private var stackTrace: StackTrace = StackTrace()
 
     override fun take(): RuntimeInterpreterSnapshot {
-        TODO("Not yet implemented")
+        this.snapshot = RuntimeInterpreterSnapshot("")
+        this.stackTraceStorage.snapshot = this.snapshot
+        this.memorySliceStorage.snapshot = this.snapshot
+        return this.snapshot!!
     }
 
     override fun store() {
-        TODO("Not yet implemented")
+        this.stackTraceStorage.store(this.stackTrace)
+        this.memorySliceMgr.saveBeforeExfmtSuspend()
     }
 
     override fun load() {
-        TODO("Not yet implemented")
+        // the load operation for memory slice is not needed because it is already
+        // executed after interpreter initialization
+        this.stackTrace = this.stackTraceStorage.load()
     }
 
-    override fun peekStatement(): Int {
-        TODO("Not yet implemented")
+    override fun isOnRestore(): Boolean {
+        return this.stackTrace.isOnRestore()
+    }
+
+    override fun beforeExecuteCycle(): Int {
+        return this.stackTrace.peek()
     }
 
     override fun beforeStatementExecution(i: Int) {
-        TODO("Not yet implemented")
+        this.stackTrace.push(i)
     }
 
     override fun afterStatementExecution() {
-        TODO("Not yet implemented")
+        this.stackTrace.pop()
     }
-
 }
