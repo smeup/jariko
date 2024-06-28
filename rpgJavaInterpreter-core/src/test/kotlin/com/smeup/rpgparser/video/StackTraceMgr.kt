@@ -1,15 +1,13 @@
 package com.smeup.rpgparser.video
 
-import com.smeup.rpgparser.interpreter.StatementsExecuteTraceManager
-
-class StackTraceMgr : StatementsExecuteTraceManager {
+class StackTraceMgr : AutoCloseable {
     private val stackTrace: StackTrace = StackTrace()
 
-    override fun store() {
+    fun store() {
         TODO("Not yet implemented")
     }
 
-    override fun load() {
+    fun load() {
         TODO("Not yet implemented")
     }
 

@@ -98,6 +98,8 @@ open class InternalInterpreter(
         return globalSymbolTable
     }
 
+    private val snapshotManager = MainExecutionContext.getSnapshotManager()
+
     private val indicators = HashMap<IndicatorKey, BooleanValue>()
     override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
         return indicators
@@ -432,14 +434,16 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        var i = 0
+        var i = snapshotManager?.peekStatement() ?: 0
         while (i < statements.size) {
+            snapshotManager?.beforeStatementExecution(i)
             try {
                 executeWithMute(statements[i++])
             } catch (e: GotoException) {
                 i = e.indexOfTaggedStatement(statements)
                 if (i < 0 || i >= statements.size) throw e
             }
+            snapshotManager?.afterStatementExecution()
         }
     }
 
@@ -1089,6 +1093,7 @@ open class InternalInterpreter(
      * */
     open fun afterInitialization(initialValues: Map<String, Value>) {
         globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues)
+        snapshotManager?.load()
     }
 
     private fun isExitingInRTMode(): Boolean {
