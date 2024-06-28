@@ -78,6 +78,7 @@ object MainExecutionContext {
                     Context(
                         configuration = configuration,
                         memorySliceMgr = memorySliceMgr,
+                        statementsExecuteTraceManager = configuration.statementsExecuteTraceManager,
                         snapshotManager = configuration.snapshotManager,
                         systemInterface = systemInterface
                     )
@@ -139,6 +140,11 @@ object MainExecutionContext {
      * @return an instance of memory slice manager
      * */
     fun getMemorySliceMgr() = context.get()?.memorySliceMgr
+
+    /**
+     * @return an instance of statements execute trace manager
+     */
+    fun getStatementsExecuteTraceManager() = context.get()?.statementsExecuteTraceManager
 
     /**
      * @return an instance of runtime interpreter snapshot manager
@@ -223,6 +229,7 @@ data class Context(
     val configuration: Configuration,
     val logging: AnalyticsLoggingContext = AnalyticsLoggingContext(),
     val memorySliceMgr: MemorySliceMgr? = null,
+    val statementsExecuteTraceManager: StatementsExecuteTraceManager? = null,
     val snapshotManager: RuntimeInterpreterSnapshotManager? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
