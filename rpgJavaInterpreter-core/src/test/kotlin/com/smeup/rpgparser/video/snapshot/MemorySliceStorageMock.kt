@@ -2,9 +2,11 @@ package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.MemorySliceId
+import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.Value
 
 internal class MemorySliceStorageMock : IMemorySliceStorage {
+    var snapshot: RuntimeInterpreterSnapshot? = null
     private val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
 
     override fun open() {}

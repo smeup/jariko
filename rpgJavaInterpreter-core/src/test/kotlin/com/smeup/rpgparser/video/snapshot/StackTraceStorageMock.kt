@@ -3,14 +3,13 @@ package com.smeup.rpgparser.video.snapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 
 internal class StackTraceStorageMock : StackTraceStorage {
-    override fun store(
-        snapshot: RuntimeInterpreterSnapshot,
-        stackTrace: StackTrace
-    ) {
+    override var snapshot: RuntimeInterpreterSnapshot? = null
+
+    override fun store(stackTrace: StackTrace) {
         TODO("Not yet implemented")
     }
 
-    override fun load(snapshot: RuntimeInterpreterSnapshot): StackTrace {
+    override fun load(): StackTrace {
         TODO("Not yet implemented")
     }
 
