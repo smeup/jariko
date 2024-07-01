@@ -1,6 +1,9 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.execution.DspfConfig
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.SimpleDspfConfig
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
@@ -43,5 +46,17 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
     fun executeMUDRNRAPU00220() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00220".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Printer file with O-specs with no DSPF config
+     * @see #LS24002987
+     */
+    @Test
+    fun executeMUDRNRAPU00220WithoutDSPF() {
+        val expected = listOf("ok")
+        val mockSmeupConfig = smeupConfig.copy()
+        mockSmeupConfig.dspfConfig = null
+        assertEquals(expected, "smeup/MUDRNRAPU00220".outputOf(configuration = mockSmeupConfig))
     }
 }
