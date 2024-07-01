@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
-import com.smeup.rpgparser.execution.DspfConfig
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.execution.SimpleDspfConfig
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
