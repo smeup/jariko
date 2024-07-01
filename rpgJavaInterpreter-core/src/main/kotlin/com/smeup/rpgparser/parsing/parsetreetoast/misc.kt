@@ -194,6 +194,15 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
 
 private fun FileDefinition.loadMetadata(): FileMetadata {
     return when {
+        fileType == FileType.PRINTER -> {
+            FileMetadata(
+                name = this.name,
+                tableName = this.name,
+                recordFormat = this.internalFormatName ?: this.name,
+                fields = emptyList(),
+                accessFields = emptyList()
+            )
+        }
         (fileType == FileType.DB || MainExecutionContext.getConfiguration().dspfConfig == null) -> {
             val reloadConfig = MainExecutionContext.getConfiguration()
                 .reloadConfig
@@ -214,15 +223,6 @@ private fun FileDefinition.loadMetadata(): FileMetadata {
             }.onFailure { error ->
                 error("Not found metadata for $this", error)
             }.getOrNull() ?: error("Not found metadata for $this")
-        }
-        fileType == FileType.PRINTER -> {
-            FileMetadata(
-                name = this.name,
-                tableName = this.name,
-                recordFormat = this.internalFormatName ?: this.name,
-                fields = emptyList(),
-                accessFields = emptyList()
-            )
         }
         else -> error("Unhandled file type $fileType")
     }
