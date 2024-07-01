@@ -50,6 +50,9 @@ internal class SnapshotManager(
         this.stackTrace.pop()
     }
 
+    /**
+     * Test only: returns a copy of the stack to preventing the program any way to mutate a private attribute
+     */
     fun getStack(): Stack<Int> {
         return this.stackTrace.clone()
     }
