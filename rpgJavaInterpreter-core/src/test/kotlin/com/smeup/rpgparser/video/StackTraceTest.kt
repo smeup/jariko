@@ -9,7 +9,7 @@ import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
-import java.util.Stack
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,19 +35,50 @@ class StackTraceTest : AbstractTest() {
     @Test
     fun executeSTKW01() {
         val expected = listOf("A:1", "B:1")
-        val firstEXFMTStack = Stack<Int>()
-        firstEXFMTStack.addAll(listOf(0, 1, 1))
-        val savedStacks: MutableList<Stack<Int>> = mutableListOf()
+        val savedStacksAsLists: MutableList<List<Int>> = mutableListOf()
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val snapshotManager = MainExecutionContext.getSnapshotManager() as SnapshotManager
-            savedStacks.add(snapshotManager.getStack())
+            savedStacksAsLists.add(snapshotManager.getStackAsList())
 
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
         assertEquals(expected = expected, actual = "video/STKW01".outputOf(configuration = configuration))
-        assertEquals(firstEXFMTStack, savedStacks[0])
+        assertEquals(listOf(0), savedStacksAsLists[0])
+        assertEquals(listOf(1, 1), savedStacksAsLists[1])
+        assertEquals(listOf(1, 2, 1), savedStacksAsLists[2])
+        assertEquals(listOf(2), savedStacksAsLists[3])
+    }
+
+    @Test
+    fun executeSTKR01FromStart() {
+        val expected = listOf("A:3", "B:3")
+
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+             val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+
+        assertEquals(expected = expected, actual = "video/STKR01".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSTKR01FromAfterEXFMT() {
+        val expected = listOf("A:2", "B:2")
+
+        (configuration.snapshotManager as SnapshotManager).setStackWithListAndPointer(listOf(2), -1)
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+
+        assertEquals(expected = expected, actual = "video/STKR01".outputOf(configuration = configuration))
+    }
+
+    @AfterTest
+    fun clean() {
+        (configuration.snapshotManager as SnapshotManager).setStackWithListAndPointer(emptyList(), -1)
     }
 }

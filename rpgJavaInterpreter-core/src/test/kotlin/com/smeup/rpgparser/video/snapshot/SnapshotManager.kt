@@ -4,7 +4,6 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
-import java.util.Stack
 
 internal class SnapshotManager(
     private val memorySliceStorage: MemorySliceStorageMock,
@@ -51,9 +50,16 @@ internal class SnapshotManager(
     }
 
     /**
-     * Test only: returns a copy of the stack to preventing the program any way to mutate a private attribute
+     * Test only: returns the copy of the stack as list
      */
-    fun getStack(): Stack<Int> {
+    fun getStackAsList(): List<Int> {
         return this.stackTrace.clone()
+    }
+
+    /**
+     * Test only: sets the current stack for restore from list
+     */
+    fun setStackWithListAndPointer(list: List<Int>, pointer: Int) {
+        this.stackTrace = StackTrace.restoredFrom(list, pointer)
     }
 }

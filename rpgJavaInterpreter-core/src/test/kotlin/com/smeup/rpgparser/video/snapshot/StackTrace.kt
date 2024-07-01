@@ -22,9 +22,9 @@ internal class StackTrace : Stack<Int> {
         return this.state == TraceState.RESUME
     }
 
-    private fun forceSet(stack: List<Int>, pointer: Int) {
+    private fun forceSet(list: List<Int>, pointer: Int) {
         this.removeAllElements()
-        stack.forEach {
+        list.forEach {
             // Should be independent to state
             this.pointer++
             super.push(it)
@@ -86,8 +86,8 @@ internal class StackTrace : Stack<Int> {
     }
 
     companion object {
-        fun restoredFrom(stack: List<Int>, pointer: Int): StackTrace {
-            val statementCounter = StackTrace(stack, pointer)
+        fun restoredFrom(list: List<Int>, pointer: Int): StackTrace {
+            val statementCounter = StackTrace(list, pointer)
             statementCounter.prepareForRestore()
             return statementCounter
         }
