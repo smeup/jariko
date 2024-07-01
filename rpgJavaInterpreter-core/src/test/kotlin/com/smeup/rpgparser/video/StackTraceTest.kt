@@ -3,6 +3,7 @@ package com.smeup.rpgparser.video
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.Value
@@ -39,6 +40,9 @@ class StackTraceTest : AbstractTest() {
         val savedStacks: MutableList<Stack<Int>> = mutableListOf()
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val snapshotManager = MainExecutionContext.getSnapshotManager() as SnapshotManager
+            savedStacks.add(snapshotManager.getStack())
+
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }

@@ -4,13 +4,15 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
+import java.util.Stack
 
 internal class SnapshotManager(
     private val memorySliceStorage: MemorySliceStorageMock,
     override var snapshot: RuntimeInterpreterSnapshot? = null
 ) : RuntimeInterpreterSnapshotManager {
     // there is no sense to create an instance of this class without a memory slice manager!
-    private val memorySliceMgr: MemorySliceMgr = MainExecutionContext.getMemorySliceMgr()!!
+    // by the way when initializing this class manager could be not ready yet
+    private val memorySliceMgr: MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
     private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
     private var stackTrace: StackTrace = StackTrace()
 
@@ -23,7 +25,7 @@ internal class SnapshotManager(
 
     override fun store() {
         this.stackTraceStorage.store(this.stackTrace)
-        this.memorySliceMgr.saveBeforeExfmtSuspend()
+        this.memorySliceMgr!!.saveBeforeExfmtSuspend()
     }
 
     override fun load() {
@@ -46,5 +48,9 @@ internal class SnapshotManager(
 
     override fun afterStatementExecution() {
         this.stackTrace.pop()
+    }
+
+    fun getStack(): Stack<Int> {
+        return this.stackTrace.clone()
     }
 }
