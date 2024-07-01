@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.video.snapshot
 
-import java.util.*
+import java.util.Stack
 
 private enum class TraceState {
     EX_NOVO,
