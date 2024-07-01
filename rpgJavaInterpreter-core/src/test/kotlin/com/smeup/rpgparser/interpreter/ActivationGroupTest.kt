@@ -37,6 +37,30 @@ open class ActivationGroupTest : AbstractTest() {
     }
 
     /**
+     * Assigned activation group name should be the default from configuration
+     * */
+    @Test
+    fun testUnspecifiedCaller() {
+        val pgm = "     H ACTGRP(*CALLER)\n" +
+                "     C                   SETON                                          RT"
+
+        val conf = Configuration(
+            jarikoCallback = JarikoCallback(
+                getActivationGroup = {
+                        _: String, associatedActivationGroup: ActivationGroup? ->
+                    println("associatedActivationGroupName: ${associatedActivationGroup?.assignedName}")
+                    assertEquals(Configuration().defaultActivationGroupName, associatedActivationGroup?.assignedName)
+                    assertEquals(DEFAULT_ACTIVATION_GROUP_NAME, associatedActivationGroup?.assignedName)
+                    null
+                }
+            )
+        )
+        conf.adaptForTestCase(this)
+        val commandLineProgram = getProgram(pgm)
+        commandLineProgram.singleCall(emptyList(), conf)
+    }
+
+    /**
      * Assigned activation group name should be from declaration
      * */
     @Test
