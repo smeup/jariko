@@ -352,4 +352,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00219".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Caller activation group with no actual caller
+     * @see #LS24003137
+     */
+    @Test
+    fun executeMUDRNRAPU00221() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00221".outputOf(configuration = smeupConfig))
+    }
 }
