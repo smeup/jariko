@@ -36,13 +36,14 @@ internal class StackTrace : Stack<Int> {
         this.forceSet(emptyList(), -1)
     }
 
-    private fun prepareForRestore() {
+    fun prepareForRestore() {
         this.state = TraceState.RESUME
     }
 
-    override fun clone(): Stack<Int> {
-        val stack = Stack<Int>()
+    override fun clone(): StackTrace {
+        val stack = StackTrace()
         stack.addAll(this)
+        stack.pointer = this.pointer
         return stack
     }
 

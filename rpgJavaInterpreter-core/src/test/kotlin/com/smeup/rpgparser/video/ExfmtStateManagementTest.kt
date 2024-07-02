@@ -46,7 +46,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @AfterTest
     fun clean() {
-        (configuration.snapshotManager as SnapshotManager).resetMemory()
-        (configuration.snapshotManager as SnapshotManager).resetStack()
+//        (configuration.snapshotManager as SnapshotManager).resetMemory()
+//        (configuration.snapshotManager as SnapshotManager).resetStack()
     }
 }
