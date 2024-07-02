@@ -3,10 +3,7 @@ package com.smeup.rpgparser.video
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
-import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.SimpleDspfConfig
-import com.smeup.rpgparser.interpreter.OnExfmtResponse
-import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.AfterTest

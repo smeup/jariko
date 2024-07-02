@@ -485,6 +485,8 @@ open class InternalInterpreter(
             throw e
         } catch (e: NotImplementedError) {
             throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+        } catch (e: ExfmtSuspendException) {
+            throw e
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
         } catch (t: Throwable) {

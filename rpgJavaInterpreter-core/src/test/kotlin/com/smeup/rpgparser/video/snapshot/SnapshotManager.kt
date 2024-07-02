@@ -11,7 +11,8 @@ internal class SnapshotManager(
 ) : RuntimeInterpreterSnapshotManager {
     // there is no sense to create an instance of this class without a memory slice manager!
     // by the way when initializing this class manager could be not ready yet
-    private val memorySliceMgr: MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
+    private val memorySliceMgr: MemorySliceMgr?
+        get() = MainExecutionContext.getMemorySliceMgr()
     private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
     private var stackTrace: StackTrace = StackTrace()
 
@@ -25,7 +26,7 @@ internal class SnapshotManager(
     override fun store() {
         this.stackTraceStorage.store(this.stackTrace)
         this.memorySliceMgr!!.saveBeforeExfmtSuspend()
-        // throw ExfmtSuspendException()
+        throw ExfmtSuspendInterrupt()
     }
 
     override fun load() {
