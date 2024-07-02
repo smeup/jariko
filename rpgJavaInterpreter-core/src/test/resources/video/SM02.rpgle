@@ -1,3 +1,5 @@
+      * Test IF behavior
+
      FSM02V     CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0
