@@ -16,20 +16,25 @@ internal class SnapshotManager(
     private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
     private var stackTrace: StackTrace = StackTrace()
 
-    override fun take(): RuntimeInterpreterSnapshot {
-        this.snapshot = RuntimeInterpreterSnapshot("")
+    private fun setUpStorages() {
         this.stackTraceStorage.snapshot = this.snapshot
         this.memorySliceStorage.snapshot = this.snapshot
+    }
+
+    override fun take(): RuntimeInterpreterSnapshot {
+        this.snapshot = RuntimeInterpreterSnapshot("")
         return this.snapshot!!
     }
 
     override fun store() {
+        this.setUpStorages()
         this.stackTraceStorage.store(this.stackTrace)
         this.memorySliceMgr!!.saveBeforeExfmtSuspend()
         throw ExfmtSuspendInterrupt()
     }
 
     override fun load() {
+        this.setUpStorages()
         // the load operation for memory slice is not needed because it is already
         // executed after interpreter initialization
         this.stackTrace = this.stackTraceStorage.load()
