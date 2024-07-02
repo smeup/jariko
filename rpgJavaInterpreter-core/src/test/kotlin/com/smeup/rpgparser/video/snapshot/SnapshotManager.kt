@@ -68,7 +68,7 @@ internal class SnapshotManager(
      */
     fun setStackWithList(list: List<Int>) {
         // always 0 for start correctly
-        this.stackTrace = StackTrace.restoredFrom(list, 0)
+        this.stackTrace = StackTrace.restoredFrom(list)
         this.stackTraceStorage.store(this.stackTrace)
     }
 

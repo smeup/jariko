@@ -14,8 +14,8 @@ internal class StackTrace : Stack<Int> {
 
     constructor() : super()
 
-    constructor(stack: List<Int>, pointer: Int) {
-        this.forceSet(stack, pointer)
+    constructor(stack: List<Int>) {
+        this.forceSet(stack, 0)
     }
 
     fun isOnRestore(): Boolean {
@@ -37,6 +37,7 @@ internal class StackTrace : Stack<Int> {
     }
 
     fun prepareForRestore() {
+        this.pointer = 0
         this.state = TraceState.RESUME
     }
 
@@ -87,8 +88,8 @@ internal class StackTrace : Stack<Int> {
     }
 
     companion object {
-        fun restoredFrom(list: List<Int>, pointer: Int): StackTrace {
-            val statementCounter = StackTrace(list, pointer)
+        fun restoredFrom(list: List<Int>): StackTrace {
+            val statementCounter = StackTrace(list)
             statementCounter.prepareForRestore()
             return statementCounter
         }

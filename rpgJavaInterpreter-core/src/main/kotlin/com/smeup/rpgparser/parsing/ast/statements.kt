@@ -989,8 +989,9 @@ data class IfStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
+        val isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
         val condition = interpreter.eval(condition)
-        if (condition.asBoolean().value) {
+        if (condition.asBoolean().value || isOnRestore) {
             interpreter.execute(this.thenBody)
         } else {
             for (elseIfClause in elseIfClauses) {
