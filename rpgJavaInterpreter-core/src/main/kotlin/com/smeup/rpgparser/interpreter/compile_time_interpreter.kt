@@ -285,16 +285,18 @@ open class BaseCompileTimeInterpreter(
     }
 
     private fun Cspec_fixedContext.findType(declName: String, conf: ToAstConfiguration): Type? {
-        val ast = this.toAst(conf)
-        if (ast is StatementThatCanDefineData) {
-            val dataDefinition = ast.dataDefinition()
-            dataDefinition.forEach {
-                if (it.name == declName) {
-                    return it.type
-                }
+        return when (val ast = this.toAst(conf)) {
+            is DefineStmt -> {
+                if (declName != ast.newVarName) return null
+                val type = findType(rContext().statement(), ast.originalName, conf)
+                type
             }
+            is StatementThatCanDefineData -> {
+                val dataDefinition = ast.dataDefinition()
+                dataDefinition.firstOrNull { it.name == declName }?.type
+            }
+            else -> null
         }
-        return null
     }
 
     private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type? {
