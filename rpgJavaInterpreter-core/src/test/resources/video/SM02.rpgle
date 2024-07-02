@@ -1,10 +1,4 @@
-     V* ==============================================================
-     D* 02/07/24
-     D* Test the stack trace read behavior by placing EXFMT in certain
-     D* points
-     V* ==============================================================
-
-     FSTKR01V   CF   E             WORKSTN USROPN
+     FSM02V     CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0
      D B               S              2  0
