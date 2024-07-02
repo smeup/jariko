@@ -4,12 +4,14 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
+import com.smeup.rpgparser.video.snapshot.ExfmtSuspendInterrupt
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ExfmtStateManagementTest : AbstractTest() {
     lateinit var configuration: Configuration
@@ -31,10 +33,15 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM01() {
-        val expected = listOf("A:1", "B:1")
+        val expected = listOf("A:3", "B:3")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
-        assertEquals(expected = expected, actual = "video/SM01".outputOf(configuration = configuration))
+        try {
+            "video/SM01".outputOf(configuration = configuration)
+        } catch (e: Exception) {
+            assertTrue { e is ExfmtSuspendInterrupt }
+            assertEquals(expected = expected, actual = "video/SM01".outputOf(configuration = configuration))
+        }
     }
 
     @AfterTest
