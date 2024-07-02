@@ -59,7 +59,17 @@ internal class SnapshotManager(
     /**
      * Test only: sets the current stack for restore from list
      */
-    fun setStackWithListAndPointer(list: List<Int>, pointer: Int) {
-        this.stackTrace = StackTrace.restoredFrom(list, pointer)
+    fun setStackWithList(list: List<Int>) {
+        // always 0 for start correctly
+        this.stackTrace = StackTrace.restoredFrom(list, 0)
+        this.stackTraceStorage.store(this.stackTrace)
+    }
+
+    /**
+     * Test only: resets the current stack
+     */
+    fun resetStack() {
+        this.stackTrace = StackTrace()
+        this.stackTraceStorage.store(this.stackTrace)
     }
 }

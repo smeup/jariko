@@ -68,7 +68,7 @@ class StackTraceTest : AbstractTest() {
     fun executeSTKR01FromAfterEXFMT() {
         val expected = listOf("A:2", "B:2")
 
-        (configuration.snapshotManager as SnapshotManager).setStackWithListAndPointer(listOf(2), -1)
+        (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(2))
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
@@ -79,6 +79,6 @@ class StackTraceTest : AbstractTest() {
 
     @AfterTest
     fun clean() {
-        (configuration.snapshotManager as SnapshotManager).setStackWithListAndPointer(emptyList(), -1)
+        (configuration.snapshotManager as SnapshotManager).resetStack()
     }
 }
