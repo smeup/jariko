@@ -26,4 +26,8 @@ internal class MemorySliceStorageMock : IMemorySliceStorage {
     override fun rollbackTrans() {}
 
     override fun close() {}
+
+    fun reset() {
+        this.storage.clear()
+    }
 }

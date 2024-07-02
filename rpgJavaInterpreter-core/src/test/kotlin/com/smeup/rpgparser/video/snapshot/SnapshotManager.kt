@@ -25,6 +25,7 @@ internal class SnapshotManager(
     override fun store() {
         this.stackTraceStorage.store(this.stackTrace)
         this.memorySliceMgr!!.saveBeforeExfmtSuspend()
+        // throw ExfmtSuspendException()
     }
 
     override fun load() {
@@ -71,5 +72,12 @@ internal class SnapshotManager(
     fun resetStack() {
         this.stackTrace = StackTrace()
         this.stackTraceStorage.store(this.stackTrace)
+    }
+
+    /**
+     * Test only: resets memory slice storage
+     */
+    fun resetMemory() {
+        this.memorySliceStorage.reset()
     }
 }

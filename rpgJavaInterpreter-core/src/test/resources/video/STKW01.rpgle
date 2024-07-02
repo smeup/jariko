@@ -1,7 +1,7 @@
      V* ==============================================================
      D* 06/02/24
-     D* Test the stack trace behavior by placing EXFMT in certain
-     D* point to allow test class to read it
+     D* Test the stack trace write behavior by placing EXFMT in certain
+     D* points to allow test class to read it
      V* ==============================================================
 
      FSTKW01V   CF   E             WORKSTN USROPN
