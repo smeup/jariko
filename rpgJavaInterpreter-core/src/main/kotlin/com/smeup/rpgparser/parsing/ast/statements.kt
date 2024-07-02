@@ -1575,13 +1575,14 @@ data class DOWxxStmt(
         get() = ""
 
     override fun execute(interpreter: InterpreterCore) {
+        val isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
         try {
             while (comparisonOperator.verify(
                     factor1,
                     factor2,
                     interpreter,
                     interpreter.getLocalizationContext().charset
-                ).isVerified
+                ).isVerified || isOnRestore
             ) {
                 ++_iterations
                 interpreter.execute(body)
