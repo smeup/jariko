@@ -57,7 +57,7 @@ class StackTraceTest : AbstractTest() {
         val expected = listOf("A:3", "B:3")
 
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-             val map = mutableMapOf<String, Value>()
+            val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
