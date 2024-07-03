@@ -1694,12 +1694,14 @@ data class DowStmt(
         get() = _iterations
 
     override fun execute(interpreter: InterpreterCore) {
+        var isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
         var loopCounter: Long = 0
         try {
-            while (interpreter.eval(endExpression).asBoolean().value) {
+            while (interpreter.eval(endExpression).asBoolean().value || isOnRestore) {
                 ++_iterations
                 interpreter.execute(body)
                 loopCounter++
+                isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
             }
         } catch (_: LeaveException) {
         }
