@@ -188,6 +188,19 @@ class ExfmtStateManagementTest : AbstractTest() {
         }
     }
 
+    @Test
+    fun executeSM_EXSR() {
+        val expected = listOf("A:2")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        try {
+            "video/SM_EXSR".outputOf(configuration = configuration)
+        } catch (e: Exception) {
+            assertTrue { e is ExfmtSuspendException }
+            assertEquals(expected = expected, actual = "video/SM_EXSR".outputOf(configuration = configuration))
+        }
+    }
+
     @AfterTest
     fun clean() {
         (configuration.snapshotManager as SnapshotManager).resetMemory()
