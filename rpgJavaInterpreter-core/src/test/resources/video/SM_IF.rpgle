@@ -1,20 +1,24 @@
-      * Test DOWxx behavior
+      * Test IF behavior
 
-     FSM03V     CF   E             WORKSTN USROPN
+     FDUMMYV    CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0
      D B               S              2  0
-     D I               S              2  0
-
-     C     I             DOWEQ     0
 
      C                   IF        A<=0
+     C                   EVAL      A=1
+
+     C                   IF        B<=0
+     C                   EVAL      B=1
+
      C                   EXFMT     FMT01
+
+     C                   EVAL      A=A+1
+     C                   EVAL      B=B+1
+
      C                   ENDIF
 
-     C                   EVAL      I='A:'+%CHAR(A)
-     C                   ENDDO
-
+     C                   ENDIF
 
      C                   EVAL      MSG='A:'+%CHAR(A)
      C     MSG           DSPLY

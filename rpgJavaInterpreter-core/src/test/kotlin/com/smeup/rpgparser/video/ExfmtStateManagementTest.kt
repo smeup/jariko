@@ -45,28 +45,28 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM02() {
+    fun executeSM_IF() {
         val expected = listOf("A:2", "B:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         try {
-            "video/SM02".outputOf(configuration = configuration)
+            "video/SM_IF".outputOf(configuration = configuration)
         } catch (e: Exception) {
             assertTrue { e is ExfmtSuspendInterrupt }
-            assertEquals(expected = expected, actual = "video/SM02".outputOf(configuration = configuration))
+            assertEquals(expected = expected, actual = "video/SM_IF".outputOf(configuration = configuration))
         }
     }
 
     @Test
-    fun executeSM03() {
-        val expected = listOf("A:0", "B:0")
+    fun executeSM_DOWLT() {
+        val expected = listOf("A:11", "B:11")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         try {
-            "video/SM03".outputOf(configuration = configuration)
+            "video/SM_DOWLT".outputOf(configuration = configuration)
         } catch (e: Exception) {
             assertTrue { e is ExfmtSuspendInterrupt }
-            assertEquals(expected = expected, actual = "video/SM03".outputOf(configuration = configuration))
+            assertEquals(expected = expected, actual = "video/SM_DOWLT".outputOf(configuration = configuration))
         }
     }
 
