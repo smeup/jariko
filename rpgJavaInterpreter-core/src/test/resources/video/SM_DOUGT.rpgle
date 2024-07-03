@@ -3,17 +3,17 @@
      D A               S              2  0
      D I               S              2  0
 
-     C     I             DOUEQ     10
+     C     I             DOUGT     -2
 
-     C     I             IFEQ      5
+     C     I             IFEQ      0
 
      C                   EXFMT     FMT01
-     C                   EVAL      A=A+1
+     C                   EVAL      A=A-1
 
      C                   ENDIF
 
-     C                   EVAL      I=I+1
-     C                   EVAL      A=A+1
+     C                   EVAL      I=I-1
+     C                   EVAL      A=A-1
 
      C                   ENDDO
 
