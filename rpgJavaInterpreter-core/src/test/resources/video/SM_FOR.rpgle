@@ -3,7 +3,7 @@
      D A               S              2  0
      D I               S              2  0
 
-     C     I             FOR       I=0 BY 1 TO 10
+     C     I             FOR       I=1 BY 1 TO 10
 
      C     I             IFEQ      5
 
