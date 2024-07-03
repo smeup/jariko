@@ -1,5 +1,3 @@
-      * Simple test
-
      FDUMMYV    CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0

@@ -1,5 +1,3 @@
-      * Test IF behavior
-
      FDUMMYV    CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0
