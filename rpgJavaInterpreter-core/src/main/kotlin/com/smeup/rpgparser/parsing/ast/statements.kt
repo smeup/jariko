@@ -1635,7 +1635,7 @@ data class DoStmt(
         if (index == null) {
             var myIterValue = interpreter.eval(startLimit).asInt().value
             try {
-                while (myIterValue <= endLimit()) {
+                while (myIterValue <= endLimit() || isOnRestore()) {
                     try {
                         ++_iterations
                         interpreter.execute(body)
@@ -1649,10 +1649,13 @@ data class DoStmt(
                 // nothing to do here
             }
         } else {
-            interpreter.assign(index, startLimit)
+            if (!isOnRestore()) {
+                interpreter.assign(index, startLimit)
+            }
+
             try {
                 val indexExpression = interpreter.optimizedIntExpression(index)
-                while (indexExpression() <= endLimit()) {
+                while (indexExpression() <= endLimit() || isOnRestore()) {
                     try {
                         interpreter.execute(body)
                     } catch (e: IterException) {
