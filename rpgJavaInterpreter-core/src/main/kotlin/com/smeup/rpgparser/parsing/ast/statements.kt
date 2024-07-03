@@ -1575,7 +1575,7 @@ data class DOWxxStmt(
         get() = ""
 
     override fun execute(interpreter: InterpreterCore) {
-        val isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
+        var isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
         try {
             while (comparisonOperator.verify(
                     factor1,
@@ -1586,6 +1586,7 @@ data class DOWxxStmt(
             ) {
                 ++_iterations
                 interpreter.execute(body)
+                isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
             }
         } catch (e: LeaveException) {
             // nothing to do here

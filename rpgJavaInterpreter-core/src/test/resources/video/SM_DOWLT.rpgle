@@ -1,5 +1,3 @@
-      * Test DOWxx behavior
-
      FDUMMYV    CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0
@@ -9,9 +7,11 @@
      C     I             DOWLT     10
 
      C     I             IFEQ      5
+
      C                   EXFMT     FMT01
      C                   EVAL      A=A+1
      C                   EVAL      B=B+1
+
      C                   ENDIF
 
      C                   EVAL      I=I+1
