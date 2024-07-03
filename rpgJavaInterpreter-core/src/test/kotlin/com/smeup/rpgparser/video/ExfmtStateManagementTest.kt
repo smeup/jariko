@@ -32,30 +32,8 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_PLAIN() {
-        val expected = listOf("A:3")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_PLAIN".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_PLAIN".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSM_IF() {
-        val expected = listOf("A:2", "B:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_IF".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_IF".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeSM_DO() {
-        val expected = listOf("A:1")
+        val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -65,52 +43,8 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_DOW() {
-        val expected = listOf("A:1")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_DOW".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_DOW".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSM_DOWEQ() {
-        val expected = listOf("A:1")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_DOWEQ".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_DOWEQ".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSM_DOWLT() {
-        val expected = listOf("A:11")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_DOWLT".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_DOWLT".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSM_DOWGT() {
-        val expected = listOf("A:-11")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_DOWGT".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_DOWGT".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeSM_DOU() {
-        val expected = listOf("A:11")
+        val expected = listOf("A:12")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -121,7 +55,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOUEQ() {
-        val expected = listOf("A:11")
+        val expected = listOf("A:12")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -131,19 +65,8 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_DOULT() {
-        val expected = listOf("A:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_DOULT".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_DOULT".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeSM_DOUGT() {
-        val expected = listOf("A:-2")
+        val expected = listOf("A:-3")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -153,14 +76,58 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_FOR() {
-        val expected = listOf("A:11")
+    fun executeSM_DOULT() {
+        val expected = listOf("A:3")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
-            "video/SM_FOR".outputOf(configuration = configuration)
+            "video/SM_DOULT".outputOf(configuration = configuration)
         }
-        assertEquals(expected = expected, actual = "video/SM_FOR".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_DOULT".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOW() {
+        val expected = listOf("A:2")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_DOW".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_DOW".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOWEQ() {
+        val expected = listOf("A:2")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_DOWEQ".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_DOWEQ".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOWGT() {
+        val expected = listOf("A:-12")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_DOWGT".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_DOWGT".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOWLT() {
+        val expected = listOf("A:12")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_DOWLT".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_DOWLT".outputOf(configuration = configuration))
     }
 
     @Test
@@ -172,6 +139,39 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_EXSR".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_EXSR".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_FOR() {
+        val expected = listOf("A:12")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_FOR".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_FOR".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_IF() {
+        val expected = listOf("A:3", "B:3")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_IF".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_IF".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_PLAIN() {
+        val expected = listOf("A:3")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_PLAIN".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_PLAIN".outputOf(configuration = configuration))
     }
 
     @Test

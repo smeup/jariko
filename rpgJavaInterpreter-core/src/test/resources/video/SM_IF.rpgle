@@ -7,10 +7,11 @@
      C                   EVAL      A=1
 
      C                   IF        B<=0
+
      C                   EVAL      B=1
-
+     C                   EVAL      A=A+1
+     C                   EVAL      B=B+1
      C                   EXFMT     FMT01
-
      C                   EVAL      A=A+1
      C                   EVAL      B=B+1
 
