@@ -4,7 +4,7 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
-import com.smeup.rpgparser.video.snapshot.ExfmtSuspendInterrupt
+import com.smeup.rpgparser.interpreter.ExfmtSuspendException
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.AfterTest
@@ -39,7 +39,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_PLAIN".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_PLAIN".outputOf(configuration = configuration))
         }
     }
@@ -52,7 +52,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_IF".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_IF".outputOf(configuration = configuration))
         }
     }
@@ -65,7 +65,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_DOWEQ".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_DOWEQ".outputOf(configuration = configuration))
         }
     }
@@ -78,7 +78,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_DOWLT".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_DOWLT".outputOf(configuration = configuration))
         }
     }
@@ -91,7 +91,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_DOWGT".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_DOWGT".outputOf(configuration = configuration))
         }
     }
@@ -104,7 +104,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_DOUEQ".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_DOUEQ".outputOf(configuration = configuration))
         }
     }
@@ -118,7 +118,7 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_DOULT".outputOf(configuration = configuration)
 
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_DOULT".outputOf(configuration = configuration))
         }
     }
@@ -131,8 +131,21 @@ class ExfmtStateManagementTest : AbstractTest() {
         try {
             "video/SM_DOUGT".outputOf(configuration = configuration)
         } catch (e: Exception) {
-            assertTrue { e is ExfmtSuspendInterrupt }
+            assertTrue { e is ExfmtSuspendException }
             assertEquals(expected = expected, actual = "video/SM_DOUGT".outputOf(configuration = configuration))
+        }
+    }
+
+    @Test
+    fun executeSM_FOR() {
+        val expected = listOf("A:11")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        try {
+            "video/SM_FOR".outputOf(configuration = configuration)
+        } catch (e: Exception) {
+            assertTrue { e is ExfmtSuspendException }
+            assertEquals(expected = expected, actual = "video/SM_FOR".outputOf(configuration = configuration))
         }
     }
 

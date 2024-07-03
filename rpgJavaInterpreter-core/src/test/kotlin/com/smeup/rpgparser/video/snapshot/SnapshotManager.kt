@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.ExfmtSuspendException
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
@@ -30,7 +31,7 @@ internal class SnapshotManager(
         this.setUpStorages()
         this.stackTraceStorage.store(this.stackTrace)
         this.memorySliceMgr!!.saveBeforeExfmtSuspend()
-        throw ExfmtSuspendInterrupt()
+        throw ExfmtSuspendException()
     }
 
     override fun load() {

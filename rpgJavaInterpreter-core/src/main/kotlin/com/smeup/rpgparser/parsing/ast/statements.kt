@@ -989,10 +989,11 @@ data class IfStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        val isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
+        var isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
         val condition = interpreter.eval(condition)
         if (condition.asBoolean().value || isOnRestore) {
             interpreter.execute(this.thenBody)
+
         } else {
             for (elseIfClause in elseIfClauses) {
                 val c = interpreter.eval(elseIfClause.condition)
@@ -1930,6 +1931,7 @@ data class ForStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
+        var isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
         var loopCounter: Long = 0
 
         interpreter.eval(init)
@@ -1939,7 +1941,7 @@ data class ForStmt(
             if (downward) {
                 step *= -1
             }
-            while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
+            while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward) || isOnRestore) {
                 try {
                     interpreter.execute(body)
                     ++iterations
@@ -1949,6 +1951,7 @@ data class ForStmt(
 
                 interpreter.increment(iterVar, step)
                 loopCounter++
+                isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
             }
         } catch (e: LeaveException) {
             // leaving
