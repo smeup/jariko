@@ -7,8 +7,8 @@
 
      C     I             IFEQ      5
 
-     C                   EXFMT     FMT01
      C                   EVAL      A=A+1
+     C                   EXFMT     FMT01
 
      C                   ENDIF
 
