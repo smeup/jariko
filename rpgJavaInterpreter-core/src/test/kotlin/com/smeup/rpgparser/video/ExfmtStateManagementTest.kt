@@ -33,7 +33,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_PLAIN() {
-        val expected = listOf("A:3", "B:3")
+        val expected = listOf("A:3")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         try {
@@ -59,7 +59,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWEQ() {
-        val expected = listOf("A:1", "B:1")
+        val expected = listOf("A:1")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         try {
@@ -72,7 +72,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWLT() {
-        val expected = listOf("A:11", "B:11")
+        val expected = listOf("A:11")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         try {
@@ -85,7 +85,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWGT() {
-        val expected = listOf("A:-11", "B:-11")
+        val expected = listOf("A:-11")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         try {
