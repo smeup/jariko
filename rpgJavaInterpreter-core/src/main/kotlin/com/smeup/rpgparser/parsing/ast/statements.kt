@@ -1732,12 +1732,12 @@ data class DOUxxStmt(
         get() = ""
 
     override fun execute(interpreter: InterpreterCore) {
-        var isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
+        // checking for isOnRestore is redundant since DOUxx executes at least once its body before
+        // condition evaluation
         try {
             do {
                 ++_iterations
                 interpreter.execute(body)
-                isOnRestore = MainExecutionContext.getSnapshotManager()?.isOnRestore() ?: false
             } while (comparisonOperator.verify(
                     factor1,
                     factor2,
