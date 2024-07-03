@@ -9,7 +9,7 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
      * @see #LS24003187
      */
     @Test
-    fun executeT10_A20_P52() {
+    fun executeMU181003() {
         val expected = listOf("O:   HT     -P:HT_P")
         assertEquals(expected, "smeup/MU181003".outputOf(configuration = smeupConfig))
     }
