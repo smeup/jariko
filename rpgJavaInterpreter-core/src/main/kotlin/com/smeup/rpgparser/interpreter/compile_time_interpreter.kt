@@ -148,7 +148,7 @@ open class BaseCompileTimeInterpreter(
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
 
-        return findSize(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
+        return findSize(rContext.getStatements(), declName, conf, false)!!
     }
 
     private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
@@ -236,7 +236,7 @@ open class BaseCompileTimeInterpreter(
             }
         }
 
-        return findType(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
+        return findType(rContext.getStatements(), declName, conf, false)!!
     }
 
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
@@ -300,4 +300,9 @@ open class BaseCompileTimeInterpreter(
     private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type? {
         return this.toAst(conf, emptyList()).type
     }
+
+    private fun RpgParser.RContext.getStatements() = this.statement() +
+            this.subroutine().flatMap { it.statement() } +
+            this.procedure().flatMap { it.subprocedurestatement().mapNotNull { it.subroutine() }.flatMap { it.statement() } } +
+            this.procedure().flatMap { it.subprocedurestatement().mapNotNull { it.statement() } }
 }
