@@ -110,6 +110,19 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOU() {
+        val expected = listOf("A:11")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        try {
+            "video/SM_DOU".outputOf(configuration = configuration)
+        } catch (e: Exception) {
+            assertTrue { e is ExfmtSuspendException }
+            assertEquals(expected = expected, actual = "video/SM_DOU".outputOf(configuration = configuration))
+        }
+    }
+
+    @Test
     fun executeSM_DOUEQ() {
         val expected = listOf("A:11")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }

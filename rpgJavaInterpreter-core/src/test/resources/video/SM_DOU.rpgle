@@ -3,7 +3,7 @@
      D A               S              2  0
      D I               S              2  0
 
-     C                   DOW       I=0
+     C                   DOU       I=10
 
      C     I             IFEQ      5
 
@@ -13,6 +13,7 @@
      C                   ENDIF
 
      C                   EVAL      I=I+1
+     C                   EVAL      A=A+1
 
      C                   ENDDO
 
