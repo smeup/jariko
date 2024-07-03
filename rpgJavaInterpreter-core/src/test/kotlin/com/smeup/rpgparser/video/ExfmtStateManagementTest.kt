@@ -83,6 +83,19 @@ class ExfmtStateManagementTest : AbstractTest() {
         }
     }
 
+    @Test
+    fun executeSM_DOWGT() {
+        val expected = listOf("A:-11", "B:-11")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        try {
+            "video/SM_DOWGT".outputOf(configuration = configuration)
+        } catch (e: Exception) {
+            assertTrue { e is ExfmtSuspendInterrupt }
+            assertEquals(expected = expected, actual = "video/SM_DOWGT".outputOf(configuration = configuration))
+        }
+    }
+
     @AfterTest
     fun clean() {
         (configuration.snapshotManager as SnapshotManager).resetMemory()
