@@ -78,10 +78,14 @@ internal class StackTrace : Stack<Int> {
 
         if (this.pointer == this.size - 1) {
             // when last statement on stack is reached, next statement to resume is last + 1
-            // otherwise if last is an EXFMT another exception is thrown (loops)
-            // should also handle properly if there is no last + 1 statement
+            // but a pop is needed here because when EXFMT is executed, an exception is thrown
+            // and no pop will occur in interpreter;
+            // otherwise, program restarts from last EXFMT and another exception is thrown
+            // leading to an infinite loop
             this.state = TraceState.CONTINUE
-            return this[this.pointer] + 1
+            val i = this[this.pointer] + 1
+            this.pop()
+            return i
         }
 
         return this[this.pointer++]

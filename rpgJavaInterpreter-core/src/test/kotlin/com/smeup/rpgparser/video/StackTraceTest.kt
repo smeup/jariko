@@ -72,7 +72,7 @@ class StackTraceTest : AbstractTest() {
 
     @Test
     fun executeST_PLAINSEQ_W() {
-        val expected = listOf("A:1", "B:1")
+        val expected = listOf("A:3", "B:3")
         val savedStacksAsLists: MutableList<List<Int>> = mutableListOf()
 
         configuration.jarikoCallback.onExfmt = { _, _ ->
@@ -82,17 +82,15 @@ class StackTraceTest : AbstractTest() {
         }
 
         var i = 0
-        while (i < 30) {
+        while (i < 2) {
             assertFailsWith<ExfmtSuspendException> {
                 "video/ST_PLAINSEQ".outputOf(configuration = configuration)
             }
             i++
         }
         assertEquals(expected = expected, actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))
-        assertEquals(listOf(0), savedStacksAsLists[0])
-        assertEquals(listOf(1, 1), savedStacksAsLists[1])
-        assertEquals(listOf(1, 2, 1), savedStacksAsLists[2])
-        assertEquals(listOf(2), savedStacksAsLists[3])
+        assertEquals(listOf(2), savedStacksAsLists[0])
+        assertEquals(listOf(5), savedStacksAsLists[1])
     }
 
     @AfterTest
