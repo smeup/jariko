@@ -200,9 +200,16 @@ class ExfmtStateManagementTest : AbstractTest() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_MONITOR".outputOf(configuration = configuration)
-        }
+//        var i = 0
+//        while (i < 2) {
+//            assertFailsWith<ExfmtSuspendException> {
+//                "video/SM_MONITOR".outputOf(configuration = configuration)
+//            }
+//            i++
+//        }
+//        assertFailsWith<ExfmtSuspendException> {
+//            "video/SM_MONITOR".outputOf(configuration = configuration)
+//        }
         assertEquals(expected = expected, actual = "video/SM_MONITOR".outputOf(configuration = configuration))
     }
 
