@@ -148,6 +148,13 @@ fun Node.transformChildren(operation: (Node) -> Node, inPlace: Boolean = false):
                         if (p is KMutableProperty<*>) {
                             p.setter.call(this, newValue)
                         } else {
+                            /**
+                             * The following exception is raised when the property we are trying to replace is immutable.
+                             * This usually happens when it is declared as `val` or it is a getter without a setter.
+                             * If for some reason you are sure the property must be replaced please check that it is
+                             * declared as `var` field or add a setter to it in the corresponding superclass of Node
+                             * that defines the target property.
+                             */
                             throw ImmutablePropertyException(p, v)
                         }
                     } else {

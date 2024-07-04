@@ -83,8 +83,11 @@ private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
     return maxEnd
 }
 
-internal fun RpgParser.Dcl_dsContext.elementSizeOf(knownDataDefinitions: Collection<DataDefinition>): Int {
-    val fieldsList = this.calculateFieldInfos(knownDataDefinitions)
+internal fun RpgParser.Dcl_dsContext.elementSizeOf(
+    knownDataDefinitions: Collection<DataDefinition>,
+    fields: List<FieldInfo> = emptyList()
+): Int {
+    val fieldsList = this.calculateFieldInfos(knownDataDefinitions, fields)
     val toPosition = if (this.nameIsInFirstLine) {
         this.TO_POSITION().text
     } else {
@@ -159,7 +162,10 @@ internal fun RpgParser.Parm_fixedContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: List<DataDefinition>
 ): DataDefinition {
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+        knownDataDefinitions = knownDataDefinitions,
+        delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+    )
 
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
@@ -291,6 +297,7 @@ internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: List<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>? = null,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     procedureName: String? = null
 ): DataDefinition {
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
@@ -299,10 +306,12 @@ internal fun RpgParser.DspecContext.toAst(
         // If we have a parent data definition we can use it to resolve the variable through the delegate
         delegatedCompileTimeInterpreter = parentDataDefinitions?.let {
             InjectableCompileTimeInterpreter(
-                it,
-                conf.compileTimeInterpreter
+                knownDataDefinitions = it,
+                fileDefinitions = fileDefinitions,
+                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
             )
-        } ?: conf.compileTimeInterpreter
+        } ?: conf.compileTimeInterpreter,
+        fileDefinitions = fileDefinitions
     )
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
@@ -578,8 +587,8 @@ internal fun RpgParser.Keyword_occursContext.evaluate(conf: ToAstConfiguration =
         this.numeric_constant != null -> numeric_constant?.getChild(0)?.text?.toInt()
         this.expr != null -> {
             val injectableCompileTimeInterpreter = InjectableCompileTimeInterpreter(
-                KnownDataDefinition.getInstance().values.toList(),
-                conf.compileTimeInterpreter
+                knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
+                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
             )
             injectableCompileTimeInterpreter.evaluate(rContext(), this.expr.toAst(conf)).asInt().value.toInt()
         }
@@ -672,8 +681,8 @@ data class FieldInfo(
 internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(conf: ToAstConfiguration): Int? {
     if (this.keyword().any { it.keyword_dim() != null }) {
         val compileTimeInterpreter = InjectableCompileTimeInterpreter(
-            KnownDataDefinition.getInstance().values.toList(),
-            conf.compileTimeInterpreter
+            knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
+            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
         )
         val dims = this.keyword().mapNotNull { it.keyword_dim() }
         require(dims.size == 1)
@@ -873,7 +882,10 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
         ?: like?.let {
-            InjectableCompileTimeInterpreter(knownDataDefinitions.toList(), conf.compileTimeInterpreter).evaluateTypeOf(this.rContext(), it, conf)
+            InjectableCompileTimeInterpreter(
+                knownDataDefinitions = knownDataDefinitions.toList(),
+                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+            ).evaluateTypeOf(this.rContext(), it, conf)
         }
 
     return FieldInfo(this.name, overlayInfo = overlayInfo,
@@ -1107,35 +1119,12 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     val size = this.declaredSize()
 
     // Using `EXTNAME`
-    var fieldsFile: List<FieldInfo> = listOf()
-    if (this.keyword().any { it.keyword_extname() != null }) {
-        val keywordExtName = getKeywordExtName()
-        val keywordPrefix = getKeywordPrefix()
-
-        val extName = keywordExtName.getExtName()
-        val prefixName = keywordPrefix?.getPrefixName()
-
-        val fileDataDefinitions =
-            fileDefinitions?.filter {
-                val nameMatches = it.key.name.uppercase() == extName.uppercase()
-                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
-                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
-                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
-
-                nameMatches && (prefixIsNull || prefixMatches)
-            }?.values?.flatten()
-
-        if (fileDataDefinitions.isNullOrEmpty()) {
-            return null
-        }
-
-        fieldsFile = extractFieldsFromFile(fileDataDefinitions, conf)
-    }
+    val fieldsFile = fileDefinitions?.let { getExtnameFields(fileDefinitions, conf) } ?: emptyList()
 
     // Calculating information about the DS and its fields is full of interdependecies, therefore we do that in steps.
     val fieldsList = calculateFieldInfos(knownDataDefinitions, fieldsFile)
     val type: Type = this.type(size, fieldsList, conf)
-    val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
+    val inz = this.keyword().firstOrNull { it.keyword_inz() != null }
 
     val dataDefinition = DataDefinition(
         this.name,
@@ -1232,6 +1221,33 @@ internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
 internal fun RpgParser.Dcl_dsContext.getKeywordPrefix() = this.keyword().firstOrNull { it.keyword_prefix() != null }?.keyword_prefix()
 
 internal fun RpgParser.Keyword_prefixContext.getPrefixName() = prefix.text
+
+internal fun RpgParser.Dcl_dsContext.hasExtname() = this.keyword().any { it.keyword_extname() != null }
+
+internal fun RpgParser.Dcl_dsContext.getExtnameFields(
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    conf: ToAstConfiguration
+): List<FieldInfo> {
+    if (!hasExtname()) return emptyList()
+    val keywordExtName = getKeywordExtName()
+    val keywordPrefix = getKeywordPrefix()
+
+    val extName = keywordExtName.getExtName()
+    val prefixName = keywordPrefix?.getPrefixName()
+
+    val fileDataDefinitions =
+        fileDefinitions.filter {
+            val nameMatches = it.key.name.uppercase() == extName.uppercase()
+            val prefixIsNull = keywordPrefix == null && it.key.prefix == null
+            val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
+            val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+
+            nameMatches && (prefixIsNull || prefixMatches)
+        }.values.flatten()
+
+    if (fileDataDefinitions.isEmpty()) return emptyList()
+    return extractFieldsFromFile(fileDataDefinitions, conf)
+}
 
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     val text = this.FROM_POSITION().text.trim()

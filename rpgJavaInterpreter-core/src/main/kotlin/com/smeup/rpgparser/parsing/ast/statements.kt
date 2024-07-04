@@ -1881,7 +1881,7 @@ data class CabStmt(
 @Serializable
 data class ForStmt(
     var init: Expression,
-    val endValue: Expression,
+    var endValue: Expression,
     val byValue: Expression,
     val downward: Boolean = false,
     override val body: List<Statement>,
