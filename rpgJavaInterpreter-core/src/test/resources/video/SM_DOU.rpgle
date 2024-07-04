@@ -3,7 +3,7 @@
      D A               S              2  0
      D B               S              2  0
 
-     C                   DOU       A=1
+     C                   DOU       A=2
 
      C                   EVAL      A=A+1
      C                   EXFMT     FMT01
