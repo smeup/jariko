@@ -3,7 +3,7 @@
      D A               S              2  0
      D B               S              2  0
 
-     C     A             DOUEQ     1
+     C     A             DOUEQ     2
 
      C                   EVAL      A=A+1
      C                   EXFMT     FMT01
