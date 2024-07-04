@@ -364,6 +364,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Comptime DEFINE support
+     * @see #LS24003177
+     */
+    @Test
+    fun executeMUDRNRAPU00222() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00222".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Comptime DS with EXTNAME resolution
      * @see #LS24003185
      */
