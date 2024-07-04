@@ -374,6 +374,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Comptime DS with EXTNAME resolution
+     * @see #LS24003185
+     */
+    @Test
+    fun executeMUDRNRAPU00223() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00223".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Access to an array detected as a function call by parser
      * @see #LS24003149
      */

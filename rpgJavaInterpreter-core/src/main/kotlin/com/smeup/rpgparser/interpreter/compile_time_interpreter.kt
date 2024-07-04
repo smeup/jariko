@@ -43,8 +43,9 @@ object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter(emptyList())
 
 class InjectableCompileTimeInterpreter(
     knownDataDefinitions: List<DataDefinition> = emptyList(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
-) : BaseCompileTimeInterpreter(knownDataDefinitions, delegatedCompileTimeInterpreter) {
+) : BaseCompileTimeInterpreter(knownDataDefinitions, fileDefinitions, delegatedCompileTimeInterpreter) {
     override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
     }
@@ -68,6 +69,7 @@ class NotFoundAtCompileTimeException(declName: String) : ParseTreeToAstError("Un
 
 open class BaseCompileTimeInterpreter(
     private val knownDataDefinitions: List<DataDefinition>,
+    private val fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     private val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
 ) : CompileTimeInterpreter {
 
@@ -118,7 +120,11 @@ open class BaseCompileTimeInterpreter(
                         it.dspec() != null -> {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
-                                return it.dspec().toAst(conf = conf, knownDataDefinitions = listOf()).let { dataDefinition ->
+                                return it.dspec().toAst(
+                                    conf = conf,
+                                    knownDataDefinitions = knownDataDefinitions,
+                                    fileDefinitions = fileDefinitions
+                                ).let { dataDefinition ->
                                     if (dataDefinition.type is ArrayType) {
                                         dataDefinition.numberOfElements()
                                     } else throw it.dspec().ds_name().error("D spec is not an array", conf = conf)
@@ -174,8 +180,9 @@ open class BaseCompileTimeInterpreter(
                     }
                     it.dcl_ds() != null -> {
                         val name = it.dcl_ds().name
+                        val fields = fileDefinitions?.let { defs -> it.dcl_ds().getExtnameFields(defs, conf) } ?: emptyList()
                         if (name == declName) {
-                            return it.dcl_ds().elementSizeOf(knownDataDefinitions)
+                            return it.dcl_ds().elementSizeOf(knownDataDefinitions, fields)
                         }
                     }
                     it.block() != null -> {
