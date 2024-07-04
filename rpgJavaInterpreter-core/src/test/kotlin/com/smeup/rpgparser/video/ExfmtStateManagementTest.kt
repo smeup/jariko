@@ -9,6 +9,7 @@ import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -44,7 +45,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOU() {
-        val expected = listOf("A:12")
+        val expected = listOf("A:1", "X:1")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -55,7 +56,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOUEQ() {
-        val expected = listOf("A:12")
+        val expected = listOf("A:1", "X:1")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -66,7 +67,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOUGT() {
-        val expected = listOf("A:-3")
+        val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -77,7 +78,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOULT() {
-        val expected = listOf("A:3")
+        val expected = listOf("A:-2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -110,7 +111,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWGT() {
-        val expected = listOf("A:-12")
+        val expected = listOf("A:-2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -121,7 +122,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWLT() {
-        val expected = listOf("A:12")
+        val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {

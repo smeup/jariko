@@ -1773,6 +1773,8 @@ data class DouStmt(
         get() = _iterations
 
     override fun execute(interpreter: InterpreterCore) {
+        // checking for isOnRestore is redundant since DOU executes at least once its body before
+        // condition evaluation
         var loopCounter: Long = 0
         try {
             do {

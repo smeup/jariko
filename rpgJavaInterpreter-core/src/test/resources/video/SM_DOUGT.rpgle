@@ -1,20 +1,12 @@
      FDUMMYV    CF   E             WORKSTN USROPN
      D MSG             S             50          VARYING
      D A               S              2  0
-     D I               S              2  0
 
-     C     I             DOUGT     -2
+     C     A             DOUGT     1
 
-     C     I             IFEQ      0
-
-     C                   EVAL      A=A-1
+     C                   EVAL      A=A+1
      C                   EXFMT     FMT01
-     C                   EVAL      A=A-1
-
-     C                   ENDIF
-
-     C                   EVAL      I=I-1
-     C                   EVAL      A=A-1
+     C                   EVAL      A=A+1
 
      C                   ENDDO
 
