@@ -186,18 +186,18 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_PLAINn() {
+    fun executeSM_PLAINSEQ() {
         val expected = listOf("A:4")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
-        while (i < 30) {
+        while (i < 2) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_PLAINn".outputOf(configuration = configuration)
+                "video/SM_PLAINSEQ".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_PLAINn".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_PLAINSEQ".outputOf(configuration = configuration))
     }
 
     @Test
