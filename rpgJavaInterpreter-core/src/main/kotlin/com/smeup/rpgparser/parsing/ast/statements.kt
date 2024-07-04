@@ -199,7 +199,7 @@ data class SelectStmt(
         for (case in this.cases) {
             val result = interpreter.eval(case.condition)
 
-            if (result.asBoolean().value) {
+            if (result.asBoolean().value || isOnRestore()) {
                 interpreter.execute(case.body)
                 return
             }

@@ -177,7 +177,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_SELECT() {
-        val expected = listOf("A:3")
+        val expected = listOf("A:4")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
