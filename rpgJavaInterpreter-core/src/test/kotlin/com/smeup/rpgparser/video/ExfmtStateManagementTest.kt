@@ -171,11 +171,15 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_FOR() {
-        val expected = listOf("A:3")
+        val expected = listOf("A:6")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_FOR".outputOf(configuration = configuration)
+        var i = 0
+        while (i < 2) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_FOR".outputOf(configuration = configuration)
+            }
+            i++
         }
         assertEquals(expected = expected, actual = "video/SM_FOR".outputOf(configuration = configuration))
     }
