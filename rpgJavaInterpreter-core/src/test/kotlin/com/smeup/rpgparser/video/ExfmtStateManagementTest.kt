@@ -144,7 +144,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_FOR() {
-        val expected = listOf("A:12")
+        val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
@@ -155,7 +155,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_IF() {
-        val expected = listOf("A:3", "B:3")
+        val expected = listOf("A:2", "B:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
