@@ -1649,9 +1649,7 @@ data class DoStmt(
                 // nothing to do here
             }
         } else {
-            if (!isOnRestore()) {
-                interpreter.assign(index, startLimit)
-            }
+            interpreter.assign(index, startLimit)
 
             try {
                 val indexExpression = interpreter.optimizedIntExpression(index)
