@@ -7,6 +7,12 @@
      C                   EVAL      A=A+1
      C                   EXFMT     FMT01
      C                   EVAL      A=A+1
+     C                   EVAL      A=A/0
+
+     C                   ON-ERROR
+     C                   EVAL      A=A+1
+     C                   EXFMT     FMT01
+     C                   EVAL      A=A+1
 
      C                   ENDMON
 

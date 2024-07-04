@@ -927,6 +927,9 @@ data class MonitorStmt(
     override fun execute(interpreter: InterpreterCore) {
         try {
             interpreter.execute(this.monitorBody)
+        } catch(e: ExfmtSuspendException) {
+            // this exception should not be caught
+            throw e
         } catch (_: Exception) {
             onErrorClauses.forEach {
                 interpreter.execute(it.body)
