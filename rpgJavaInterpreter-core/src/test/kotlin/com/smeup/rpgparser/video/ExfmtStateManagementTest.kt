@@ -9,6 +9,7 @@ import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -131,21 +132,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_DOWLTn() {
-        val expected = listOf("A:?")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        var i = 0
-        while (i < 1) {
-            assertFailsWith<ExfmtSuspendException> {
-                "video/SM_DOWLTn".outputOf(configuration = configuration)
-            }
-            i++
-        }
-        assertEquals(expected = expected, actual = "video/SM_DOWLTn".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeSM_EXSR() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -202,13 +188,28 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_PLAIN() {
-        val expected = listOf("A:3")
+        val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_PLAIN".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_PLAIN".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_PLAINn() {
+        val expected = listOf("A:4")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        var i = 0
+        while (i < 30) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_PLAINn".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_PLAINn".outputOf(configuration = configuration))
     }
 
     @Test

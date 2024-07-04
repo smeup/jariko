@@ -65,16 +65,17 @@ class StackTraceTest : AbstractTest() {
     }
 
     @Test
-    fun executeSTKR01FromAfterEXFMT() {
-        val expected = listOf("A:2", "B:2")
-
-        (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(2))
+    fun executeSTKR01() {
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
-        assertEquals(expected = expected, actual = "video/STKR01".outputOf(configuration = configuration))
+        (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(2))
+        assertEquals(expected = listOf("A:2", "B:2"), actual = "video/STKR01".outputOf(configuration = configuration))
+
+        (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(5))
+        assertEquals(expected = listOf("A:1", "B:1"), actual = "video/STKR01".outputOf(configuration = configuration))
     }
 
     @AfterTest

@@ -14,8 +14,13 @@
 
      C                   EXFMT     FMT01
 
-     C                   EVAL      A=A+2
-     C                   EVAL      B=B+2
+     C                   EVAL      A=A+1
+     C                   EVAL      B=B+1
+
+     C                   EXFMT     FMT01
+
+     C                   EVAL      A=A+1
+     C                   EVAL      B=B+1
 
      C                   EVAL      MSG='A:'+%CHAR(A)
      C     MSG           DSPLY
