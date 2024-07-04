@@ -32,17 +32,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_MX01() {
-        val expected = listOf("A:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
-
-        assertFailsWith<ExfmtSuspendException> {
-            "video/SM_MX01".outputOf(configuration = configuration)
-        }
-        assertEquals(expected = expected, actual = "video/SM_MX01".outputOf(configuration = configuration))
-    }
-
-    @Test
     fun executeSM_DO() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -142,6 +131,21 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOWLTn() {
+        val expected = listOf("A:?")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        var i = 0
+        while (i < 1) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_DOWLTn".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_DOWLTn".outputOf(configuration = configuration))
+    }
+
+    @Test
     fun executeSM_EXSR() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -183,6 +187,17 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_MONITOR".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_MONITOR".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_MX01() {
+        val expected = listOf("A:2")
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_MX01".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_MX01".outputOf(configuration = configuration))
     }
 
     @Test

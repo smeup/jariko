@@ -3,15 +3,11 @@
      D A               S              2  0
      D B               S              2  0
 
-     C     B             DOWLT     3
-
-     C                   IF        B=1
+     C     B             DOWLT     2
 
      C                   EVAL      A=A+1
      C                   EXFMT     FMT01
      C                   EVAL      A=A+1
-
-     C                   ENDIF
 
      C                   EVAL      B=B+1
 
