@@ -2414,7 +2414,10 @@ data class ExfmtStmt(
             val snapshot = snapshotManager.take()
             val response = jarikoCallback.onExfmt(fields, snapshot)
 
-            if (response == null) snapshotManager.store()
+            if (response == null) {
+                snapshotManager.store()
+                throw ExfmtSuspendException()
+            }
             else copyRecordFieldsIntoDataDefinitions(interpreter, response)
         }
     }
