@@ -22,6 +22,30 @@ class ExfmtStateManagementTest : AbstractTest() {
         (configuration.snapshotManager as SnapshotManager).resetStack()
     }
 
+    private fun binaryOutputTest(program: String, failures: Int) {
+        // should I also test expected output values?
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        var i = 0
+        while (i < failures) {
+            assertFailsWith<ExfmtSuspendException> {
+                program.outputOf(configuration = configuration)
+            }
+            i++
+        }
+        val async = program.outputOf(configuration = configuration)
+
+        this.clean()
+
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        val sync = program.outputOf(configuration = configuration)
+
+        assertEquals(async, sync)
+    }
+
     @BeforeTest
     fun setup() {
         val memorySliceStorage = MemorySliceStorageMock()
@@ -53,6 +77,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DO_Binary() {
+        this.binaryOutputTest("video/SM_DO", 2)
+    }
+
+    @Test
     fun executeSM_DOU() {
         val expected = listOf("A:2", "B:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -65,6 +94,11 @@ class ExfmtStateManagementTest : AbstractTest() {
             i++
         }
         assertEquals(expected = expected, actual = "video/SM_DOU".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOU_Binary() {
+        this.binaryOutputTest("video/SM_DOU", 2)
     }
 
     @Test
@@ -83,6 +117,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOUEQ_Binary() {
+        this.binaryOutputTest("video/SM_DOUEQ", 2)
+    }
+
+    @Test
     fun executeSM_DOUGT() {
         val expected = listOf("A:4")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -95,6 +134,11 @@ class ExfmtStateManagementTest : AbstractTest() {
             i++
         }
         assertEquals(expected = expected, actual = "video/SM_DOUGT".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOUGT_Binary() {
+        this.binaryOutputTest("video/SM_DOUGT", 2)
     }
 
     @Test
@@ -113,6 +157,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOULT_Binary() {
+        this.binaryOutputTest("video/SM_DOULT", 2)
+    }
+
+    @Test
     fun executeSM_DOW() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -124,6 +173,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOW_Binary() {
+        this.binaryOutputTest("video/SM_DOW", 1)
+    }
+
+    @Test
     fun executeSM_DOWEQ() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -132,6 +186,11 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_DOWEQ".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_DOWEQ".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DOWEQ_Binary() {
+        this.binaryOutputTest("video/SM_DOWEQ", 1)
     }
 
     @Test
@@ -150,6 +209,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOWGT_Binary() {
+        this.binaryOutputTest("video/SM_DOWGT", 2)
+    }
+
+    @Test
     fun executeSM_DOWLT() {
         val expected = listOf("A:4")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -165,6 +229,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_DOWLT_Binary() {
+        this.binaryOutputTest("video/SM_DOWLT", 2)
+    }
+
+    @Test
     fun executeSM_EXSR() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -173,6 +242,11 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_EXSR".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_EXSR".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_EXSR_Binary() {
+        this.binaryOutputTest("video/SM_EXSR", 1)
     }
 
     @Test
@@ -191,6 +265,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_FOR_Binary() {
+        this.binaryOutputTest("video/SM_FOR", 2)
+    }
+
+    @Test
     fun executeSM_IF() {
         val expected = listOf("A:2", "B:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -199,6 +278,11 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_IF".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_IF".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_IF_Binary() {
+        this.binaryOutputTest("video/SM_IF", 1)
     }
 
     @Test
@@ -217,6 +301,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_MONITOR_Binary() {
+        this.binaryOutputTest("video/SM_MONITOR", 2)
+    }
+
+    @Test
     fun executeSM_PLAIN() {
         val expected = listOf("A:2")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -225,6 +314,11 @@ class ExfmtStateManagementTest : AbstractTest() {
             "video/SM_PLAIN".outputOf(configuration = configuration)
         }
         assertEquals(expected = expected, actual = "video/SM_PLAIN".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_PLAIN_Binary() {
+        this.binaryOutputTest("video/SM_PLAIN", 1)
     }
 
     @Test
@@ -243,6 +337,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_PLAINSEQ_Binary() {
+        this.binaryOutputTest("video/SM_PLAINSEQ", 2)
+    }
+
+    @Test
     fun executeSM_SELECT() {
         val expected = listOf("A:4")
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
@@ -254,26 +353,12 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_M01() {
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+    fun executeSM_SELECT_Binary() {
+        this.binaryOutputTest("video/SM_SELECT", 1)
+    }
 
-        var i = 0
-        while (i < 7) {
-            assertFailsWith<ExfmtSuspendException> {
-                "video/SM_M01".outputOf(configuration = configuration)
-            }
-            i++
-        }
-        val async = "video/SM_M01".outputOf(configuration = configuration)
-
-        this.clean()
-
-        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            val map = mutableMapOf<String, Value>()
-            OnExfmtResponse(runtimeInterpreterSnapshot, map)
-        }
-        val sync = "video/SM_M01".outputOf(configuration = configuration)
-
-        assertEquals(async, sync)
+    @Test
+    fun executeSM_M01_Binary() {
+        this.binaryOutputTest("video/SM_M01", 7)
     }
 }
