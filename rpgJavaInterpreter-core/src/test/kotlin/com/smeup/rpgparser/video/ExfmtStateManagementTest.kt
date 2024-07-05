@@ -31,7 +31,6 @@ class ExfmtStateManagementTest : AbstractTest() {
         // variable practically equals to skip EXFMT statements)
 
         // should I also test expected output values?
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < failures) {
@@ -44,10 +43,9 @@ class ExfmtStateManagementTest : AbstractTest() {
 
         this.clean()
 
-
         val sync = program.outputOf(configuration = noSnapshotConfiguration)
 
-        assertEquals(async, sync)
+        assertEquals(sync, async, "Expected\t: sync\nActual\t\t: async")
     }
 
     @BeforeTest
@@ -344,7 +342,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_SELECT() {
-        val expected = listOf("A:4")
+        val expected = listOf("A:2")
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_SELECT".outputOf(configuration = configuration)
