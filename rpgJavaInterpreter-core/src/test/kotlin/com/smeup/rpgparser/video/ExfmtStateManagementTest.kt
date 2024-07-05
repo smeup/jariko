@@ -269,21 +269,12 @@ class ExfmtStateManagementTest : AbstractTest() {
 
         this.clean()
 
-        var j = 0
-        while (j < 7) {
-            assertFailsWith<ExfmtSuspendException> {
-                "video/SM_M01".outputOf(configuration = configuration)
-            }
-            j++
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
-        val async1 = "video/SM_M01".outputOf(configuration = configuration)
+        val sync = "video/SM_M01".outputOf(configuration = configuration)
 
-//        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-//            val map = mutableMapOf<String, Value>()
-//            OnExfmtResponse(runtimeInterpreterSnapshot, map)
-//        }
-//        val sync = "video/SM_M01".outputOf(configuration = configuration)
-//
-//        assertEquals(async, sync)
+        assertEquals(async, sync)
     }
 }

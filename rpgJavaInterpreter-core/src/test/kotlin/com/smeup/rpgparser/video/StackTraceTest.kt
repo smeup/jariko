@@ -92,9 +92,4 @@ class StackTraceTest : AbstractTest() {
         assertEquals(listOf(2), savedStacksAsLists[0])
         assertEquals(listOf(5), savedStacksAsLists[1])
     }
-
-    @AfterTest
-    fun clean() {
-        (configuration.snapshotManager as SnapshotManager).resetStack()
-    }
 }
