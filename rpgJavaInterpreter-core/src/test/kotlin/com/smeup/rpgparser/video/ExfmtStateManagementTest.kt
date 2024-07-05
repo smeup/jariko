@@ -22,7 +22,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         (configuration.snapshotManager as SnapshotManager).resetStack()
     }
 
-    private fun binaryOutputTest(program: String, failures: Int) {
+    private fun coupledOutputTest(program: String, failures: Int) {
         // should I also test expected output values?
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
@@ -78,7 +78,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DO_Binary() {
-        this.binaryOutputTest("video/SM_DO", 2)
+        this.coupledOutputTest("video/SM_DO", 2)
     }
 
     @Test
@@ -98,7 +98,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOU_Binary() {
-        this.binaryOutputTest("video/SM_DOU", 2)
+        this.coupledOutputTest("video/SM_DOU", 2)
     }
 
     @Test
@@ -118,7 +118,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOUEQ_Binary() {
-        this.binaryOutputTest("video/SM_DOUEQ", 2)
+        this.coupledOutputTest("video/SM_DOUEQ", 2)
     }
 
     @Test
@@ -138,7 +138,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOUGT_Binary() {
-        this.binaryOutputTest("video/SM_DOUGT", 2)
+        this.coupledOutputTest("video/SM_DOUGT", 2)
     }
 
     @Test
@@ -158,7 +158,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOULT_Binary() {
-        this.binaryOutputTest("video/SM_DOULT", 2)
+        this.coupledOutputTest("video/SM_DOULT", 2)
     }
 
     @Test
@@ -174,7 +174,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOW_Binary() {
-        this.binaryOutputTest("video/SM_DOW", 1)
+        this.coupledOutputTest("video/SM_DOW", 1)
     }
 
     @Test
@@ -190,7 +190,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWEQ_Binary() {
-        this.binaryOutputTest("video/SM_DOWEQ", 1)
+        this.coupledOutputTest("video/SM_DOWEQ", 1)
     }
 
     @Test
@@ -210,7 +210,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWGT_Binary() {
-        this.binaryOutputTest("video/SM_DOWGT", 2)
+        this.coupledOutputTest("video/SM_DOWGT", 2)
     }
 
     @Test
@@ -230,7 +230,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_DOWLT_Binary() {
-        this.binaryOutputTest("video/SM_DOWLT", 2)
+        this.coupledOutputTest("video/SM_DOWLT", 2)
     }
 
     @Test
@@ -246,7 +246,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_EXSR_Binary() {
-        this.binaryOutputTest("video/SM_EXSR", 1)
+        this.coupledOutputTest("video/SM_EXSR", 1)
     }
 
     @Test
@@ -266,7 +266,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_FOR_Binary() {
-        this.binaryOutputTest("video/SM_FOR", 2)
+        this.coupledOutputTest("video/SM_FOR", 2)
     }
 
     @Test
@@ -282,7 +282,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_IF_Binary() {
-        this.binaryOutputTest("video/SM_IF", 1)
+        this.coupledOutputTest("video/SM_IF", 1)
     }
 
     @Test
@@ -302,7 +302,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_MONITOR_Binary() {
-        this.binaryOutputTest("video/SM_MONITOR", 2)
+        this.coupledOutputTest("video/SM_MONITOR", 2)
     }
 
     @Test
@@ -318,7 +318,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_PLAIN_Binary() {
-        this.binaryOutputTest("video/SM_PLAIN", 1)
+        this.coupledOutputTest("video/SM_PLAIN", 1)
     }
 
     @Test
@@ -338,7 +338,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_PLAINSEQ_Binary() {
-        this.binaryOutputTest("video/SM_PLAINSEQ", 2)
+        this.coupledOutputTest("video/SM_PLAINSEQ", 2)
     }
 
     @Test
@@ -354,11 +354,11 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_SELECT_Binary() {
-        this.binaryOutputTest("video/SM_SELECT", 1)
+        this.coupledOutputTest("video/SM_SELECT", 1)
     }
 
     @Test
     fun executeSM_M01_Binary() {
-        this.binaryOutputTest("video/SM_M01", 7)
+        this.coupledOutputTest("video/SM_M01", 7)
     }
 }
