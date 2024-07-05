@@ -5,6 +5,8 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.interpreter.ExfmtSuspendException
+import com.smeup.rpgparser.interpreter.OnExfmtResponse
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.AfterTest
@@ -16,8 +18,13 @@ import kotlin.test.assertFailsWith
 class ExfmtStateManagementTest : AbstractTest() {
     lateinit var configuration: Configuration
 
+    private fun clean() {
+        (configuration.snapshotManager as SnapshotManager).resetMemory()
+        (configuration.snapshotManager as SnapshotManager).resetStack()
+    }
+
     @BeforeTest
-    fun setUp() {
+    fun setup() {
         val memorySliceStorage = MemorySliceStorageMock()
         configuration = Configuration(
             memorySliceStorage = memorySliceStorage,
@@ -207,9 +214,6 @@ class ExfmtStateManagementTest : AbstractTest() {
             }
             i++
         }
-//        assertFailsWith<ExfmtSuspendException> {
-//            "video/SM_MONITOR".outputOf(configuration = configuration)
-//        }
         assertEquals(expected = expected, actual = "video/SM_MONITOR".outputOf(configuration = configuration))
     }
 
@@ -250,9 +254,36 @@ class ExfmtStateManagementTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/SM_SELECT".outputOf(configuration = configuration))
     }
 
-    @AfterTest
-    fun clean() {
-        (configuration.snapshotManager as SnapshotManager).resetMemory()
-        (configuration.snapshotManager as SnapshotManager).resetStack()
+    @Test
+    fun executeSM_M01() {
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        var i = 0
+        while (i < 7) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_M01".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        val async = "video/SM_M01".outputOf(configuration = configuration)
+
+        this.clean()
+
+        var j = 0
+        while (j < 7) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_M01".outputOf(configuration = configuration)
+            }
+            j++
+        }
+        val async1 = "video/SM_M01".outputOf(configuration = configuration)
+
+//        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+//            val map = mutableMapOf<String, Value>()
+//            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+//        }
+//        val sync = "video/SM_M01".outputOf(configuration = configuration)
+//
+//        assertEquals(async, sync)
     }
 }

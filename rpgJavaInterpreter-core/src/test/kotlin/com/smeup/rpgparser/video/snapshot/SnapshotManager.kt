@@ -15,7 +15,7 @@ internal class SnapshotManager(
     private val memorySliceMgr: MemorySliceMgr?
         get() = MainExecutionContext.getMemorySliceMgr()
     private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
-    private var stackTrace: StackTrace = StackTrace()
+    private var stackTrace: StackTrace = this.stackTraceStorage.load()
 
     private fun setUpStorages() {
         this.stackTraceStorage.snapshot = this.snapshot
@@ -68,17 +68,17 @@ internal class SnapshotManager(
      * Test only: sets the current stack for restore from list
      */
     fun setStackWithList(list: List<Int>) {
-        // always 0 for start correctly
-        this.stackTrace = StackTrace.restoredFrom(list)
-        this.stackTraceStorage.store(this.stackTrace)
+        this.stackTraceStorage.store(StackTrace.restoredFrom(list))
+        this.stackTrace = this.stackTraceStorage.load()
     }
 
     /**
      * Test only: resets the current stack
      */
     fun resetStack() {
-        this.stackTrace = StackTrace()
-        this.stackTraceStorage.store(this.stackTrace)
+        this.snapshot = null
+        this.stackTraceStorage.reset()
+        this.stackTrace = this.stackTraceStorage.load()
     }
 
     /**

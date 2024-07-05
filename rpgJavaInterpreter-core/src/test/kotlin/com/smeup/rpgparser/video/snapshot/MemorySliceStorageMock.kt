@@ -28,6 +28,7 @@ internal class MemorySliceStorageMock : IMemorySliceStorage {
     override fun close() {}
 
     fun reset() {
+        this.snapshot = null
         this.storage.clear()
     }
 }

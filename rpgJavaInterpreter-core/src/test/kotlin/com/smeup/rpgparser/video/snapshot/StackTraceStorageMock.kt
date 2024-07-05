@@ -18,5 +18,10 @@ internal class StackTraceStorageMock {
         return this.stackTrace
     }
 
+    fun reset() {
+        this.snapshot = null
+        this.stackTrace = StackTrace()
+    }
+
     fun close() {}
 }
