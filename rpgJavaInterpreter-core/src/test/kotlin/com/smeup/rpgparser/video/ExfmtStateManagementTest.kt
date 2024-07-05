@@ -10,6 +10,7 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -76,22 +77,60 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_DO() {
-        val expected = listOf("A:4")
+    fun executeSM_DO_A() {
+        val expected = listOf("A:3")
 
         var i = 0
-        while (i < 2) {
+        while (i < 3) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_DO".outputOf(configuration = configuration)
+                "video/SM_DO_A".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_DO".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_DO_A".outputOf(configuration = configuration))
     }
 
     @Test
-    fun executeSM_DO_Binary() {
-        this.coupledOutputTest("video/SM_DO", 2)
+    fun executeSM_DO_A_Binary() {
+        this.coupledOutputTest("video/SM_DO_A", 3)
+    }
+
+    @Test
+    fun executeSM_DO_B() {
+        val expected = listOf("A:3")
+
+        var i = 0
+        while (i < 3) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_DO_B".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_DO_B".outputOf(configuration = configuration))
+    }
+
+    @Test @Ignore
+    fun executeSM_DO_B_Binary() {
+        this.coupledOutputTest("video/SM_DO_B", 3)
+    }
+
+    @Test
+    fun executeSM_DO_IDX() {
+        val expected = listOf("A:3")
+
+        var i = 0
+        while (i < 3) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_DO_IDX".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_DO_IDX".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DO_IDX_Binary() {
+        this.coupledOutputTest("video/SM_DO_IDX", 3)
     }
 
     @Test

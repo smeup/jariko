@@ -31,7 +31,6 @@ internal class SnapshotManager(
         this.setUpStorages()
         this.stackTraceStorage.store(this.stackTrace)
         this.memorySliceMgr!!.saveBeforeExfmtSuspend()
-        throw ExfmtSuspendException()
     }
 
     override fun load() {
