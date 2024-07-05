@@ -16,6 +16,7 @@ import kotlin.test.assertFailsWith
 
 class ExfmtStateManagementTest : AbstractTest() {
     lateinit var configuration: Configuration
+    lateinit var noSnapshotConfiguration: Configuration
 
     private fun clean() {
         (configuration.snapshotManager as SnapshotManager).resetMemory()
@@ -23,6 +24,12 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     private fun coupledOutputTest(program: String, failures: Int) {
+        // build EXFMT callbacks such that they to not edit variables. Let's take the same program
+        // and make it run async and sync.
+        // A sync run will not store the stack so it never goes on restore mode.
+        // We expect to get the same exact results (do not changing
+        // variable practically equals to skip EXFMT statements)
+
         // should I also test expected output values?
         configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
@@ -37,11 +44,8 @@ class ExfmtStateManagementTest : AbstractTest() {
 
         this.clean()
 
-        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
-            val map = mutableMapOf<String, Value>()
-            OnExfmtResponse(runtimeInterpreterSnapshot, map)
-        }
-        val sync = program.outputOf(configuration = configuration)
+
+        val sync = program.outputOf(configuration = noSnapshotConfiguration)
 
         assertEquals(async, sync)
     }
@@ -49,22 +53,33 @@ class ExfmtStateManagementTest : AbstractTest() {
     @BeforeTest
     fun setup() {
         val memorySliceStorage = MemorySliceStorageMock()
+        val path = javaClass.getResource("/video/metadata")!!.path
+        val dspfConfig = SimpleDspfConfig(displayFilePath = path)
+
         configuration = Configuration(
             memorySliceStorage = memorySliceStorage,
             snapshotManager = SnapshotManager(memorySliceStorage)
         )
-        val path = javaClass.getResource("/video/metadata")!!.path
-        val dspfConfig = SimpleDspfConfig(displayFilePath = path)
         configuration.dspfConfig = DspfConfig(
             metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
             dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
         )
+        configuration.jarikoCallback.onExfmt = { _, _ -> null }
+
+        noSnapshotConfiguration = Configuration()
+        noSnapshotConfiguration.dspfConfig = DspfConfig(
+            metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
+            dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
+        )
+        noSnapshotConfiguration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
     }
 
     @Test
     fun executeSM_DO() {
         val expected = listOf("A:4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -84,7 +99,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOU() {
         val expected = listOf("A:2", "B:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -104,7 +118,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOUEQ() {
         val expected = listOf("A:2", "B:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -124,7 +137,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOUGT() {
         val expected = listOf("A:4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -144,7 +156,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOULT() {
         val expected = listOf("A:-4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -164,7 +175,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOW() {
         val expected = listOf("A:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_DOW".outputOf(configuration = configuration)
@@ -180,7 +190,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOWEQ() {
         val expected = listOf("A:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_DOWEQ".outputOf(configuration = configuration)
@@ -196,7 +205,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOWGT() {
         val expected = listOf("A:-4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -216,7 +224,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DOWLT() {
         val expected = listOf("A:4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -236,7 +243,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_EXSR() {
         val expected = listOf("A:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_EXSR".outputOf(configuration = configuration)
@@ -252,7 +258,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_FOR() {
         val expected = listOf("A:6")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -272,7 +277,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_IF() {
         val expected = listOf("A:2", "B:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_IF".outputOf(configuration = configuration)
@@ -288,7 +292,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_MONITOR() {
         val expected = listOf("A:4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -308,7 +311,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_PLAIN() {
         val expected = listOf("A:2")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_PLAIN".outputOf(configuration = configuration)
@@ -324,7 +326,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_PLAINSEQ() {
         val expected = listOf("A:4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         var i = 0
         while (i < 2) {
@@ -344,7 +345,6 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_SELECT() {
         val expected = listOf("A:4")
-        configuration.jarikoCallback.onExfmt = { _, _ -> null }
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_SELECT".outputOf(configuration = configuration)
