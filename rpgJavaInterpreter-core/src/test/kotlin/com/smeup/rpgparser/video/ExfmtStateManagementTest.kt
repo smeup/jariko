@@ -109,7 +109,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/SM_DO_B".outputOf(configuration = configuration))
     }
 
-    @Test @Ignore
+    @Test
     fun executeSM_DO_B_Binary() {
         this.coupledOutputTest("video/SM_DO_B", 3)
     }
@@ -131,6 +131,25 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_DO_IDX_Binary() {
         this.coupledOutputTest("video/SM_DO_IDX", 3)
+    }
+
+    @Test
+    fun executeSM_DO_NOIDX() {
+        val expected = listOf("A:3")
+
+        var i = 0
+        while (i < 3) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_DO_NOIDX".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_DO_NOIDX".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_DO_NOIDX_Binary() {
+        this.coupledOutputTest("video/SM_DO_NOIDX", 3)
     }
 
     @Test

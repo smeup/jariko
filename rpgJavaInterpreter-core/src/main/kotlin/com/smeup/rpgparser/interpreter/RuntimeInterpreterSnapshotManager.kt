@@ -13,6 +13,8 @@ interface RuntimeInterpreterSnapshotManager {
     fun store()
     fun load()
     fun isOnRestore(): Boolean
+    fun beforeDOCycle(): Long
+    fun beforeDOIteration(i: Long)
     fun beforeExecuteCycle(): Int
     fun beforeStatementExecution(i: Int)
     fun afterStatementExecution()

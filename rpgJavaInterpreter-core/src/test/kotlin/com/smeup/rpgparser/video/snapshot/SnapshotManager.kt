@@ -44,6 +44,15 @@ internal class SnapshotManager(
         return this.stackTrace.isOnRestore()
     }
 
+    private var doIndex: Long = 0
+    override fun beforeDOCycle(): Long {
+        return this.doIndex
+    }
+
+    override fun beforeDOIteration(i: Long) {
+        this.doIndex = i
+    }
+
     override fun beforeExecuteCycle(): Int {
         return this.stackTrace.peek()
     }

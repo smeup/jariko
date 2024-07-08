@@ -3,9 +3,10 @@
      D A               S              2  0
      D B               S              2  0
 
-     C                   DO        2
+     C     0             DO        2
 
      C                   EXFMT     FMT01
+     C                   EVAL      A=A+1
 
      C                   ENDDO
 

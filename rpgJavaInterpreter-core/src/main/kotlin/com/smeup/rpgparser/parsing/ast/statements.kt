@@ -1637,8 +1637,12 @@ data class DoStmt(
         val endLimit: () -> Long = interpreter.optimizedIntExpression(endLimitExpression)
         if (index == null) {
             var myIterValue = interpreter.eval(startLimit).asInt().value
+            if (isOnRestore()) {
+                myIterValue = MainExecutionContext.getSnapshotManager()?.beforeDOCycle()!!
+            }
             try {
                 while (myIterValue <= endLimit() || isOnRestore()) {
+                    MainExecutionContext.getSnapshotManager()?.beforeDOIteration(myIterValue)
                     try {
                         ++_iterations
                         interpreter.execute(body)
