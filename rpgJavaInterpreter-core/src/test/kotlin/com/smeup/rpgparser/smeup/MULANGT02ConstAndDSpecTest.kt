@@ -392,4 +392,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00224".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Comptime DS with EXTNAME resolution and data structures INZ(*HIVAL)
+     * @see #LS24003257
+     */
+    @Test
+    fun executeMUDRNRAPU00226() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00226".outputOf(configuration = smeupConfig))
+    }
 }
