@@ -3,6 +3,7 @@ package com.smeup.rpgparser.video
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.interpreter.ExfmtSuspendException
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
@@ -74,6 +75,16 @@ class ExfmtStateManagementTest : AbstractTest() {
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
+    }
+
+    @Test
+    fun executeSM_CALL_PLAIN() {
+        val expected = listOf("A:2")
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_CALL_PLAIN".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_CALL_PLAIN".outputOf(configuration = configuration))
     }
 
     @Test
