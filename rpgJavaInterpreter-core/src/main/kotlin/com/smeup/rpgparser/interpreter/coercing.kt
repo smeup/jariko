@@ -275,31 +275,29 @@ fun coerce(value: Value, type: Type): Value {
 }
 
 fun Type.lowValue(): Value {
-    when (this) {
-        is NumberType -> {
-            return computeLowValue(this)
+    return when (this) {
+        is NumberType -> computeLowValue(this)
+        is StringType -> computeLowValue(this)
+        is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
+        is DataStructureType -> {
+            val fields = this.fields.associateWith { field -> field.type.lowValue() }
+            DataStructValue.fromFields(fields)
         }
-        is StringType -> {
-            return computeLowValue(this)
-        }
-        is ArrayType -> {
-            return createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
-        }
+        is RecordFormatType -> BlanksValue
         else -> TODO("Converting LowValValue to $this")
     }
 }
 
 fun Type.hiValue(): Value {
-    when (this) {
-        is NumberType -> {
-            return computeHiValue(this)
+    return when (this) {
+        is NumberType -> computeHiValue(this)
+        is StringType -> computeHiValue(this)
+        is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
+        is DataStructureType -> {
+            val fields = this.fields.associateWith { field -> field.type.hiValue() }
+            DataStructValue.fromFields(fields)
         }
-        is StringType -> {
-            return computeHiValue(this)
-        }
-        is ArrayType -> {
-            return createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
-        }
+        is RecordFormatType -> BlanksValue
         else -> TODO("Converting HiValValue to $this")
     }
 }
