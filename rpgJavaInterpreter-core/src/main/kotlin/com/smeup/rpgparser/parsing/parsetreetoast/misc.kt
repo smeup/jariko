@@ -611,9 +611,10 @@ private fun StatementContext.toDataDefinitionProvider(
 }
 
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): List<DataDefinition> {
-    val (providers, knownDataDefinitions) = this.subprocedurestatement()
-        .map { it.statement() }
-        .getDataDefinition(
+    val (providers, knownDataDefinitions) = (
+            this.subprocedurestatement().mapNotNull { it.statement() } +
+            this.subprocedurestatement().mapNotNull { it.subroutine() }.flatMap { it.statement() }
+        ).getDataDefinition(
             conf = conf,
             parentDataDefinitions = parentDataDefinitions
         )
