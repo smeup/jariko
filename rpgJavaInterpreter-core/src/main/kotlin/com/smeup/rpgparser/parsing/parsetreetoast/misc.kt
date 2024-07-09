@@ -98,7 +98,8 @@ private fun List<StatementContext?>.getDataDefinition(
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     inputSpecifications: List<InputSpecificationGroup> = emptyList(),
     parentDataDefinitions: List<DataDefinition>? = null,
-    useKnownDataDefinitionInstance: Boolean = false
+    useKnownDataDefinitionInstance: Boolean = false,
+    procedureName: String? = null
 ): Pair<MutableList<DataDefinitionProvider>, KnownDataDefinitionInstance> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
@@ -133,7 +134,11 @@ private fun List<StatementContext?>.getDataDefinition(
             when {
                 it.dspec() != null -> {
                     it.dspec()
-                        .toAst(conf, knownDataDefinitions.values.toList(), parentDataDefinitions)
+                        .toAst(
+                            conf = conf,
+                            knownDataDefinitions = knownDataDefinitions.values.toList(),
+                            parentDataDefinitions = parentDataDefinitions,
+                            procedureName = procedureName)
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
 
@@ -490,14 +495,17 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 }
 
 internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): CompilationUnit {
-
     val procedureName = this.beginProcedure().psBegin().ps_name().text
     MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
 
     // TODO FileDefinitions
 
     // DataDefinitions
-    val dataDefinitions = getDataDefinitions(conf, parentDataDefinitions)
+    val dataDefinitions = getDataDefinitions(
+        conf = conf,
+        parentDataDefinitions = parentDataDefinitions,
+        procedureName = procedureName
+    )
 
     // Procedure Parameters DataDefinitions
     val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
@@ -610,12 +618,13 @@ private fun StatementContext.toDataDefinitionProvider(
     }
 }
 
-private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): List<DataDefinition> {
+private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>, procedureName: String): List<DataDefinition> {
     val (providers, knownDataDefinitions) = this.subprocedurestatement()
         .map { it.statement() }
         .getDataDefinition(
             conf = conf,
-            parentDataDefinitions = parentDataDefinitions
+            parentDataDefinitions = parentDataDefinitions,
+            procedureName = procedureName
         )
 
     // PROCEDURE PARAMETERS pass
