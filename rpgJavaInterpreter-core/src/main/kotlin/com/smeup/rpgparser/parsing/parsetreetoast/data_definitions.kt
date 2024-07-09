@@ -220,7 +220,7 @@ internal fun RpgParser.Parm_fixedContext.toAst(
 
     val elementSize = when {
         like != null -> {
-            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf, null)
         }
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
@@ -297,9 +297,9 @@ internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: List<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>? = null,
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
+    procedureName: String? = null
 ): DataDefinition {
-
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(
         knownDataDefinitions = knownDataDefinitions,
@@ -381,7 +381,7 @@ internal fun RpgParser.DspecContext.toAst(
 
     val elementSize = when {
         like != null -> {
-            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf, procedureName)
         }
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
@@ -394,7 +394,7 @@ internal fun RpgParser.DspecContext.toAst(
                 NumberType(elementSize!! - decimalPositions, decimalPositions)
             } else {
                 if (like != null) {
-                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
                 } else {
                     StringType.createInstance(elementSize!!, varying)
                 }
