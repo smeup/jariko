@@ -2,12 +2,17 @@ package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.ExfmtSuspendException
+import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.interpreter.InterpreterCore
+import com.smeup.rpgparser.interpreter.MemorySliceId
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.CallStmt
 import com.smeup.rpgparser.parsing.ast.Statement
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
 internal class SnapshotManager(
     private val memorySliceStorage: MemorySliceStorageMock,
@@ -54,11 +59,30 @@ internal class SnapshotManager(
         this.doIndex = i
     }
 
-    override fun onCallEnterPgm() {
+    override fun beforeCall() {
         this.load()
     }
 
-    override fun onCallExitPgm() {
+    override fun onCallSuspend(interpreter: InterpreterCore, params: LinkedHashMap<String, Value>) {
+
+        // should assign parameters with interpreter to update data definitions
+        // using returned object from program.execute, even if it fails to complete
+        // due to EXFMT exception
+//        val lastMemorySliceId = (interpreter as InternalInterpreter).getMemorySliceId()!!
+        // fin a way to get memory slice because its program was just popped from stack
+        val lastMemorySliceId = MemorySliceId("*DFTACTGRP", "SM_P_PLAIN")
+        val lastProgramValues = this.memorySliceStorage.load(lastMemorySliceId)
+
+        lastProgramValues.filter { params.keys.contains(it.key) }.forEach {
+            val dataDefinition = interpreter.dataDefinitionByName(it.key)!!
+            val value = lastProgramValues[it.key]!!
+            interpreter.assign(dataDefinition, value)
+        }
+
+        this.store()
+    }
+
+    override fun afterCall() {
         this.load()
     }
 
@@ -67,17 +91,7 @@ internal class SnapshotManager(
     }
 
     override fun beforeExecuteCycle(statements: List<Statement>): Int {
-//        var i = this.stackTrace.peek()
-//        try {
-//            if (statements[i - 1] is CallStmt) {
-//                i--
-//                this.stackTrace.pop()
-//                this.stackTrace.push(i)
-//            }
-//        } catch (e: IndexOutOfBoundsException) {
-//            this.stackTrace.reset()
-//        }
-        return this.stackTrace.peek()
+        return this.stackTrace.peek(statements)
     }
 
     override fun beforeStatementExecution(i: Int) {

@@ -16,10 +16,11 @@ interface RuntimeInterpreterSnapshotManager {
     fun load()
     fun beforeDOCycle(): Long
     fun beforeDOIteration(i: Long)
-    fun onCallEnterPgm()
-    fun onCallExitPgm()
+    fun beforeCall()
+    fun onCallSuspend(interpreter: InterpreterCore, params: LinkedHashMap<String, Value>)
+    fun afterCall()
     fun isOnRestore(): Boolean
-    fun beforeExecuteCycle(statement: List<Statement>): Int
+    fun beforeExecuteCycle(statements: List<Statement>): Int
     fun beforeStatementExecution(i: Int)
     fun afterStatementExecution()
 }

@@ -79,7 +79,7 @@ class ExfmtStateManagementTest : AbstractTest() {
 
     @Test
     fun executeSM_CALL_PLAIN() {
-        val expected = listOf("A:2")
+        val expected = listOf("A:3")
 
         assertFailsWith<ExfmtSuspendException> {
             "video/SM_CALL_PLAIN".outputOf(configuration = configuration)

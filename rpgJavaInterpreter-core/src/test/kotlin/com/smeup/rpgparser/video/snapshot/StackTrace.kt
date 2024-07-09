@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.video.snapshot
 
+import com.smeup.rpgparser.parsing.ast.CallStmt
+import com.smeup.rpgparser.parsing.ast.Statement
 import java.util.Stack
 
 private enum class TraceState {
@@ -64,7 +66,7 @@ internal class StackTrace : Stack<Int> {
         return 0
     }
 
-    override fun peek(): Int {
+     override fun peek(): Int {
         if (this.state == TraceState.EX_NOVO || this.state == TraceState.CONTINUE) {
             return 0
         }
@@ -89,6 +91,21 @@ internal class StackTrace : Stack<Int> {
         }
 
         return this[this.pointer++]
+    }
+
+    fun peek(statements: List<Statement>): Int {
+        var i = this.peek()
+        try {
+            if (statements[i - 1] is CallStmt) {
+                i--
+                // if last is CallStmt then pop will already occur
+                this.push(i)
+            }
+        } catch (e: IndexOutOfBoundsException) {
+            return i
+        }
+        // do not peek it again
+        return i
     }
 
     companion object {
