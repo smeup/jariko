@@ -283,6 +283,7 @@ fun Type.lowValue(): Value {
             val fields = this.fields.associateWith { field -> field.type.lowValue() }
             DataStructValue.fromFields(fields)
         }
+        is BooleanType -> BooleanValue.FALSE
         is RecordFormatType -> BlanksValue
         else -> TODO("Converting LowValValue to $this")
     }
@@ -297,6 +298,7 @@ fun Type.hiValue(): Value {
             val fields = this.fields.associateWith { field -> field.type.hiValue() }
             DataStructValue.fromFields(fields)
         }
+        is BooleanType -> BooleanValue.TRUE
         is RecordFormatType -> BlanksValue
         else -> TODO("Converting HiValValue to $this")
     }
