@@ -4,23 +4,27 @@ import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 
 internal class StackTraceStorageMock {
     var snapshot: RuntimeInterpreterSnapshot? = null
-    private var stackTrace: StackTrace = StackTrace()
+    private var stackTrace: MutableMap<String, StackTrace> = mutableMapOf()
 
-    fun store(stackTrace: StackTrace) {
+    fun store(id: String, stackTrace: StackTrace) {
         // set on restore before save if snapshot is defined
-        if (this.snapshot != null) this.stackTrace.prepareForRestore()
-        this.stackTrace = stackTrace
+        if (this.snapshot != null) this.stackTrace[id]!!.prepareForRestore()
+        this.stackTrace[id] = stackTrace
     }
 
-    fun load(): StackTrace {
+    fun load(id: String): StackTrace {
+        if (!this.stackTrace.containsKey(id)) {
+            this.stackTrace[id] = StackTrace()
+        }
+
         // set on restore because also state is saved
-        if (this.snapshot != null) this.stackTrace.prepareForRestore()
-        return this.stackTrace
+        if (this.snapshot != null) this.stackTrace[id]!!.prepareForRestore()
+        return this.stackTrace[id]!!
     }
 
-    fun reset() {
+    fun reset(id: String) {
         this.snapshot = null
-        this.stackTrace = StackTrace()
+        this.stackTrace[id] = StackTrace()
     }
 
     fun close() {}

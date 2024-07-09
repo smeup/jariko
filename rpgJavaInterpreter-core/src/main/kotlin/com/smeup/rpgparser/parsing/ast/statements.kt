@@ -771,6 +771,7 @@ data class CallStmt(
             program.params()[index].name to interpreter[it.param.name]
         }.toMap(LinkedHashMap())
 
+        MainExecutionContext.getSnapshotManager()?.onCallEnterPgm()
         val paramValuesAtTheEnd =
             try {
                 interpreter.getSystemInterface().registerProgramExecutionStart(program, params)
@@ -784,6 +785,12 @@ data class CallStmt(
                         interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
                     }
                 }
+            } catch (e: ExfmtSuspendException) {
+                // should assign parameters with interpreter to update data definitions
+                // using returned object from program.execute, even if it fails to complete
+                // due to EXFMT exception
+                MainExecutionContext.getSnapshotManager()?.onCallExitPgm()
+                throw e
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 if (errorIndicator == null) {
                     throw e
@@ -792,6 +799,7 @@ data class CallStmt(
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
                 null
             }
+        MainExecutionContext.getSnapshotManager()?.onCallExitPgm()
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
                 interpreter.assign(this.params[index].param.referred!!, value)
