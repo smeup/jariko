@@ -2,52 +2,108 @@ package com.smeup.rpgparser.video
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.ReloadConfig
-import com.smeup.rpgparser.execution.SimpleReloadConfig
+import com.smeup.rpgparser.execution.*
+import com.smeup.rpgparser.interpreter.DecimalValue
+import com.smeup.rpgparser.interpreter.IntValue
+import com.smeup.rpgparser.interpreter.OnExfmtResponse
+import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.Value
 import kotlin.test.BeforeTest
-import kotlin.test.DefaultAsserter
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class VideoInterpeterTest : AbstractTest() {
 
     lateinit var configuration: Configuration
+    lateinit var configurationForRetroCompatibilityTest: Configuration
 
     @BeforeTest
     fun setUp() {
         configuration = Configuration()
         val path = javaClass.getResource("/video/metadata")!!.path
-        val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
-        configuration.reloadConfig = ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
-            metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
-    }
-
-    @Test
-    fun executeFILEDEF() {
-        configuration.jarikoCallback.onExitPgm = { _, symbolTable, _ ->
-            DefaultAsserter.assertNotNull(message = "field £RASDI should be defined", actual = symbolTable["£RASDI"])
-        }
-        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
-        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeEXFMT_MOCK() {
-        val expected = listOf("")
-        assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
+        val dspfConfig = SimpleDspfConfig(displayFilePath = path)
+        configuration.dspfConfig = DspfConfig(
+            metadataProducer = { displayFile: String -> dspfConfig.getMetadata(displayFile = displayFile) },
+            dspfProducer = { displayFile: String -> dspfConfig.dspfProducer(displayFile = displayFile) }
+        )
+        // If dspfConfig is null metadata must be loaded from reloadConfig, as previously
+        configurationForRetroCompatibilityTest = Configuration(dspfConfig = null)
+            .apply {
+                val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
+                this.reloadConfig = ReloadConfig(
+                    nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+                    metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) }
+                )
+            }
     }
 
     @Test
     fun executeREADC_MOCK() {
         val expected = listOf("")
+        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            // leave all fields unchanged
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("READC_MV"))
+        }
         assertEquals(expected = expected, actual = "video/READC_MOCK".outputOf(configuration = configuration))
     }
 
     @Test
     fun executeUNLOCK_MOCK() {
         val expected = listOf("")
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("UNLOCK_MV"))
+        }
         assertEquals(expected = expected, actual = "video/UNLOCK_MOCK".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeFILEDEF() {
+        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        // no onExfmt needed, there is no EXFMT spec in this RPGLE file
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("FILEDEFV"))
+        }
+        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeFILEDEF1() {
+        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        // no onExfmt needed, there is no EXFMT spec in this RPGLE file
+        // this uses fallback config (reload), so displayFiles attribute should be null
+        configuration.jarikoCallback.afterAstCreation = {
+            assertEquals(null, it.displayFiles)
+        }
+        assertEquals(expected = expected, actual = "video/FILEDEF1".outputOf(configuration = configurationForRetroCompatibilityTest))
+    }
+
+    @Test
+    fun executeEXFMT1() {
+        val expected = listOf("FLD01:NEW_VALUE", "STR:uppercase", "INT:124", "DEC:124.45")
+        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+
+            // simulates user typing something new in FLD01
+            map["FLD01"] = StringValue("NEW_VALUE")
+
+            // user edits existing field value
+            val str = fields.find { it.name == "STR" }!!.value as StringValue
+            map["STR"] = StringValue(str.asString().value.lowercase())
+            val int = fields.find { it.name == "INT" }!!.value as IntValue
+            map["INT"] = int.plus(IntValue(1))
+            val dec = fields.find { it.name == "DEC" }!!.value as DecimalValue
+            map["DEC"] = dec.increment(1)
+
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("EXFMT1V"))
+        }
+        assertEquals(expected = expected, actual = "video/EXFMT1".outputOf(configuration = configuration))
     }
 }

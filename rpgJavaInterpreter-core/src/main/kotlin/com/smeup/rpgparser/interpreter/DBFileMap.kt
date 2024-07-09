@@ -67,17 +67,29 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
     // All files are opened by default when defined in F specs.
     var open = true
 
+    private val cacheEnabled = MainExecutionContext.getSystemInterface()?.getFeaturesFactory()?.isChainCacheEnabled() ?: false
+    private val cacheKey: MutableMap<String, Result>? = if (cacheEnabled) mutableMapOf() else null
+    private val cacheKeys: MutableMap<List<String>, Result>? = if (cacheEnabled) mutableMapOf() else null
+
     override var fileMetadata = dbFile.fileMetadata
 
     override var name = dbFile.name
 
     override var logger = dbFile.logger
 
-    override fun chain(key: String) = checkOpened().chain(key).validate()
+    override fun chain(key: String): Result {
+        val op = { checkOpened().chain(key).validate() }
+        return cacheKey?.computeIfAbsent(key) { op.invoke() } ?: op.invoke()
+    }
 
-    override fun chain(keys: List<String>) = checkOpened().chain(keys).validate()
+    override fun chain(keys: List<String>): Result {
+        val op = { checkOpened().chain(keys).validate() }
+        return cacheKeys?.computeIfAbsent(keys) { op.invoke() } ?: op.invoke()
+    }
 
-    override fun delete(record: Record) = checkOpened().delete(record).validate()
+    override fun delete(record: Record): Result {
+        return checkOpened().delete(record).validate().apply { deleteCache() }
+    }
 
     override fun eof() = checkOpened().eof()
 
@@ -107,9 +119,13 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
 
     override fun setll(keys: List<String>) = checkOpened().setll(keys)
 
-    override fun update(record: Record) = checkOpened().update(record).validate()
+    override fun update(record: Record): Result {
+        return checkOpened().update(record).validate().apply { deleteCache() }
+    }
 
-    override fun write(record: Record) = checkOpened().write(record).validate()
+    override fun write(record: Record): Result {
+        return checkOpened().write(record).validate().apply { deleteCache() }
+    }
 
     fun getDataDefinitionName(dbFieldName: String) = fileDefinition.getDataDefinitionName(dbFieldName)
 
@@ -118,6 +134,11 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
             "Cannot access to closed file $name"
         }
         return dbFile
+    }
+
+    private fun deleteCache() {
+        cacheKey?.clear()
+        cacheKeys?.clear()
     }
 }
 

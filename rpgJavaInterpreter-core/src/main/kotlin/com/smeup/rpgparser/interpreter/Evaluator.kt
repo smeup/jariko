@@ -20,9 +20,16 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 
 interface Evaluator {
+    fun eval(expression: AddrExpr): Value
+    fun eval(expression: AllocExpr): Value
+    fun eval(expression: ReallocExpr): Value
     fun eval(expression: IntLiteral): Value
     fun eval(expression: RealLiteral): Value
     fun eval(expression: StringLiteral): Value
+    fun eval(expression: UDateRefExpr): Value
+    fun eval(expression: UYearRefExpr): Value
+    fun eval(expression: UMonthRefExpr): Value
+    fun eval(expression: UDayRefExpr): Value
     fun eval(expression: NumberOfElementsExpr): Value
     fun eval(expression: DataRefExpr): Value
     fun eval(expression: EqualityExpr): Value
@@ -38,6 +45,10 @@ interface Evaluator {
     fun eval(expression: MultExpr): Value
     fun eval(expression: CharExpr): Value
     fun eval(expression: LookupExpr): Value
+    fun eval(expression: LookupGtExpr): Value
+    fun eval(expression: LookupGeExpr): Value
+    fun eval(expression: LookupLtExpr): Value
+    fun eval(expression: LookupLeExpr): Value
     fun eval(expression: ArrayAccessExpr): Value
     fun eval(expression: HiValExpr): HiValValue
     fun eval(expression: LowValExpr): LowValValue
@@ -55,6 +66,8 @@ interface Evaluator {
     fun eval(expression: SubarrExpr): Value
     fun eval(expression: LenExpr): Value
     fun eval(expression: OffRefExpr): BooleanValue
+    fun eval(expression: IsoFormatExpr): IsoValue
+    fun eval(expression: JulFormatExpr): JulValue
     fun eval(expression: IndicatorExpr): BooleanValue
     fun eval(expression: FunctionCall): Value
     fun eval(expression: TimeStampExpr): Value
@@ -81,4 +94,7 @@ interface Evaluator {
     fun eval(expression: GlobalIndicatorExpr): Value
     fun eval(expression: ParmsExpr): Value
     fun eval(expression: OpenExpr): Value
+    fun eval(expression: SizeExpr): Value
+    fun eval(expression: NullValExpr): Value
+    fun eval(expression: MockExpression): Value
 }

@@ -54,7 +54,7 @@ fun CompilationUnit.activationGroupType(): ActivationGroupType? {
     }
 }
 
-fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): String {
+fun ActivationGroupType.assignedName(caller: RpgProgram?): String {
     return when (this) {
         is CallerActivationGroup -> {
             require(caller != null) { "caller is mandatory" }
@@ -62,7 +62,6 @@ fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): 
         }
         is NewActivationGroup -> UUID.randomUUID().toString()
         is NamedActivationGroup -> groupName
-        else -> error("$this ActivationGroupType is not yet handled")
     }
 }
 

@@ -1,0 +1,129 @@
+     A*%%TS  SD  20231201  180357  BERNIC      REL-V7R4M0  5770-WDS
+     A*%%EC
+     A                                      DSPSIZ(27 132 *DS4)
+     A                                      CHGINPDFT(HI CS)
+     A                                      PRINT
+     A                                      CA22
+     A                                      CA02
+     A          R FMT1
+     A*%%TS  SD  20231201  180357  BERNIC      REL-V7R4M0  5770-WDS
+     A                                      CA03
+     A                                      CF12
+     A                                      CF04
+     A                                      CF10
+     A                                      CF05
+     A                                      CF07
+     A  42                                  CF16
+     A            £RASDI        15A  O  1  2DSPATR(HI)
+     A                                  1 30'* Test gestione campi sovrapposti -
+     A                                      in base ad indicatori *'
+     A                                      DSPATR(RI)
+     A                                  1109SYSNAME
+     A            £PDSNP        10A  O  1122
+     A                                  2  2DATE
+     A                                      EDTCDE(Y)
+     A                                  2 53'Simulazione'
+     A                                      DSPATR(HI)
+     A            £PDSJN        10A  O  2109
+     A            £PDSNU        10A  O  2122
+     A            W$RISC         8A  B  3122
+     A                                  5  2'Scelta tipo campo'
+     A                                      DSPATR(HI)
+     A                                      DSPATR(UL)
+     A                                  6  2'Opzioni'
+     A            W$OPZ          2A  B  6 26
+     A  61                                  DSPATR(RI)
+     A N61
+     AON60                                  DSPATR(PC)
+     A                                 11  2'Output'
+     A                                      DSPATR(HI)
+     A                                      DSPATR(UL)
+     A  20        W$NU20        14Y 0B 13 26CHECK(RB)
+     A                                      EDTCDE(K)
+     A  43                                  DSPATR(PR)
+     A  42                             26  2'F05=Elimin.dat.tec.'
+     A N42                             26  2'F05=Vis.dati tecnici'
+     A  42                             26 25'F16=Sorgenti'
+     A  60        W$MESV       128A  O 27  2DSPATR(RI)
+     A  22        W$NU22        14Y 2B 13 26EDTCDE(K)
+     A  43                                  DSPATR(PR)
+     A  23        W$NU23        14Y 3B 13 26EDTCDE(K)
+     A  43                                  DSPATR(PR)
+     A                                 16  2'Indicatori'
+     A                                      DSPATR(HI)
+     A                                      DSPATR(UL)
+     A                                 19  2'IN22'
+     A                                 20  2'IN23'
+     A            I$IN22         1A  O 19 10
+     A            I$IN23         1A  O 20 10
+     A                                 19  7':'
+     A                                 20  7':'
+     A                                 18  2'IN20'
+     A            I$IN20         1A  O 18 10
+     A                                 18  7':'
+     A                                 18 13'quando'
+     A                                 18 20'acceso,'
+     A                                 19 13'quando'
+     A                                 19 20'acceso,'
+     A                                 20 13'quando'
+     A                                 20 20'acceso,'
+     A                                 13  2'Risultato'
+     A            I$IN25         1A  O 21 10
+     A                                 21  2'IN25'
+     A                                 21  7':'
+     A                                 21 13'quando'
+     A                                 21 20'acceso,'
+     A                                 21 28'verrà'
+     A                                 21 34'visualizzato'
+     A                                 21 47'un'
+     A                                 21 50'campo'
+     A                                 20 28'verrà'
+     A                                 20 34'visualizzato'
+     A                                 20 47'un'
+     A                                 20 50'campo'
+     A                                 20 56'sovrapposto'
+     A                                 20 68'numerico'
+     A                                 20 77'con'
+     A                                 20 81'3'
+     A                                 20 83'decimali'
+     A                                 21 56'sovrapposto'
+     A                                 21 68'alfanumerico'
+     A                                 19 28'verrà'
+     A                                 19 34'visualizzato'
+     A                                 19 47'un'
+     A                                 19 50'campo'
+     A                                 19 56'sovrapposto'
+     A                                 19 68'numerico'
+     A                                 19 77'con'
+     A                                 19 81'2'
+     A                                 19 83'decimali'
+     A                                 18 28'verrà'
+     A                                 18 34'visualizzato'
+     A                                 18 47'un'
+     A                                 18 50'campo'
+     A                                 18 56'sovrapposto'
+     A                                 18 68'numerico'
+     A                                 18 77'intero'
+     A  25        W$ALFA        50A  B 13 26
+     A  43                                  DSPATR(PR)
+     A                                  6 40'01'
+     A                                  6 43':'
+     A                                  6 45'Numero'
+     A                                  6 52'intero'
+     A                                  7 40'02'
+     A                                  7 43':'
+     A                                  7 45'Numero'
+     A                                  7 52'con'
+     A                                  7 56'2'
+     A                                  7 58'decimali'
+     A                                  8 40'03'
+     A                                  8 43':'
+     A                                  8 45'Numero'
+     A                                  8 52'con'
+     A                                  8 56'3'
+     A                                  8 58'decimali'
+     A                                  9 40'04'
+     A                                  9 43':'
+     A                                  9 45'Alfanumerico'
+     A  43                             26 45'F07=Editabili'
+     A N43                             26 45'F07=Proteggi'

@@ -24,6 +24,7 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
+import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import org.junit.Assert
 import java.io.StringReader
@@ -514,6 +515,56 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR23CallBackTest() {
+        executePgmCallBackTest("ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
+            9 to "Factor 2 cannot be null",
+            14 to "Factor 1 cannot be null"
+        ))
+    }
+
+    @Test
+    fun executeERROR24CallBackTest() {
+        executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+        ))
+    }
+
+    @Test
+    fun executeERROR25CallBackTest() {
+        executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
+            8 to "For JUL format the date must be between 1940 and 2039",
+            9 to "For JUL format the date must be between 1940 and 2039"
+        ))
+    }
+
+    @Test
+    fun executeERROR26CallBackTest() {
+        executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
+            8 to "For ISO format the date must be between 0001 and 9999",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+        ))
+    }
+
+    @Test
+    fun executeERROR23SourceLineTest() {
+        executeSourceLineTest("ERROR23")
+    }
+
+    @Test
+    fun executeERROR27CallBackTest() {
+        executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
+            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA",
+            11 to "An operation is not implemented: IN£UDLDA"
+        ))
+    }
+
+    @Test
+    fun executeERROR27SourceLineTest() {
+        executeSourceLineTest("ERROR27")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -635,6 +686,56 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             Assert.assertEquals(lines.sorted(), errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
         }
+    }
+
+    /**
+     * This function is used to test the execution of a program and validate the error handling mechanism.
+     * It expects the program to fail and checks if the error events are correctly captured.
+     *
+     * @param pgm The name of the program to be executed.
+     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
+     * @param sourceId The expected identifier of the source where the error is expected to occur.
+     * @param lines The map of lines, number and message, expected.
+     */
+    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: Map<Int, String>) {
+        val errorEvents = mutableListOf<ErrorEvent>()
+        runCatching {
+            val configuration = Configuration().apply {
+                jarikoCallback.onError = { errorEvent ->
+                    println(errorEvent)
+                    errorEvents.add(errorEvent)
+                }
+                options = Options(debuggingInformation = true)
+                reloadConfig = createMockReloadConfig()
+            }
+            executePgm(pgm, configuration = configuration)
+        }.onSuccess {
+            Assert.fail("Program must exit with error")
+        }.onFailure {
+            println(it.stackTraceToString())
+            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
+            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
+            val found = errorEvents
+                .associate { errorEvent ->
+                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
+                }
+                .map {
+                    Pair(it.value, it.contains(lines))
+                }
+            Assert.assertTrue(
+                "Errors doesn't correspond:\n" + found.joinToString(separator = "\n") { it.first },
+                found.size == found.filter { it.second }.size && found.size == lines.size
+            )
+        }
+    }
+
+    internal fun Map.Entry<Int, String>.contains(list: Map<Int, String>): Boolean {
+        list.forEach {
+            if (this.value.contains(it.value) && this.key == it.key) {
+                return true
+            }
+        }
+        return false
     }
 
     /**

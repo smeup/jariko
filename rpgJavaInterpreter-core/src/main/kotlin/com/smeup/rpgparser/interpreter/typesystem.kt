@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
@@ -176,6 +177,19 @@ object TimeStampType : Type() {
 }
 
 /**
+ * @param format between MDY, DMY, YMD, JUL, ISO, USA, EUR, and JIS.
+ *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
+ */
+@Serializable
+data class DateType(val format: DateFormat) : Type() {
+    override val size: Int
+        get() = when (format) {
+            DateFormat.ISO -> 10
+            DateFormat.JUL -> 6
+        }
+}
+
+/**
  * A CharacterType is basically very similar to an array of characters
  * and very similar to a string.
  */
@@ -204,17 +218,24 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
 
     init {
-        if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType) {
-            require(entireDigits <= 20) { "Integer or Unsigned integer can have only length up to 20. Value specified: $this" }
-            require(decimalDigits == 0)
+        if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType || rpgType == RpgType.POINTER.rpgType) {
+            require(entireDigits <= MAX_INTEGER_DIGITS) {
+                "Integer or Unsigned integer can have only length up to 20. Value specified: $this"
+            }
+            require(decimalDigits == INTEGER_DECIMAL_DIGITS)
         }
+    }
+
+    companion object {
+        const val MAX_INTEGER_DIGITS = 20
+        const val INTEGER_DECIMAL_DIGITS = 0
     }
 
     override val size: Int
         get() {
             return when (rpgType) {
                 RpgType.PACKED.rpgType -> ceil((numberOfDigits + 1).toDouble() / 2.toFloat()).toInt()
-                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> {
+                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.POINTER.rpgType -> {
                     when (entireDigits) {
                         in 1..3 -> 1
                         in 4..5 -> 2
@@ -235,7 +256,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         }
 
     val integer: Boolean
-        get() = decimalDigits == 0
+        get() = decimalDigits == INTEGER_DECIMAL_DIGITS
     val decimal: Boolean
         get() = !integer
     val numberOfDigits: Int

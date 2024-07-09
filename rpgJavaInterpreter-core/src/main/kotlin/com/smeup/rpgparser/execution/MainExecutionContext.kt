@@ -35,7 +35,7 @@ object MainExecutionContext {
     // default values in case jariko is not called from the command line program
     private val context: ThreadLocal<Context> by lazy { ThreadLocal<Context>() }
     private val noContextIdProvider: AtomicInteger by lazy { AtomicInteger() }
-    private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf<String, Any>() }
+    private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf() }
     private val noConfiguration: Configuration by lazy { Configuration() }
     private val noProgramStack: Stack<RpgProgram> by lazy { Stack<RpgProgram>() }
     private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
@@ -175,6 +175,16 @@ object MainExecutionContext {
         context.get()?.renderLog(renderer)
     }
 
+    /**
+     * Get all the log handlers
+     */
+    val logHandlers get(): List<InterpreterLogHandler> = context.get()?.logHandlers ?: emptyList()
+
+    /**
+     * Checks if logging is enabled
+     */
+    val isLoggingEnabled get() = context.get()?.isLoggingEnabled ?: false
+
     /***
      * Get DB File Factory
      */
@@ -194,6 +204,11 @@ object MainExecutionContext {
      * @return true if context is already created
      * */
     fun isCreated() = context.get() != null
+
+    /**
+     * @return true if error log channel is configured
+     * */
+    val isErrorChannelConfigured get() = context.get()?.logHandlers?.isErrorChannelConfigured() ?: false
 }
 
 data class Context(
@@ -211,14 +226,15 @@ data class Context(
         DBFileFactory(it.nativeAccessConfig)
     }
 ) {
-
-    private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
+    val logHandlers: MutableList<InterpreterLogHandler> by lazy {
         systemInterface.getAllLogHandlers()
     }
 
     fun renderLog(renderer: LazyLogEntry) {
         logHandlers.renderLog(renderer)
     }
+
+    val isLoggingEnabled get() = logHandlers.isNotEmpty()
 }
 
 data class ParsingProgram(val name: String) {

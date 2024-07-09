@@ -17,7 +17,7 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.db.utilities.execute
+import com.smeup.rpgparser.db.utilities.*
 import com.smeup.rpgparser.interpreter.StringValue
 import org.hsqldb.Server
 import org.junit.AfterClass

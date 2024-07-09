@@ -17,11 +17,10 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dspfparser.linesclassifier.DSPF
+import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.Api
-import com.smeup.rpgparser.parsing.ast.ApiId
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.MockStatement
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -36,6 +35,9 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
  * @param memorySliceStorage Allows to implement a symbol table storaging.
  * If null, symbol table persistence will be skipped
  * @param jarikoCallback Several callback.
+ * @param reloadConfig Reload configuration, it is mandatory for rpgle programs containing RLA operations
+ * @param dspfConfig DSPF parser configuration, if null metadata information related to display files will be loaded
+ * from reloadConfig
  * @param defaultActivationGroupName Default activation group. If not specified it assumes "*DEFACTGRP"
  * */
 
@@ -43,14 +45,15 @@ data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
     var jarikoCallback: JarikoCallback = JarikoCallback(),
     var reloadConfig: ReloadConfig? = null,
+    var dspfConfig: DspfConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this(memorySliceStorage, JarikoCallback(), null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this(memorySliceStorage, JarikoCallback(), null, null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
 
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this(memorySliceStorage, JarikoCallback(), null, defaultActivationGroupName, Options())
+            this(memorySliceStorage, JarikoCallback(), null, null, defaultActivationGroupName, Options())
 }
 
 /**
@@ -62,6 +65,15 @@ data class Configuration(
 data class ReloadConfig(
     val nativeAccessConfig: DBNativeAccessConfig,
     val metadataProducer: (dbFile: String) -> FileMetadata
+)
+
+/**
+ * DSPF parser configuration
+ * @param metadataProducer Produce metadata for a displayFile
+ * */
+data class DspfConfig(
+    val metadataProducer: (displayFile: String) -> FileMetadata,
+    val dspfProducer: (displayFile: String) -> DSPF
 )
 
 /**
@@ -94,95 +106,172 @@ data class Options(
 }
 
 /**
- * Sometimes we have to gain control of Jariko, this is the right place.
- * It was primarily intended for future use.
- * @param getActivationGroup If specified, it overrides the activation group associated to the program.
- * Default null it means by Configuration.
- * Parameter programName is program for which we are getting activation group, associatedActivationGroup is the current
- * activation group associated to the program.
- * @param beforeCopyInclusion It is invoked before than the copy is included in the source, the default implementation
- * will return the copy source itself
- * @param afterCopiesInclusion It is invoked after that all copies has been included in the source.
- * **This callback will be called only if [Options.debuggingInformation] is set to true**.
- * @param beforeParsing It is invoked before the parsing. It is passed the source that will be parsed after all copy inclusion, the default implementation
- * will return source itself
- * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
- * @param onInterpreterCreation It is invoked on Interpreter creation
- * @param onEnterPgm It is invoked on program enter after symboltable initialization.
- * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
- * @param afterAstCreation It is invoked after ast creation
- * @param onEnterCopy It is invoked on copy enter.
- * **This callback will be called only if [Options.debuggingInformation] is set to true**.
- * @param onExitCopy It is invoked on copy exit.
- * **This callback will be called only if [Options.debuggingInformation] is set to true**.
- * @param onEnterStatement It is invoked before statement execution.
- * **This callback will be called only if [Options.debuggingInformation] is set to true**.
- * See [JarikoCallback.onEnterStatement] for further information
- * @param onEnterFunction It is invoked on function enter after symboltable initialization.
- * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
- * @param onError It is invoked in case of errors. The default implementation writes error event in stderr
- * @param onCallPgmError It is invoked in case of runtime errors accurred inside the program called only if the error indicator
- * at column 73-74 is specified. The default implementation does nothing
- * @param logInfo If specified, it is invoked to log information messages, for all channel enabled
- * @param channelLoggingEnabled If specified, it allows to enable programmatically the channel logging.
- * For instance, you can enable all channels by using [consoleVerboseConfiguration] but you can decide, through
- * the implementation of this callback, which channel you want to log.
- * @param onMockStatement If specified, it allows customizing the behavior of the mock statements.
- * @param onApiInclusion If specified, it allows overriding the default mechanism of API validation.
+ * Through this class, we can customize Jariko behavior.
  * */
 data class JarikoCallback(
+    /**
+     * If specified, it overrides the activation group associated to the program.
+     * Default null it means by Configuration.
+     * Parameter programName is a program for which we are getting activation group, associatedActivationGroup is the current
+     * activation group associated with the program.
+     * */
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
             null
     },
-    var beforeCopyInclusion: (copyId: CopyId, source: String?) -> String? = { _, source -> source },
-    var afterCopiesInclusion: (copyBlocks: CopyBlocks) -> Unit = { },
-    var beforeParsing: (source: String) -> String = { source -> source },
-    var exitInRT: (programName: String) -> Boolean? = { null },
-    var onInterpreterCreation: (interpreter: InterpreterCore) -> Unit = { },
-    var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
-    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
-    var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
-    var onEnterCopy: (copyId: CopyId) -> Unit = { },
-    var onExitCopy: (copyId: CopyId) -> Unit = { },
+
     /**
-     * absoluteLine is the absolute position of the statement in the post-processed program.
-     * In case of programs with copy, the absolute position usually is different from the position of the statement
+     * It is invoked before than the copy is included in the source, the default implementation
+     * will return the copy source itself
+     */
+    var beforeCopyInclusion: (copyId: CopyId, source: String?) -> String? = { _, source -> source },
+
+    /**
+     * It is invoked after that all copies has been included in the source.
+     * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+     * */
+    var afterCopiesInclusion: (copyBlocks: CopyBlocks) -> Unit = { },
+
+    /**
+     * It is invoked before the parsing.
+     * It is passed the source that will be parsed after all copy inclusions, the default implementation
+     * will return the source itself
+     * */
+    var beforeParsing: (source: String) -> String = { source -> source },
+
+    /**
+     * If specified, it overrides the exit mode established in the program. Default null to preserve default behavior.
+     * */
+    var exitInRT: (programName: String) -> Boolean? = { null },
+
+    /**
+     * It is invoked on Interpreter creation
+     * */
+    var onInterpreterCreation: (interpreter: InterpreterCore) -> Unit = { },
+
+    /**
+     * It is invoked on program entered after symbol table initialization.
+     * */
+    var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
+
+    /**
+     * It is invoked on program exit.
+     * In case of error it is no longer called, then even error parameter is no longer significant
+     * */
+    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
+
+    /**
+     * It is invoked after ast creation.
+     * */
+    var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
+
+    /**
+     * It is invoked on copy entered.
+     * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+     * */
+    var onEnterCopy: (copyId: CopyId) -> Unit = { },
+
+    /**
+     * It is invoked on copy exited.
+     * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+     * */
+    var onExitCopy: (copyId: CopyId) -> Unit = { },
+
+    /**
+     * It is invoked on EXFMT execution.
+     */
+    var onExfmt: (fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
+        _, _ -> null
+    },
+
+    /**
+     * It is invoked before statement execution.
+     * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+     * @see [JarikoCallback.onEnterStatement] for further information
+     * @param absoluteLine is the absolute position of the statement in the post-processed program.
+     * In the case of programs with copy, the absolute position usually is different from the position of the statement
      * inside the source.
-     * The position of the statement inside the source is accessible through sourceReference parameter.
+     * @param sourceReference The position of the statement inside the source is accessible through sourceReference parameter.
      * sourceReference The source type where the statement is
      * */
     var onEnterStatement: (absoluteLine: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
+
+    /**
+     * It is invoked on function entered after symbol table initialization.
+     * */
     var onEnterFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable)
     -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
+
+    /**
+     * It is invoked on function exit, only if the function does not throw any error
+     * */
     var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> },
+
+    /**
+     * It is invoked in case of errors. The default implementation writes error event in stderr
+     * */
     var onError: (errorEvent: ErrorEvent) -> Unit = { errorEvent ->
         // If SystemInterface is not in the main execution context or in the SystemInterface there is no
         // logging configuration, the error event must be shown as before, else we run the risk to miss very helpful information
         MainExecutionContext.getSystemInterface()?.apply {
-            if (getAllLogHandlers().isErrorChannelConfigured()) {
+            if (MainExecutionContext.isErrorChannelConfigured) {
                 MainExecutionContext.log(LazyLogEntry.produceError(errorEvent))
             } else {
                 System.err.println(errorEvent)
             }
         } ?: System.err.println(errorEvent)
     },
-    var onCallPgmError: (errorEvent: ErrorEvent) -> Unit = { },
-    var logInfo: ((channel: String, message: String) -> Unit)? = null,
-    var channelLoggingEnabled: ((channel: String) -> Boolean)? = null,
-    /**
-     * This is called for those statements mocked.
-     * @param mockStatement "Statement" where is get its name for the `println`.
+
+    /***
+     * It is invoked in case of runtime errors occurred inside the program called, only if the error indicator
+     * at column 73-74 is specified.
+     * The default implementation does nothing
      */
-    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock: ${it.javaClass.simpleName}") },
+    var onCallPgmError: (errorEvent: ErrorEvent) -> Unit = { },
+
     /**
-     * This is called before the Api is included in the main program.
+     * If specified, it is invoked to log information messages, for all enabled channels
+     * */
+    var logInfo: ((channel: String, message: String) -> Unit)? = null,
+
+    /**
+     * If specified, it allows to enable programmatically the channel logging.
+     * For instance, you can enable all channels by using [consoleVerboseConfiguration] but you can decide, through
+     * the implementation of this callback, which channel you want to log.
+     * */
+    var channelLoggingEnabled: ((channel: String) -> Boolean)? = null,
+
+    /**
+     * If specified, it allows customizing the behavior of the mock statements.
+     * Default implementation provides a simple println with the name of the mock statement.
+     * @param mockStatement The mock statement
+     */
+    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock statement: ${it.javaClass.simpleName}") },
+
+    /**
+     * If specified, it allows customizing the behavior of the mock statements.
+     * Default implementation provides a simple println with the name of the mock expression.
+     * @param mockExpression The mock expression
+     */
+    var onMockExpression: ((mockExpression: MockExpression) -> Unit) = { System.err.println("Executing mock expression: ${it.javaClass.simpleName}") },
+
+    /**
+     * If specified, it allows overriding the default mechanism of API validation.
+     * It is called before the Api is included in the main program.
      * Default implementation resolves and validates the compilationUnit related the API.
      * @param apiId The id of the API
      * @param api The API to include
      * */
     var onApiInclusion: ((apiId: ApiId, api: Api) -> Unit) = { _, api ->
         api.compilationUnit.resolveAndValidate()
-    }
+    },
+
+    /**
+     * It allows overriding the feature flag check.
+     * @param featureFlag The feature flag
+     * @return true if the feature flag is on, false otherwise - default implementation returns the feature flag default value
+     * @see FeatureFlag.on
+     * */
+    var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on }
 )
 
 /**

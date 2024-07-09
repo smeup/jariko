@@ -19,6 +19,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.Cspec_fixedContext
 import com.smeup.rpgparser.RpgParser.Parm_fixedContext
+import com.smeup.rpgparser.RpgParser.StatementContext
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
@@ -34,8 +35,8 @@ import com.strumenta.kolasu.model.tryToResolve
  */
 interface CompileTimeInterpreter {
     fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value
-    fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Int
-    fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Type
+    fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String? = null): Int
+    fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String? = null): Type
     fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int
 }
 
@@ -43,18 +44,19 @@ object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter(emptyList())
 
 class InjectableCompileTimeInterpreter(
     knownDataDefinitions: List<DataDefinition> = emptyList(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
-) : BaseCompileTimeInterpreter(knownDataDefinitions, delegatedCompileTimeInterpreter) {
+) : BaseCompileTimeInterpreter(knownDataDefinitions, fileDefinitions, delegatedCompileTimeInterpreter) {
     override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
     }
 
-    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Int {
-        return mockedDecls[declName]?.elementSize() ?: super.evaluateElementSizeOf(rContext, declName, conf)
+    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Int {
+        return mockedDecls[declName]?.elementSize() ?: super.evaluateElementSizeOf(rContext, declName, conf, procedureName)
     }
 
-    override fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Type {
-        return mockedDecls[declName] ?: super.evaluateTypeOf(rContext, declName, conf)
+    override fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type {
+        return mockedDecls[declName] ?: super.evaluateTypeOf(rContext, declName, conf, procedureName)
     }
 
     private val mockedDecls = HashMap<String, Type>()
@@ -68,6 +70,7 @@ class NotFoundAtCompileTimeException(declName: String) : ParseTreeToAstError("Un
 
 open class BaseCompileTimeInterpreter(
     private val knownDataDefinitions: List<DataDefinition>,
+    private val fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     private val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
 ) : CompileTimeInterpreter {
 
@@ -118,7 +121,11 @@ open class BaseCompileTimeInterpreter(
                         it.dspec() != null -> {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
-                                return it.dspec().toAst(conf = conf, knownDataDefinitions = listOf()).let { dataDefinition ->
+                                return it.dspec().toAst(
+                                    conf = conf,
+                                    knownDataDefinitions = knownDataDefinitions,
+                                    fileDefinitions = fileDefinitions
+                                ).let { dataDefinition ->
                                     if (dataDefinition.type is ArrayType) {
                                         dataDefinition.numberOfElements()
                                     } else throw it.dspec().ds_name().error("D spec is not an array", conf = conf)
@@ -139,7 +146,7 @@ open class BaseCompileTimeInterpreter(
         throw NotFoundAtCompileTimeException(declName)
     }
 
-    open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Int {
+    open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Int {
         knownDataDefinitions.forEach {
             if (it.name.equals(declName, ignoreCase = true)) {
                 return it.elementSize()
@@ -148,31 +155,41 @@ open class BaseCompileTimeInterpreter(
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
 
-        return findSize(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
+        return findSize(rContext.getStatements(procedureName), declName, conf, false)!!
     }
 
     private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
         statements.forEach {
-            when {
-                it.dspec() != null -> {
-                    val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
-                    if (declName.equals(name, ignoreCase = true)) {
-                        return it.dspec().TO_POSITION().text.asInt()
+            kotlin.runCatching {
+                when {
+                    it.fspec_fixed() != null -> {
+                        val size = it.fspec_fixed().runParserRuleContext(conf) { context ->
+                            kotlin.runCatching { context.toAst(conf).toDataDefinitions() }.getOrNull()
+                        }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }
+                            ?.elementSize()
+                        if (size != null) return size
                     }
-                }
-                it.cspec_fixed() != null -> {
-                    val size = it.cspec_fixed().findType(declName, conf)?.size
-                    if (size != null) return size
-                }
-                it.dcl_ds() != null -> {
-                    val name = it.dcl_ds().name
-                    if (name == declName) {
-                        return it.dcl_ds().elementSizeOf(knownDataDefinitions)
+                    it.dspec() != null -> {
+                        val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
+                        if (declName.equals(name, ignoreCase = true)) {
+                            return it.dspec().TO_POSITION().text.asInt()
+                        }
                     }
-                }
-                it.block() != null -> {
-                    val size = it.block().findType(declName, conf)?.size
-                    if (size != null) return size
+                    it.cspec_fixed() != null -> {
+                        val size = it.cspec_fixed().findType(declName, conf)?.size
+                        if (size != null) return size
+                    }
+                    it.dcl_ds() != null -> {
+                        val name = it.dcl_ds().name
+                        val fields = fileDefinitions?.let { defs -> it.dcl_ds().getExtnameFields(defs, conf) } ?: emptyList()
+                        if (name == declName) {
+                            return it.dcl_ds().elementSizeOf(knownDataDefinitions, fields)
+                        }
+                    }
+                    it.block() != null -> {
+                        val size = it.block().findType(declName, conf)?.size
+                        if (size != null) return size
+                    }
                 }
             }
         }
@@ -182,16 +199,16 @@ open class BaseCompileTimeInterpreter(
             throw NotFoundAtCompileTimeException(declName)
     }
 
-    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Int {
+    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Int {
         return when (expression) {
             is DataRefExpr -> {
                 try {
-                    evaluateElementSizeOf(rContext, expression.variable.name, conf)
+                    evaluateElementSizeOf(rContext, expression.variable.name, conf, procedureName)
                 } catch (e: NotFoundAtCompileTimeException) {
                     if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf)
+                        return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf, procedureName)
                     } else {
-                        throw expression.error(message = e.message, cause = e)
+                        expression.error(message = e.message, cause = e)
                     }
                 }
             }
@@ -199,14 +216,14 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    override fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Type {
+    override fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Type {
         return when (expression) {
             is DataRefExpr -> {
                 try {
-                    evaluateTypeOf(rContext, expression.variable.name, conf)
+                    evaluateTypeOf(rContext, expression.variable.name, conf, procedureName)
                 } catch (e: NotFoundAtCompileTimeException) {
                     if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter.evaluateTypeOf(rContext, expression, conf)
+                        return delegatedCompileTimeInterpreter.evaluateTypeOf(rContext, expression, conf, procedureName)
                     } else {
                         throw RuntimeException(e)
                     }
@@ -216,7 +233,7 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    open fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Type {
+    open fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type {
         knownDataDefinitions.forEach {
             if (it.name.equals(declName, ignoreCase = true)) {
                 return it.type
@@ -227,30 +244,50 @@ open class BaseCompileTimeInterpreter(
             }
         }
 
-        return findType(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
+        return findType(rContext.getStatements(procedureName), declName, conf, false)!!
     }
 
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
         statements
             .forEach { it ->
-                when {
-                    it.dcl_ds() != null -> {
-                        val type = it.dcl_ds().parm_fixed().find { it.ds_name().text.equals(declName, ignoreCase = true) }?.findType(conf)
-                        if (type != null) return type
-                    }
-                    it.dspec() != null -> {
-                        val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
-                        if (declName.equals(name, ignoreCase = true)) {
-                            return it.dspec().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).type
+                kotlin.runCatching {
+                    when {
+                        it.fspec_fixed() != null -> {
+                            val type = it.fspec_fixed().runParserRuleContext(conf) { context ->
+                                kotlin.runCatching { context.toAst(conf).toDataDefinitions() }.getOrNull()
+                            }?.find { dataDefinition -> dataDefinition.name.equals(declName, ignoreCase = true) }?.type
+                            if (type != null) return type
                         }
-                    }
-                    it.cspec_fixed() != null -> {
-                        val type = it.cspec_fixed().findType(declName, conf)
-                        if (type != null) return type
-                    }
-                    it.block() != null -> {
-                        val type = it.block().findType(declName, conf)
-                        if (type != null) return type
+                        it.dcl_ds() != null -> {
+                            // First look for the entire DS, if no match search in each of its fields
+                            val type = if (it.dcl_ds().name.equals(declName, ignoreCase = true)) {
+                                it.dcl_ds().toAst(
+                                    conf = conf,
+                                    knownDataDefinitions = knownDataDefinitions,
+                                    fileDefinitions = fileDefinitions,
+                                    parentDataDefinitions = emptyList()
+                                )?.type
+                            } else {
+                                it.dcl_ds().parm_fixed().find {
+                                    it.ds_name().text.equals(declName, ignoreCase = true)
+                                }?.findType(conf)
+                            }
+                            if (type != null) return type
+                        }
+                        it.dspec() != null -> {
+                            val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
+                            if (declName.equals(name, ignoreCase = true)) {
+                                return it.dspec().toAst(conf = conf, knownDataDefinitions = knownDataDefinitions).type
+                            }
+                        }
+                        it.cspec_fixed() != null -> {
+                            val type = it.cspec_fixed().findType(declName, conf)
+                            if (type != null) return type
+                        }
+                        it.block() != null -> {
+                            val type = it.block().findType(declName, conf)
+                            if (type != null) return type
+                        }
                     }
                 }
             }
@@ -268,19 +305,36 @@ open class BaseCompileTimeInterpreter(
     }
 
     private fun Cspec_fixedContext.findType(declName: String, conf: ToAstConfiguration): Type? {
-        val ast = this.toAst(conf)
-        if (ast is StatementThatCanDefineData) {
-            val dataDefinition = ast.dataDefinition()
-            dataDefinition.forEach {
-                if (it.name == declName) {
-                    return it.type
-                }
+        return when (val ast = this.toAst(conf)) {
+            is DefineStmt -> {
+                if (declName != ast.newVarName) return null
+                val type = findType(rContext().statement(), ast.originalName, conf)
+                type
             }
+            is StatementThatCanDefineData -> {
+                val dataDefinition = ast.dataDefinition()
+                dataDefinition.firstOrNull { it.name == declName }?.type
+            }
+            else -> null
         }
-        return null
     }
 
     private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type? {
         return this.toAst(conf, emptyList()).type
+    }
+
+    private fun RpgParser.RContext.getStatements(procedureName: String?): List<StatementContext> {
+        val statements: MutableList<StatementContext> = mutableListOf()
+        if (procedureName != null) {
+            val procedureContext: RpgParser.ProcedureContext? = this.procedure().firstOrNull { it.beginProcedure().psBegin().ps_name().text.equals(procedureName, ignoreCase = true) }
+            if (procedureContext != null) {
+                statements.addAll(
+                    procedureContext.subprocedurestatement().mapNotNull { it.subroutine() }.flatMap { it.statement() } +
+                            procedureContext.subprocedurestatement().mapNotNull { it.statement() })
+            }
+        }
+        statements.addAll(this.statement() + this.subroutine().flatMap { it.statement() })
+
+        return statements.toList()
     }
 }

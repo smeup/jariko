@@ -29,6 +29,10 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
             position = position
         )
         this.bif_lookup() != null -> this.bif_lookup().toAst(conf)
+        this.bif_lookupge() != null -> this.bif_lookupge().toAst(conf)
+        this.bif_lookupgt() != null -> this.bif_lookupgt().toAst(conf)
+        this.bif_lookuple() != null -> this.bif_lookuple().toAst(conf)
+        this.bif_lookuplt() != null -> this.bif_lookuplt().toAst(conf)
         this.bif_xlate() != null -> this.bif_xlate().toAst(conf)
         this.bif_scan() != null -> this.bif_scan().toAst(conf)
         this.bif_check() != null -> this.bif_check().toAst(conf)
@@ -55,6 +59,10 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_sqrt() != null -> this.bif_sqrt().toAst(conf)
         this.bif_parms() != null -> this.bif_parms().toAst(conf)
         this.bif_open() != null -> this.bif_open().toAst(conf)
+        this.bif_size() != null -> this.bif_size().toAst(conf)
+        this.bif_alloc() != null -> this.bif_alloc().toAst(conf)
+        this.bif_realloc() != null -> this.bif_realloc().toAst(conf)
+        this.bif_addr() != null -> this.bif_addr().toAst(conf)
         else -> todo(conf = conf)
     }
 }
@@ -248,6 +256,46 @@ internal fun RpgParser.Bif_lookupContext.toAst(conf: ToAstConfiguration = ToAstC
             toPosition(conf.considerPosition))
 }
 
+internal fun RpgParser.Bif_lookupgeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupGeExpr {
+    return LookupGeExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_lookupgtContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupGtExpr {
+    return LookupGtExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_lookupleContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupLeExpr {
+    return LookupLeExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.Bif_lookupltContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupLtExpr {
+    return LookupLtExpr(
+        this.bif_lookupargs().arg.toAst(conf),
+        this.bif_lookupargs().array.toAst(conf),
+        this.bif_lookupargs().startindex?.toAst(conf),
+        this.bif_lookupargs().numberelements?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
+}
+
 internal fun RpgParser.Bif_parmsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ParmsExpr {
     return ParmsExpr(
         this.text,
@@ -258,4 +306,22 @@ internal fun RpgParser.Bif_openContext.toAst(conf: ToAstConfiguration = ToAstCon
     return OpenExpr(
         this.identifier().text,
         toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_sizeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SizeExpr {
+    return SizeExpr(
+        this.expression().toAst(conf),
+        toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_addrContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddrExpr {
+    return AddrExpr(toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_allocContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AllocExpr {
+    return AllocExpr(toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_reallocContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReallocExpr {
+    return ReallocExpr(toPosition(conf.considerPosition))
 }

@@ -30,6 +30,8 @@ import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.test.*
 
@@ -1156,6 +1158,11 @@ Test 6
     @Test
     fun executeCHECK() {
         assertEquals(listOf("Wrong char at 6", "Wrong char at 7", "No wrong chars 0"), outputOf("CHECK"))
+    }
+
+    @Test
+    fun executeCHECKR() {
+        assertEquals(listOf("Wrong char at 1", "No wrong chars 0", "Wrong char at 6"), outputOf("CHECKR"))
     }
 
     @Test
@@ -2394,5 +2401,27 @@ Test 6
     fun executeMULTIPLE_HSPEC() {
         val expected = listOf("OK")
         assertEquals(expected, "MULTIPLE_HSPEC".outputOf())
+    }
+
+    @Test
+    fun testSymbolicConstantDateDefinitions() {
+        val systemInterface = JavaSystemInterface()
+
+        val now = LocalDate.now()
+        val date = now.format(DateTimeFormatter.ofPattern("ddMMyy"))
+        val year = now.format(DateTimeFormatter.ofPattern("yy"))
+        val month = now.format(DateTimeFormatter.ofPattern("MM"))
+        val day = now.format(DateTimeFormatter.ofPattern("dd"))
+
+        val source = """
+|     C     UDATE         DSPLY
+|     C     UYEAR         DSPLY
+|     C     UMONTH        DSPLY
+|     C     UDAY          DSPLY
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        program.singleCall(emptyList())
+        assertEquals(systemInterface.consoleOutput, listOf(date, year, month, day))
     }
 }

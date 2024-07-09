@@ -4,14 +4,14 @@
      V* ==============================================================
      
      
-     FB£DIR40V  CF   E             WORKSTN USROPN
+     FFILEDEFV  CF   E             WORKSTN USROPN
      F                                     INFDS(DSSF01)
 
      D MSG             S             50          VARYING
      
      D WFUND1          DS
      D  WSDATA                        8  0
-      * This field definition is assumed by B£DIR40V
+      * This field definition is assumed by FILEDEFV
      D  W$PERI
 
      C                   EVAL      W$PERI=12
@@ -19,7 +19,7 @@
       * EXPECTED: W$PERI:12
      C     MSG           DSPLY  
 
-      * This field is defined in B£DIR40V
+      * This field is defined in FILEDEFV
      C                   EVAL      £RASDI='HELLO_WORLD'
      C                   EVAL      MSG='£RASDI:' + %CHAR(£RASDI)
       * EXPECTED: £RASDI=:HELLO_WORLD

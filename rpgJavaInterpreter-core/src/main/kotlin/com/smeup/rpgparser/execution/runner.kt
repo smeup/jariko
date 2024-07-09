@@ -157,12 +157,12 @@ fun getProgram(
             systemInterface.rpgSystem.addProgramFinders(programFinders)
             programFinders.forEach {
                 val logSource = { LogSourceData.UNKNOWN }
-                systemInterface.getAllLogHandlers().renderLog(LazyLogEntry.produceResolution(logSource, it.toString()))
+                MainExecutionContext.logHandlers.renderLog(LazyLogEntry.produceResolution(logSource, it.toString()))
             }
         } else {
             // for compatibility with other system interfaces using singleton instance
             RpgSystem.SINGLETON_RPG_SYSTEM?.addProgramFinders(programFinders)
-            RpgSystem.SINGLETON_RPG_SYSTEM?.log(systemInterface.getAllLogHandlers())
+            RpgSystem.SINGLETON_RPG_SYSTEM?.log(MainExecutionContext.logHandlers)
         }
         CommandLineProgram(nameOrSource, systemInterface)
     }

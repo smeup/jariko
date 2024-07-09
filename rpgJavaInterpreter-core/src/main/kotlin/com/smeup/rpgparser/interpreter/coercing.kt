@@ -266,6 +266,7 @@ fun coerce(value: Value, type: Type): Value {
         is IntValue -> {
             when (type) {
                 is StringType -> StringValue(value.value.toString(), varying = type.varying)
+                is DateType -> DateValue(value.value, type.format)
                 else -> value
             }
         }

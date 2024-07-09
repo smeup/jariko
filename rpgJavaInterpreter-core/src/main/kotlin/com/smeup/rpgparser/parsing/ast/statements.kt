@@ -395,7 +395,8 @@ data class MoveLStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    var expression: Expression,
+    var value: Expression,
+    val dataAttributes: Expression? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
     override val loggableEntityName: String
@@ -409,13 +410,19 @@ data class MoveLStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        movel(operationExtender, target, expression, interpreter)
+        movel(
+            operationExtender = operationExtender,
+            target = target,
+            value = value,
+            dataAttributes = dataAttributes,
+            interpreterCore = interpreter
+        )
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
-            sep -> "${this.loggableEntityName}${sep}${expression.render()} TO ${target.render()}"
+            sep -> "${this.loggableEntityName}${sep}${this.value.render()} TO ${target.render()}"
         }
     }
 }
@@ -655,6 +662,46 @@ data class CheckStmt(
 }
 
 @Serializable
+data class CheckrStmt(
+    val comparatorString: Expression, // Factor1
+    val baseString: Expression,
+    val start: Int = 1,
+    val wrongCharPosition: AssignableExpression?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override val loggableEntityName: String
+        get() = "CHECKR"
+
+    override fun execute(interpreter: InterpreterCore) {
+        var baseString = interpreter.eval(this.baseString).asString().value
+        if (this.baseString is DataRefExpr) {
+            baseString = baseString.padEnd(this.baseString.size())
+        }
+        val charSet = interpreter.eval(comparatorString).asString().value
+        val wrongIndex = wrongCharPosition
+        interpreter.getStatus().lastFound = false
+        if (wrongIndex != null) {
+            interpreter.assign(wrongIndex, IntValue.ZERO)
+        }
+        baseString.substring(0, start)
+            .mapIndexed { i, c -> Pair(i, c) }
+            .reversed()
+            .forEach { (i, c) ->
+                if (!charSet.contains(c)) {
+                    if (wrongIndex != null) {
+                        interpreter.assign(wrongIndex, IntValue((i + 1).toLong()))
+                    }
+                    interpreter.getStatus().lastFound = true
+                    return
+                }
+            }
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
 data class CallStmt(
     val expression: Expression,
     val params: List<PlistParam>,
@@ -705,7 +752,7 @@ data class CallStmt(
                     }
                 } else {
                     if (!interpreter.exists(it.param.name)) {
-                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
+                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
                     }
                 }
             } else {
@@ -1101,19 +1148,19 @@ data class ClearStmt(
                  */
                 if (this.value.variable.referred?.type is OccurableDataStructureType) {
                     val origValue = interpreter.eval(value) as OccurableDataStructValue
-                    newValue = interpreter.assign(value, BlanksRefExpr()) as OccurableDataStructValue
+                    newValue = interpreter.assign(value, BlanksRefExpr(this.position)) as OccurableDataStructValue
                     newValue.pos(origValue.occurrence)
                 } else {
-                    interpreter.assign(value, BlanksRefExpr())
+                    interpreter.assign(value, BlanksRefExpr(this.position))
                 }
             }
 
             is IndicatorExpr -> {
-                interpreter.assign(value, BlanksRefExpr())
+                interpreter.assign(value, BlanksRefExpr(this.position))
             }
 
             is ArrayAccessExpr -> {
-                interpreter.assign(value, BlanksRefExpr())
+                interpreter.assign(value, BlanksRefExpr(this.position))
             }
 
             else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
@@ -1141,7 +1188,10 @@ data class DefineStmt(
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
+        // Search standalone 'D spec' or InStatement definition
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+            ?: containingCU.getInStatementDataDefinitions().find { it.name == originalName }
+
         // If definition was not found as a 'standalone' 'D spec' declaration,
         // maybe it can be found as a sub-field of DS in 'D specs' declarations
         containingCU.dataDefinitions.forEach {
@@ -1608,7 +1658,7 @@ data class DoStmt(
                     } catch (e: IterException) {
                         // nothing to do here
                     }
-                    interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
+                    interpreter.assign(index, PlusExpr(index, IntLiteral(1), this.position))
                 }
             } catch (e: LeaveException) {
                 // nothing to do here
@@ -1656,6 +1706,49 @@ data class DowStmt(
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry(entry) {
             sep -> "${this.loggableEntityName}${sep}${endExpression.render()}"
+        }
+    }
+}
+
+@Serializable
+data class DOUxxStmt(
+    val comparisonOperator: ComparisonOperator,
+    val factor1: Expression,
+    val factor2: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement, LoopStatement {
+    override val loggableEntityName: String
+        get() = "DOUxx"
+
+    private var _iterations: Long = 0
+    override val iterations: Long
+        get() = _iterations
+
+    override val loopSubject: String
+        get() = ""
+
+    override fun execute(interpreter: InterpreterCore) {
+        try {
+            do {
+                ++_iterations
+                interpreter.execute(body)
+            } while (comparisonOperator.verify(
+                    factor1,
+                    factor2,
+                    interpreter,
+                    interpreter.getLocalizationContext().charset
+                ).isVerified
+            )
+        } catch (e: LeaveException) {
+            // nothing to do here
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}${comparisonOperator.symbol}${sep}LEFT: ${factor1.render()}/RIGHT: ${factor2.render()}"
         }
     }
 }
@@ -1788,7 +1881,7 @@ data class CabStmt(
 @Serializable
 data class ForStmt(
     var init: Expression,
-    val endValue: Expression,
+    var endValue: Expression,
     val byValue: Expression,
     val downward: Boolean = false,
     override val body: List<Statement>,
@@ -2289,12 +2382,20 @@ data class ResetStmt(
 
 @Serializable
 data class ExfmtStmt(
-    override val position: Position? = null
-) : Statement(position), MockStatement {
+    override val position: Position? = null,
+    val factor2: String
+) : Statement(position) {
     override val loggableEntityName: String
         get() = "EXFMT"
 
-    override fun execute(interpreter: InterpreterCore) {}
+    override fun execute(interpreter: InterpreterCore) {
+        val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
+        val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
+        val snapshot = RuntimeInterpreterSnapshot()
+        val response = jarikoCallback.onExfmt(fields, snapshot)
+        response ?: error("RuntimeInterpreterSnapshot is not yet handled")
+        copyRecordFieldsIntoDataDefinitions(interpreter, response)
+    }
 }
 
 @Serializable
@@ -2315,6 +2416,19 @@ data class UnlockStmt(
         get() = "UNLOCK"
 
     override fun execute(interpreter: InterpreterCore) {}
+}
+
+@Serializable
+data class ExceptStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "EXCEPT"
+
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO: Replace with actual implementation
+        throw NotImplementedError("EXCEPT statement is not implemented yet")
+    }
 }
 
 @Serializable
@@ -2385,5 +2499,14 @@ data class TestnStmt(
                 }
             }
         }
+    }
+}
+
+@Serializable
+data class DeallocStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        throw NotImplementedError("DEALLOC statement is not implemented yet")
     }
 }

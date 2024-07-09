@@ -19,6 +19,7 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
@@ -38,6 +39,7 @@ private val modules = SerializersModule {
     polymorphic(AbstractDataDefinition::class) {
         subclass(FieldDefinition::class)
         subclass(DataDefinition::class)
+        subclass(InStatementDataDefinition::class)
     }
     polymorphic(Statement::class) {
         subclass(AddStmt::class)
@@ -49,18 +51,22 @@ private val modules = SerializersModule {
         subclass(CatStmt::class)
         subclass(ChainStmt::class)
         subclass(CheckStmt::class)
+        subclass(CheckrStmt::class)
         subclass(ClearStmt::class)
         subclass(CloseStmt::class)
         subclass(CompStmt::class)
+        subclass(DeallocStmt::class)
         subclass(DefineStmt::class)
         subclass(DeleteStmt::class)
         subclass(DisplayStmt::class)
         subclass(DivStmt::class)
         subclass(DoStmt::class)
         subclass(DouStmt::class)
+        subclass(DOUxxStmt::class)
         subclass(DowStmt::class)
         subclass(DOWxxStmt::class)
         subclass(EvalStmt::class)
+        subclass(ExceptStmt::class)
         subclass(ExecuteSubroutine::class)
         subclass(ExfmtStmt::class)
         subclass(FeodStmt::class)
@@ -112,10 +118,16 @@ private val modules = SerializersModule {
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)
+        subclass(AddrExpr::class)
         subclass(AllExpr::class)
+        subclass(AllocExpr::class)
         subclass(ArrayAccessExpr::class)
         subclass(AssignmentExpr::class)
         subclass(BlanksRefExpr::class)
+        subclass(UDateRefExpr::class)
+        subclass(UYearRefExpr::class)
+        subclass(UMonthRefExpr::class)
+        subclass(UDayRefExpr::class)
         subclass(CharExpr::class)
         subclass(CheckExpr::class)
         subclass(DataRefExpr::class)
@@ -145,19 +157,27 @@ private val modules = SerializersModule {
         subclass(LogicalCondition::class)
         subclass(LogicalOrExpr::class)
         subclass(LookupExpr::class)
+        subclass(LookupGtExpr::class)
+        subclass(LookupGeExpr::class)
+        subclass(LookupLtExpr::class)
+        subclass(LookupLeExpr::class)
         subclass(LowValExpr::class)
         subclass(MinusExpr::class)
         subclass(MultExpr::class)
         subclass(NotExpr::class)
+        subclass(NullValExpr::class)
         subclass(NumberOfElementsExpr::class)
         subclass(OnRefExpr::class)
         subclass(OffRefExpr::class)
+        subclass(IsoFormatExpr::class)
+        subclass(JulFormatExpr::class)
         subclass(OpenExpr::class)
         subclass(PlusExpr::class)
         subclass(GlobalIndicatorExpr::class)
         subclass(IndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(RealLiteral::class)
+        subclass(ReallocExpr::class)
         subclass(RemExpr::class)
         subclass(ReplaceExpr::class)
         subclass(ScanExpr::class)
@@ -173,6 +193,7 @@ private val modules = SerializersModule {
         subclass(ZeroExpr::class)
         subclass(ParmsExpr::class)
         subclass(StatusExpr::class)
+        subclass(SizeExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)

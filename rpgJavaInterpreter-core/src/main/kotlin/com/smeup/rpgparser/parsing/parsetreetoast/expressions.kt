@@ -30,24 +30,24 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.identifier() != null -> this.identifier().toAst(conf)
         this.bif() != null -> this.bif().toAst(conf)
         this.literal() != null -> this.literal().toAst(conf)
-        this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.OR() != null -> LogicalOrExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.AND() != null -> LogicalAndExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+        this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.OR() != null -> LogicalOrExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.AND() != null -> LogicalAndExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
         this.comparisonOperator() != null -> when {
-            this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-            this.comparisonOperator().GE() != null -> GreaterEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-            this.comparisonOperator().LT() != null -> LessThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-            this.comparisonOperator().LE() != null -> LessEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-            this.comparisonOperator().NE() != null -> DifferentThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+            this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+            this.comparisonOperator().GE() != null -> GreaterEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+            this.comparisonOperator().LT() != null -> LessThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+            this.comparisonOperator().LE() != null -> LessEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+            this.comparisonOperator().NE() != null -> DifferentThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
             else -> todo(conf = conf)
         }
         this.function() != null -> this.function().toAst(conf)
         this.NOT() != null -> NotExpr(this.expression(0).toAst(conf), toPosition(conf.considerPosition))
-        this.PLUS() != null -> PlusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.MINUS() != null -> MinusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+        this.PLUS() != null -> PlusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.MINUS() != null -> MinusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
         this.indicator() != null -> this.indicator().toAst(conf)
         this.unaryExpression() != null -> this.unaryExpression().toAst(conf)
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
@@ -58,14 +58,14 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
 }
 
 internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    if (this.children.size > 0) {
-        return when {
-            this.children[0].text.equals("-") && this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf))
-            else -> todo(conf = conf)
-        }
+    if (this.children.isEmpty()) {
+        todo(conf = conf)
     }
 
-    return todo(conf = conf)
+    return when {
+        this.children[0].text.equals("-") && this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf), toPosition(conf.considerPosition))
+        else -> todo(conf = conf)
+    }
 }
 
 internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IndicatorExpr {
@@ -141,7 +141,7 @@ fun String.toIntLiteral(position: Position?): IntLiteral {
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    if (this.text.toUpperCase().startsWith("*ALL")) {
+    if (this.text.uppercase().startsWith("*ALL")) {
         return AllExpr(this.all().literal().toAst(conf), toPosition(conf.considerPosition))
     }
 
@@ -149,13 +149,16 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
         return FunctionCall(ReferenceByName(this.text), listOf(), toPosition(conf.considerPosition))
     }
 
-    return when (this.text.toUpperCase()) {
+    return when (this.text.uppercase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> ZeroExpr(toPosition(conf.considerPosition))
         "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
         "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
         "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
+        "*ISO" -> IsoFormatExpr(toPosition(conf.considerPosition))
+        "*JUL" -> JulFormatExpr(toPosition(conf.considerPosition))
+        "*NULL" -> NullValExpr(toPosition(conf.considerPosition))
         else -> variableExpression(conf)
     }
 }

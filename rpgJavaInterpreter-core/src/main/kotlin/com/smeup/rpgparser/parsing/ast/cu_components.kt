@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
@@ -47,7 +48,8 @@ data class CompilationUnit(
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
     val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
     val source: String? = null,
-    val copyBlocks: CopyBlocks? = null
+    val copyBlocks: CopyBlocks? = null,
+    val displayFiles: Map<String, DSPF>? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
@@ -74,6 +76,8 @@ data class CompilationUnit(
                 ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
     private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
+
+    fun getInStatementDataDefinitions() = inStatementsDataDefinitions
 
     fun addInStatementDataDefinitions(dataDefinitions: List<InStatementDataDefinition>) {
         inStatementsDataDefinitions.addAll(dataDefinitions)
@@ -163,3 +167,41 @@ enum class DataWrapUpChoice {
 
 // A PList is a list of parameters
 fun List<Statement>.plist(): PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+
+internal fun CompilationUnit.format(): String {
+    var indent = 0
+    var foundComma = false
+    val sb = StringBuilder()
+    var index = 0
+    val cuString = this.toString()
+    cuString.iterator().forEach {
+        when (it) {
+            '{', '[', '(' -> {
+                sb.append("$it\n")
+                indent += 2
+                sb.append(" ".repeat(indent))
+            }
+            '}', ']', ')' -> {
+                foundComma = false
+                sb.append("\n")
+                indent -= 2
+                sb.append(" ".repeat(indent))
+                sb.append(it)
+            }
+            ',' -> {
+                sb.append("$it\n")
+                sb.append(" ".repeat(indent))
+                foundComma = true
+            }
+            ' ' -> {
+                if (!foundComma) {
+                    sb.append(it)
+                }
+                foundComma = false
+            }
+            else -> sb.append(it)
+        }
+        index++
+    }
+    return sb.toString()
+}

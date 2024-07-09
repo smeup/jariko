@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.ILoggableExpression
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -26,7 +27,7 @@ import kotlinx.serialization.Transient
 import java.math.BigDecimal
 
 @Serializable
-abstract class Expression(@Transient override val position: Position? = null) : Node(position) {
+abstract class Expression(@Transient override val position: Position? = null) : Node(position), ILoggableExpression {
     open fun render(): String = this.javaClass.simpleName
     abstract fun evalWith(evaluator: Evaluator): Value
 }
@@ -102,6 +103,53 @@ data class ZeroExpr(override val position: Position? = null) : FigurativeConstan
 
 @Serializable
 data class AllExpr(val charsToRepeat: StringLiteral, override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UDateRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UYearRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UMonthRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class UDayRefExpr(
+    override val position: Position? = null
+) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// /
+// / Date formats
+// /
+
+@Serializable
+data class IsoFormatExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class JulFormatExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class NullValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 

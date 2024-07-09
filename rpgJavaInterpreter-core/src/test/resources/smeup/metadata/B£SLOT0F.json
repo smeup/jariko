@@ -1,0 +1,549 @@
+{
+  "name": "B£SLOT0F",
+  "tableName": "B£SLOT0F",
+  "recordFormat": "B£SLOTR",
+  "fields": [
+    {
+      "fieldName": "B£TOGG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 2,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£POGG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£TOGS",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 2,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£POGS",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£AOGG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£DAOG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 35,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£OGGA",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 50,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£CLPR",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 2,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£CATE",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£DEVI",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£PGMC",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£PARC",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£CAMF",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£LUNG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 5,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£DECI",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 2,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£OBBL",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£NCTP",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£NCCO",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£INOU",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£CASE",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 2,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£TEFI",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£LUGR",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 5,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£LOGM",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD6",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD7",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD8",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD9",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£COD0",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 15,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£NUM1",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£NUM2",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£NUM3",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£NUM4",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£NUM5",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 15,
+        "decimalDigits": 6,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£FL01",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL02",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL03",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL04",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL05",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL06",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL07",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL08",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL09",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL10",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL11",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL12",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL13",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL14",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL15",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL16",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL17",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL18",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL19",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£FL20",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 1,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£DTIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£ORIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£USIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£OGIN",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£DTAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 8,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£ORAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.NumberType",
+        "entireDigits": 6,
+        "decimalDigits": 0,
+        "rpgType": "P"
+      }
+    },
+    {
+      "fieldName": "B£USAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    },
+    {
+      "fieldName": "B£OGAG",
+      "type": {
+        "type": "com.smeup.rpgparser.interpreter.StringType",
+        "length": 10,
+        "varying": false
+      }
+    }
+  ],
+  "accessFields": []
+}

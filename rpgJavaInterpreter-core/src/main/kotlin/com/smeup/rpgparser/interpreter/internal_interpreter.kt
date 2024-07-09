@@ -18,10 +18,11 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.logging.AnalyticsLoggingContext
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -69,6 +70,7 @@ class InterpreterStatus(
     var lastFound = false
     var lastDBFile: DBFile? = null
     val dbFileMap = DBFileMap()
+    var displayFiles: Map<String, DSPF>? = null
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
         val tmpValue = symbolTable[abstractDataDefinition]
@@ -149,7 +151,6 @@ open class InternalInterpreter(
     override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
     override operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
-
     override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     open operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -157,8 +158,10 @@ open class InternalInterpreter(
             "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
         }
 
+        val programName = interpretationContext.currentProgramName
+
         renderLogInternal {
-            val logSource = { LogSourceData(this.interpretationContext.currentProgramName, data.startLine()) }
+            val logSource = { LogSourceData(programName, data.startLine()) }
             val previous = if (data.name in globalSymbolTable) {
                 globalSymbolTable[data.name]
             } else null
@@ -210,7 +213,7 @@ open class InternalInterpreter(
             }
             else -> {
                 renderLogInternal {
-                    val logSource = { LogSourceData(this.interpretationContext.currentProgramName, data.startLine()) }
+                    val logSource = { LogSourceData(programName, data.startLine()) }
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
                 // deny reassignment if data is a constant
@@ -228,7 +231,8 @@ open class InternalInterpreter(
     ) {
         val start = System.nanoTime()
 
-        val logSourceProducer = { LogSourceData(programName = interpretationContext.currentProgramName, line = compilationUnit.startLine()) }
+        val programName = interpretationContext.currentProgramName
+        val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
 
@@ -245,51 +249,54 @@ open class InternalInterpreter(
             beforeInitialization()
             compilationUnit.allDataDefinitions.forEach {
                 var value: Value? = null
-                if (it is DataDefinition) {
-                    value = when {
-                        it.name in initialValues -> {
-                            val initialValue = initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
-                                require(initialValue.assignableTo(it.type)) {
-                                    "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                when (it) {
+                    is DataDefinition -> {
+                        value = when {
+                            it.name in initialValues -> {
+                                val initialValue = initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                    require(initialValue.assignableTo(it.type)) {
+                                        "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                    }
+                                }
+                                initialValue
+                            }
+
+                            it.initializationValue != null -> eval(it.initializationValue)
+                            it.isCompileTimeArray() -> toArrayValue(
+                                compilationUnit.compileTimeArray(index++),
+                                (it.type as ArrayType)
+                            )
+
+                            else -> blankValue(it)
+                        }
+                        if (it.name !in initialValues) {
+                            blankValue(it)
+                            it.fields.forEach { field ->
+                                if (field.initializationValue != null) {
+                                    val fieldValue = coerce(eval(field.initializationValue), field.type)
+                                    (value as DataStructValue).set(field, fieldValue)
                                 }
                             }
-                            initialValue
-                        }
-
-                        it.initializationValue != null -> eval(it.initializationValue)
-                        it.isCompileTimeArray() -> toArrayValue(
-                            compilationUnit.compileTimeArray(index++),
-                            (it.type as ArrayType)
-                        )
-
-                        else -> blankValue(it)
-                    }
-                    if (it.name !in initialValues) {
-                        blankValue(it)
-                        it.fields.forEach { field ->
-                            if (field.initializationValue != null) {
-                                val fieldValue = coerce(eval(field.initializationValue), field.type)
-                                (value as DataStructValue).set(field, fieldValue)
-                            }
                         }
                     }
-                } else if (it is InStatementDataDefinition) {
-                    value = if (it.parent is PlistParam) {
-                        when (it.name) {
-                            in initialValues -> initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                    is InStatementDataDefinition -> {
+                        value = if (it.parent is PlistParam) {
+                            when (it.name) {
+                                in initialValues -> initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
 
-                            else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
-                                it.type.blank()
-                            } else {
-                                null
+                                else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                    it.type.blank()
+                                } else {
+                                    null
+                                }
                             }
+                        } else {
+                            // TODO check this during the process of revision of DB access
+                            if (it.type is KListType) null else it.type.blank()
                         }
-                    } else {
-                        // TODO check this during the process of revision of DB access
-                        if (it.type is KListType) null else it.type.blank()
                     }
                 }
                 // Fix issue on CTDATA
@@ -326,20 +333,18 @@ open class InternalInterpreter(
 
         val initElapsed = (System.nanoTime() - start).nanoseconds
 
-        MainExecutionContext.getAnalyticsLoggingContext()?.recordSymbolTableDuration(AnalyticsLoggingContext.SymbolTableAction.INIT, initElapsed)
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-        renderLogInternal { LazyLogEntry.producePerformance(logSourceProducer, "SYMTBLINI", initElapsed) }
+        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
 
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
         val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-        MainExecutionContext.getAnalyticsLoggingContext()?.recordSymbolTableDuration(AnalyticsLoggingContext.SymbolTableAction.LOAD, loadElapsed)
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-        renderLogInternal { LazyLogEntry.producePerformance(logSourceProducer, "SYMTBLLOAD", loadElapsed) }
+        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -381,6 +386,7 @@ open class InternalInterpreter(
         kotlin.runCatching {
             configureLogHandlers()
 
+            this.status.displayFiles = compilationUnit.displayFiles
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
             execINZSR(compilationUnit)
@@ -399,8 +405,6 @@ open class InternalInterpreter(
                     )
                 }
             }
-
-            onExecutionEnd()
         }.onFailure {
             if (it is ReturnException) {
                 status.returnValue = it.returnValue
@@ -444,13 +448,9 @@ open class InternalInterpreter(
     }
 
     private fun executeWithMute(statement: Statement) {
+        val programName = interpretationContext.currentProgramName
         renderLogInternal {
-            val logSource = {
-                LogSourceData(
-                    programName = this.interpretationContext.currentProgramName,
-                    line = statement.position.line()
-                )
-            }
+            val logSource = { LogSourceData(programName, statement.position.line()) }
             LazyLogEntry.produceLine(logSource)
         }
 
@@ -464,7 +464,7 @@ open class InternalInterpreter(
                 }
 
                 if (statement is MockStatement) {
-                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement
+                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement(statement)
                 } else {
                     if (logsEnabled())
                         executeWithLogging(statement)
@@ -540,6 +540,7 @@ open class InternalInterpreter(
         compilationUnit: CompilationUnit,
         line: String
     ) {
+        val programName = interpretationContext.currentProgramName
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -561,12 +562,7 @@ open class InternalInterpreter(
                     }
 
                     renderLogInternal {
-                        val logSource = {
-                            LogSourceData(
-                                this.interpretationContext.currentProgramName,
-                                it.startLine()
-                            )
-                        }
+                        val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, value)
                     }
 
@@ -603,12 +599,7 @@ open class InternalInterpreter(
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
                     renderLogInternal {
-                        val logSource = {
-                            LogSourceData(
-                                this.interpretationContext.currentProgramName,
-                                it.startLine()
-                            )
-                        }
+                        val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, message)
                     }
                     systemInterface.addExecutedAnnotation(
@@ -761,13 +752,9 @@ open class InternalInterpreter(
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
+            val programName = this.interpretationContext.currentProgramName
             renderLogInternal {
-                val logSource = {
-                    LogSourceData(
-                        this.interpretationContext.currentProgramName,
-                        dataDefinition.startLine()
-                    )
-                }
+                val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
             globalSymbolTable[dataDefinition] = newValue
@@ -787,8 +774,6 @@ open class InternalInterpreter(
     }
 
     override fun eval(expression: Expression): Value {
-        val start = System.nanoTime()
-
         val value = when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -796,18 +781,9 @@ open class InternalInterpreter(
             else -> expression.evalWith(expressionEvaluation)
         }
 
-        val elapsed = System.nanoTime() - start
-
-        MainExecutionContext.getAnalyticsLoggingContext()?.recordExpressionDuration(elapsed.nanoseconds)
-        renderLogInternal {
-            val logSource = {
-                LogSourceData(
-                    this.interpretationContext.currentProgramName,
-                    expression.startLine()
-                )
-            }
-            LazyLogEntry.produceExpression(logSource, expression, value)
-        }
+        val programName = this.interpretationContext.currentProgramName
+        val sourceProvider = { LogSourceData(programName, expression.startLine()) }
+        renderLogInternal { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
         return value
     }
@@ -1008,12 +984,12 @@ open class InternalInterpreter(
                 if (target is DataRefExpr && value is IntLiteral) {
                     increment(target.variable.referred!!, value.value)
                 } else {
-                    assign(target, eval(PlusExpr(target, value)))
+                    assign(target, eval(PlusExpr(target, value, target.position)))
                 }
-            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
-            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
-            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
-            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value, target.position)))
+            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value, target.position)))
+            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value, target.position)))
+            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value, target.position)))
         }
     }
 
@@ -1024,11 +1000,11 @@ open class InternalInterpreter(
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
-            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
-            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
-            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
-            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
-            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value, target.position)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value, target.position)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value, target.position)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value, target.position)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value, target.position)))
         }
     }
 
@@ -1162,12 +1138,9 @@ open class InternalInterpreter(
     }
 
     private inline fun executeWithLogging(statement: Statement) {
-        val sourceProducer = {
-            LogSourceData(
-                programName = this.interpretationContext.currentProgramName,
-                line = statement.position.line()
-            )
-        }
+        val programName = this.interpretationContext.currentProgramName
+        val sourceProducer = { LogSourceData(programName, statement.position.line()) }
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
 
         renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
 
@@ -1185,7 +1158,7 @@ open class InternalInterpreter(
             statement.execute(this)
         }.nanoseconds
 
-        MainExecutionContext.getAnalyticsLoggingContext()?.recordStatementDuration(statement.loggableEntityName, executionTime)
+        loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
 
         if (statement is LoopStatement) {
             renderLogInternal {
@@ -1202,18 +1175,12 @@ open class InternalInterpreter(
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
         }
 
-        renderLogInternal { LazyLogEntry.producePerformance(sourceProducer, statement.loggableEntityName, executionTime) }
+        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(sourceProducer, ProgramUsageType.Statement, statement.loggableEntityName, executionTime) }
     }
 
-    private fun onExecutionEnd() {
-        val logSource = { LogSourceData(this.interpretationContext.currentProgramName, "") }
-
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
-        loggingContext ?: return
-
-        loggingContext.generateCompleteReport(logSource).forEach {
-            entry -> renderLogInternal { entry }
-        }
+    override fun onInterpretationEnd() {
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
+        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
     }
 }
 

@@ -21,12 +21,12 @@ import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 
+/**
+ * For expressions with this interface there isn't resolution but will be called the callback `onMockExpression` and returned a null value.
+ */
+interface MockExpression
+
 // %LOOKUP
-// To be supported:
-// * %LOOKUPLT
-// * %LOOKUPLE
-// * %LOOKUPGT
-// * %LOOKUPGE
 @Serializable
 data class LookupExpr(
     var searchedValued: Expression,
@@ -35,6 +35,64 @@ data class LookupExpr(
     val length: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUP"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPGT
+@Serializable
+data class LookupGtExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPGT"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPGE
+@Serializable
+data class LookupGeExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPGE"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPLT
+@Serializable
+data class LookupLtExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPLT"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %LOOKUPLE
+@Serializable
+data class LookupLeExpr(
+    var searchedValue: Expression,
+    val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%LOOKUPLE"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -47,6 +105,8 @@ data class ScanExpr(
     val length: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%SCAN"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -58,6 +118,8 @@ data class CheckExpr(
     val start: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%CHECK"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -70,6 +132,8 @@ data class TranslateExpr(
     val startPos: Expression,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%XLATE"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -80,6 +144,8 @@ data class TrimExpr(
     val charactersToTrim: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%TRIM"
     override fun render(): String {
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIM(${this.value.render()} $toTrim)"
@@ -94,7 +160,8 @@ data class TrimrExpr(
     val charactersToTrim: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
-
+    override val loggableEntityName: String
+        get() = "%TRIMR"
     override fun render(): String {
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIMR(${this.value.render()} $toTrim)"
@@ -109,10 +176,11 @@ data class TrimlExpr(
     val charactersToTrim: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
-
+    override val loggableEntityName: String
+        get() = "%TRIML"
     override fun render(): String {
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
-        return "%TRIMR(${this.value.render()} $toTrim)"
+        return "%TRIML(${this.value.render()} $toTrim)"
     }
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -125,8 +193,9 @@ data class SubstExpr(
     var start: Expression,
     val length: Expression? = null,
     override val position: Position? = null
-) :
-        AssignableExpression(position) {
+) : AssignableExpression(position) {
+    override val loggableEntityName: String
+        get() = "%SUBST"
     override fun render(): String {
         val len = if (length != null) ": ${length.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
@@ -144,8 +213,9 @@ data class SubarrExpr(
     var start: Expression,
     val numberOfElements: Expression? = null,
     override val position: Position? = null
-) :
-    AssignableExpression(position) {
+) : AssignableExpression(position) {
+    override val loggableEntityName: String
+        get() = "%SUBARR"
     override fun render(): String {
         val len = if (numberOfElements != null) ": ${numberOfElements.render()}" else ""
         return "%SUBARR(${this.array.render()} : ${start.render()} $len)"
@@ -158,9 +228,9 @@ data class SubarrExpr(
 
 // %LEN
 @Serializable
-data class LenExpr(var value: Expression, override val position: Position? = null) :
-    AssignableExpression(position) {
-
+data class LenExpr(var value: Expression, override val position: Position? = null) : AssignableExpression(position) {
+    override val loggableEntityName: String
+        get() = "%LEN"
     override fun render(): String {
         return "%LEN(${this.value.render()})"
     }
@@ -179,6 +249,8 @@ data class RemExpr(
     val divisor: Expression,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%REM"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -190,6 +262,8 @@ data class DecExpr(
     val decDigits: Expression,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%DEC"
     override fun render(): String {
         return this.value.render()
     }
@@ -201,8 +275,9 @@ data class DecExpr(
 data class IntExpr(
     var value: Expression,
     override val position: Position? = null
-) :
-    Expression(position) {
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%INT"
     override fun render(): String = this.value.render()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -212,16 +287,18 @@ data class IntExpr(
 data class InthExpr(
     var value: Expression,
     override val position: Position? = null
-) :
-    Expression(position) {
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%INTH"
     override fun render(): String = this.value.render()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %SQRT
 @Serializable
-data class SqrtExpr(var value: Expression, override val position: Position? = null) :
-        Expression(position) {
+data class SqrtExpr(var value: Expression, override val position: Position? = null) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%SQRT"
     override fun render(): String {
         return this.value.render()
     }
@@ -236,6 +313,8 @@ data class EditcExpr(
     val format: Expression,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%EDITC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -247,6 +326,8 @@ data class EditwExpr(
     val format: Expression,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%EDITW"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -256,6 +337,8 @@ data class FoundExpr(
     var name: String? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%FOUND"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -265,6 +348,8 @@ data class EofExpr(
     var name: String? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%EOF"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -274,6 +359,8 @@ data class ParmsExpr(
     var name: String,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%PARAMS"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -283,6 +370,8 @@ data class EqualExpr(
     var name: String? = null,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%EQUAL"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -292,6 +381,8 @@ data class AbsExpr(
     var value: Expression,
     override val position: Position? = null
 ) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%ABS"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -299,6 +390,8 @@ data class AbsExpr(
 @Serializable
 data class CharExpr(var value: Expression, val format: String?, override val position: Position? = null) :
     Expression(position) {
+    override val loggableEntityName: String
+        get() = "%CHAR"
     override fun render(): String {
         return "%CHAR(${value.render()})"
     }
@@ -307,8 +400,9 @@ data class CharExpr(var value: Expression, val format: String?, override val pos
 
 // %TIMESTAMP
 @Serializable
-data class TimeStampExpr(val value: Expression?, override val position: Position? = null) :
-    Expression(position) {
+data class TimeStampExpr(val value: Expression?, override val position: Position? = null) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%TIMESTAMP"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -319,8 +413,9 @@ data class DiffExpr(
     var value2: Expression,
     val durationCode: DurationCode,
     override val position: Position? = null
-) :
-    Expression(position) {
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%DIFF"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -332,8 +427,9 @@ data class ReplaceExpr(
     val start: Expression? = null,
     val length: Expression? = null,
     override val position: Position? = null
-) :
-    Expression(position) {
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%REPLACE"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -342,8 +438,42 @@ data class ReplaceExpr(
 data class OpenExpr(
     var name: String? = null,
     override val position: Position? = null
-) :
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%OPEN"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %SIZE
+@Serializable
+data class SizeExpr(var value: Expression, override val position: Position? = null) :
     Expression(position) {
+
+    override fun render(): String {
+        return "%SIZE(${this.value.render()})"
+    }
+
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %ADDR
+@Serializable
+data class AddrExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override fun render() = "%ADDR"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %ALLOC
+@Serializable
+data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override fun render() = "%ALLOC"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %REALLOC
+@Serializable
+data class ReallocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override fun render() = "%REALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 

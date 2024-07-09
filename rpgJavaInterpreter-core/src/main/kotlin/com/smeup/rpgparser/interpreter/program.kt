@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -99,7 +100,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
         }
         this.systemInterface = systemInterface
-        val logSource = { LogSourceData(name, "") }
+        val logSource = { LogSourceData.fromProgram(name) }
         logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
         val changedInitialValues: List<Value>
         val elapsed = measureNanoTime {
@@ -129,17 +130,21 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 } else {
                     null
                 }
-                val activationGroupType = cu.activationGroupType() ?: when (caller) {
 
-                        // for main program, which does not have a caller, activation group is fixed by config
-                        null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
-                        else -> {
-                            CallerActivationGroup
-                        }
+                val activationGroupType = cu.activationGroupType()?.let {
+                    when {
+                        // When there is no caller use the default activation group
+                        it is CallerActivationGroup && caller == null ->
+                            NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                        else -> it
                     }
-                activationGroupType.let {
-                    activationGroup = ActivationGroup(it, it.assignedName(this, caller))
+                } ?: when (caller) {
+                    // for main program, which does not have a caller, activation group is fixed by config
+                    null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                    else -> CallerActivationGroup
                 }
+
+                activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
             }
             MainExecutionContext.getProgramStack().push(this)
             MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
@@ -154,8 +159,14 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             interpreter.doSomethingAfterExecution()
             MainExecutionContext.getProgramStack().pop()
         }.nanoseconds
-        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
-        logHandlers.renderLog(LazyLogEntry.producePerformance(logSource, "INTERPRETATION", elapsed))
+        if (MainExecutionContext.isLoggingEnabled) {
+            logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
+            logHandlers.renderLog(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Interpretation, "INTERPRETATION", elapsed))
+        }
+        if (MainExecutionContext.getProgramStack().isEmpty()) {
+            interpreter.onInterpretationEnd()
+        }
+
         return changedInitialValues
     }
 

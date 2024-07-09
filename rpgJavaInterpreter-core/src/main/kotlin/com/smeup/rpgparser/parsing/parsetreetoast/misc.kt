@@ -36,6 +36,7 @@ import java.util.*
 
 enum class AstHandlingPhase {
     FileDefinitionsCreation,
+    InputSpecificationsCreation,
     DataDefinitionsCreation,
     MainStatementsCreation,
     SubroutinesCreation,
@@ -79,8 +80,7 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
 }
 
 internal object KnownDataDefinition {
-
-    fun getInstance(): MutableMap<String, DataDefinition> {
+    fun getInstance(): KnownDataDefinitionInstance {
         return if (MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getAttributes()
         } else {
@@ -91,56 +91,94 @@ internal object KnownDataDefinition {
     }
 }
 
-private fun RContext.getDataDefinitions(
+typealias KnownDataDefinitionInstance = MutableMap<String, DataDefinition>
+
+private fun List<StatementContext?>.getDataDefinition(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
-): List<DataDefinition> {
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
+    inputSpecifications: List<InputSpecificationGroup> = emptyList(),
+    parentDataDefinitions: List<DataDefinition>? = null,
+    useKnownDataDefinitionInstance: Boolean = false,
+    procedureName: String? = null
+): Pair<MutableList<DataDefinitionProvider>, KnownDataDefinitionInstance> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = KnownDataDefinition.getInstance()
+    val knownDataDefinitions = if (useKnownDataDefinitionInstance) KnownDataDefinition.getInstance() else mutableMapOf()
 
-    fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
-        dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
-    }
-    // First pass ignore exception and all the know definitions
-    dataDefinitionProviders.addAll(this.statement()
-        .mapNotNull {
-            it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
-        })
-    // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.statement()
-        .mapNotNull {
-            kotlin.runCatching {
-                when {
-                    it.dspec() != null -> {
-                        it.dspec()
-                            .toAst(conf, knownDataDefinitions.values.toList())
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.dcl_c() != null -> {
-                        it.dcl_c()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(
-                            conf = conf,
-                            dataDefinitionProviders = dataDefinitionProviders)
-                        )
-                    }
-                    it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
-                        fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
-                    } -> {
-                        DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
-                    }
-                    else -> null
-                }
-            }.getOrNull()
+    fileDefinitions?.let {
+        val postProcessedFileDefinitions = it.processWithSpecifications(inputSpecifications)
+        postProcessedFileDefinitions.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
+            dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
+    }
+
+    // Move the D specs with like because depending on other D specs definitions
+    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf)
+
+    // First pass ignore exception and all the know definitions
+    val firstPassProviders = sortedStatements.mapNotNull {
+        it.toDataDefinitionProvider(
+            conf = conf,
+            knownDataDefinitions = knownDataDefinitions,
+            parentDataDefinitions = parentDataDefinitions,
+            fileDefinitions = fileDefinitions
+        )
+    }
+    dataDefinitionProviders.addAll(firstPassProviders)
+
+    // Second pass, everything, I mean everything
+    val secondPassProviders = sortedStatements.mapNotNull {
+        kotlin.runCatching {
+            when {
+                it.dspec() != null -> {
+                    it.dspec()
+                        .toAst(
+                            conf = conf,
+                            knownDataDefinitions = knownDataDefinitions.values.toList(),
+                            parentDataDefinitions = parentDataDefinitions,
+                            procedureName = procedureName)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                }
+
+                it.dcl_c() != null -> {
+                    it.dcl_c()
+                        .toAst(conf)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                }
+
+                else -> null
+            }
+        }.getOrNull()
+    }
+    dataDefinitionProviders.addAll(secondPassProviders)
+
+    return Pair(dataDefinitionProviders, knownDataDefinitions)
+}
+
+private fun RContext.getDataDefinitions(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    inputSpecifications: List<InputSpecificationGroup> = emptyList()
+): List<DataDefinition> {
+    val (providers) = this.statement().getDataDefinition(
+        conf = conf,
+        fileDefinitions = fileDefinitions,
+        inputSpecifications = inputSpecifications,
+        useKnownDataDefinitionInstance = true
     )
-    return dataDefinitionProviders.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
+    return providers.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
+}
+
+private fun List<StatementContext>.moveLikeStatementToTheEnd(conf: ToAstConfiguration): List<StatementContext> {
+    val likeStatements = this.filter {
+        it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false
+    }
+    val otherStatements = this.filter {
+        !(it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false)
+    }
+    return otherStatements + likeStatements
 }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
@@ -151,20 +189,56 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 }
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
-    if (put(dataDefinition.name, dataDefinition) != null)
+    val old = get(dataDefinition.name)
+    if (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) {
+        put(dataDefinition.name, dataDefinition)
+    } else {
         dataDefinition.error("${dataDefinition.name} has been defined twice")
+    }
 }
 
-private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
+private fun FileDefinition.loadMetadata(): FileMetadata {
+    return when {
+        fileType == FileType.PRINTER -> {
+            FileMetadata(
+                name = this.name,
+                tableName = this.name,
+                recordFormat = this.internalFormatName ?: this.name,
+                fields = emptyList(),
+                accessFields = emptyList()
+            )
+        }
+        (fileType == FileType.DB || MainExecutionContext.getConfiguration().dspfConfig == null) -> {
+            val reloadConfig = MainExecutionContext.getConfiguration()
+                .reloadConfig
+                ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+
+            kotlin.runCatching {
+                reloadConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
+        }
+        (fileType == FileType.VIDEO) -> {
+            val dspfConfig = MainExecutionContext.getConfiguration()
+                .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
+
+            kotlin.runCatching {
+                dspfConfig.metadataProducer.invoke(name)
+            }.onFailure { error ->
+                error("Not found metadata for $this", error)
+            }.getOrNull() ?: error("Not found metadata for $this")
+        }
+        else -> error("Unhandled file type $fileType")
+    }
+}
+
+internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
-    val reloadConfig = MainExecutionContext.getConfiguration()
-        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
-    val metadata = kotlin.runCatching {
-        reloadConfig.metadataProducer.invoke(name)
-    }.onFailure { error ->
-        error("Not found metadata for $this", error)
-    }.getOrNull() ?: error("Not found metadata for $this")
-    if (internalFormatName == null) internalFormatName = metadata.tableName
+    val metadata = loadMetadata()
+
+    if (internalFormatName == null) internalFormatName = metadata.recordFormat.ifEmpty { metadata.name }
+
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
             dbField.toDataDefinition(prefix = prefix, position = position).apply {
@@ -172,6 +246,7 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             }
         }
     )
+
     // These are the fields related the record format, these fields will
     // be used in assignment operation to lookup for the DataDefinitions related these fields
     val fieldsDefinition = dataDefinitions.map {
@@ -181,13 +256,15 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     // record format possibly for file video is unuseful
     if (fileType == FileType.DB) {
         val recordFormatDefinition = DataDefinition(
-            name = metadata.recordFormat,
+            internalFormatName!!,
             type = RecordFormatType,
             position = position,
             fields = fieldsDefinition
         )
+
         dataDefinitions.add(recordFormatDefinition)
     }
+
     return dataDefinitions
 }
 
@@ -206,8 +283,15 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
-    val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
+    val inputSpecifications = this.findAllDescendants(Ispec_fixedContext::class).mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+    checkAstCreationErrors(phase = AstHandlingPhase.InputSpecificationsCreation)
+
+    val dataDefinitions = getDataDefinitions(conf, fileDefinitions, inputSpecifications.grouped())
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
+
+    val displayFiles = fileDefinitions.keys.toList().toDSPF()
 
     val mainStmts = this.statement().mapNotNull {
         when {
@@ -256,7 +340,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     )
 
     if (null == procedures) {
-        if (!procerurePrototypes.isEmpty()) {
+        if (procerurePrototypes.isNotEmpty()) {
             procedures = procerurePrototypes
         }
     } else {
@@ -275,7 +359,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures = procedures,
         source = source,
-        copyBlocks = copyBlocks
+        copyBlocks = copyBlocks,
+        displayFiles = displayFiles
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
@@ -371,6 +456,10 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
     return (this.keyword().any { it.keyword_likeds() != null })
 }
 
+private fun DspecContext.useLike(): Boolean {
+    return this.keyword().any { it.keyword_like() != null }
+}
+
 private fun Dcl_dsContext.useExtName(): Boolean {
     return this.keyword().any { it.keyword_extname() != null }
 }
@@ -406,14 +495,17 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 }
 
 internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): CompilationUnit {
-
     val procedureName = this.beginProcedure().psBegin().ps_name().text
     MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
 
     // TODO FileDefinitions
 
     // DataDefinitions
-    val dataDefinitions = getDataDefinitions(conf, parentDataDefinitions)
+    val dataDefinitions = getDataDefinitions(
+        conf = conf,
+        parentDataDefinitions = parentDataDefinitions,
+        procedureName = procedureName
+    )
 
     // Procedure Parameters DataDefinitions
     val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
@@ -497,15 +589,21 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
 
 private fun StatementContext.toDataDefinitionProvider(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: MutableMap<String, DataDefinition>
+    knownDataDefinitions: MutableMap<String, DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>?,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
 ): DataDefinitionProvider? {
     return when {
         this.dcl_ds() != null -> {
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
-                        .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        .toAst(
+                            conf = conf,
+                            knownDataDefinitions = knownDataDefinitions.values,
+                            parentDataDefinitions = parentDataDefinitions,
+                            fileDefinitions = fileDefinitions
+                        )?.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
                     null
@@ -520,58 +618,17 @@ private fun StatementContext.toDataDefinitionProvider(
     }
 }
 
-private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): List<DataDefinition> {
-    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
-    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
-    // after them
-    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>, procedureName: String): List<DataDefinition> {
+    val (providers, knownDataDefinitions) = this.subprocedurestatement()
+        .map { it.statement() }
+        .getDataDefinition(
+            conf = conf,
+            parentDataDefinitions = parentDataDefinitions,
+            procedureName = procedureName
+        )
 
-    // First pass ignore exception and all the know definitions
-    dataDefinitionProviders.addAll(this.subprocedurestatement()
-        .mapNotNull {
-            it.statement()?.toDataDefinitionProvider(conf = conf,
-                knownDataDefinitions = knownDataDefinitions)
-        })
-
-    // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.subprocedurestatement()
-        .mapNotNull {
-            kotlin.runCatching {
-                if (null != it.statement()) {
-                    when {
-                        it.statement().dspec() != null -> {
-                            it.statement().dspec()
-                                .toAst(conf, knownDataDefinitions.values.toList(), parentDataDefinitions)
-                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        }
-                        it.statement().dcl_c() != null -> {
-                            it.statement().dcl_c()
-                                .toAst(conf)
-                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        }
-                        it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
-                            DataDefinitionCalculator(
-                                it.statement().dcl_ds().toAstWithLikeDs(
-                                    conf = conf,
-                                    dataDefinitionProviders = dataDefinitionProviders,
-                                    parentDataDefinitions = parentDataDefinitions
-                                )
-                            )
-                        }
-                        else -> null
-                    }
-                } else {
-                    null
-                }
-            }.onFailure { error ->
-                it.error("Error on dataDefinitionProviders creation", error, conf)
-            }.getOrThrow()
-        })
-
-    // PROCEDURE PARAMETERS
-    // Second pass, everything, I mean everything
-    dataDefinitionProviders.addAll(this.dcl_pi().pi_parm_fixed()
+    // PROCEDURE PARAMETERS pass
+    val paramProviders = this.dcl_pi().pi_parm_fixed()
         .mapNotNull {
             kotlin.runCatching {
                 when {
@@ -585,8 +642,10 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
             }.onFailure { error ->
                 it.error("Error on dataDefinitionProviders creation", error, conf)
             }.getOrThrow()
-        })
-    return dataDefinitionProviders.map { it.toDataDefinition() }
+        }
+    providers.addAll(paramProviders)
+
+    return providers.map { it.toDataDefinition() }
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -667,6 +726,8 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
         this.SPLAT_OFF() != null -> OffRefExpr(position)
         this.SPLAT_ON() != null -> OnRefExpr(position)
+        this.SPLAT_ISO() != null -> IsoFormatExpr(position)
+        this.SPLAT_JUL() != null -> JulFormatExpr(position)
         this.SPLAT_INDICATOR() != null -> {
             IndicatorExpr(
                 index = children[0].text.uppercase().replace("*IN", "").toIndicatorKey(),
@@ -682,6 +743,10 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
         }
+        this.UDATE() != null -> UDateRefExpr(position)
+        this.UYEAR() != null -> UYearRefExpr(position)
+        this.UMONTH() != null -> UMonthRefExpr(position)
+        this.UDAY() != null -> UDayRefExpr(position)
         else -> todo(conf = conf)
     }
 }
@@ -813,6 +878,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCHECK() != null -> this.csCHECK()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csCHECKR() != null -> this.csCHECKR()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csKLIST() != null -> this.csKLIST()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -925,6 +993,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csUNLOCK() != null -> this.csUNLOCK()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csEXCEPT() != null -> this.csEXCEPT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csFEOD() != null -> this.csFEOD()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -935,6 +1006,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csTESTN() != null -> this.csTESTN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csDEALLOC() != null -> this.csDEALLOC()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         else -> todo(conf = conf)
@@ -1005,7 +1079,7 @@ private fun annidatedReferenceExpression(
             } else {
                 IntLiteral(indexValue, computeNewPosition(position, text))
             }
-        expr = ArrayAccessExpr(expr, indexExpression)
+        expr = ArrayAccessExpr(expr, indexExpression, position)
     }
     return expr as AssignableExpression
 }
@@ -1395,21 +1469,46 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     )
 }
 
-private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
-    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index, conf) else this.content.toAst(conf)
+internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
 
-private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToAstConfiguration): Expression {
-    val baseStringTokens = this.split(":")
-    val startPosition = 0
+    val result = this.cspec_fixed_standard_parts().result
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+
+    val eqIndicator = this.cspec_fixed_standard_parts().resultIndicator(2)?.text
+
+    val wrongCharExpression = when {
+        result != null && result.text.isNotBlank() -> result.toAst(conf)
+        !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
+        else -> null
+    }
+
+    return CheckrStmt(
+        factor1,
+        expression,
+        startPosition ?: 1,
+        wrongCharExpression,
+        dataDefinition,
+        position
+    )
+}
+
+private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
+    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index) else this.content.toAst(conf)
+
+private fun String.toDoubleExpression(position: Position?, index: Int): Expression {
+    val quoteAwareSplitPattern = Regex(""":(?=([^']*'[^']*')*[^']*$)""")
+    val baseStringTokens = this.split(quoteAwareSplitPattern)
     var reference = baseStringTokens[index]
-    val ret: Expression
 
     val regexp = Regex("'(.*?)'")
-    if (reference.matches(regexp)) {
+    val ret = if (reference.matches(regexp)) {
         reference = reference.replace("'", "")
-        ret = StringLiteral(reference, position)
+        StringLiteral(reference, position)
     } else {
-        ret = DataRefExpr(ReferenceByName(reference), position)
+        DataRefExpr(ReferenceByName(reference), position)
     }
     return ret
 }
@@ -1418,7 +1517,9 @@ private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Ex
     if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
 
 private fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
-    val baseStringTokens = this.split(":")
+    val quoteAwareSplitPattern = Regex(""":(?=([^']*'[^']*')*[^']*$)""")
+    val baseStringTokens = this.split(quoteAwareSplitPattern)
+
     val startPosition =
         when (baseStringTokens.size) {
             !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression at line ${position?.line()}: $this")
@@ -1471,7 +1572,15 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    return MoveLStmt(this.operationExtender?.text, resultExpression, dataDefinition, expression, position)
+    val dataAttributes = leftExpr(conf)
+    return MoveLStmt(
+        operationExtender = this.operationExtender?.text,
+        target = resultExpression,
+        dataDefinition = dataDefinition,
+        value = expression,
+        dataAttributes = dataAttributes,
+        position = position
+    )
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
@@ -2006,7 +2115,8 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 // TODO
 internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    return ExfmtStmt(position)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("Line ${position?.line()}: EXFMT operation requires factor 2: ${this.text}")
+    return ExfmtStmt(position, factor2)
 }
 
 // TODO
@@ -2019,6 +2129,12 @@ internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return UnlockStmt(position)
+}
+
+// TODO
+internal fun CsEXCEPTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return ExceptStmt(position)
 }
 
 internal fun CsTESTNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TestnStmt {
@@ -2051,6 +2167,11 @@ internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
         dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
         position = position
     )
+}
+
+internal fun CsDEALLOCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    return DeallocStmt(position = position)
 }
 
 /**
@@ -2140,6 +2261,48 @@ private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat()
     return this.filterNot { dataDef ->
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
     }
+}
+
+private fun List<DataDefinition>.renameFields(externalFieldSpecs: List<ExternalFieldInputSpecification>): List<DataDefinition> {
+    return this.map {
+        val match = externalFieldSpecs.find { spec -> spec.originalName == it.name }
+        match ?: return@map it
+        it.copy(name = match.newName)
+    }
+}
+
+private fun List<InputSpecification>.grouped(): List<InputSpecificationGroup> {
+    if (this.isEmpty()) return emptyList()
+    val files = this.withIndex().filter { it.value is FileNameInputSpecification }
+    val output: MutableList<InputSpecificationGroup> = ArrayList<InputSpecificationGroup>(files.size)
+
+    var lastFile = files.first()
+    fun addGroup(index: Int) {
+        val nestedSpecifications = this.slice(lastFile.index + 1 until index)
+        val group = InputSpecificationGroup(lastFile.value as FileNameInputSpecification, nestedSpecifications)
+        output.add(group)
+    }
+
+    files.slice(1..files.lastIndex).forEach {
+        addGroup(it.index)
+        lastFile = it
+    }
+
+    // Last pass if necessary
+    if (output.size < files.size) addGroup(this.size)
+
+    return output
+}
+
+private fun Map<FileDefinition, List<DataDefinition>>.processWithSpecifications(specifications: List<InputSpecificationGroup>): Map<FileDefinition, List<DataDefinition>> {
+    val buffer = this.toMutableMap()
+    specifications.forEach {
+        val target = buffer.entries.firstOrNull { entry -> (entry.key.internalFormatName ?: entry.key.name) == it.fileName.name }
+        target ?: error("No FileDefinition named ${it.fileName.name}")
+        val externalFieldSpecifications = it.specifications.filterIsInstance<ExternalFieldInputSpecification>()
+        buffer[target.key] = target.value.renameFields(externalFieldSpecifications)
+    }
+    return buffer
 }
 
 private fun String.isStringLiteral(): Boolean = startsWith('\'') && endsWith('\'')

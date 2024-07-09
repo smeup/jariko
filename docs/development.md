@@ -161,17 +161,19 @@ Creating features factory: com.smeup.rpgparser.interpreter.StandardFeaturesFacto
 ------------------------------------------------------------------------------------
 Feature flags status:
  - jariko.features.UnlimitedStringTypeFlag: off
+ - jariko.features.ChainCacheFlag: on
 ------------------------------------------------------------------------------------
 ```
 
 This it means that jariko is using the default `IFeaturesFactory` implementation (creating features factory...), 
 but more relevant is the following part of the console message where it is displayed a list of available feature
 flags and their status.  
-What you see it means that currently jariko provides one feature flag named:
-`jariko.features.UnlimitedStringTypeFlag` and its status is `off`.
+What you see it means that currently jariko provides two features flag named:
+- `jariko.features.UnlimitedStringTypeFlag` and its status is `off`
+- `jariko.features.ChainCacheFlag` and its status is `on`.
 
 **how to switch on a feature flag at runtime**  
-Before to call jariko it is necessary set the system property like this:
+Before to call jariko as library it is necessary to set the system property like this:
 ```java
 System.setProperty(featureFlagName, "on");
 ```
@@ -180,19 +182,25 @@ and for example if you want to try `jariko.features.UnlimitedStringTypeFlag` you
 System.setProperty("jariko.features.UnlimitedStringTypeFlag", "on");
 ```
 
-**how to switch on a feature flag via cli**  
-For example if you want to execute all tests trying the feature flag `jariko.features.UnlimitedStringTypeFlag`:
+A more fine-grained control is possible by using the provided callback by implementing `featureFlagIsOn` like below:
+```kotlin
+private val turnOnChainCacheFlagConfig = Configuration().apply {
+    jarikoCallback.featureFlagIsOn = { featureFlag: FeatureFlag -> featureFlag == FeatureFlag.ChainCacheFlag }
+}
+val systemInterface = JavaSystemInterface(turnOnChainCacheFlagConfig)
+...
 ```
-./gradlew -Djariko.features.UnlimitedStringTypeFlag=on test
-```
+
+
 
 
 **available feature flags and description**
 
-| feature flag                              | description                                                                                       |
-|-------------------------------------------|---------------------------------------------------------------------------------------------------|
-| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types |
-                                                                                                        |
+| feature flag                              | description                                                                                       | default |
+|-------------------------------------------|---------------------------------------------------------------------------------------------------| ------- |
+| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types | `off`   |
+| `jariko.features.ChainCacheFlag`          | when `on` you ask jariko to use cache in the chain operations                                     | `on`    |
+
 
 
 ## Creating a jar with all dependencies to run some examples
