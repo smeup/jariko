@@ -312,16 +312,17 @@ open class BaseCompileTimeInterpreter(
     }
 
     private fun RpgParser.RContext.getStatements(procedureName: String?): List<StatementContext> {
-        val listStatements: MutableList<StatementContext> = (this.statement() + this.subroutine().flatMap { it.statement() }).toMutableList()
+        val statements: MutableList<StatementContext> = mutableListOf()
         if (procedureName != null) {
-            val procedureContext: RpgParser.ProcedureContext? = this.procedure().filter { it.beginProcedure().psBegin().ps_name().text.equals(procedureName, ignoreCase = true) }.firstOrNull()
+            val procedureContext: RpgParser.ProcedureContext? = this.procedure().firstOrNull { it.beginProcedure().psBegin().ps_name().text.equals(procedureName, ignoreCase = true) }
             if (procedureContext != null) {
-                listStatements.addAll(
+                statements.addAll(
                     procedureContext.subprocedurestatement().mapNotNull { it.subroutine() }.flatMap { it.statement() } +
                             procedureContext.subprocedurestatement().mapNotNull { it.statement() })
             }
         }
+        statements.addAll(this.statement() + this.subroutine().flatMap { it.statement() })
 
-        return listStatements.toList()
+        return statements.toList()
     }
 }
