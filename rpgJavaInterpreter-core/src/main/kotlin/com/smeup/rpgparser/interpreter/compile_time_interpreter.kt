@@ -259,7 +259,19 @@ open class BaseCompileTimeInterpreter(
                             if (type != null) return type
                         }
                         it.dcl_ds() != null -> {
-                            val type = it.dcl_ds().parm_fixed().find { it.ds_name().text.equals(declName, ignoreCase = true) }?.findType(conf)
+                            // First look for the entire DS, if no match search in each of its fields
+                            val type = if (it.dcl_ds().name.equals(declName, ignoreCase = true)) {
+                                it.dcl_ds().toAst(
+                                    conf = conf,
+                                    knownDataDefinitions = knownDataDefinitions,
+                                    fileDefinitions = fileDefinitions,
+                                    parentDataDefinitions = emptyList()
+                                )?.type
+                            } else {
+                                it.dcl_ds().parm_fixed().find {
+                                    it.ds_name().text.equals(declName, ignoreCase = true)
+                                }?.findType(conf)
+                            }
                             if (type != null) return type
                         }
                         it.dspec() != null -> {
