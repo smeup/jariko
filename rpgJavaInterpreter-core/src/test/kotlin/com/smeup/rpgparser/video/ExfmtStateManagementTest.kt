@@ -76,13 +76,23 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_CALL_PLAIN() {
-        val expected = listOf("A:10")
+    fun executeSM_CALL_CP() {
+        val expected = listOf("A:4")
 
         assertFailsWith<ExfmtSuspendException> {
-            "video/SM_CALL_PLAIN".outputOf(configuration = configuration)
+            "video/SM_CALL_CP".outputOf(configuration = configuration)
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_PLAIN".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_CP".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_CALL_CPM() {
+        val expected = listOf("A:6")
+
+        assertFailsWith<ExfmtSuspendException> {
+            "video/SM_CALL_CPM".outputOf(configuration = configuration)
+        }
+        assertEquals(expected = expected, actual = "video/SM_CALL_CPM".outputOf(configuration = configuration))
     }
 
     @Test
