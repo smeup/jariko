@@ -129,11 +129,20 @@ internal fun RpgParser.Bif_charContext.toAst(conf: ToAstConfiguration = ToAstCon
 }
 
 internal fun RpgParser.Bif_decContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DecExpr {
-    return DecExpr(
-        this.expression(0).toAst(conf),
-        this.expression(1).toAst(conf),
-        this.expression(2).toAst(conf),
-        toPosition(conf.considerPosition))
+    val position = toPosition(conf.considerPosition)
+
+    // Target is mandatory
+    val target = this.expression(0).toAst(conf)
+    return if (this.expression().size < 3) {
+        // %DEC(date time or timestamp expression {:format})
+        val format = kotlin.runCatching { this.expression(1) }.getOrNull()?.toAst(conf)
+        DecTimeExpr(target, format, position)
+    } else {
+        // %DEC(Numeric expression :digits : dec pos)
+        val digits = this.expression(1).toAst(conf)
+        val decPos = this.expression(2).toAst(conf)
+        DecNumericExpr(target, digits, decPos, position)
+    }
 }
 
 internal fun RpgParser.Bif_intContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IntExpr {
