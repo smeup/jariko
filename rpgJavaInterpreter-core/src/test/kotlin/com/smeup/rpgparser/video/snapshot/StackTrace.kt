@@ -66,7 +66,7 @@ internal class StackTrace : Stack<Int> {
         return 0
     }
 
-     override fun peek(): Int {
+    override fun peek(): Int {
         if (this.state == TraceState.EX_NOVO || this.state == TraceState.CONTINUE) {
             return 0
         }

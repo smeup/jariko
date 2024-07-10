@@ -60,6 +60,7 @@ class StackTraceTest : AbstractTest() {
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
+        (configuration.snapshotManager as SnapshotManager).allowStackReadTest = true
         assertEquals(expected = listOf("A:3", "B:3"), actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))
     }
 
@@ -70,6 +71,7 @@ class StackTraceTest : AbstractTest() {
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
+        (configuration.snapshotManager as SnapshotManager).allowStackReadTest = true
         (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(2))
         assertEquals(expected = listOf("A:2", "B:2"), actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))
     }
@@ -81,6 +83,7 @@ class StackTraceTest : AbstractTest() {
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
+        (configuration.snapshotManager as SnapshotManager).allowStackReadTest = true
         (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(5))
         assertEquals(expected = listOf("A:1", "B:1"), actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))
     }

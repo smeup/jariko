@@ -1,17 +1,13 @@
 package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.ExfmtSuspendException
-import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.InterpreterCore
-import com.smeup.rpgparser.interpreter.MemorySliceId
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
 import com.smeup.rpgparser.interpreter.Value
-import com.smeup.rpgparser.parsing.ast.CallStmt
 import com.smeup.rpgparser.parsing.ast.Statement
-import java.util.*
+import java.util.EmptyStackException
 import kotlin.collections.LinkedHashMap
 
 internal class SnapshotManager(
@@ -27,6 +23,11 @@ internal class SnapshotManager(
     private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
     private var stackTrace: StackTrace = this.stackTraceStorage.load(this.programName)
     private var doIndex: Long = 0
+
+    /**
+     * Test only: allows test for stack read
+     */
+    var allowStackReadTest: Boolean = false
 
     private fun setUpStorages() {
         this.stackTraceStorage.snapshot = this.snapshot
@@ -48,7 +49,7 @@ internal class SnapshotManager(
         this.setUpStorages()
         // the load operation for memory slice is not needed because it is already
         // executed after interpreter initialization
-        this.stackTrace = this.stackTraceStorage.load(this.programName)
+        if (!allowStackReadTest) this.stackTrace = this.stackTraceStorage.load(this.programName)
     }
 
     override fun beforeDOCycle(): Long {
