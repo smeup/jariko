@@ -98,7 +98,7 @@ internal class StackTrace : Stack<Int> {
         try {
             if (statements[i - 1] is CallStmt) {
                 i--
-                // if last is CallStmt then pop will already occur
+                // if last is a call statement then pop will already occur
                 this.push(i)
             }
         } catch (e: IndexOutOfBoundsException) {
