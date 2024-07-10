@@ -108,7 +108,7 @@ class ExfmtStateManagementTest : AbstractTest() {
         val expected = listOf("A:6")
 
         var i = 0
-        while (i < 3) {
+        while (i < 7) {
             assertFailsWith<ExfmtSuspendException> {
                 "video/SM_CALL_CPME".outputOf(configuration = configuration)
             }
