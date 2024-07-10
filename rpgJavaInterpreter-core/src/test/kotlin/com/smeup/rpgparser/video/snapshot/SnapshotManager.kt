@@ -64,18 +64,14 @@ internal class SnapshotManager(
     }
 
     override fun onCallSuspend(interpreter: InterpreterCore, params: LinkedHashMap<String, Value>) {
-
         // should assign parameters with interpreter to update data definitions
         // using returned object from program.execute, even if it fails to complete
         // due to EXFMT exception
-//        val lastMemorySliceId = (interpreter as InternalInterpreter).getMemorySliceId()!!
-        // fin a way to get memory slice because its program was just popped from stack
-        val lastMemorySliceId = MemorySliceId("*DFTACTGRP", "SM_P_PLAIN")
-        val lastProgramValues = this.memorySliceStorage.load(lastMemorySliceId)
+        val lastProgramValues = this.memorySliceStorage.loadFromLastCalledProgram()
 
         lastProgramValues.filter { params.keys.contains(it.key) }.forEach {
             val dataDefinition = interpreter.dataDefinitionByName(it.key)!!
-            val value = lastProgramValues[it.key]!!
+            val value = it.value
             interpreter.assign(dataDefinition, value)
         }
 

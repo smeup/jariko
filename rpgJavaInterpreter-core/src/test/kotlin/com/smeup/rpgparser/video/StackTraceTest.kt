@@ -54,16 +54,32 @@ class StackTraceTest : AbstractTest() {
     }
 
     @Test
-    fun executeST_PLAINSEQ_R() {
+    fun executeST_PLAINSEQ_R0() {
         configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }
 
         assertEquals(expected = listOf("A:3", "B:3"), actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeST_PLAINSEQ_R1() {
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
 
         (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(2))
         assertEquals(expected = listOf("A:2", "B:2"), actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeST_PLAINSEQ_R2() {
+        configuration.jarikoCallback.onExfmt = { _, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
 
         (configuration.snapshotManager as SnapshotManager).setStackWithList(listOf(5))
         assertEquals(expected = listOf("A:1", "B:1"), actual = "video/ST_PLAINSEQ".outputOf(configuration = configuration))

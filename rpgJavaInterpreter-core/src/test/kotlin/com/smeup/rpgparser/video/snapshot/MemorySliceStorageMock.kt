@@ -8,6 +8,7 @@ import com.smeup.rpgparser.interpreter.Value
 internal class MemorySliceStorageMock : IMemorySliceStorage {
     var snapshot: RuntimeInterpreterSnapshot? = null
     private val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
+    private var lastLoadedId: MemorySliceId? = null
 
     override fun open() {}
 
@@ -16,6 +17,7 @@ internal class MemorySliceStorageMock : IMemorySliceStorage {
     }
 
     override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
+        this.lastLoadedId = memorySliceId
         this.storage[memorySliceId] = values
     }
 
@@ -26,6 +28,11 @@ internal class MemorySliceStorageMock : IMemorySliceStorage {
     override fun rollbackTrans() {}
 
     override fun close() {}
+
+    fun loadFromLastCalledProgram(): Map<String, Value> {
+        // at this point CALL was already performed and such not NULL
+        return this.load(this.lastLoadedId!!)
+    }
 
     fun reset() {
         this.snapshot = null
