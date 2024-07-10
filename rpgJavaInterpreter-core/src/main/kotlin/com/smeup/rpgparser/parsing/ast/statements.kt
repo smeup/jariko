@@ -2414,22 +2414,22 @@ data class ExfmtStmt(
         val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
         val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
         val snapshotManager = MainExecutionContext.getSnapshotManager()
+        val snapshot: RuntimeInterpreterSnapshot
+        val response: OnExfmtResponse?
 
         if (snapshotManager == null) {
-            val snapshot = RuntimeInterpreterSnapshot("")
-            val response = jarikoCallback.onExfmt(fields, snapshot)
-
+            snapshot = RuntimeInterpreterSnapshot("")
+            response = jarikoCallback.onExfmt(fields, snapshot)
             response ?: error("Cannot handle async without a snapshot manager")
-            copyRecordFieldsIntoDataDefinitions(interpreter, response)
         } else {
-            val snapshot = snapshotManager.take()
-            val response = jarikoCallback.onExfmt(fields, snapshot)
-
+            snapshot = snapshotManager.take()
+            response = jarikoCallback.onExfmt(fields, snapshot)
             if (response == null) {
                 snapshotManager.store()
                 throw ExfmtSuspendException()
-            } else copyRecordFieldsIntoDataDefinitions(interpreter, response)
+            }
         }
+        copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }
 
