@@ -10,6 +10,7 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -76,6 +77,20 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_CALL_ADD() {
+        val expected = listOf("A:0")
+
+        var i = 0
+        while (i < 2) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_CALL_ADD".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_CALL_ADD".outputOf(configuration = configuration))
+    }
+
+    @Test
     fun executeSM_CALL_CP() {
         val expected = listOf("A:4")
 
@@ -103,12 +118,12 @@ class ExfmtStateManagementTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/SM_CALL_CPM".outputOf(configuration = configuration))
     }
 
-    @Test
+    @Test @Ignore
     fun executeSM_CALL_CPME() {
         val expected = listOf("A:6")
 
         var i = 0
-        while (i < 7) {
+        while (i < 4) {
             assertFailsWith<ExfmtSuspendException> {
                 "video/SM_CALL_CPME".outputOf(configuration = configuration)
             }

@@ -88,7 +88,9 @@ internal class SnapshotManager(
     }
 
     override fun beforeExecuteCycle(statements: List<Statement>): Int {
-        return this.stackTrace.peek(statements)
+        val i = this.stackTrace.peek(statements)
+        return i
+//        return this.stackTrace.peek(statements)
     }
 
     override fun beforeStatementExecution(i: Int) {
