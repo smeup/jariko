@@ -10,3 +10,5 @@
      C                   PARM                    A
 
      C                   EVAL      A=A+1
+
+     C                   SETON                                        LR
