@@ -2428,8 +2428,7 @@ data class ExfmtStmt(
             if (response == null) {
                 snapshotManager.store()
                 throw ExfmtSuspendException()
-            }
-            else copyRecordFieldsIntoDataDefinitions(interpreter, response)
+            } else copyRecordFieldsIntoDataDefinitions(interpreter, response)
         }
     }
 }
