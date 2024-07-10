@@ -39,7 +39,8 @@ interface Evaluator {
     fun eval(expression: LessEqualThanExpr): Value
     fun eval(expression: LessThanExpr): Value
     fun eval(expression: BlanksRefExpr): BlanksValue
-    fun eval(expression: DecExpr): Value
+    fun eval(expression: DecNumericExpr): Value
+    fun eval(expression: DecTimeExpr): Value
     fun eval(expression: PlusExpr): Value
     fun eval(expression: MinusExpr): Value
     fun eval(expression: MultExpr): Value
