@@ -414,7 +414,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Comptime DS with EXTNAME resolution and data structures INZ(*HIVAL)
+     * Data structures INZ(*HIVAL) values test
      * @see #LS24003257
      */
     @Test
