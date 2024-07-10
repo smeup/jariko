@@ -2,6 +2,7 @@ package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.InterpreterCore
+import com.smeup.rpgparser.interpreter.MemorySliceId
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshotManager
@@ -68,9 +69,11 @@ internal class SnapshotManager(
         // should assign parameters with interpreter to update data definitions
         // using returned object from program.execute, even if it fails to complete
         // due to EXFMT exception
-        val lastProgramValues = this.memorySliceStorage.loadFromLastCalledProgram()
+        val program = MainExecutionContext.getProgramStack().peek()
+        val id = MemorySliceId(program.activationGroup.assignedName, program.name)
+        val values = this.memorySliceStorage.load(id)
 
-        lastProgramValues.filter { params.keys.contains(it.key) }.forEach {
+        values.filter { params.keys.contains(it.key) }.forEach {
             val dataDefinition = interpreter.dataDefinitionByName(it.key)!!
             val value = it.value
             interpreter.assign(dataDefinition, value)
@@ -88,9 +91,7 @@ internal class SnapshotManager(
     }
 
     override fun beforeExecuteCycle(statements: List<Statement>): Int {
-        val i = this.stackTrace.peek(statements)
-        return i
-//        return this.stackTrace.peek(statements)
+        return this.stackTrace.peek(statements)
     }
 
     override fun beforeStatementExecution(i: Int) {

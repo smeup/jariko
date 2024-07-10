@@ -719,7 +719,6 @@ data class CallStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val programToCall = interpreter.eval(expression).asString().value.trim()
-//        val p = MainExecutionContext.getExecutionProgramName()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program: Program?
         try {
@@ -797,7 +796,6 @@ data class CallStmt(
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
                 null
             }
-//        MainExecutionContext.setExecutionProgramName(p)
         MainExecutionContext.getSnapshotManager()?.afterCall()
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
