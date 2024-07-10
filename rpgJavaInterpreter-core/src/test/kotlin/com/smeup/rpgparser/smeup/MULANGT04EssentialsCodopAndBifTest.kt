@@ -36,6 +36,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
 
     /**
      * %DIFF with several DurationCodes
+     * @see #LS24003282
      */
     @Test
     fun executeMUDRNRAPU00228() {
