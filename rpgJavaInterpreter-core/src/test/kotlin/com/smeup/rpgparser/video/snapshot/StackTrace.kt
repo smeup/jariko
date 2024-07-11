@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.parsing.ast.CallStmt
+import com.smeup.rpgparser.parsing.ast.ExfmtStmt
 import com.smeup.rpgparser.parsing.ast.Statement
 import java.util.Stack
 
@@ -105,8 +106,11 @@ internal class StackTrace : Stack<Int> {
                 i--
                 // if last - 1 is a call statement then pop will be already occured
                 this.push(i)
-            }
-            if (this.block) {
+            } else if (statements[i] is CallStmt && this.block) {
+                i++
+                i++
+                this.push(i)
+            } else if (this.block) {
                 i++
                 this.push(i)
             }

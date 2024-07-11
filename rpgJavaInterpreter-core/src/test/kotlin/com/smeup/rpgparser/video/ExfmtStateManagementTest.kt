@@ -76,45 +76,51 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_CALL_1() {
-        val expected = listOf("A:1")
-
-        var i = 0
-        while (i < 2) {
-            assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_1".outputOf(configuration = configuration)
-            }
-            i++
-        }
-        assertEquals(expected = expected, actual = "video/SM_CALL_1".outputOf(configuration = configuration))
+    fun executeSM_CALL_A_A_A() {
+        val expected = listOf("A:3")
+        assertEquals(expected = expected, actual = "video/SM_CALL_A_A_A".outputOf(configuration = configuration))
     }
 
     @Test
-    fun executeSM_CALL_2() {
+    fun executeSM_CALL_A_E_A() {
         val expected = listOf("A:2")
 
         var i = 0
         while (i < 1) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_2".outputOf(configuration = configuration)
+                "video/SM_CALL_A_E_A".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_2".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_A_E_A".outputOf(configuration = configuration))
     }
 
     @Test
-    fun executeSM_CALL_3() {
+    fun executeSM_CALL_E_A_E() {
+        val expected = listOf("A:1")
+
+        var i = 0
+        while (i < 2) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_CALL_E_A_E".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_CALL_E_A_E".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_CALL_E_E_E() {
         val expected = listOf("A:0")
 
         var i = 0
         while (i < 3) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_3".outputOf(configuration = configuration)
+                "video/SM_CALL_E_E_E".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_3".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_E_E_E".outputOf(configuration = configuration))
     }
 
     @Test
