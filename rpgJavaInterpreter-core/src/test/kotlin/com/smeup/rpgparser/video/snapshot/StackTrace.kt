@@ -97,9 +97,6 @@ internal class StackTrace : Stack<Int> {
     fun blockCall() {
         this.block = true
     }
-//    fun hasTerminated(): Boolean {
-//        return this.pointer == 0 && this.isOnRestore() && this.size == 0
-//    }
 
     fun peek(statements: List<Statement>): Int {
         var i = this.peek()

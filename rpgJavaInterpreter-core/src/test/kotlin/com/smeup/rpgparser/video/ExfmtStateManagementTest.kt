@@ -76,31 +76,45 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_CALL_A() {
+    fun executeSM_CALL_1() {
         val expected = listOf("A:1")
 
         var i = 0
         while (i < 2) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_A".outputOf(configuration = configuration)
+                "video/SM_CALL_1".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_A".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_1".outputOf(configuration = configuration))
     }
 
     @Test
-    fun executeSM_CALL_E() {
+    fun executeSM_CALL_2() {
         val expected = listOf("A:2")
 
         var i = 0
         while (i < 1) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_E".outputOf(configuration = configuration)
+                "video/SM_CALL_2".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_E".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_2".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeSM_CALL_3() {
+        val expected = listOf("A:0")
+
+        var i = 0
+        while (i < 3) {
+            assertFailsWith<ExfmtSuspendException> {
+                "video/SM_CALL_3".outputOf(configuration = configuration)
+            }
+            i++
+        }
+        assertEquals(expected = expected, actual = "video/SM_CALL_3".outputOf(configuration = configuration))
     }
 
     @Test
