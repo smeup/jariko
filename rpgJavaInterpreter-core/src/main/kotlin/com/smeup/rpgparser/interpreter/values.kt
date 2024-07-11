@@ -1073,6 +1073,14 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
             }
             return newInstance
         }
+
+        internal fun fromFields(fields: Map<FieldType, Value>): DataStructValue {
+            val size = fields.entries.fold(0) { acc, entry -> acc + entry.key.type.size }
+            val newInstance = blank(size)
+            val fieldDefinitions = fields.map { it.key }.toFieldDefinitions()
+            fields.onEachIndexed { index, entry -> newInstance.set(fieldDefinitions[index], entry.value) }
+            return newInstance
+        }
     }
 
     override fun toString(): String {
@@ -1228,4 +1236,20 @@ data class OccurableDataStructValue(val occurs: Int) : Value {
             this.values.putAll(values.mapValues { it.value.copy() })
         }
     }
+}
+
+internal fun List<FieldType>.toFieldDefinitions(): List<FieldDefinition> {
+    var start = 0
+    val definitions = this.map {
+        val newOffset = start + it.type.size
+        val fieldDef = FieldDefinition(
+            name = it.name,
+            type = it.type,
+            calculatedStartOffset = start,
+            calculatedEndOffset = start + newOffset
+        )
+        start = newOffset
+        fieldDef
+    }
+    return definitions
 }

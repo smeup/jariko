@@ -321,6 +321,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 return StringValue("1")
             return StringValue("0")
         }
+        is DataStructureType -> {
+            return when (value) {
+                is DataStructValue -> value.asString()
+                else -> TODO("Not implemented")
+            }
+        }
+        is RecordFormatType -> return StringValue.blank(this.size)
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
 }

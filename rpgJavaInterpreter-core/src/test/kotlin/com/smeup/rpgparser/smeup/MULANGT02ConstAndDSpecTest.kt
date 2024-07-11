@@ -402,4 +402,34 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00225".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Comptime DS with EXTNAME resolution and data structures INZ(*HIVAL)
+     * @see #LS24003257
+     */
+    @Test
+    fun executeMUDRNRAPU00226() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00226".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data structures INZ(*HIVAL) values test
+     * @see #LS24003257
+     */
+    @Test
+    fun executeMUDRNRAPU00227() {
+        val expected = listOf("9991\uFFFF\uFFFF99999")
+        assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * LIKE on a PList with case in-sensitive lookup
+     * @see #LS24003296
+     */
+    @Test
+    fun executeMUDRNRAPU00230() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00230".outputOf(configuration = smeupConfig))
+    }
 }

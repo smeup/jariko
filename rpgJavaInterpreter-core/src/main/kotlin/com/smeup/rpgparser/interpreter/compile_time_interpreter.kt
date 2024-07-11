@@ -182,7 +182,7 @@ open class BaseCompileTimeInterpreter(
                     it.dcl_ds() != null -> {
                         val name = it.dcl_ds().name
                         val fields = fileDefinitions?.let { defs -> it.dcl_ds().getExtnameFields(defs, conf) } ?: emptyList()
-                        if (name == declName) {
+                        if (name.equals(declName, ignoreCase = true)) {
                             return it.dcl_ds().elementSizeOf(knownDataDefinitions, fields)
                         }
                     }
@@ -313,7 +313,7 @@ open class BaseCompileTimeInterpreter(
             }
             is StatementThatCanDefineData -> {
                 val dataDefinition = ast.dataDefinition()
-                dataDefinition.firstOrNull { it.name == declName }?.type
+                dataDefinition.firstOrNull { it.name.equals(declName, ignoreCase = true) }?.type
             }
             else -> null
         }
