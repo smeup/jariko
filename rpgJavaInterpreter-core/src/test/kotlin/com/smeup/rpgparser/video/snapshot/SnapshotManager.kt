@@ -35,11 +35,6 @@ internal class SnapshotManager(
     private var stackTrace: StackTrace = this.stackTraceStorage.load(this.programName)
     private var doIndex: Long = 0
 
-    /**
-     * Test only: allows test for stack read
-     */
-    var allowStackReadTest: Boolean = false
-
     private fun setUpStorages() {
         this.stackTraceStorage.snapshot = this.snapshot
         this.memorySliceStorage.snapshot = this.snapshot
@@ -73,6 +68,7 @@ internal class SnapshotManager(
 
     override fun beforeCall() {
         this.load()
+        this.stackTrace.unblockCall()
     }
 
     override fun onCallSuspend(interpreter: InterpreterCore, params: LinkedHashMap<String, Value>) {
@@ -109,6 +105,18 @@ internal class SnapshotManager(
 
     override fun afterStatementExecution() {
         this.stackTrace.pop()
+    }
+
+    /**
+     * Test only: allows test for stack read
+     */
+    var allowStackReadTest: Boolean = false
+
+    /**
+     * Test only: stack info
+     */
+    fun getStackInfo(): StackInfo {
+        return this.stackTrace.getInfo()
     }
 
     /**

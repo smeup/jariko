@@ -2,10 +2,12 @@
      D A               S              2  0
 
      C                   EXFMT     FMT01
+     C                   EXFMT     FMT01
 
-     C                   CALL      'C_A'
+     C                   CALL      'C_EAE'
      C                   PARM                    A
 
+     C                   EXFMT     FMT01
      C                   EXFMT     FMT01
 
      C                   EVAL      MSG='A:'+%CHAR(A)
