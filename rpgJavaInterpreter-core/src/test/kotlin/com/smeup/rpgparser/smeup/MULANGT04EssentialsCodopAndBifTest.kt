@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.interpreter.TimeStampValue
 import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import org.junit.Test
 import java.time.LocalDateTime
