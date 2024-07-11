@@ -20,6 +20,7 @@ import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * For expressions with this interface there isn't resolution but will be called the callback `onMockExpression` and returned a null value.
@@ -254,20 +255,38 @@ data class RemExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
-// %DEC
+// Abstract %DEC definition
 @Serializable
-data class DecExpr(
-    var value: Expression,
-    var intDigits: Expression,
-    val decDigits: Expression,
+abstract class DecExpr(
     override val position: Position? = null
 ) : Expression(position) {
     override val loggableEntityName: String
         get() = "%DEC"
+}
+
+// %DEC with numeric value
+@Serializable
+data class DecNumericExpr(
+    var value: Expression,
+    var intDigits: Expression,
+    val decDigits: Expression,
+    @Transient override val position: Position? = null
+) : DecExpr(position) {
     override fun render(): String {
         return this.value.render()
     }
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %DEC with timestamp value
+@Serializable
+data class DecTimeExpr(
+    var timestamp: Expression,
+    var format: Expression?,
+    @Transient override val position: Position? = null
+) : DecExpr(position) {
+    override fun render() = timestamp.render()
+    override fun evalWith(evaluator: Evaluator) = evaluator.eval(this)
 }
 
 // %INT
