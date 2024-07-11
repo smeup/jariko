@@ -422,4 +422,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("9991\uFFFF\uFFFF99999")
         assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * LIKE on a PList with case in-sensitive lookup
+     * @see #LS24003296
+     */
+    @Test
+    fun executeMUDRNRAPU00230() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00230".outputOf(configuration = smeupConfig))
+    }
 }
