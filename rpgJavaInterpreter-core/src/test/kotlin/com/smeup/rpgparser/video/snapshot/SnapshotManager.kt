@@ -20,7 +20,17 @@ internal class SnapshotManager(
     private val memorySliceMgr: MemorySliceMgr?
         get() = MainExecutionContext.getMemorySliceMgr()
     private val programName: String
-        get() = try { MainExecutionContext.getProgramStack().peek().name } catch (e: EmptyStackException) { "" }
+        get() = try {
+            MainExecutionContext.getProgramStack().peek().name
+        } catch (e: EmptyStackException) {
+            ""
+        }
+    private val activationGroup: String
+        get() = try {
+            MainExecutionContext.getProgramStack().peek().activationGroup.assignedName
+        } catch (e: EmptyStackException) {
+            ""
+        }
     private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
     private var stackTrace: StackTrace = this.stackTraceStorage.load(this.programName)
     private var doIndex: Long = 0
@@ -66,11 +76,9 @@ internal class SnapshotManager(
     }
 
     override fun onCallSuspend(interpreter: InterpreterCore, params: LinkedHashMap<String, Value>) {
-        // should assign parameters with interpreter to update data definitions
-        // using returned object from program.execute, even if it fails to complete
-        // due to EXFMT exception
-        val program = MainExecutionContext.getProgramStack().peek()
-        val id = MemorySliceId(program.activationGroup.assignedName, program.name)
+        // this procedure uses symbol table from last called program to update symbol table of the
+        // caller (through the interpreter, since each program has its own)
+        val id = MemorySliceId(this.activationGroup, this.programName)
         val values = this.memorySliceStorage.load(id)
 
         values.filter { params.keys.contains(it.key) }.forEach {
@@ -84,6 +92,7 @@ internal class SnapshotManager(
 
     override fun afterCall() {
         this.load()
+        this.stackTrace.blockCall()
     }
 
     override fun isOnRestore(): Boolean {

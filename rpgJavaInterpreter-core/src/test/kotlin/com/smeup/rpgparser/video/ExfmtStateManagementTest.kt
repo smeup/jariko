@@ -10,7 +10,6 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.video.snapshot.MemorySliceStorageMock
 import com.smeup.rpgparser.video.snapshot.SnapshotManager
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -77,59 +76,31 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
-    fun executeSM_CALL_ADD() {
-        val expected = listOf("A:0")
+    fun executeSM_CALL_A() {
+        val expected = listOf("A:1")
 
         var i = 0
         while (i < 2) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_ADD".outputOf(configuration = configuration)
+                "video/SM_CALL_A".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_ADD".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_A".outputOf(configuration = configuration))
     }
 
     @Test
-    fun executeSM_CALL_CP() {
-        val expected = listOf("A:4")
+    fun executeSM_CALL_E() {
+        val expected = listOf("A:2")
 
         var i = 0
-        while (i < 3) {
+        while (i < 1) {
             assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_CP".outputOf(configuration = configuration)
+                "video/SM_CALL_E".outputOf(configuration = configuration)
             }
             i++
         }
-        assertEquals(expected = expected, actual = "video/SM_CALL_CP".outputOf(configuration = configuration))
-    }
-
-    @Test
-    fun executeSM_CALL_CPM() {
-        val expected = listOf("A:6")
-
-        var i = 0
-        while (i < 3) {
-            assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_CPM".outputOf(configuration = configuration)
-            }
-            i++
-        }
-        assertEquals(expected = expected, actual = "video/SM_CALL_CPM".outputOf(configuration = configuration))
-    }
-
-    @Test @Ignore
-    fun executeSM_CALL_CPME() {
-        val expected = listOf("A:6")
-
-        var i = 0
-        while (i < 4) {
-            assertFailsWith<ExfmtSuspendException> {
-                "video/SM_CALL_CPME".outputOf(configuration = configuration)
-            }
-            i++
-        }
-        assertEquals(expected = expected, actual = "video/SM_CALL_CPME".outputOf(configuration = configuration))
+        assertEquals(expected = expected, actual = "video/SM_CALL_E".outputOf(configuration = configuration))
     }
 
     @Test

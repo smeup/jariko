@@ -93,12 +93,24 @@ internal class StackTrace : Stack<Int> {
         return this[this.pointer++]
     }
 
+    private var block: Boolean = false
+    fun blockCall() {
+        this.block = true
+    }
+//    fun hasTerminated(): Boolean {
+//        return this.pointer == 0 && this.isOnRestore() && this.size == 0
+//    }
+
     fun peek(statements: List<Statement>): Int {
         var i = this.peek()
         try {
-            if (statements[i - 1] is CallStmt) {
+            if (statements[i - 1] is CallStmt && !this.block) {
                 i--
-                // if last is a call statement then pop will already occur
+                // if last - 1 is a call statement then pop will be already occured
+                this.push(i)
+            }
+            if (this.block) {
+                i++
                 this.push(i)
             }
         } catch (e: IndexOutOfBoundsException) {
