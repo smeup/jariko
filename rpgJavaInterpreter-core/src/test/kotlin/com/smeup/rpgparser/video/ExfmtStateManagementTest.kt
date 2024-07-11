@@ -244,6 +244,11 @@ class ExfmtStateManagementTest : AbstractTest() {
     }
 
     @Test
+    fun executeSM_M01_Binary() {
+        this.coupledOutputTest("video/SM_M01", 7)
+    }
+
+    @Test
     fun executeSM_IF() {
         val expected = listOf("A:2", "B:2")
         this.assertFailsWith<ExfmtSuspendException>("video/SM_IF", 1)
@@ -301,10 +306,5 @@ class ExfmtStateManagementTest : AbstractTest() {
     @Test
     fun executeSM_SELECT_Binary() {
         this.coupledOutputTest("video/SM_SELECT", 1)
-    }
-
-    @Test
-    fun executeSM_M01_Binary() {
-        this.coupledOutputTest("video/SM_M01", 7)
     }
 }

@@ -111,37 +111,12 @@ internal class StackTrace : Stack<Int> {
                 return i
             }
             if (this.isCallBlocked) {
+//                if (statements[i] !is CallStmt && statements[i - 1] !is CallStmt) {
+//                    this.isCallBlocked = false
+//                }
                 this.push(i + 1)
                 return i + 1
             }
-//            if (statements[i - 1] is CallStmt && !this.block) {
-//                i--
-//                this.push(i)
-//            } else if (statements[i] is CallStmt) {
-//                println()
-////                this.state = TraceState.CONTINUE
-////                this.pointer--
-//                return i + 1
-//            }
-//            println()
-//            if (statements[i - 1] is CallStmt && !this.block) {
-//                i--
-//                // if last - 1 is a call statement then pop will be already occured
-//                this.push(i)
-//            } else if (statements[i] is CallStmt && this.block) {
-//                i++
-//                this.state = TraceState.CONTINUE
-//                this.push(i)
-//            } else if (this.block) {
-//                i++
-//                this.state = TraceState.CONTINUE
-//                this.push(i)
-////
-////                this.state = TraceState.CONTINUE
-////                val i = this[this.pointer] + 1
-////                this.pop()
-////                return i
-//            }
         } catch (e: IndexOutOfBoundsException) {
             return i
         }
@@ -171,5 +146,5 @@ internal class StackTrace : Stack<Int> {
 data class StackInfo(
     val list: List<Int>,
     val pointer: Int,
-    val state: String,
+    val state: String
 )

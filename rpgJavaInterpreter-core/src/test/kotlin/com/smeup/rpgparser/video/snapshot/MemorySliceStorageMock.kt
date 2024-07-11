@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.video.snapshot
 
-import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.MemorySliceId
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
