@@ -172,7 +172,15 @@ open class BaseCompileTimeInterpreter(
                     it.dspec() != null -> {
                         val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
                         if (declName.equals(name, ignoreCase = true)) {
-                            return it.dspec().TO_POSITION().text.asInt()
+                            /**
+                             * If this is a D-Spec based on a LIKE, recursively find and return its size
+                             * else-wise return explicit size
+                             */
+                            val likeSize = it.dspec().keyword().firstOrNull { it.keyword_like() != null }?.let {
+                                val target = it.keyword_like()!!.name.text.trim()
+                                findSize(statements, target, conf, innerBlock)
+                            }
+                            return likeSize ?: it.dspec().TO_POSITION().text.asInt()
                         }
                     }
                     it.cspec_fixed() != null -> {
