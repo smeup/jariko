@@ -63,4 +63,14 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU00228".outputOf())
     }
+
+    /**
+     * %DEC with dates and timestamps
+     * @see #LS24003289
+     */
+    @Test
+    fun executeMUDRNRAPU00229() {
+        val expected = listOf("19700101000000000000", "19700101")
+        assertEquals(expected, "smeup/MUDRNRAPU00229".outputOf())
+    }
 }

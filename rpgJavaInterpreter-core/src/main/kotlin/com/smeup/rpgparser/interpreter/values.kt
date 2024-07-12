@@ -138,6 +138,9 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
         return BooleanValue.FALSE
     }
 
+    override fun asInt() = value.toInt().asValue()
+    override fun asDecimal() = value.toBigDecimal().asValue()
+
     override fun asTimeStamp(): TimeStampValue = TimeStampValue.of(value)
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
@@ -459,6 +462,7 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
 
     companion object {
         val DEFAULT_FORMAT = "yyyy-MM-dd-HH.mm.ss.SSSSSS"
+        val DECIMAL_FORMAT = "yyyyMMddHHmmssSSSSSS"
         val LOVAL: TimeStampValue by lazy {
             TimeStampValue(LocalDateTime.parse("0001-01-01-00.00.00.000000", DateTimeFormatter.ofPattern(DEFAULT_FORMAT)))
         }
@@ -480,6 +484,15 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
     override fun asString(): StringValue {
         return StringValue(DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(value))
     }
+
+    fun format(pattern: String): StringValue {
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        return format(formatter)
+    }
+
+    fun format(formatter: DateTimeFormatter) = formatter.format(value).asValue()
+
+    fun toDecimal() = format(DECIMAL_FORMAT).asDecimal()
 }
 
 /**
@@ -489,6 +502,10 @@ data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
  */
 @Serializable
 data class DateValue(val value: Long, val format: DateFormat) : Value {
+    private val isoDate: String by lazy {
+        SimpleDateFormat("YYYY-MM-dd").format(Date(value))
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is DateType
     }
@@ -504,13 +521,27 @@ data class DateValue(val value: Long, val format: DateFormat) : Value {
      * @return String with date formatted.
      */
     fun adapt(format: DateFormat): String {
-        val dateISO = SimpleDateFormat("YYYY-MM-dd").format(Date(value))
         return when (format) {
             DateFormat.JUL -> {
-                LocalDate.parse(dateISO).format(DateTimeFormatter.ISO_ORDINAL_DATE)
+                LocalDate.parse(isoDate).format(DateTimeFormatter.ISO_ORDINAL_DATE)
                     .let { "${it.substring(2, 4)}/${it.substring(5)}" }
             }
-            DateFormat.ISO -> dateISO
+            DateFormat.ISO -> isoDate
+        }
+    }
+
+    fun format(pattern: String): StringValue {
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        return format(formatter)
+    }
+
+    fun format(formatter: DateTimeFormatter) = formatter.format(LocalDate.parse(isoDate)).asValue()
+
+    fun toDecimal(): DecimalValue {
+        return when (format) {
+            DateFormat.JUL -> format("yyDDD").asDecimal()
+            DateFormat.ISO -> format("yyyyMMdd").asDecimal()
+            else -> TODO()
         }
     }
 }
@@ -1077,6 +1108,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
 fun Int.asValue() = IntValue(this.toLong())
 fun Boolean.asValue() = BooleanValue(this)
+fun BigDecimal.asValue() = DecimalValue(this)
 
 fun areEquals(value1: Value, value2: Value): Boolean {
     return when {

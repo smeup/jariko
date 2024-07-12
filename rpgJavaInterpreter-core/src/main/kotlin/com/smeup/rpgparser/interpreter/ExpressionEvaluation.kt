@@ -150,7 +150,7 @@ class ExpressionEvaluation(
 
     override fun eval(expression: BlanksRefExpr) = proxyLogging(expression) { BlanksValue } as BlanksValue
 
-    override fun eval(expression: DecExpr): Value = proxyLogging(expression) {
+    override fun eval(expression: DecNumericExpr): Value = proxyLogging(expression) {
         val decDigits = expression.decDigits.evalWith(this).asInt().value
         val valueAsString = expression.value.evalWith(this).asString().value
         val valueAsBigDecimal = valueAsString.asBigDecimal()
@@ -162,6 +162,23 @@ class ExpressionEvaluation(
             IntValue(valueAsBigDecimal.toLong())
         } else {
             DecimalValue(valueAsBigDecimal)
+        }
+    }
+
+    override fun eval(expression: DecTimeExpr): Value = proxyLogging(expression) {
+        val value = expression.timestamp.evalWith(this)
+        val format = expression.format
+
+        return@proxyLogging when (value) {
+            is TimeStampValue -> {
+                if (format != null) error("%DEC(time:format) is allowed only when time is DateValue")
+                value.toDecimal()
+            }
+            is DateValue -> {
+                if (format != null) TODO("%DEC(time{:format}) with custom format is not implemented yet")
+                value.toDecimal()
+            }
+            else -> error("%DEC(time{:format}) is allowed only when time is TimeStampValue or DateValue")
         }
     }
 
