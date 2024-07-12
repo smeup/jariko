@@ -432,4 +432,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00230".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Comptime LIKE referencing another D-Spec with LIKE
+     * @see #LS24003329
+     */
+    @Test
+    fun executeMUDRNRAPU00233() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00233".outputOf(configuration = smeupConfig))
+    }
 }
