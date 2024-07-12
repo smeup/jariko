@@ -338,6 +338,7 @@ internal fun RpgParser.DspecContext.toAst(
     var varying = false
     var ascend: Boolean? = null
     var static = false
+    var len: Expression? = null
 
     /* Default value is ISO. */
     var dateFormat: DateFormat = DateFormat.ISO
@@ -377,6 +378,9 @@ internal fun RpgParser.DspecContext.toAst(
                 else -> this.todo(message = "${it.simpleExpression().text} like Date format", conf = conf)
             }
         }
+        it.keyword_len()?.let {
+            len = it.simpleExpression().toAst(conf)
+        }
     }
 
     val elementSize = when {
@@ -399,7 +403,16 @@ internal fun RpgParser.DspecContext.toAst(
                     StringType.createInstance(elementSize!!, varying)
                 }
             }
-            RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
+            RpgType.CHARACTER.rpgType -> {
+                // see: https://www.ibm.com/docs/en/i/7.4?topic=lenlength-rules-len-keyword
+                val lenSize = len?.let {
+                    compileTimeInterpreter.evaluate(rContext(), it)
+                }?.asInt()?.value?.toInt()
+                if (elementSize != null && lenSize != null) error(
+                    "The LEN keyword cannot be specified if the Length entry is specified, or if the From and To entries are specified for subfields"
+                )
+                StringType(lenSize ?: elementSize!!, varying)
+            }
             RpgType.BOOLEAN.rpgType -> BooleanType
             RpgType.TIMESTAMP.rpgType -> TimeStampType
             RpgType.DATE.rpgType -> {
