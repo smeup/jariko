@@ -111,9 +111,6 @@ internal class StackTrace : Stack<Int> {
                 return i
             }
             if (this.isCallBlocked) {
-//                if (statements[i] !is CallStmt && statements[i - 1] !is CallStmt) {
-//                    this.isCallBlocked = false
-//                }
                 this.push(i + 1)
                 return i + 1
             }
