@@ -1656,6 +1656,7 @@ data class DoStmt(
                     }
                     loopCounter++
                     myIterValue++
+                    MainExecutionContext.getSnapshotManager()?.afterDOIteration()
                 }
             } catch (e: LeaveException) {
                 // nothing to do here
@@ -2418,9 +2419,9 @@ data class ExfmtStmt(
         val response: OnExfmtResponse?
 
         if (snapshotManager == null) {
-            snapshot = RuntimeInterpreterSnapshot("")
+            snapshot = InterpreterSnapshotMock()
             response = jarikoCallback.onExfmt(fields, snapshot)
-            response ?: error("Cannot handle async without a snapshot manager")
+            response ?: error("Cannot handle async save/restore without a snapshot manager")
         } else {
             snapshot = snapshotManager.take()
             response = jarikoCallback.onExfmt(fields, snapshot)

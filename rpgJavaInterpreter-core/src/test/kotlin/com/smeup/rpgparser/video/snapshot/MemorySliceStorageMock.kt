@@ -2,21 +2,25 @@ package com.smeup.rpgparser.video.snapshot
 
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.MemorySliceId
-import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.Value
 
 internal class MemorySliceStorageMock : IMemorySliceStorage {
-    var snapshot: RuntimeInterpreterSnapshot? = null
-    private val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
+    private var snapshot: Snapshot? = null
+
+    fun use(snapshot: Snapshot) {
+        this.snapshot = snapshot
+    }
 
     override fun open() {}
 
     override fun load(memorySliceId: MemorySliceId): Map<String, Value> {
-        return this.storage[memorySliceId] ?: emptyMap()
+        val values = this.snapshot?.symbolTables?.get(memorySliceId)
+        if (values == null) return emptyMap()
+        else return values
     }
 
     override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
-        this.storage[memorySliceId] = values
+        this.snapshot!!.symbolTables[memorySliceId] = values
     }
 
     override fun beginTrans() {}
@@ -28,7 +32,6 @@ internal class MemorySliceStorageMock : IMemorySliceStorage {
     override fun close() {}
 
     fun reset() {
-        this.snapshot = null
-        this.storage.clear()
+        this.snapshot!!.symbolTables.clear()
     }
 }

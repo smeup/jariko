@@ -13,12 +13,15 @@ import kotlin.collections.LinkedHashMap
 
 internal class SnapshotManager(
     private val memorySliceStorage: MemorySliceStorageMock,
-    override var snapshot: RuntimeInterpreterSnapshot? = null
+    // snapshot will be deserialized and passed here
+    var snapshot: Snapshot? = null
 ) : RuntimeInterpreterSnapshotManager {
     // there is no sense to create an instance of this class without a memory slice manager!
     // by the way when initializing this class manager could be not ready yet
     private val memorySliceMgr: MemorySliceMgr?
         get() = MainExecutionContext.getMemorySliceMgr()
+    private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
+    private var stackTrace: StackTrace = this.stackTraceStorage.load(this.programName)
     private val programName: String
         get() = try {
             MainExecutionContext.getProgramStack().peek().name
@@ -31,17 +34,17 @@ internal class SnapshotManager(
         } catch (e: EmptyStackException) {
             ""
         }
-    private val stackTraceStorage: StackTraceStorageMock = StackTraceStorageMock()
-    private var stackTrace: StackTrace = this.stackTraceStorage.load(this.programName)
-    private var doIndex: Long = 0
 
     private fun setUpStorages() {
-        this.stackTraceStorage.snapshot = this.snapshot
-        this.memorySliceStorage.snapshot = this.snapshot
+        if (this.snapshot == null) {
+            this.snapshot = Snapshot()
+        }
+        this.memorySliceStorage.use(this.snapshot!!)
+        this.stackTraceStorage.use(this.snapshot!!)
     }
 
     override fun take(): RuntimeInterpreterSnapshot {
-        this.snapshot = RuntimeInterpreterSnapshot("")
+        this.setUpStorages()
         return this.snapshot!!
     }
 
@@ -49,22 +52,22 @@ internal class SnapshotManager(
         this.setUpStorages()
         this.stackTraceStorage.store(this.programName, this.stackTrace)
         this.memorySliceMgr!!.saveBeforeExfmtSuspend()
+        // here we can serialize snapshot
     }
 
     override fun load() {
         this.setUpStorages()
         // the load operation for memory slice is not needed because it is already
-        // executed after interpreter initialization
-        if (!allowStackReadTest) this.stackTrace = this.stackTraceStorage.load(this.programName)
+        // executed after interpreter initialization before this call
+        if (!allowStackReadTest) {
+            this.stackTrace = this.stackTraceStorage.load(this.programName)
+        }
     }
 
-    override fun beforeDOCycle(): Long {
-        return this.doIndex
-    }
-
-    override fun beforeDOIteration(i: Long) {
-        this.doIndex = i
-    }
+    private var doIndex: Long = 0
+    override fun beforeDOCycle(): Long { return this.doIndex }
+    override fun beforeDOIteration(i: Long) { this.doIndex = i }
+    override fun afterDOIteration() {}
 
     override fun beforeCall() {
         this.load()
@@ -130,6 +133,7 @@ internal class SnapshotManager(
      * Test only: sets the current stack for restore from list
      */
     fun setStackWithList(list: List<Int>) {
+        this.setUpStorages()
         this.stackTraceStorage.store(this.programName, StackTrace.restoredFrom(list))
         this.stackTrace = this.stackTraceStorage.load(this.programName)
     }

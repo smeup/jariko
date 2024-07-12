@@ -1,31 +1,33 @@
 package com.smeup.rpgparser.video.snapshot
 
-import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
-
 internal class StackTraceStorageMock {
-    var snapshot: RuntimeInterpreterSnapshot? = null
-    private var stackTrace: MutableMap<String, StackTrace> = mutableMapOf()
+    private var snapshot: Snapshot? = null
 
-    fun store(id: String, stackTrace: StackTrace) {
-        // set on restore before save if snapshot is defined
-        if (this.snapshot != null) this.stackTrace[id]!!.prepareForRestore()
-        this.stackTrace[id] = stackTrace
+    fun use(snapshot: Snapshot) {
+        this.snapshot = snapshot
     }
 
     fun load(id: String): StackTrace {
-        if (!this.stackTrace.containsKey(id)) {
-            this.stackTrace[id] = StackTrace()
-            return this.stackTrace[id]!!
+        if (this.snapshot == null) {
+            return StackTrace()
         }
+        if (!this.snapshot!!.stackTraces.containsKey(id)) {
+            this.snapshot!!.stackTraces[id] = StackTrace()
+            return this.snapshot!!.stackTraces[id]!!
+        }
+        this.snapshot!!.stackTraces[id]!!.prepareForRestore()
+        return this.snapshot!!.stackTraces[id]!!
+    }
 
-        // set on restore because also state is saved
-        if (this.snapshot != null) this.stackTrace[id]!!.prepareForRestore()
-        return this.stackTrace[id]!!
+    fun store(id: String, stackTrace: StackTrace) {
+        if (this.snapshot != null) {
+            this.snapshot!!.stackTraces[id] = stackTrace
+            this.snapshot!!.stackTraces[id]!!.prepareForRestore()
+        }
     }
 
     fun reset(id: String) {
-        this.snapshot = null
-        this.stackTrace[id] = StackTrace()
+        this.snapshot!!.stackTraces.clear()
     }
 
     fun close() {}
