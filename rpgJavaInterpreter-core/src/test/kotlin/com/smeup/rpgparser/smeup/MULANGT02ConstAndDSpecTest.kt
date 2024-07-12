@@ -434,8 +434,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * TODO
-     * @see TODO
+     * Variable of type A defined with LEN keyword
+     * @see #LS24003324
      */
     @Test
     fun executeMUDRNRAPU00232() {
