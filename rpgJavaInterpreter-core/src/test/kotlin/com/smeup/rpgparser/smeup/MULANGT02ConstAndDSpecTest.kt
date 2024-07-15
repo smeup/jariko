@@ -452,4 +452,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00231".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Variable of type A defined with LEN keyword
+     * @see #LS24003324
+     */
+    @Test
+    fun executeMUDRNRAPU00232() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00232".outputOf(configuration = smeupConfig))
+    }
 }
