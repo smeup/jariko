@@ -17,9 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.RpgParser.Cspec_fixedContext
-import com.smeup.rpgparser.RpgParser.Parm_fixedContext
-import com.smeup.rpgparser.RpgParser.StatementContext
+import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
@@ -151,7 +149,7 @@ open class BaseCompileTimeInterpreter(
             if (it.name.equals(declName, ignoreCase = true)) {
                 return it.elementSize()
             }
-            val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
+            val field = it.fields.find { field -> field.name.equals(declName, ignoreCase = true) }
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
 
@@ -184,7 +182,11 @@ open class BaseCompileTimeInterpreter(
                         }
                     }
                     it.cspec_fixed() != null -> {
-                        val size = it.cspec_fixed().findType(declName, conf)?.size
+                        val size = it.cspec_fixed().findType(
+                            declName = declName,
+                            lookupIn = statements,
+                            conf = conf
+                        )?.size
                         if (size != null) return size
                     }
                     it.dcl_ds() != null -> {
@@ -289,7 +291,11 @@ open class BaseCompileTimeInterpreter(
                             }
                         }
                         it.cspec_fixed() != null -> {
-                            val type = it.cspec_fixed().findType(declName, conf)
+                            val type = it.cspec_fixed().findType(
+                                declName = declName,
+                                lookupIn = statements,
+                                conf = conf
+                            )
                             if (type != null) return type
                         }
                         it.block() != null -> {
@@ -312,11 +318,16 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    private fun Cspec_fixedContext.findType(declName: String, conf: ToAstConfiguration): Type? {
+    private fun Cspec_fixedContext.findType(
+        declName: String,
+        lookupIn: List<StatementContext>? = null,
+        conf: ToAstConfiguration = ToAstConfiguration()
+    ): Type? {
+        val targetStatementsPool = lookupIn ?: rContext().getUnwrappedStatements()
         return when (val ast = this.toAst(conf)) {
             is DefineStmt -> {
-                if (declName != ast.newVarName) return null
-                val type = findType(rContext().statement(), ast.originalName, conf)
+                if (!declName.equals(ast.newVarName, ignoreCase = true)) return null
+                val type = findType(targetStatementsPool, ast.originalName, conf)
                 type
             }
             is StatementThatCanDefineData -> {
@@ -341,8 +352,13 @@ open class BaseCompileTimeInterpreter(
                             procedureContext.subprocedurestatement().mapNotNull { it.statement() })
             }
         }
-        statements.addAll(this.statement() + this.subroutine().flatMap { it.statement() })
+        statements.addAll(this.getUnwrappedStatements())
 
         return statements.toList()
     }
+
+    /**
+     * Retrieve the list of all statements including those contained in subroutines
+     */
+    private fun RContext.getUnwrappedStatements() = this.statement() + this.subroutine().flatMap { it.statement() }
 }
