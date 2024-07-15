@@ -434,6 +434,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Comptime LIKE referencing another D-Spec with LIKE
+     * @see #LS24003329
+     */
+    @Test
+    fun executeMUDRNRAPU00233() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00233".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Comptime DEFINE support based on a comptime resolution inside a subroutine
      * @see #LS24003177
      */
