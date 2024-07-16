@@ -226,7 +226,11 @@ data class JarikoCallback(
      * It is invoked in case of compilation unit encoding errors.
      * The default implementation throws the error
      * */
-    var onCompilationUnitEncodingError: (error: Throwable, format: Format?) -> Unit = { error, _ -> throw error },
+    var onCompilationUnitEncodingError: (
+        error: Throwable,
+        compilationUnit: CompilationUnit,
+        encodingFormat: Format?
+    ) -> Unit = { error, _, _ -> throw error },
 
     /***
      * It is invoked in case of runtime errors occurred inside the program called, only if the error indicator

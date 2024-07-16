@@ -267,7 +267,7 @@ fun doCompilationAtRuntime(
             else -> error("$format not handled")
         }
     }.onFailure { error ->
-        MainExecutionContext.getConfiguration().jarikoCallback.onCompilationUnitEncodingError(error, format)
+        MainExecutionContext.getConfiguration().jarikoCallback.onCompilationUnitEncodingError(error, cu, format)
     }
 
     cu.resolveAndValidate()

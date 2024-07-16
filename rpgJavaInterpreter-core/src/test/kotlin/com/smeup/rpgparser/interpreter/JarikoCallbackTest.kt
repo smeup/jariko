@@ -679,7 +679,7 @@ class JarikoCallbackTest : AbstractTest() {
 
         // Configuration setup with callbacks for encoding errors and general errors
         val configuration = Configuration().apply {
-            jarikoCallback.onCompilationUnitEncodingError = { _, _ ->
+            jarikoCallback.onCompilationUnitEncodingError = { _, _, _ ->
                 enteredInOnCompilationUnitEncodingError = true
             }
             jarikoCallback.onError = { _ ->
