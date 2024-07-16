@@ -26,7 +26,12 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.utils.Format
+import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.StringReader
 import kotlin.test.DefaultAsserter.assertTrue
 import kotlin.test.Test
@@ -655,6 +660,55 @@ class JarikoCallbackTest : AbstractTest() {
         }
         executePgm(programName = "ERRCALLER", configuration = configuration)
         assertNotNull(catchedError)
+    }
+
+    /**
+     * Tests the handling of encoding errors during the compilation unit processing.
+     * This test simulates a scenario where an encoding error occurs while compiling a program.
+     * It sets up callbacks to capture both encoding errors and general errors, then attempts to compile
+     * a program with a known encoding issue. The test asserts that both the encoding error and the general
+     * error callbacks are triggered, indicating that the error handling mechanisms are functioning as expected.
+     * NB: When the encoding errors in ERROR28 are resolved, this test will fail and should be adapted
+     * to mock another kind of encoding error
+     */
+    @Test
+    fun onCompilationUnitEncodingErrorTest() {
+        // Flags to track if callbacks are triggered
+        var enteredInOnCompilationUnitEncodingError = false
+        var enteredInOnError = false
+
+        // Configuration setup with callbacks for encoding errors and general errors
+        val configuration = Configuration().apply {
+            jarikoCallback.onCompilationUnitEncodingError = { _, _ ->
+                enteredInOnCompilationUnitEncodingError = true
+            }
+            jarikoCallback.onError = { _ ->
+                enteredInOnError = true
+            }
+        }
+
+        // Path to the resources directory containing the program to compile
+        val resourcePath = File({}.javaClass.getResource("/smeup/QILEGEN").file).parentFile
+
+        // Attempt to compile the program, expecting an encoding error
+        {}.javaClass.getResource("/ERROR28.rpgle").openStream().use { inputStream ->
+            val programFinders = listOf(DirRpgProgramFinder(resourcePath))
+            kotlin.runCatching {
+                compile(
+                    src = inputStream,
+                    out = ByteArrayOutputStream(),
+                    format = Format.BIN,
+                    programFinders = programFinders,
+                    configuration = configuration
+                )
+            }.onSuccess {
+                Assert.fail("Program must exit with error")
+            }
+        }
+
+        // Assert that both encoding and general error callbacks were triggered
+        Assert.assertTrue(enteredInOnCompilationUnitEncodingError)
+        Assert.assertTrue(enteredInOnError)
     }
 
     /**
