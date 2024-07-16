@@ -26,6 +26,7 @@ import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.utils.Format
 import java.io.File
 
 const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
@@ -220,6 +221,16 @@ data class JarikoCallback(
             }
         } ?: System.err.println(errorEvent)
     },
+
+    /**
+     * It is invoked in case of compilation unit encoding errors.
+     * The default implementation throws the error
+     * */
+    var onCompilationUnitEncodingError: (
+        error: Throwable,
+        compilationUnit: CompilationUnit,
+        encodingFormat: Format?
+    ) -> Unit = { error, _, _ -> throw error },
 
     /***
      * It is invoked in case of runtime errors occurred inside the program called, only if the error indicator
