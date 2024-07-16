@@ -101,7 +101,7 @@ data class LookupLeExpr(
 @Serializable
 data class ScanExpr(
     var value: Expression,
-    val source: Expression,
+    var source: Expression,
     val start: Expression? = null,
     val length: Expression? = null,
     override val position: Position? = null
