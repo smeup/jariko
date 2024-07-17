@@ -260,11 +260,16 @@ fun doCompilationAtRuntime(
         this.muteSupport = muteSupport!!
     }.parseAndProduceAst(src)
 
-    when (format) {
-        Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
-        Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
-        else -> error("$format not handled")
+    runCatching {
+        when (format) {
+            Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
+            Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
+            else -> error("$format not handled")
+        }
+    }.onFailure { error ->
+        MainExecutionContext.getConfiguration().jarikoCallback.onCompilationUnitEncodingError(error, cu, format)
     }
+
     cu.resolveAndValidate()
     println("... done.")
 }
