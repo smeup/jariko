@@ -543,6 +543,11 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeXFOOTBIF() {
+        assertEquals(listOf("15.3"), outputOf("XFOOTBIF"))
+    }
+
+    @Test
     fun executeDEFINE01() {
         assertEquals(listOf("Hello"), outputOf("DEFINE01"))
     }
