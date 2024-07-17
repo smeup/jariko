@@ -1,0 +1,65 @@
+{"name": "B£LOGE0F",
+  "tableName": "B£LOGE0F",
+  "recordFormat": "B£LOGER",
+  "fields": [
+    { "fieldName": "B§LOTT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "B§ORDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":5, "varying":false}}
+  , { "fieldName": "B§TPOG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "B§CDOG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "B§RESP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "B§AZIE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "B§CDOA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "B§TPOA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "B§DEOA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":100, "varying":false}}
+  , { "fieldName": "B§TREC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "B§CFDB",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "B§AZIO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "B§LIES",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "B§TPER",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "B§CDER",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "B§FL01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "B§FL02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "B§FL03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "B§FL04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "B§FL05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "B§USIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "B§OGIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "B§DTIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "B§ORIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "B§USAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "B§OGAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "B§DTAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "B§ORAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "B§NUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":21, "decimalDigits":9, "rpgType":"P"}}
+  , { "fieldName": "B§ALFA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30000, "varying":true}}
+  ], "accessFields": []}
