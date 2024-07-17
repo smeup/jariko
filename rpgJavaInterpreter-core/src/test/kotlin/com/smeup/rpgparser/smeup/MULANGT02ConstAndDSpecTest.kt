@@ -462,4 +462,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00232".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * F-spec of type 'O' that is not a printer file
+     * @see #LS24003409
+     */
+    @Test
+    fun executeMUDRNRAPU00235() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00235".outputOf(configuration = smeupConfig))
+    }
 }
