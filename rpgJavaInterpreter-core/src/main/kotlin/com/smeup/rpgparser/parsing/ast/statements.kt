@@ -937,7 +937,7 @@ data class MonitorStmt(
 
 @Serializable
 data class IfStmt(
-    val condition: Expression,
+    var condition: Expression,
     @SerialName("body")
     val thenBody: List<Statement>,
     val elseIfClauses: List<ElseIfClause> = emptyList(),
