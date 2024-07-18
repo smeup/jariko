@@ -33,6 +33,7 @@ import org.junit.Assert
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.StringReader
+import java.util.*
 import kotlin.test.DefaultAsserter.assertTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -112,7 +113,7 @@ class JarikoCallbackTest : AbstractTest() {
                         println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     }
                     val src = when (sourceReference.sourceReferenceType) {
-                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
+                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId.uppercase(Locale.getDefault()))]
                         SourceReferenceType.Program -> pgm
                     }
                     require(src != null)
