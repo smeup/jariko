@@ -7,7 +7,12 @@ import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.utils.Format
+import com.smeup.rpgparser.utils.compile
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.test.BeforeTest
@@ -682,5 +687,22 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT40_A30_P03() {
         val expected = listOf("Lunghezza: 32580 Contenuto:                     -          -          -          -          -          -          -")
         assertEquals(expected, "smeup/T40_A30_P01".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun `compileOfMU711003-RAWMustBeOk`() {
+        javaClass.getResource("/smeup/MU711003-RAW.rpgle").also { resource ->
+            require(resource != null) { "Resource not found: /smeup/MU711003-RAW.rpgle" }
+            val path = File(resource.path).parentFile
+            val programFinders = listOf(DirRpgProgramFinder(path))
+            resource.openStream().use { inputStream ->
+                compile(
+                    src = inputStream,
+                    out = ByteArrayOutputStream(),
+                    format = Format.BIN,
+                    programFinders = programFinders
+                )
+            }
+        }
     }
 }
