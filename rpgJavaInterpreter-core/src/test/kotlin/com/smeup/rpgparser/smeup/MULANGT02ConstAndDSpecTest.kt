@@ -474,6 +474,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * F-spec of type 'O' that is not a printer file
+     * @see #LS24003409
+     */
+    @Test
+    fun executeMUDRNRAPU00235() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00235".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Access to an array detected as a function call by parser in IfStmt
      * @see #LS24003380
      */
