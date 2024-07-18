@@ -475,9 +475,18 @@ data class SizeExpr(var value: Expression, override val position: Position? = nu
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %XFOOT
+@Serializable
+data class XFootExpr(var value: Expression, override val position: Position? = null) : Expression(position) {
+    override val loggableEntityName get() = "%XFOOT"
+    override fun render() = "%XFOOT(${this.value.render()})"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %ADDR
 @Serializable
 data class AddrExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val loggableEntityName get() = "%ADDR"
     override fun render() = "%ADDR"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -485,6 +494,7 @@ data class AddrExpr(override val position: Position? = null) : Expression(positi
 // %ALLOC
 @Serializable
 data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val loggableEntityName get() = "%ALLOC"
     override fun render() = "%ALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -492,6 +502,7 @@ data class AllocExpr(override val position: Position? = null) : Expression(posit
 // %REALLOC
 @Serializable
 data class ReallocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val loggableEntityName get() = "%REALLOC"
     override fun render() = "%REALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
