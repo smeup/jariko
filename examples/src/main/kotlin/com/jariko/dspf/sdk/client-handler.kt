@@ -4,13 +4,19 @@ import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.interpreter.OnExfmtResponse
 import com.smeup.rpgparser.interpreter.RuntimeInterpreterSnapshot
 import com.smeup.rpgparser.interpreter.Value
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.IOException
 
-class ClientHandler(val id: String, var reader: BufferedReader, var writer: BufferedWriter) : Runnable {
+class ClientHandler(
+    val id: String,
+    var reader: BufferedReader,
+    var writer: BufferedWriter,
+    val onProgramEnd: () -> Unit = { }
+) : Runnable {
 
     // TODO implement a thread pool by using Executors.
     private val jarikoThread = Thread(this)
@@ -33,7 +39,7 @@ class ClientHandler(val id: String, var reader: BufferedReader, var writer: Buff
             return read(reader)
         } catch (e: IOException) {
             println("Exception occurred: ${e.message}")
-            wait()
+            sleep()
             return askForProgramSource()
         }
     }
@@ -43,9 +49,10 @@ class ClientHandler(val id: String, var reader: BufferedReader, var writer: Buff
             write(writer, json.encodeToString<List<DSPFField>>(fields))
         } catch (e: IOException) {
             println("Exception occurred: ${e.message}")
-            wait()
+            sleep()
             send(fields)
         }
+        // should catch for SerializationException?
     }
 
     private fun receive(): Map<String, Value> {
@@ -53,12 +60,13 @@ class ClientHandler(val id: String, var reader: BufferedReader, var writer: Buff
             return json.decodeFromString<Map<String, Value>>(read(reader))
         } catch (e: IOException) {
             println("Exception occurred: ${e.message}")
-            wait()
+            sleep()
             return receive()
         }
+        // should catch for SerializationException?
     }
 
-    private fun wait() {
+    private fun sleep() {
         synchronized(monitor) {
             monitor.wait()
         }
@@ -70,6 +78,8 @@ class ClientHandler(val id: String, var reader: BufferedReader, var writer: Buff
         val (program, configuration) = setup.create()
 
         program.singleCall(emptyList(), configuration)
+        onProgramEnd()
+        jarikoThread.interrupt()
     }
 
     fun resume() {

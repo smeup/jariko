@@ -100,6 +100,8 @@ class WrongInputSyntax : Exception("Should be: `VAR1=VALUE;VAR2=23`")
 
 private fun parseInput(input: String): Map<String, String> {
     try {
+        if (input.isBlank() || input.isEmpty()) return emptyMap()
+
         val assignments = input.split(';')
         val variablesAndValues = mutableMapOf<String, String>()
 
@@ -114,10 +116,12 @@ private fun parseInput(input: String): Map<String, String> {
     }
 }
 
-private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
+private fun updateValues(fields: List<DSPFField>): Map<String, Value> {
     val variablesAndValues = mutableMapOf<String, Value>()
     val line = readln()
     val updatedVariables = parseInput(line)
+
+    if (updatedVariables.isEmpty()) return emptyMap()
 
     updatedVariables.keys.forEach { variable ->
         fields.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
@@ -135,15 +139,19 @@ private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
     return variablesAndValues
 }
 
-fun startVideoSession(fields: List<DSPFField>): Map<String, Value> {
-    render(fields)
+fun ask(fields: List<DSPFField>): Map<String, Value> {
     while (true) {
         try {
-            val variablesAndValues = askInputFor(fields)
+            val variablesAndValues = updateValues(fields)
             return variablesAndValues
         } catch (e: Exception) {
             e.printStackTrace()
             continue
         }
     }
+}
+
+fun startVideoSession(fields: List<DSPFField>): Map<String, Value> {
+    render(fields)
+    return ask(fields)
 }
