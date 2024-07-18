@@ -492,4 +492,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00236".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Dspec with LIKE on a field defined in an API
+     * @see #LS24003456
+     */
+    @Test
+    fun executeMUDRNRAPU00238() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00238".outputOf(configuration = smeupConfig))
+    }
 }
