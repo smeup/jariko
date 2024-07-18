@@ -14,9 +14,10 @@ class Server(private val port: Int) {
         return clients.find { it.id == id }
     }
 
-    private fun onProgramEndClose(client: Socket): () -> Unit {
+    private fun onProgramEnd(client: Socket): (clientHandler: ClientHandler) -> Unit {
         return {
             try {
+                clients.remove(it)
                 client.close()
             } catch (e: IOException) {
                 stop()
@@ -38,7 +39,7 @@ class Server(private val port: Int) {
                 this.writer = writer
                 println("Resuming client: ${this.id}")
                 this.resume()
-            } ?: ClientHandler(id, reader, writer, onProgramEndClose(client)).apply {
+            } ?: ClientHandler(id, reader, writer, onProgramEnd(client)).apply {
                 println("Creating client: ${this.id}")
                 clients.add(this)
             }

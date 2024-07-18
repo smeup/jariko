@@ -16,6 +16,7 @@ private var isRunAsJar = false
 
 fun detectRuntime(args: Array<String>) {
     isRunAsJar = args.isNotEmpty()
+    println("Running as ${if (isRunAsJar) "jar" else "source"}")
 }
 
 class CLIProgramSetup(

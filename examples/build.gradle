@@ -50,9 +50,9 @@ task dspfFromCliFatJar(type: Jar) {
     with jar
 }
 
-task dspfMultithreadServerFatJar(type: Jar) {
+task dspfSDKServerFatJar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'com.dspf.multithread.ServerKt'
+        attributes 'Main-Class': 'com.jariko.dspf.sdk.ServerKt'
     }
     archiveBaseName = project.name + '-server'
     archiveVersion = ''
@@ -61,9 +61,9 @@ task dspfMultithreadServerFatJar(type: Jar) {
     with jar
 }
 
-task dspfMultithreadClientFatJar(type: Jar) {
+task dspfSDKClientFatJar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'com.dspf.multithread.ClientKt'
+        attributes 'Main-Class': 'com.jariko.dspf.sdk.ClientKt'
     }
     archiveBaseName = project.name + '-client'
     archiveVersion = ''

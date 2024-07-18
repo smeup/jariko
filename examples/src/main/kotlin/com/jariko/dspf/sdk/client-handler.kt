@@ -15,7 +15,7 @@ class ClientHandler(
     val id: String,
     var reader: BufferedReader,
     var writer: BufferedWriter,
-    val onProgramEnd: () -> Unit = { }
+    val onProgramEnd: (clientHandler: ClientHandler) -> Unit = { }
 ) : Runnable {
 
     // TODO implement a thread pool by using Executors.
@@ -38,7 +38,6 @@ class ClientHandler(
         try {
             return read(reader)
         } catch (e: IOException) {
-            println("Exception occurred: ${e.message}")
             sleep()
             return askForProgramSource()
         }
@@ -48,22 +47,28 @@ class ClientHandler(
         try {
             write(writer, json.encodeToString<List<DSPFField>>(fields))
         } catch (e: IOException) {
-            println("Exception occurred: ${e.message}")
+            sleep()
+            send(fields)
+        } catch (e: SerializationException) {
             sleep()
             send(fields)
         }
-        // should catch for SerializationException?
     }
 
     private fun receive(): Map<String, Value> {
         try {
             return json.decodeFromString<Map<String, Value>>(read(reader))
         } catch (e: IOException) {
-            println("Exception occurred: ${e.message}")
             sleep()
+            // discard program source
+            receive()
+            return receive()
+        } catch (e: SerializationException) {
+            sleep()
+            // discard program source
+            receive()
             return receive()
         }
-        // should catch for SerializationException?
     }
 
     private fun sleep() {
@@ -78,7 +83,7 @@ class ClientHandler(
         val (program, configuration) = setup.create()
 
         program.singleCall(emptyList(), configuration)
-        onProgramEnd()
+        onProgramEnd(this)
         jarikoThread.interrupt()
     }
 
