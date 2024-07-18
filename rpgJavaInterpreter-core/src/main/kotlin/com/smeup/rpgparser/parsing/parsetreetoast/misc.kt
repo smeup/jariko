@@ -138,7 +138,9 @@ private fun List<StatementContext?>.getDataDefinition(
                             conf = conf,
                             knownDataDefinitions = knownDataDefinitions.values.toList(),
                             parentDataDefinitions = parentDataDefinitions,
-                            procedureName = procedureName)
+                            fileDefinitions = fileDefinitions,
+                            procedureName = procedureName
+                        )
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
 

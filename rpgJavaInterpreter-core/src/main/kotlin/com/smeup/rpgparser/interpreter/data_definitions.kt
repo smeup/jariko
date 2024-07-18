@@ -137,9 +137,10 @@ data class Prefix(internal val prefix: String, private val numCharsReplaced: Int
 }
 
 enum class FileType(val keyword: String?) {
-    DB(null), VIDEO("C"), PRINTER("O");
+    DB(null), VIDEO("C"), PRINTER(null);
 
     companion object {
+        // see https://www.ibm.com/docs/sl/i/7.3?topic=statement-position-17-file-type
         fun getByKeyword(keyword: String): FileType {
             return FileType.values().firstOrNull() {
                 it.keyword == keyword

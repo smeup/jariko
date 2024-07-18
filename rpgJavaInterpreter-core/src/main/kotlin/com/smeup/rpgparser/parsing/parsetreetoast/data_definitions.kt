@@ -112,11 +112,13 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     } else {
         null
     }
+    val isPrinter = this.FS_Device().text.trim().uppercase() == "PRINTER" || this.fs_keyword().any { it.keyword_printer() != null }
+    val fileType = if (isPrinter) FileType.PRINTER else FileType.getByKeyword(this.FS_Type().text.trim())
     val fileDefinition = FileDefinition(
         name = this.FS_RecordName().text.trim(),
         position = this.toPosition(conf.considerPosition),
         prefix = prefix,
-        fileType = FileType.getByKeyword(this.FS_Type().text.trim())
+        fileType = fileType
     )
     val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
     if (rename.isNotEmpty()) {
