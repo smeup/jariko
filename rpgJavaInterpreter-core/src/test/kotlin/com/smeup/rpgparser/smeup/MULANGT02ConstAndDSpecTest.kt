@@ -485,7 +485,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     /**
      * Dspec with LIKE on a field defined in an API
-     * @see TODO
+     * @see #LS24003456
      */
     @Test
     fun executeMUDRNRAPU00238() {
