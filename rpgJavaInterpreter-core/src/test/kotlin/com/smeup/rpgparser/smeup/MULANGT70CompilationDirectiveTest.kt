@@ -47,4 +47,14 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val myConfig = smeupConfig.copy().apply { jarikoCallback.onApiInclusion = { _, _ -> } }
         assertEquals(expected, "smeup/MU711004".outputOf(configuration = myConfig))
     }
+
+    /**
+     * COPY where its name has lower alphabetic character.
+     * @see #LS24003436
+     */
+    @Test
+    fun executeMU711006() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MU711006".outputOf(configuration = smeupConfig))
+    }
 }
