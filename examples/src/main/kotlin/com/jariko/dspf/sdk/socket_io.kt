@@ -2,6 +2,7 @@ package com.jariko.dspf.sdk
 
 import java.io.BufferedReader
 import java.io.BufferedWriter
+import java.io.IOException
 
 // End Of Buffer
 private const val EOB = "EOB"
@@ -18,6 +19,8 @@ fun read(bufferedReader: BufferedReader): String {
         string.append(line)
     }
 
+    // there can be a client disconnection with no exception thrown
+    if (line.isNullOrEmpty()) throw IOException()
     return string.toString()
 }
 

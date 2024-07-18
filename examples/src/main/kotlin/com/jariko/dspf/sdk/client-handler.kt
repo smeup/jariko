@@ -11,6 +11,8 @@ import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.IOException
 
+
+
 class ClientHandler(
     val id: String,
     var reader: BufferedReader,
@@ -19,7 +21,7 @@ class ClientHandler(
 ) : Runnable {
 
     // TODO implement a thread pool by using Executors.
-    private val jarikoThread = Thread(this)
+    private val jarikoThread: Thread = Thread(this)
     private val monitor = Object()
 
     init {
@@ -29,7 +31,6 @@ class ClientHandler(
 
     private fun onExfmt(fields: List<DSPFField>, snapshot: RuntimeInterpreterSnapshot): OnExfmtResponse? {
         send(fields)
-        // TODO check what happens on resumed thread
         val values = receive()
         return OnExfmtResponse(snapshot, values)
     }
@@ -49,46 +50,52 @@ class ClientHandler(
         } catch (e: IOException) {
             sleep()
             send(fields)
-        } catch (e: SerializationException) {
-            sleep()
-            send(fields)
         }
     }
 
     private fun receive(): Map<String, Value> {
         try {
-            return json.decodeFromString<Map<String, Value>>(read(reader))
+            val message = read(reader)
+            when (message) {
+                "STOP" -> throw ProgramTerminationException()
+            }
+//            read(reader)
+            return json.decodeFromString<Map<String, Value>>(message)
         } catch (e: IOException) {
             sleep()
-            // discard program source
-            receive()
-            return receive()
-        } catch (e: SerializationException) {
-            sleep()
-            // discard program source
-            receive()
+            println("Awake...")
             return receive()
         }
+//        catch (e: SerializationException) {
+//            return receive()
+//        }
     }
 
     private fun sleep() {
         synchronized(monitor) {
+            println("putting thread to sleep")
             monitor.wait()
         }
     }
 
     override fun run() {
-        val programSource = askForProgramSource()
-        val setup = CLIProgramSetup(programSource, ::onExfmt)
-        val (program, configuration) = setup.create()
+        try {
+            val programSource = askForProgramSource()
+            val setup = CLIProgramSetup(programSource, ::onExfmt)
+            val (program, configuration) = setup.create()
 
-        program.singleCall(emptyList(), configuration)
-        onProgramEnd(this)
-        jarikoThread.interrupt()
+            program.singleCall(emptyList(), configuration)
+        } catch (_: ProgramTerminationException) {
+
+        } finally {
+            onProgramEnd(this)
+            jarikoThread.interrupt()
+        }
     }
 
     fun resume() {
         synchronized(monitor) {
+            println("waking up thread")
             monitor.notify()
         }
     }

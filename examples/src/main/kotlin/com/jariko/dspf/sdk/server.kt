@@ -44,7 +44,7 @@ class Server(private val port: Int) {
                 clients.add(this)
             }
 
-            println("Client connected: ${clientHandler.id}")
+            println("Client ${clientHandler.id} is now active")
         }
     }
 
