@@ -842,6 +842,12 @@ class ExpressionEvaluation(
 
     override fun eval(expression: NullValExpr): Value = proxyLogging(expression) { NullValue }
 
+    override fun eval(expression: XFootExpr): Value = proxyLogging(expression) {
+        val arrayRef = expression.value as? DataRefExpr ?: error("%XFOOT is only allowed for array expression")
+        val array = eval(arrayRef) as? ArrayValue ?: error("%XFOOT is only allowed for ArrayValue")
+        xfoot(array)
+    }
+
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
         return NullValue
