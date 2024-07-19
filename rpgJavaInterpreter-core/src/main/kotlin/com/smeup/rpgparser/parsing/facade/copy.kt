@@ -105,7 +105,7 @@ val PATTERN: Pattern = Pattern.compile("" +
 fun String.copyId(): CopyId {
     return when {
         this.contains('/') -> {
-            this.split("/,").let {
+            this.split("/", ",").let {
                 CopyId(it[0].uppercase(Locale.getDefault()), it[1].uppercase(Locale.getDefault()), it[2].uppercase(Locale.getDefault()))
             }
         }
