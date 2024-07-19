@@ -885,7 +885,7 @@ open class InternalInterpreter(
             }
             is SubstExpr -> {
                 val oldValue = eval(target.string).asString().value
-                val length = if (target.length != null) eval(target.length).asInt().value.toInt() else null
+                val length = target.length?.let { eval(it).asInt().value.toInt() }
                 val start = eval(target.start).asInt().value.toInt() - 1
 
                 val newValue = if (length == null) {
