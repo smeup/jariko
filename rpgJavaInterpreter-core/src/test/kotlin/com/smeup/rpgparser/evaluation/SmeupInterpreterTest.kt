@@ -7,13 +7,15 @@ import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.utils.Format
+import com.smeup.rpgparser.utils.compile
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 open class SmeupInterpreterTest : AbstractTest() {
 
@@ -682,5 +684,39 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT40_A30_P03() {
         val expected = listOf("Lunghezza: 32580 Contenuto:                     -          -          -          -          -          -          -")
         assertEquals(expected, "smeup/T40_A30_P01".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun pgmWithErrorMustNotBeSerialized() {
+        // This test is to ensure that a program with at least an error must not be serialized
+
+        var firstError: Throwable? = null
+        var compilationError: Throwable? = null
+        val configuration = Configuration().apply {
+            jarikoCallback.onError =
+                { errorEvent -> firstError = if (firstError == null) errorEvent.error else firstError }
+        }
+        javaClass.getResource("/ERROR28.rpgle").also { resource ->
+            require(resource != null) { "Resource not found: /ERROR28.rpgle" }
+            val path = File(resource.path).parentFile
+            val smeupPath = File(javaClass.getResource("/smeup")!!.path)
+            val programFinders = listOf(DirRpgProgramFinder(path), DirRpgProgramFinder(smeupPath))
+            try {
+                resource.openStream().use { inputStream ->
+                    compile(
+                        src = inputStream,
+                        out = ByteArrayOutputStream(),
+                        format = Format.BIN,
+                        programFinders = programFinders,
+                        configuration = configuration
+                    )
+                }
+            } catch (e: Exception) {
+                compilationError = e
+            }
+        }
+        assertNotNull(firstError)
+        assertNotNull(compilationError)
+        assertSame(firstError, compilationError)
     }
 }

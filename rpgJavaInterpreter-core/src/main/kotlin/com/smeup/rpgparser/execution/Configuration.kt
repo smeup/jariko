@@ -304,14 +304,14 @@ data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSour
 
     /**
      * The source code line from which the error event has been fired.
-     * Could be null
+     * If for some reason the source code line is not available, it returns the error message.
      * */
     val fragment = absoluteLine?.let { line ->
         when (errorEventSource) {
             ErrorEventSource.Parser -> MainExecutionContext.getParsingProgramStack().takeIf { it.isNotEmpty() }?.peek()?.sourceLines?.get(line - 1)
             ErrorEventSource.Interpreter -> MainExecutionContext.getProgramStack().takeIf { it.isNotEmpty() }?.peek()?.cu?.source?.split("\\r\\n|\\n".toRegex())?.get(line - 1)
         }
-    }
+    } ?: error.message ?: ""
 
     override fun toString(): String {
         return "ErrorEvent(error=$error, errorEventSource=$errorEventSource, absoluteLine=$absoluteLine, sourceReference=$sourceReference, fragment=$fragment)"
