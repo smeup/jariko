@@ -192,13 +192,13 @@ data class SubstExpr(
     var string: Expression,
     // i don't know but fix: Error com.strumenta.kolasu.model.ImmutablePropertyException: Cannot mutate property 'start' of node FunctionCall(
     var start: Expression,
-    val length: Expression? = null,
+    var length: Expression? = null,
     override val position: Position? = null
 ) : AssignableExpression(position) {
     override val loggableEntityName: String
         get() = "%SUBST"
     override fun render(): String {
-        val len = if (length != null) ": ${length.render()}" else ""
+        val len = length?.let { ": ${length!!.render()}" } ?: ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
     override fun size(): Int {
