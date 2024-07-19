@@ -696,10 +696,11 @@ open class SmeupInterpreterTest : AbstractTest() {
             jarikoCallback.onError =
                 { errorEvent -> firstError = if (firstError == null) errorEvent.error else firstError }
         }
-        javaClass.getResource("/smeup/MU711003-RAW.rpgle").also { resource ->
-            require(resource != null) { "Resource not found: /smeup/MU711003-RAW.rpgle" }
+        javaClass.getResource("/ERROR28.rpgle").also { resource ->
+            require(resource != null) { "Resource not found: /ERROR28.rpgle" }
             val path = File(resource.path).parentFile
-            val programFinders = listOf(DirRpgProgramFinder(path))
+            val smeupPath = File(javaClass.getResource("/smeup")!!.path)
+            val programFinders = listOf(DirRpgProgramFinder(path), DirRpgProgramFinder(smeupPath))
             try {
                 resource.openStream().use { inputStream ->
                     compile(
