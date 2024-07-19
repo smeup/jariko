@@ -56,25 +56,27 @@ class ClientHandler(
     private fun receive(): Map<String, Value> {
         try {
             val message = read(reader)
-            when (message) {
-                "STOP" -> throw ProgramTerminationException()
-            }
-//            read(reader)
             return json.decodeFromString<Map<String, Value>>(message)
         } catch (e: IOException) {
             sleep()
-            println("Awake...")
             return receive()
+        } catch (e: SerializationException) {
+            println("Client $id attempted to run ex novo an already running program, quitting...")
+            throw e
         }
-//        catch (e: SerializationException) {
-//            return receive()
-//        }
     }
 
     private fun sleep() {
         synchronized(monitor) {
             println("putting thread to sleep")
             monitor.wait()
+        }
+    }
+
+    fun resume() {
+        synchronized(monitor) {
+            println("waking up thread")
+            monitor.notify()
         }
     }
 
@@ -85,18 +87,16 @@ class ClientHandler(
             val (program, configuration) = setup.create()
 
             program.singleCall(emptyList(), configuration)
-        } catch (_: ProgramTerminationException) {
-
+            write(writer, "PROGRAM_END")
+        } catch (e: ProgramTerminationException) {
+            println(e.message)
+        } catch (e: Exception) {
+            println(e.message)
         } finally {
+            println("Deleting client $id session")
+            write(writer, "PROGRAM_END")
             onProgramEnd(this)
             jarikoThread.interrupt()
-        }
-    }
-
-    fun resume() {
-        synchronized(monitor) {
-            println("waking up thread")
-            monitor.notify()
         }
     }
 }

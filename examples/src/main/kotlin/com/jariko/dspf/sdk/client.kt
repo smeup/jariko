@@ -6,12 +6,12 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.io.BufferedReader
 import java.io.BufferedWriter
+import java.io.IOException
 import java.net.Socket
 
 private enum class RemoteProgramState {
     EX_NOVO,
-    RESUME,
-    RESTART
+    RESUME
 }
 
 class RemoteProgramCaller(
@@ -27,16 +27,6 @@ class RemoteProgramCaller(
         get() = server?.getOutputStream()?.bufferedWriter()
     private var state: RemoteProgramState = RemoteProgramState.EX_NOVO
 
-    fun resume() {
-        state = RemoteProgramState.RESUME
-        call()
-    }
-
-    fun restart() {
-        state = RemoteProgramState.RESTART
-        call()
-    }
-
     private fun tellId() {
         write(writer!!, id)
     }
@@ -50,7 +40,16 @@ class RemoteProgramCaller(
     }
 
     private fun receive(): List<DSPFField> {
-        return json.decodeFromString<List<DSPFField>>(read(reader!!))
+        val message = read(reader!!)
+        when (message) {
+            "PROGRAM_END" -> throw ProgramTerminationException()
+        }
+        return json.decodeFromString<List<DSPFField>>(message)
+    }
+
+    fun resume() {
+        state = RemoteProgramState.RESUME
+        call()
     }
 
     fun call() {
@@ -59,14 +58,14 @@ class RemoteProgramCaller(
             println("Connected")
 
             tellId()
-//            tellProgramSource()
-//            write(writer!!, "STOP")
-            if (state == RemoteProgramState.RESTART) {
-                write(writer!!, "STOP")
-                throw ProgramTerminationException()
+            when (state) {
+                RemoteProgramState.EX_NOVO -> {
+                    tellProgramSource()
+                }
+                RemoteProgramState.RESUME -> {
+                    send(emptyMap())
+                }
             }
-            if (state == RemoteProgramState.EX_NOVO) tellProgramSource()
-            if (state == RemoteProgramState.RESUME) send(emptyMap())
 
             while(true) {
                 val fields = receive()
@@ -74,10 +73,9 @@ class RemoteProgramCaller(
                 send(values)
             }
         } catch (e: ProgramTerminationException) {
-            if (state == RemoteProgramState.RESTART) {
-                state = RemoteProgramState.EX_NOVO
-                call()
-            }
+            println(e.message)
+        } catch(e: IOException) {
+            println("Server connection error")
             println(e.message)
         } finally {
             server?.close()
@@ -97,7 +95,6 @@ fun main(args: Array<String>) {
     try {
         when (args[2]) {
             "--resume" -> program.resume()
-            "--restart" -> program.restart()
             else -> throw IllegalArgumentException()
         }
     } catch (e: ArrayIndexOutOfBoundsException) {
