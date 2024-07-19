@@ -15,10 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 open class SmeupInterpreterTest : AbstractTest() {
 
@@ -690,19 +687,35 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun `compileOfMU711003-RAWMustBeOk`() {
+    fun pgmWithErrorMustNotBeSerialized() {
+        // This test is to ensure that a program with at least an error must not be serialized
+
+        var firstError: Throwable? = null
+        var compilationError: Throwable? = null
+        val configuration = Configuration().apply {
+            jarikoCallback.onError =
+                { errorEvent -> firstError = if (firstError == null) errorEvent.error else firstError }
+        }
         javaClass.getResource("/smeup/MU711003-RAW.rpgle").also { resource ->
             require(resource != null) { "Resource not found: /smeup/MU711003-RAW.rpgle" }
             val path = File(resource.path).parentFile
             val programFinders = listOf(DirRpgProgramFinder(path))
-            resource.openStream().use { inputStream ->
-                compile(
-                    src = inputStream,
-                    out = ByteArrayOutputStream(),
-                    format = Format.BIN,
-                    programFinders = programFinders
-                )
+            try {
+                resource.openStream().use { inputStream ->
+                    compile(
+                        src = inputStream,
+                        out = ByteArrayOutputStream(),
+                        format = Format.BIN,
+                        programFinders = programFinders,
+                        configuration = configuration
+                    )
+                }
+            } catch (e: Exception) {
+                compilationError = e
             }
         }
+        assertNotNull(firstError)
+        assertNotNull(compilationError)
+        assertSame(firstError, compilationError)
     }
 }

@@ -259,7 +259,9 @@ fun doCompilationAtRuntime(
     cu = RpgParserFacade().apply {
         this.muteSupport = muteSupport!!
     }.parseAndProduceAst(src)
-
+    if (getAstCreationErrors().isNotEmpty()) {
+        throw getAstCreationErrors().first()
+    }
     runCatching {
         when (format) {
             Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
