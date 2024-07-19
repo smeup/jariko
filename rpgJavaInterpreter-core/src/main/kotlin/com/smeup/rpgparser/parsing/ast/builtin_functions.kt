@@ -198,7 +198,7 @@ data class SubstExpr(
     override val loggableEntityName: String
         get() = "%SUBST"
     override fun render(): String {
-        val len = length?.let { ": ${length!!.render()}" } ?: ""
+        val len = length?.let { ": ${it.render()}" } ?: ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
     override fun size(): Int {
