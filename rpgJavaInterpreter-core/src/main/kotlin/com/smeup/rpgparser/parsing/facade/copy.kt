@@ -106,12 +106,12 @@ fun String.copyId(): CopyId {
     return when {
         this.contains('/') -> {
             this.split("/,").let {
-                CopyId(it[0], it[1], it[2].uppercase(Locale.getDefault()))
+                CopyId(it[0].uppercase(Locale.getDefault()), it[1].uppercase(Locale.getDefault()), it[2].uppercase(Locale.getDefault()))
             }
         }
         this.contains(",") -> {
             this.split(",").let {
-                CopyId(null, it[0], it[1].uppercase(Locale.getDefault()))
+                CopyId(null, it[0].uppercase(Locale.getDefault()), it[1].uppercase(Locale.getDefault()))
             }
         }
         else -> CopyId(null, null, this)
