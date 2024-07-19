@@ -425,7 +425,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: SubstExpr): Value = proxyLogging(expression) {
-        val length = if (expression.length != null) expression.length.evalWith(this).asInt().value.toInt() else 0
+        val length = expression.length?.evalWith(this)?.asInt()?.value?.toInt() ?: 0
         val start = expression.start.evalWith(this).asInt().value.toInt() - 1
         val originalString = expression.string.evalWith(this).asString().value
         return@proxyLogging if (length == 0) {
