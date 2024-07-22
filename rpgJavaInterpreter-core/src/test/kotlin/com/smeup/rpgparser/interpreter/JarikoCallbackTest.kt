@@ -813,7 +813,8 @@ class JarikoCallbackTest : AbstractTest() {
     private fun executeSourceLineTest(
         pgm: String,
         throwableConsumer: (Throwable) -> Unit = {},
-        additionalProgramFinders: List<RpgProgramFinder> = emptyList()
+        additionalProgramFinders: List<RpgProgramFinder> = emptyList(),
+        reloadConfig: ReloadConfig = createMockReloadConfig()
     ) {
         val sourceIdToLines = mutableMapOf<String, List<String>>()
         val errorEvents = mutableListOf<ErrorEvent>()
@@ -822,11 +823,13 @@ class JarikoCallbackTest : AbstractTest() {
                 sourceIdToLines[MainExecutionContext.getParsingProgramStack().peek().name] = it.lines()
                 it
             }
-            jarikoCallback.onError = { errorEvents.add(it) }
+            jarikoCallback.onError = {
+                errorEvents.add(it)
+            }
             // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
             // of runtime error
             options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
-            reloadConfig = createMockReloadConfig()
+            this.reloadConfig = reloadConfig
         }
         kotlin.runCatching {
             executePgm(pgm, configuration = configuration, additionalProgramFinders = additionalProgramFinders)
@@ -834,6 +837,10 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.fail("$pgm must exit with error")
         }.onFailure {
             throwableConsumer(it)
+            if (errorEvents.any { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }) {
+                val errorEvent = errorEvents.first { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }
+                error("errorEvent: $errorEvent\nwith sourceId: UNKNOWN is not allowed")
+            }
             errorEvents.forEach { errorEvent ->
                 // copy is not parsed so, if sourceReference is a copy, I will use the program name
                 val sourceId = if (errorEvent.sourceReference!!.sourceReferenceType == SourceReferenceType.Copy) {
