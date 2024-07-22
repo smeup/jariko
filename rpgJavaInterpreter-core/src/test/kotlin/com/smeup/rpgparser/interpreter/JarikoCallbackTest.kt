@@ -579,6 +579,21 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR29SourceLineTest() {
+        val additionalProgramFinders = listOf(DirRpgProgramFinder(File(javaClass.getResource("/smeup/").file)))
+        val path = javaClass.getResource("/smeup/metadata")!!.path
+        val simpleReloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
+        val reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            metadataProducer = { dbFile: String -> simpleReloadConfig.getMetadata(dbFile = dbFile) })
+        executeSourceLineTest(
+            pgm = "ERROR29",
+            additionalProgramFinders = additionalProgramFinders,
+            reloadConfig = reloadConfig
+        )
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
