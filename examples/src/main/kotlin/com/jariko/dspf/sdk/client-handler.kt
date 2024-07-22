@@ -88,8 +88,6 @@ class ClientHandler(
 
             program.singleCall(emptyList(), configuration)
             write(writer, "PROGRAM_END")
-        } catch (e: ProgramTerminationException) {
-            println(e.message)
         } catch (e: Exception) {
             println(e.message)
         } finally {
