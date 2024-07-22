@@ -205,7 +205,8 @@ abstract class AbstractTest {
         programName: String,
         params: CommandLineParms = CommandLineParms(emptyList()),
         configuration: Configuration = Configuration(),
-        systemInterface: SystemInterface = JavaSystemInterface()
+        systemInterface: SystemInterface = JavaSystemInterface(),
+        additionalProgramFinders: List<RpgProgramFinder> = emptyList<RpgProgramFinder>()
     ): CommandLineParms? {
         val resourceName = if (programName.endsWith(".rpgle")) {
             programName
@@ -223,6 +224,7 @@ abstract class AbstractTest {
         if (resource != null) programFinders.add(DirRpgProgramFinder(directory = File(resource.path).parentFile))
         programFinders.add(DirRpgProgramFinder(directory = File("src/test/resources/")))
         if (inlinePgm) programFinders.add(SourceProgramFinder())
+        programFinders.addAll(additionalProgramFinders)
         val jariko = getProgram(
             nameOrSource = if (inlinePgm) programName else programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,
