@@ -570,6 +570,13 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR28SourceLineTest() {
+        val path = javaClass.getResource("/smeup/").file
+        val additionalProgramFinders = listOf(DirRpgProgramFinder(File(path)))
+        executeSourceLineTest("ERROR28", additionalProgramFinders = additionalProgramFinders)
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
