@@ -573,7 +573,13 @@ class JarikoCallbackTest : AbstractTest() {
     fun executeERROR28SourceLineTest() {
         val path = javaClass.getResource("/smeup/").file
         val additionalProgramFinders = listOf(DirRpgProgramFinder(File(path)))
-        executeSourceLineTest("ERROR28", additionalProgramFinders = additionalProgramFinders)
+        executeSourceLineTest(
+            pgm = "ERROR28",
+            additionalProgramFinders = additionalProgramFinders,
+            throwableConsumer = {
+                it.printStackTrace()
+            }
+        )
     }
 
     @Test
