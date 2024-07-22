@@ -33,7 +33,6 @@ import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.StringReader
 import java.util.*
 import kotlin.test.*
 import kotlin.test.DefaultAsserter.assertTrue
@@ -575,10 +574,7 @@ class JarikoCallbackTest : AbstractTest() {
         val additionalProgramFinders = listOf(DirRpgProgramFinder(File(path)))
         executeSourceLineTest(
             pgm = "ERROR28",
-            additionalProgramFinders = additionalProgramFinders,
-            throwableConsumer = {
-                it.printStackTrace()
-            }
+            additionalProgramFinders = additionalProgramFinders
         )
     }
 
@@ -819,13 +815,11 @@ class JarikoCallbackTest : AbstractTest() {
         throwableConsumer: (Throwable) -> Unit = {},
         additionalProgramFinders: List<RpgProgramFinder> = emptyList()
     ) {
-        lateinit var lines: List<String>
+        val sourceIdToLines = mutableMapOf<String, List<String>>()
         val errorEvents = mutableListOf<ErrorEvent>()
         val configuration = Configuration().apply {
             jarikoCallback.beforeParsing = { it ->
-                if (MainExecutionContext.getParsingProgramStack().peek().name == pgm) {
-                    lines = StringReader(it).readLines()
-                }
+                sourceIdToLines[MainExecutionContext.getParsingProgramStack().peek().name] = it.lines()
                 it
             }
             jarikoCallback.onError = { errorEvents.add(it) }
@@ -841,6 +835,13 @@ class JarikoCallbackTest : AbstractTest() {
         }.onFailure {
             throwableConsumer(it)
             errorEvents.forEach { errorEvent ->
+                // copy is not parsed so, if sourceReference is a copy, I will use the program name
+                val sourceId = if (errorEvent.sourceReference!!.sourceReferenceType == SourceReferenceType.Copy) {
+                    pgm
+                } else {
+                    errorEvent.sourceReference!!.sourceId
+                }
+                val lines = sourceIdToLines[sourceId]!!
                 if (lines[errorEvent.absoluteLine!! - 1] != errorEvent.fragment) {
                     System.err.println("ErrorEvent: $errorEvent")
                     System.err.println("Jariko arose an error at this line: ${errorEvent.absoluteLine!!}, fragment: ${errorEvent.fragment}")
