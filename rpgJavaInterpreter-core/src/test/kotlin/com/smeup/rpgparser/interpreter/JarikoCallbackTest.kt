@@ -27,6 +27,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
@@ -34,11 +35,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.StringReader
 import java.util.*
+import kotlin.test.*
 import kotlin.test.DefaultAsserter.assertTrue
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 /**
  * Test suite to test Jariko callback features
@@ -798,9 +796,16 @@ class JarikoCallbackTest : AbstractTest() {
 
     /**
      * Verify that the sourceLine is properly set in case of error.
-     * ErrorEvent must contain a reference of an absolute line of the source code
+     * ErrorEvent must contain a reference to an absolute line of the source code
+     * @param pgm The name of the program to be executed.
+     * @param throwableConsumer A consumer to handle the throwable, default is empty.
+     * @param additionalProgramFinders A list of additional program finders to be used during the execution, default is empty.
      * */
-    private fun executeSourceLineTest(pgm: String, throwableConsumer: (Throwable) -> Unit = {}) {
+    private fun executeSourceLineTest(
+        pgm: String,
+        throwableConsumer: (Throwable) -> Unit = {},
+        additionalProgramFinders: List<RpgProgramFinder> = emptyList()
+    ) {
         lateinit var lines: List<String>
         val errorEvents = mutableListOf<ErrorEvent>()
         val configuration = Configuration().apply {
@@ -817,13 +822,18 @@ class JarikoCallbackTest : AbstractTest() {
             reloadConfig = createMockReloadConfig()
         }
         kotlin.runCatching {
-            executePgm(pgm, configuration = configuration)
+            executePgm(pgm, configuration = configuration, additionalProgramFinders = additionalProgramFinders)
         }.onSuccess {
             Assert.fail("$pgm must exit with error")
         }.onFailure {
             throwableConsumer(it)
-            errorEvents.forEach {
-                Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
+            errorEvents.forEach { errorEvent ->
+                if (lines[errorEvent.absoluteLine!! - 1] != errorEvent.fragment) {
+                    System.err.println("ErrorEvent: $errorEvent")
+                    System.err.println("Jariko arose an error at this line: ${errorEvent.absoluteLine!!}, fragment: ${errorEvent.fragment}")
+                    System.err.println("But the source code at line: ${errorEvent.absoluteLine!!} is: ${lines[errorEvent.absoluteLine!! - 1]}")
+                    fail()
+                }
             }
         }
     }
