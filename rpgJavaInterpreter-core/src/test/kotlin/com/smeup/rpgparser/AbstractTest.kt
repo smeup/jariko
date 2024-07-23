@@ -496,6 +496,8 @@ abstract class AbstractTest {
             throwableConsumer(it)
             if (errorEvents.any { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }) {
                 val errorEvent = errorEvents.first { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }
+                System.err.println("ErrorEvent.error:")
+                errorEvent.error.printStackTrace()
                 error("errorEvent: $errorEvent\nwith sourceId: UNKNOWN is not allowed")
             }
             errorEvents.forEach { errorEvent ->
