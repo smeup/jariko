@@ -396,6 +396,7 @@ abstract class AbstractTest {
             Assert.fail("Program must exit with error")
         }.onFailure {
             println(it.stackTraceToString())
+            errorEvents.throwErrorIfUnknownSourceId()
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             Assert.assertEquals(lines.sorted(), errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
@@ -434,6 +435,7 @@ abstract class AbstractTest {
             Assert.fail("Program must exit with error")
         }.onFailure {
             println(it.stackTraceToString())
+            errorEvents.throwErrorIfUnknownSourceId()
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
@@ -494,12 +496,7 @@ abstract class AbstractTest {
             Assert.fail("$pgm must exit with error")
         }.onFailure {
             throwableConsumer(it)
-            if (errorEvents.any { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }) {
-                val errorEvent = errorEvents.first { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }
-                System.err.println("ErrorEvent.error:")
-                errorEvent.error.printStackTrace()
-                error("errorEvent: $errorEvent\nwith sourceId: UNKNOWN is not allowed")
-            }
+            errorEvents.throwErrorIfUnknownSourceId()
             errorEvents.forEach { errorEvent ->
                 // copy is not parsed so, if sourceReference is a copy, I will use the program name
                 val sourceId = if (errorEvent.sourceReference!!.sourceReferenceType == SourceReferenceType.Copy) {
@@ -516,6 +513,15 @@ abstract class AbstractTest {
                 }
             }
         }
+    }
+}
+
+private fun List<ErrorEvent>.throwErrorIfUnknownSourceId() {
+    if (this.any { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }) {
+        val errorEvent = this.first { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }
+        System.err.println("ErrorEvent.error:")
+        errorEvent.error.printStackTrace()
+        error("errorEvent: $errorEvent\nwith sourceId: UNKNOWN is not allowed")
     }
 }
 
