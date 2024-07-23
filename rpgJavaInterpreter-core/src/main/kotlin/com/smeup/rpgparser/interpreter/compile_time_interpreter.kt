@@ -205,7 +205,7 @@ open class BaseCompileTimeInterpreter(
                         if (it.directive().dir_api() != null) {
                             val apiDirective = it.directive().dir_api()
                             val apiId = apiDirective.toApiId(conf)
-                            apiId.loadAndUse { api ->
+                            return apiId.loadAndUse { api ->
                                 api.let {
                                     it.compilationUnit.dataDefinitions.firstOrNull { def ->
                                         def.name.equals(declName, ignoreCase = true)
