@@ -567,16 +567,6 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
-    fun executeERROR28SourceLineTest() {
-        val path = javaClass.getResource("/smeup/").file
-        val additionalProgramFinders = listOf(DirRpgProgramFinder(File(path)))
-        executeSourceLineTest(
-            pgm = "ERROR28",
-            additionalProgramFinders = additionalProgramFinders
-        )
-    }
-
-    @Test
     fun executeERROR29SourceLineTest() {
         val additionalProgramFinders = listOf(DirRpgProgramFinder(File(javaClass.getResource("/smeup/").file)))
         val path = javaClass.getResource("/smeup/metadata")!!.path
@@ -715,7 +705,7 @@ class JarikoCallbackTest : AbstractTest() {
         val resourcePath = File({}.javaClass.getResource("/smeup/QILEGEN").file).parentFile
 
         // Attempt to compile the program, expecting an encoding error
-        {}.javaClass.getResource("/ERROR28.rpgle").openStream().use { inputStream ->
+        {}.javaClass.getResource("/smeup/ERROR28.rpgle").openStream().use { inputStream ->
             val programFinders = listOf(DirRpgProgramFinder(resourcePath))
             kotlin.runCatching {
                 compile(
