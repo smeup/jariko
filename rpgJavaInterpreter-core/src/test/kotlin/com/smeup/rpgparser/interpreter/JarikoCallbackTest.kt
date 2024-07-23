@@ -24,10 +24,8 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
-import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
@@ -448,7 +446,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR16CallBackTest() {
-        executePgmCallBackTest("ERROR16", SourceReferenceType.Program, "ERROR16", listOf(12))
+        executePgmCallBackTest("ERROR16", SourceReferenceType.Program, "ERROR16", listOf(12), createMockReloadConfig())
     }
 
     @Test
@@ -735,143 +733,6 @@ class JarikoCallbackTest : AbstractTest() {
         // Assert that both encoding and general error callbacks were triggered
         Assert.assertTrue(enteredInOnCompilationUnitEncodingError)
         Assert.assertTrue(enteredInOnError)
-    }
-
-    /**
-     * This function is used to test the execution of a program and validate the error handling mechanism.
-     * It expects the program to fail and checks if the error events are correctly captured.
-     *
-     * @param pgm The name of the program to be executed.
-     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
-     * @param sourceId The expected identifier of the source where the error is expected to occur.
-     * @param lines The list of line numbers where the errors are expected.
-     */
-    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
-        val errorEvents = mutableListOf<ErrorEvent>()
-        runCatching {
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    println(errorEvent)
-                    errorEvents.add(errorEvent)
-                }
-                options = Options(debuggingInformation = true)
-                reloadConfig = createMockReloadConfig()
-            }
-            executePgm(pgm, configuration = configuration)
-        }.onSuccess {
-            Assert.fail("Program must exit with error")
-        }.onFailure {
-            println(it.stackTraceToString())
-            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
-            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            Assert.assertEquals(lines.sorted(), errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
-        }
-    }
-
-    /**
-     * This function is used to test the execution of a program and validate the error handling mechanism.
-     * It expects the program to fail and checks if the error events are correctly captured.
-     *
-     * @param pgm The name of the program to be executed.
-     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
-     * @param sourceId The expected identifier of the source where the error is expected to occur.
-     * @param lines The map of lines, number and message, expected.
-     */
-    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: Map<Int, String>) {
-        val errorEvents = mutableListOf<ErrorEvent>()
-        runCatching {
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    println(errorEvent)
-                    errorEvents.add(errorEvent)
-                }
-                options = Options(debuggingInformation = true)
-                reloadConfig = createMockReloadConfig()
-            }
-            executePgm(pgm, configuration = configuration)
-        }.onSuccess {
-            Assert.fail("Program must exit with error")
-        }.onFailure {
-            println(it.stackTraceToString())
-            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
-            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            val found = errorEvents
-                .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
-                }
-                .map {
-                    Pair(it.value, it.contains(lines))
-                }
-            Assert.assertTrue(
-                "Errors doesn't correspond:\n" + found.joinToString(separator = "\n") { it.first },
-                found.size == found.filter { it.second }.size && found.size == lines.size
-            )
-        }
-    }
-
-    internal fun Map.Entry<Int, String>.contains(list: Map<Int, String>): Boolean {
-        list.forEach {
-            if (this.value.contains(it.value) && this.key == it.key) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * Verify that the sourceLine is properly set in case of error.
-     * ErrorEvent must contain a reference to an absolute line of the source code
-     * @param pgm The name of the program to be executed.
-     * @param throwableConsumer A consumer to handle the throwable, default is empty.
-     * @param additionalProgramFinders A list of additional program finders to be used during the execution, default is empty.
-     * */
-    private fun executeSourceLineTest(
-        pgm: String,
-        throwableConsumer: (Throwable) -> Unit = {},
-        additionalProgramFinders: List<RpgProgramFinder> = emptyList(),
-        reloadConfig: ReloadConfig = createMockReloadConfig()
-    ) {
-        val sourceIdToLines = mutableMapOf<String, List<String>>()
-        val errorEvents = mutableListOf<ErrorEvent>()
-        val configuration = Configuration().apply {
-            jarikoCallback.beforeParsing = { it ->
-                sourceIdToLines[MainExecutionContext.getParsingProgramStack().peek().name] = it.lines()
-                it
-            }
-            jarikoCallback.onError = {
-                errorEvents.add(it)
-            }
-            // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
-            // of runtime error
-            options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
-            this.reloadConfig = reloadConfig
-        }
-        kotlin.runCatching {
-            executePgm(pgm, configuration = configuration, additionalProgramFinders = additionalProgramFinders)
-        }.onSuccess {
-            Assert.fail("$pgm must exit with error")
-        }.onFailure {
-            throwableConsumer(it)
-            if (errorEvents.any { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }) {
-                val errorEvent = errorEvents.first { errorEvent -> errorEvent.sourceReference!!.sourceId == "UNKNOWN" }
-                error("errorEvent: $errorEvent\nwith sourceId: UNKNOWN is not allowed")
-            }
-            errorEvents.forEach { errorEvent ->
-                // copy is not parsed so, if sourceReference is a copy, I will use the program name
-                val sourceId = if (errorEvent.sourceReference!!.sourceReferenceType == SourceReferenceType.Copy) {
-                    pgm
-                } else {
-                    errorEvent.sourceReference!!.sourceId
-                }
-                val lines = sourceIdToLines[sourceId]!!
-                if (lines[errorEvent.absoluteLine!! - 1] != errorEvent.fragment) {
-                    System.err.println("ErrorEvent: $errorEvent")
-                    System.err.println("Jariko arose an error at this line: ${errorEvent.absoluteLine!!}, fragment: ${errorEvent.fragment}")
-                    System.err.println("But the source code at line: ${errorEvent.absoluteLine!!} is: ${lines[errorEvent.absoluteLine!! - 1]}")
-                    fail()
-                }
-            }
-        }
     }
 
     private fun createMockReloadConfig(): ReloadConfig {
