@@ -729,4 +729,12 @@ open class SmeupInterpreterTest : AbstractTest() {
             }
         )
     }
+
+    @Test
+    fun executeERROR29SourceLineTest() {
+        executeSourceLineTest(
+            pgm = "smeup/ERROR29",
+            reloadConfig = smeupConfig.reloadConfig
+        )
+    }
 }
