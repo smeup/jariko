@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.smeup
 
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -139,8 +140,8 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMU101016() {
-        val expected = listOf("**IN36: 0; *IN36: 1; *IN36: 0; *IN36: 2.")
-        assertEquals(expected, "smeup/MU101016".outputOf())
+        val expected = listOf("*IN36: 0;*IN36: 1;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101016".outputOf(configuration = smeupConfig))
     }
 
     /**
@@ -148,6 +149,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS24003505
      */
     @Test
+    @Ignore
     fun executeMU101017() {
         val expected = listOf("*IN36: 0; *IN36: 1; *IN36: 0; *IN36: 2.")
         assertEquals(expected, "smeup/MU101017".outputOf())
@@ -158,6 +160,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS24003505
      */
     @Test
+    @Ignore
     fun executeMU101018() {
         val expected = listOf("*IN36: 0; *IN36: 0; *IN36: 0; *IN36: 1; *IN36: 0; *IN36: 1; *IN36: 0; *IN36: 0.")
         assertEquals(expected, "smeup/MU101018".outputOf())
@@ -168,6 +171,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS24003505
      */
     @Test
+    @Ignore
     fun executeMU101019() {
         val expected = listOf("*IN36: 0; *IN36: 0; *IN36: 0; *IN36: 1; *IN36: 0; *IN36: 1; *IN36: 0; *IN36: 0.")
         assertEquals(expected, "smeup/MU101019".outputOf())

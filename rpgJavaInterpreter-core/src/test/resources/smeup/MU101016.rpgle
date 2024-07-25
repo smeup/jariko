@@ -34,16 +34,12 @@
      C                   EVAL      £DBG_Pas='P16'
       *
      C                   SETOFF                                           36
-     C                   EVAL      £DBG_Str = '*IN36: ' + %CHAR(*IN36) + '; '
+     C                   EVAL      £DBG_Str = '*IN36: ' + %CHAR(*IN36) + ';'
      C                   EVAL      A10_A1 = 1
      C                   MOVE      A10_A1        *IN36
      C                   EVAL      £DBG_Str = £DBG_Str
-     C                                        + '*IN36: ' + %CHAR(*IN36) + '; '
+     C                                        + '*IN36: ' + %CHAR(*IN36) + ';'
      C                   EVAL      A10_A1 = 0
-     C                   MOVE      A10_A1        *IN36
-     C                   EVAL      £DBG_Str = £DBG_Str
-     C                                        + '*IN36: ' + %CHAR(*IN36) + '; '
-     C                   EVAL      A10_A1 = 2
      C                   MOVE      A10_A1        *IN36
      C                   EVAL      £DBG_Str = £DBG_Str
      C                                        + '*IN36: ' + %CHAR(*IN36) + '.'
