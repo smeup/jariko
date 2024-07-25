@@ -788,7 +788,7 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
                 .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
+                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error).message!!
                 }
                 .map {
                     Pair(it.value, it.contains(lines))
