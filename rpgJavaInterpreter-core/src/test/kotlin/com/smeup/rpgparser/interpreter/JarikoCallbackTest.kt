@@ -24,7 +24,6 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
-import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.utils.Format
@@ -569,6 +568,20 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR27SourceLineTest() {
         executeSourceLineTest("ERROR27")
+    }
+
+    @Test
+    fun executeERROR29CallBackTest() {
+        executePgmCallBackTest("ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR30CallBackTest() {
+        executePgmCallBackTest("ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test

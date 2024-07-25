@@ -782,6 +782,14 @@ Test 6
     }
 
     @Test
+    fun executeMOVE01() {
+        assertEquals(
+            listOf("0"),
+            outputOf("MOVE01")
+        )
+    }
+
+    @Test
     fun executeMOVEP() {
         assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC", "  ABC", "  ABC"), outputOf("MOVEP"))
     }
