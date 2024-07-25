@@ -139,7 +139,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMU101016() {
-        val expected = listOf("*IN36: 0; *IN36: 1.*IN36: 0.")
+        val expected = listOf("**IN36: 0; *IN36: 1; *IN36: 0; *IN36: 2.")
         assertEquals(expected, "smeup/MU101016".outputOf())
     }
 
@@ -149,7 +149,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMU101017() {
-        val expected = listOf("*IN36: 0; *IN36: 1.*IN36: 0.")
+        val expected = listOf("*IN36: 0; *IN36: 1; *IN36: 0; *IN36: 2.")
         assertEquals(expected, "smeup/MU101017".outputOf())
     }
 }
