@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
+import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import java.math.BigDecimal
 
 private fun clear(value: String, type: Type): String {
@@ -145,7 +146,8 @@ private fun move(
             result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
-        result.substring(0, result.length - valueToMove.length) + valueToMove
+        if (valueToApplyMoveType is BooleanType && valueToMove.isBlank()) "0"
+            else result.substring(0, result.length - valueToMove.length) + valueToMove
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(valueToMove.length - valueToApplyMove.length)
@@ -196,6 +198,8 @@ private fun valueToString(value: Value, type: Type): String {
             }
         }
 
+        is BooleanType -> return s
+
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }
@@ -226,6 +230,14 @@ private fun stringToValue(value: String, type: Type): Value {
                 val integerPart = value.substring(0, type.entireDigits)
                 val decimalPart = value.substring(type.entireDigits, value.length)
                 DecimalValue(BigDecimal("$integerPart.$decimalPart"))
+            }
+        }
+
+        is BooleanType -> {
+            if (value.isInt() && value.toInt() in 0..1) {
+                return if (value.toInt() == 0) BooleanValue.FALSE else BooleanValue.TRUE
+            } else {
+                throw UnsupportedOperationException("MOVE/MOVEL for $type have to be 0, 1 or blank")
             }
         }
 
