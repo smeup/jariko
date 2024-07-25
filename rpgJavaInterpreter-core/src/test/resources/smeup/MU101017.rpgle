@@ -4,6 +4,8 @@
      V* ==============================================================
      V* 24/07/24  MUTEST  APU001 Creazione
      V* 25/07/24  MUTEST  APU001 Correzione del PGM e PAS.
+     V* 25/07/24  MUTEST  APU001 Aggiunta l'assegnazione di un valore
+     V*                          pari a 0 come fattore 2.
      V*=====================================================================
     O *  OBIETTIVO
     O * Utilizzo di MOVEL con un indicatore come risultato.
@@ -35,6 +37,10 @@
      C                   EVAL      A10_A1 = 1
      C                   SETOFF                                           36
      C                   EVAL      £DBG_Str = '*IN36: ' + %CHAR(*IN36) + '; '
+     C                   MOVEL     A10_A1        *IN36
+     C                   EVAL      £DBG_Str = £DBG_Str
+     C                                        + '*IN36: ' + %CHAR(*IN36) + '.'
+     C                   EVAL      A10_A1 = 0
      C                   MOVEL     A10_A1        *IN36
      C                   EVAL      £DBG_Str = £DBG_Str
      C                                        + '*IN36: ' + %CHAR(*IN36) + '.'
