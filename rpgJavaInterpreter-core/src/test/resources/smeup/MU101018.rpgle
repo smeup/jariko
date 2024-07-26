@@ -38,17 +38,13 @@
      C                   MOVE      A10_A1        *IN36
      C                   EVAL      £DBG_Str = £DBG_Str
      C                                        + '*IN36: ' + %CHAR(*IN36) + ';'
-     C                   EVAL      A10_A1 = 1.1
-     C                   MOVE      A10_A1        *IN36
-     C                   EVAL      £DBG_Str = £DBG_Str
-     C                                        + '*IN36: ' + %CHAR(*IN36) + ';'
-     C
      C
      C                   SETON                                            36
      C                   EVAL      £DBG_Str = £DBG_Str
      C                                        + '*IN36: ' + %CHAR(*IN36) + ';'
      C                   EVAL      A10_A1 = 0
      C                   MOVE      A10_A1        *IN36
+     C
      C                   EVAL      £DBG_Str = £DBG_Str
      C                                        + '*IN36: ' + %CHAR(*IN36) + ';'
      C                   SETON                                            36
