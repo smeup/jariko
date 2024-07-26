@@ -696,7 +696,7 @@ open class SmeupInterpreterTest : AbstractTest() {
             jarikoCallback.onError =
                 { errorEvent -> firstError = if (firstError == null) errorEvent.error else firstError }
         }
-        javaClass.getResource("/ERROR28.rpgle").also { resource ->
+        javaClass.getResource("/smeup/ERROR28.rpgle").also { resource ->
             require(resource != null) { "Resource not found: /ERROR28.rpgle" }
             val path = File(resource.path).parentFile
             val smeupPath = File(javaClass.getResource("/smeup")!!.path)
@@ -718,5 +718,23 @@ open class SmeupInterpreterTest : AbstractTest() {
         assertNotNull(firstError)
         assertNotNull(compilationError)
         assertSame(firstError, compilationError)
+    }
+
+    @Test
+    fun executeERROR28SourceLineTest() {
+        executeSourceLineTest(
+            pgm = "smeup/ERROR28",
+            throwableConsumer = { throwable ->
+                System.err.println(throwable.message)
+            }
+        )
+    }
+
+    @Test
+    fun executeERROR29SourceLineTest() {
+        executeSourceLineTest(
+            pgm = "smeup/ERROR29",
+            reloadConfig = smeupConfig.reloadConfig
+        )
     }
 }

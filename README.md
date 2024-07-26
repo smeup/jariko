@@ -152,7 +152,7 @@ To use Jariko in a Gradle application, add the following lines to your `build.gr
 ```
 dependencies {
     ...
-    implementation 'io.github.smeup:jariko:vx.y.z'
+    implementation 'io.github.smeup.jariko:rpgJavaInterpreter-core:vx.y.z'
 }
 ```
 ### Samples

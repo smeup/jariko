@@ -205,12 +205,13 @@ open class BaseCompileTimeInterpreter(
                         if (it.directive().dir_api() != null) {
                             val apiDirective = it.directive().dir_api()
                             val apiId = apiDirective.toApiId(conf)
-                            val api = MainExecutionContext.getSystemInterface()?.findApi(apiId)
-                            api?.let {
-                                it.compilationUnit.dataDefinitions.firstOrNull { def ->
-                                    def.name.equals(declName, ignoreCase = true)
-                                }
-                            }?.let { return it.type.size }
+                            return apiId.loadAndUse { api ->
+                                api.let {
+                                    it.compilationUnit.dataDefinitions.firstOrNull { def ->
+                                        def.name.equals(declName, ignoreCase = true)
+                                    }
+                                }?.let { it.type.size }
+                            }
                         }
                     }
                 }
