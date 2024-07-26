@@ -423,6 +423,14 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeMOVEL07() {
+        assertEquals(
+            listOf("0"),
+            outputOf("MOVEL07")
+        )
+    }
+
+    @Test
     fun executeMOVELDEF1_variable_definition_after_first_usage() {
         assertEquals(listOf("02"), outputOf("MOVELDEF1"))
     }
