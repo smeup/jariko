@@ -127,7 +127,8 @@ private fun movel(
             result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
-        valueToMove + result.substring(valueToMove.length)
+        if (valueToApplyMoveType is BooleanType && valueToMove.isBlank()) "0"
+            else valueToMove + result.substring(valueToMove.length)
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(0, valueToApplyMove.length)
