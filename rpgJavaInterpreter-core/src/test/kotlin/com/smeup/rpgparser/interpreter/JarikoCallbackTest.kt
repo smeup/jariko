@@ -606,6 +606,13 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR34CallBackTest() {
+        executePgmCallBackTest("ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {

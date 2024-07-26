@@ -8,4 +8,4 @@
 
      C                   SETON                                            36
      C                   EVAL      FOO = 2.0
-     C                   MOVE      FOO           *IN36
+     C                   MOVEL     FOO           *IN36
