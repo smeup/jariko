@@ -169,9 +169,8 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS24003505
      */
     @Test
-    @Ignore
     fun executeMU101019() {
-        val expected = listOf("*IN36: 0; *IN36: 0; *IN36: 0; *IN36: 1; *IN36: 0; *IN36: 1; *IN36: 0; *IN36: 0.")
+        val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
         assertEquals(expected, "smeup/MU101019".outputOf())
     }
 }
