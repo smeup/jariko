@@ -39,7 +39,7 @@ fun movel(
             return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
         }
 
-        val valueToMove: String = getStringValueToMove(target, interpreterCore, value)
+        val valueToMove: String = getStringOfValue(target, interpreterCore, value)
         if (target.type() is ArrayType) {
             // for each element of array apply move
             val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
@@ -83,7 +83,7 @@ fun move(
         if (value.type() is ArrayType) {
             throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVE/MOVE(P) statement")
         }
-        val valueToMove: String = getStringValueToMove(target, interpreterCore, value)
+        val valueToMove: String = getStringOfValue(target, interpreterCore, value)
         if (target.type() is ArrayType) {
             // for each element of array apply move
             val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
@@ -117,11 +117,11 @@ fun move(
     }
 }
 
-private fun getStringValueToMove(
+private fun getStringOfValue(
     target: AssignableExpression,
     interpreterCore: InterpreterCore,
     value: Expression
-) = when {
+): String = when {
     target.type() is BooleanType -> {
         val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
         when {
