@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class SerializationDeserializationTest : DSPFSpecificationsLoader("./src/test/resources/D2.dspf") {
+internal class SerializationDeserializationTest : DSPFSpecificationsLoader("./src/test/resources/RECORDS.dspf") {
     private val json = Json { prettyPrint = true }
 
     @Test
