@@ -125,7 +125,7 @@ private fun getStringValueToMove(
     target.type() is BooleanType -> {
         val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
         when {
-            (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> if (valueInterpreted.toInt() == 0) "0" else "1"
+            (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> valueInterpreted
             (valueInterpreted.isDecimal() && valueInterpreted.toDecimal() in 0.0..1.0) -> "0"
             valueInterpreted.isBlank() -> "0"
             else -> throw UnsupportedOperationException("MOVE/MOVEL for ${target.type()} have to be 0, 1 or blank")
