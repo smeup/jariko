@@ -7,8 +7,8 @@ internal fun merge(linesSubstrings: MutableList<DSPFLineSubstrings>): DSPFLineSu
 
     var continuesAtAnyColumn: Boolean? = null
     var count = -1
-    var line = StringBuilder()
-    var conditions = StringBuilder()
+    val line = StringBuilder()
+    val conditions = StringBuilder()
 
     // line itself should not be trimmed because positions before 45 should be preserved
     linesSubstrings.forEach {

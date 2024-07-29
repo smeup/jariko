@@ -24,7 +24,7 @@ internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resour
     }
 
     @Test
-    fun isTheSameAsPreviousLine() {
+    fun isNone() {
         assertTrue { this.linesProcessor.lines[3].isNone() }
     }
 }
