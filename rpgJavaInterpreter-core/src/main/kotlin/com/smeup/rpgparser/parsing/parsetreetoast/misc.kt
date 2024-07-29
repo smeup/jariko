@@ -668,6 +668,10 @@ internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 
 internal fun String.isInt() = this.toIntOrNull() != null
 
+internal fun String.isDecimal() = this.toDoubleOrNull() != null
+
+internal fun String.toDecimal() = this.toDouble()
+
 internal fun ParserRuleContext.rContext(): RContext {
     return if (this.parent == null) {
         this as RContext

@@ -132,4 +132,44 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00216".outputOf())
     }
+
+    /**
+     * MOVE with Boolean Type
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101016() {
+        val expected = listOf("*IN36: 0;*IN36: 1;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101016".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL with Boolean Type
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101017() {
+        val expected = listOf("*IN36: 0;*IN36: 1;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101017".outputOf())
+    }
+
+    /**
+     * MOVE with Boolean Type and factor 2 as decimal.
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101018() {
+        val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101018".outputOf())
+    }
+
+    /**
+     * MOVEL with Boolean Type and factor 2 as decimal.
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101019() {
+        val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101019".outputOf())
+    }
 }

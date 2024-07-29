@@ -2,6 +2,9 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
+import com.smeup.rpgparser.parsing.parsetreetoast.isDecimal
+import com.smeup.rpgparser.parsing.parsetreetoast.isInt
+import com.smeup.rpgparser.parsing.parsetreetoast.toDecimal
 import java.math.BigDecimal
 
 private fun clear(value: String, type: Type): String {
@@ -36,7 +39,7 @@ fun movel(
             return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
         }
 
-        val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
+        val valueToMove: String = getStringOfValue(target, interpreterCore, value)
         if (target.type() is ArrayType) {
             // for each element of array apply move
             val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
@@ -80,7 +83,7 @@ fun move(
         if (value.type() is ArrayType) {
             throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVE/MOVE(P) statement")
         }
-        val valueToMove: String = valueToString(interpreterCore.eval(value), value.type())
+        val valueToMove: String = getStringOfValue(target, interpreterCore, value)
         if (target.type() is ArrayType) {
             // for each element of array apply move
             val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
@@ -114,6 +117,24 @@ fun move(
     }
 }
 
+private fun getStringOfValue(
+    target: AssignableExpression,
+    interpreterCore: InterpreterCore,
+    value: Expression
+): String = when {
+    target.type() is BooleanType -> {
+        val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
+        when {
+            (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> valueInterpreted
+            (valueInterpreted.isDecimal() && valueInterpreted.toDecimal() in 0.0..1.0) -> "0"
+            valueInterpreted.isBlank() -> "0"
+            else -> throw UnsupportedOperationException("MOVE/MOVEL for ${target.type()} have to be 0, 1 or blank")
+        }
+    }
+
+    else -> valueToString(interpreterCore.eval(value), value.type())
+}
+
 private fun movel(
     valueToMove: String,
     valueToApplyMove: String,
@@ -126,7 +147,8 @@ private fun movel(
             result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
-        valueToMove + result.substring(valueToMove.length)
+        if (valueToApplyMoveType is BooleanType) valueToMove
+            else valueToMove + result.substring(valueToMove.length)
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(0, valueToApplyMove.length)
@@ -145,7 +167,8 @@ private fun move(
             result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
-        result.substring(0, result.length - valueToMove.length) + valueToMove
+        if (valueToApplyMoveType is BooleanType) valueToMove
+            else result.substring(0, result.length - valueToMove.length) + valueToMove
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(valueToMove.length - valueToApplyMove.length)
@@ -196,6 +219,8 @@ private fun valueToString(value: Value, type: Type): String {
             }
         }
 
+        is BooleanType -> return s
+
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }
@@ -228,6 +253,8 @@ private fun stringToValue(value: String, type: Type): Value {
                 DecimalValue(BigDecimal("$integerPart.$decimalPart"))
             }
         }
+
+        is BooleanType -> return StringValue(value)
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }

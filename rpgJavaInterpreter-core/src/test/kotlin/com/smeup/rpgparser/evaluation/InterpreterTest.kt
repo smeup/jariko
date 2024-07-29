@@ -423,6 +423,14 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeMOVEL07() {
+        assertEquals(
+            listOf("0"),
+            outputOf("MOVEL07")
+        )
+    }
+
+    @Test
     fun executeMOVELDEF1_variable_definition_after_first_usage() {
         assertEquals(listOf("02"), outputOf("MOVELDEF1"))
     }
@@ -778,6 +786,14 @@ Test 6
         assertEquals(
             listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE", "DE", "DE"),
             outputOf("MOVE")
+        )
+    }
+
+    @Test
+    fun executeMOVE01() {
+        assertEquals(
+            listOf("0"),
+            outputOf("MOVE01")
         )
     }
 
