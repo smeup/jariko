@@ -21,7 +21,8 @@ internal data class DSPFLine private constructor(
     val decimalsPositions: Int? = null,
     val fieldType: FieldType,
     val y: Int? = null,
-    val x: Int? = null
+    val x: Int? = null,
+    val keywords: DSPFKeywordsGroup? = null
 ) {
     companion object {
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
@@ -38,7 +39,8 @@ internal data class DSPFLine private constructor(
                 this.getDecimalsPositions(lineSubstrings),
                 this.getFieldType(lineSubstrings),
                 this.getY(lineSubstrings),
-                this.getX(lineSubstrings)
+                this.getX(lineSubstrings),
+                this.getKeywords(lineSubstrings)
             )
         }
 
@@ -100,7 +102,10 @@ internal data class DSPFLine private constructor(
             return lineSubstrings.x.trim().toInt()
         }
 
-        // Could-Have: getKeywords
+        private fun getKeywords(lineSubstrings: DSPFLineSubstrings): DSPFKeywordsGroup? {
+            if (lineSubstrings.keywords.isBlank()) return null
+            return DSPFKeywordsGroup.fromString(lineSubstrings.keywords)
+        }
     }
 
     fun isHelp(): Boolean {
@@ -113,6 +118,19 @@ internal data class DSPFLine private constructor(
 
     fun isField(): Boolean {
         return this.typeOfName == TypeOfName.BLANK && this.fieldName.isNotBlank()
+    }
+
+    fun isConstantField(): Boolean {
+        return this.typeOfName == TypeOfName.BLANK
+                && this.fieldName.isBlank()
+                && this.reference == Reference.BLANK
+                && this.length == null
+                && this.dataTypeKeyboardShift == DTKBS.BLANK
+                && this.decimalsPositions == null
+                && this.fieldType == FieldType.BLANK
+                && this.y != null
+                && this.x != null
+                && this.keywords?.hasConstantField() ?: false
     }
 
     fun isNone(): Boolean {
