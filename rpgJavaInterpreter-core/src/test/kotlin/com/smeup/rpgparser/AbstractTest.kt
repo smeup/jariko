@@ -24,7 +24,6 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
-import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.SourceProgramFinder
@@ -440,7 +439,7 @@ abstract class AbstractTest {
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
                 .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
+                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error).message!!
                 }
                 .map {
                     Pair(it.value, it.contains(lines))

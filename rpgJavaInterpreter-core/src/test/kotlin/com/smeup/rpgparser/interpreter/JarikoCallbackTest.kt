@@ -567,6 +567,78 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR29CallBackTest() {
+        executePgmCallBackTest("ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR29SourceLineTest() {
+        executeSourceLineTest("ERROR29")
+    }
+
+    @Test
+    fun executeERROR30CallBackTest() {
+        executePgmCallBackTest("ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR30SourceLineTest() {
+        executeSourceLineTest("ERROR30")
+    }
+
+    @Test
+    fun executeERROR31CallBackTest() {
+        executePgmCallBackTest("ERROR31", SourceReferenceType.Program, "ERROR31", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR31SourceLineTest() {
+        executeSourceLineTest("ERROR31")
+    }
+
+    @Test
+    fun executeERROR32CallBackTest() {
+        executePgmCallBackTest("ERROR32", SourceReferenceType.Program, "ERROR32", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR32SourceLineTest() {
+        executeSourceLineTest("ERROR32")
+    }
+
+    @Test
+    fun executeERROR33CallBackTest() {
+        executePgmCallBackTest("ERROR33", SourceReferenceType.Program, "ERROR33", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR33SourceLineTest() {
+        executeSourceLineTest("ERROR33")
+    }
+
+    @Test
+    fun executeERROR34CallBackTest() {
+        executePgmCallBackTest("ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR34SourceLineTest() {
+        executeSourceLineTest("ERROR34")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
