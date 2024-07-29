@@ -815,7 +815,9 @@ class ExpressionEvaluation(
         StringValue(value.toString())
     }
 
-    override fun eval(expression: ParmsExpr): Value = proxyLogging(expression) { IntValue(interpreterStatus.params.toLong()) }
+    override fun eval(expression: ParmsExpr): Value = proxyLogging(expression) {
+        interpreterStatus.callerParams.asValue()
+    }
 
     override fun eval(expression: OpenExpr): Value = proxyLogging(expression) {
         val name = expression.name

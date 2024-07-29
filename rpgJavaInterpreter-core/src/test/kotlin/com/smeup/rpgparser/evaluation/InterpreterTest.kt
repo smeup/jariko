@@ -2445,4 +2445,10 @@ Test 6
         program.singleCall(emptyList())
         assertEquals(systemInterface.consoleOutput, listOf(date, year, month, day))
     }
+
+    @Test
+    fun executeCALL_WITH_VOID_PARMS() {
+        val expected = listOf("1")
+        assertEquals(expected, "VPARMSCALLER".outputOf())
+    }
 }

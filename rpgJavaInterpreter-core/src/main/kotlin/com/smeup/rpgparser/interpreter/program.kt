@@ -83,6 +83,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
         val expectedKeys = params().asSequence().map { it.name }.toSet()
 
+        // Original params passed from the caller
+        val callerParams = LinkedHashMap(params)
+
         if (expectedKeys.size <= params.size) {
             require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
                 "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
@@ -151,7 +154,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             // set reinitialization to false because symboltable cleaning currently is handled directly
             // in internal interpreter before exit
             // todo i don't know whether parameter reinitialization has still sense
-            interpreter.execute(this.cu, params, false)
+            interpreter.execute(this.cu, params, false, callerParams)
             MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm(name, interpreter.getGlobalSymbolTable(), null)
             params.keys.forEach { params[it] = interpreter[it] }
             changedInitialValues = params().map { interpreter[it.name] }

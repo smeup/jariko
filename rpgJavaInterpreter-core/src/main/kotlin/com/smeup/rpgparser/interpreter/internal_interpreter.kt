@@ -64,7 +64,8 @@ class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
-    var params: Int = 0
+    var params: Int = 0,
+    var callerParams: Int = params
 ) {
     var inzsrExecuted = false
     var lastFound = false
@@ -381,12 +382,14 @@ open class InternalInterpreter(
     fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
-        reinitialization: Boolean = true
+        reinitialization: Boolean = true,
+        callerParams: Map<String, Value> = initialValues
     ) {
         kotlin.runCatching {
             configureLogHandlers()
 
             this.status.displayFiles = compilationUnit.displayFiles
+            status.callerParams = callerParams.size
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
             execINZSR(compilationUnit)
