@@ -574,10 +574,20 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR29SourceLineTest() {
+        executeSourceLineTest("ERROR29")
+    }
+
+    @Test
     fun executeERROR30CallBackTest() {
         executePgmCallBackTest("ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
             11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
         ))
+    }
+
+    @Test
+    fun executeERROR30SourceLineTest() {
+        executeSourceLineTest("ERROR30")
     }
 
     @Test
@@ -588,10 +598,20 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR31SourceLineTest() {
+        executeSourceLineTest("ERROR31")
+    }
+
+    @Test
     fun executeERROR32CallBackTest() {
         executePgmCallBackTest("ERROR32", SourceReferenceType.Program, "ERROR32", mapOf(
             11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
         ))
+    }
+
+    @Test
+    fun executeERROR32SourceLineTest() {
+        executeSourceLineTest("ERROR32")
     }
 
     @Test
@@ -602,10 +622,20 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR33SourceLineTest() {
+        executeSourceLineTest("ERROR33")
+    }
+
+    @Test
     fun executeERROR34CallBackTest() {
         executePgmCallBackTest("ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
             11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
         ))
+    }
+
+    @Test
+    fun executeERROR34SourceLineTest() {
+        executeSourceLineTest("ERROR34")
     }
 
     @Test
