@@ -1,9 +1,7 @@
      D £DBG_Str        S             2
+     D P1              S             10
 
-     D £40A            S             15    DIM(300)
+     C                   EVAL      P1='hello'
 
      C                   CALL      'VPARMSCALLEE'
-     C                   PARM                    £40A
-
-     C                   EVAL      £DBG_Str='ok'
-     C     £DBG_Str      DSPLY
+     C                   PARM                    P1

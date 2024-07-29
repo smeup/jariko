@@ -2448,7 +2448,7 @@ Test 6
 
     @Test
     fun executeCALL_WITH_VOID_PARMS() {
-        val expected = listOf("ok")
+        val expected = listOf("1")
         assertEquals(expected, "VPARMSCALLER".outputOf())
     }
 }
