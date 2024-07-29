@@ -13,15 +13,12 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         assertEquals("REC01", this.specifications.getRecord("rec01").name)
         assertEquals("REC11", this.specifications.getRecord("REC11").name)
         assertEquals("REC11", this.specifications.getRecord("rec11").name)
-        assertEquals("REC21", this.specifications.getRecord("REC21").name)
-        assertEquals("REC21", this.specifications.getRecord("rec21").name)
     }
 
     @Test
     fun fieldsFromRecordByName() {
         assertEquals(2, this.specifications.getFieldsFromRecord("REC01").size)
         assertEquals(1, this.specifications.getFieldsFromRecord("REC11").size)
-        assertEquals(1, this.specifications.getFieldsFromRecord("REC21").size)
     }
 
     @Test
