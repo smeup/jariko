@@ -1,0 +1,4 @@
+                R FMT1
+                  FLD1           3A  B 10  8
+                                       12  2'Article code'
+                                        2  8'Article name'

@@ -65,6 +65,9 @@ internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, r
             field.value = symbolTable[field.name]
             fields.add(field)
         }
+        record.constants.forEach { field ->
+            fields.add(field)
+        }
     }
 
     return fields

@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.video
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dspfparser.linesclassifier.ConstantValue
+import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.DecimalValue
@@ -105,5 +107,29 @@ class VideoInterpeterTest : AbstractTest() {
             assertNotNull(it.displayFiles?.get("EXFMT1V"))
         }
         assertEquals(expected = expected, actual = "video/EXFMT1".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeEXFMT2() {
+        val expected = emptyList<String>()
+        val constants = mutableListOf<DSPFField>()
+        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+
+            fields.forEach {
+                if (it.value is ConstantValue) {
+                    constants.add(it)
+                }
+            }
+
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("EXFMT2V"))
+        }
+        assertEquals(expected = expected, actual = "video/EXFMT2".outputOf(configuration = configuration))
+        assertEquals(expected = 2, actual = constants.size)
+        assertEquals(expected = "Article code", actual = (constants[0].value as ConstantValue).value)
+        assertEquals(expected = "Article name", actual = (constants[1].value as ConstantValue).value)
     }
 }
