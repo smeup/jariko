@@ -14,6 +14,7 @@ internal class B1601AV : DSPFSpecificationsLoader("./src/test/resources/B£1601A
     @Test
     fun fields() {
         val fields = this.specifications.records[0].fields
+
         val names = fields.map { it.name }
         assertEquals(8, fields.size)
         assertTrue { names.contains("£RASDI") }

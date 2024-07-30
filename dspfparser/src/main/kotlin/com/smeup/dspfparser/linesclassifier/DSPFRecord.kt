@@ -9,4 +9,5 @@ import kotlinx.serialization.Serializable
 sealed interface DSPFRecord {
     val name: String
     val fields: List<DSPFField>
+    val constants: List<DSPFField>
 }

@@ -21,9 +21,13 @@ internal data class DSPFKeywordsGroup private constructor(val group: MutableList
         }
     }
 
-    fun hasConstantField(): Boolean {
+    fun areConstantField(): Boolean {
         return this.group.size == 1
                 && this.group[0].name != null
                 && this.group[0].parameters.isEmpty()
+    }
+
+    fun getConstantFieldValue(): String {
+        return this.group[0].name!!
     }
 }

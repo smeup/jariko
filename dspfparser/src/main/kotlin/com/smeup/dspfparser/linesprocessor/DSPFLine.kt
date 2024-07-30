@@ -130,7 +130,7 @@ internal data class DSPFLine private constructor(
                 && this.fieldType == FieldType.BLANK
                 && this.y != null
                 && this.x != null
-                && this.keywords?.hasConstantField() ?: false
+                && this.keywords?.areConstantField() ?: false
     }
 
     fun isNone(): Boolean {

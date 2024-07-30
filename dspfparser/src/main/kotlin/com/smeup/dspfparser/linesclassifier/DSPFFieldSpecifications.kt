@@ -20,10 +20,15 @@ internal data class DSPFFieldSpecifications private constructor(
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFFieldSpecifications {
             val isNumeric = declaration.decimalsPositions != null
+            val value = if (declaration.isConstantField()) {
+                ConstantValue(declaration.keywords!!.getConstantFieldValue())
+            } else {
+                null
+            }
 
             return DSPFFieldSpecifications(
                 name = declaration.fieldName,
-                value = null,
+                value = value,
                 isNumeric = isNumeric,
                 length = declaration.length,
                 precision = declaration.decimalsPositions,
