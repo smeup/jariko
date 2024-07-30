@@ -7,23 +7,14 @@ internal data class DSPFKeywordsGroup private constructor(val group: MutableList
     companion object {
         fun fromString(text: String): DSPFKeywordsGroup {
             val constants = this.getConstants(text)
-            val parametrized = this.getParametrized(text)
 
-            if (parametrized.isNotEmpty()) return DSPFKeywordsGroup(parametrized)
-            return DSPFKeywordsGroup(constants)
+            if (constants.isNotEmpty()) return DSPFKeywordsGroup(constants)
+            return DSPFKeywordsGroup()
         }
 
         private fun getConstants(text: String): MutableList<DSPFKeyword> {
             val group: MutableList<DSPFKeyword> = mutableListOf()
             Regex("^'.*'\$").find(text)?.groupValues?.forEach {
-                group.add(DSPFKeyword.fromString(it))
-            }
-            return group
-        }
-
-        private fun getParametrized(text: String): MutableList<DSPFKeyword> {
-            val group: MutableList<DSPFKeyword> = mutableListOf()
-            Regex("[a-zA-Z]{1,}\\([^(^)]*\\)").find(text)?.groupValues?.forEach {
                 group.add(DSPFKeyword.fromString(it))
             }
             return group

@@ -23,7 +23,7 @@ internal data class DSPFKeyword private constructor(
         }
 
         private fun getConstantMessage(text: String): String? {
-            return Regex("^'[^']*'\$").find(text.trim())?.value?.removeFirst('\'')?.removeLast('\'')
+            return Regex("^'.*'\$").find(text.trim())?.value?.removeFirst('\'')?.removeLast('\'')
         }
 
         private fun getName(text: String): String? {
