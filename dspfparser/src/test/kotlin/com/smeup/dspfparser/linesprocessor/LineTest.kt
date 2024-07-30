@@ -35,6 +35,18 @@ internal class LineTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf")
     }
 
     @Test
+    fun line_2() {
+        val line = this.linesProcessor.lines[1]
+        assertFalse(line.isConstantField())
+    }
+
+    @Test
+    fun line_3() {
+        val line = this.linesProcessor.lines[2]
+        assertFalse(line.isConstantField())
+    }
+
+    @Test
     fun line_4() {
         val line = this.linesProcessor.lines[3]
         assertEquals(12, line.y)

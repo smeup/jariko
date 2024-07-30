@@ -50,6 +50,4 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         assertEquals(10, first.y)
         assertEquals(8, first.x)
     }
-
-
 }
