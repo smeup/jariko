@@ -15,7 +15,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class VideoInterpeterTest : AbstractTest() {
+class VideoInterpreterTest : AbstractTest() {
 
     lateinit var configuration: Configuration
     lateinit var configurationForRetroCompatibilityTest: Configuration
