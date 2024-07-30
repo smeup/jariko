@@ -20,8 +20,8 @@ internal data class DSPFFieldSpecifications private constructor(
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFFieldSpecifications {
             val isNumeric = declaration.decimalsPositions != null
-            val value = if (declaration.isConstantField()) {
-                ConstantValue(declaration.keywords!!.getConstantFieldValue())
+            val value = if (declaration.isConstant()) {
+                ConstantValue(declaration.keywords!!.getConstantValue())
             } else {
                 null
             }

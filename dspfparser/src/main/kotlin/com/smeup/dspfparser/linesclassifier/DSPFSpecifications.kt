@@ -35,7 +35,7 @@ private class DSPFSpecificationsFactory {
     private var isLineNone: Boolean = false
     private var isLineRecord: Boolean = false
     private var isLineField: Boolean = false
-    private var isLineConstantField: Boolean = false
+    private var isLineConstant: Boolean = false
     private var result: DSPFSpecifications = DSPFSpecifications()
 
     constructor(lines: MutableList<DSPFLine>) {
@@ -66,15 +66,15 @@ private class DSPFSpecificationsFactory {
         }
     }
 
-    private fun tryInsertNewConstantFieldOnRecordContext(line: DSPFLine) {
-        if (this.context == CurrentContext.RECORD && this.isLineConstantField) {
+    private fun tryInsertNewConstantOnRecordContext(line: DSPFLine) {
+        if (this.context == CurrentContext.RECORD && this.isLineConstant) {
             this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
             this.context = CurrentContext.FIELD
         }
     }
 
-    private fun tryInsertNewConstantFieldOnFieldContext(line: DSPFLine) {
-        if (this.context == CurrentContext.FIELD && this.isLineConstantField) {
+    private fun tryInsertNewConstantOnFieldContext(line: DSPFLine) {
+        if (this.context == CurrentContext.FIELD && this.isLineConstant) {
             this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
         }
     }
@@ -84,14 +84,14 @@ private class DSPFSpecificationsFactory {
             this.isLineNone = it.isNone()
             this.isLineField = it.isField()
             this.isLineRecord = it.isRecord()
-            this.isLineConstantField = it.isConstantField()
+            this.isLineConstant = it.isConstant()
 
             // order is important, do not change it
             this.tryInsertNewRecord(it)
             this.tryInsertNewFieldOnFieldContext(it)
             this.tryInsertNewFieldOnRecordContext(it)
-            this.tryInsertNewConstantFieldOnRecordContext(it)
-            this.tryInsertNewConstantFieldOnFieldContext(it)
+            this.tryInsertNewConstantOnRecordContext(it)
+            this.tryInsertNewConstantOnFieldContext(it)
         }
     }
 }

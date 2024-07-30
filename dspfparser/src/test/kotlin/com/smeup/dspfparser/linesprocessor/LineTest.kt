@@ -31,19 +31,19 @@ internal class LineTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf")
         assertEquals(FieldType.B, line.fieldType)
         assertEquals(12, line.y)
         assertEquals(22, line.x)
-        assertFalse(line.isConstantField())
+        assertFalse(line.isConstant())
     }
 
     @Test
     fun line_2() {
         val line = this.linesProcessor.lines[1]
-        assertFalse(line.isConstantField())
+        assertFalse(line.isConstant())
     }
 
     @Test
     fun line_3() {
         val line = this.linesProcessor.lines[2]
-        assertFalse(line.isConstantField())
+        assertFalse(line.isConstant())
     }
 
     @Test
@@ -51,6 +51,6 @@ internal class LineTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf")
         val line = this.linesProcessor.lines[3]
         assertEquals(12, line.y)
         assertEquals(22, line.x)
-        assertTrue(line.isConstantField())
+        assertTrue(line.isConstant())
     }
 }
