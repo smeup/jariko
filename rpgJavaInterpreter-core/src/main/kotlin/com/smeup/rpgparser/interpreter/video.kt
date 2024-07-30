@@ -12,7 +12,7 @@ internal fun DSPF.getDbFields(): List<DbField> {
         record.fields.forEach { field ->
             val type: Type
             val rpgType: RpgType
-            // currently parser can't handle REFFLD, so I created random fallback values
+            // currently REFFLD are not supported, so I created random fallback values
             val fallbackLength = 10
             val fallbackPrecision = 10
 
@@ -52,7 +52,7 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
 
 /**
  * Fields of specified record will be returned and updated with the latest
- * value of the corrisponding data definition just before EXFMT starts.
+ * value of the corresponding data definition just before EXFMT starts.
  */
 internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): List<DSPFField> {
     val fields = mutableListOf<DSPFField>()
