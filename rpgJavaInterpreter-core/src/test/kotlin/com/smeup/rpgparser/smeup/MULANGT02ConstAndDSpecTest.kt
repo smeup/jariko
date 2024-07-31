@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
 import kotlin.test.AfterTest
@@ -206,6 +207,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
                 "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
             )
         }
+    }
+
+    /**
+     * Resolves problem od Data Reference with LIKE when in the RPG source is used an API directive.
+     * @see LS24003656
+     */
+    @Test
+    fun executeMUDRNRAPU00102() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU00102".outputOf(configuration = smeupConfig))
     }
 
     /**
