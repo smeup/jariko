@@ -66,16 +66,16 @@ private class DSPFSpecificationsFactory {
         }
     }
 
+    private fun tryInsertNewConstantOnFieldContext(line: DSPFLine) {
+        if (this.context == CurrentContext.FIELD && this.isLineConstant) {
+            this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
+        }
+    }
+
     private fun tryInsertNewConstantOnRecordContext(line: DSPFLine) {
         if (this.context == CurrentContext.RECORD && this.isLineConstant) {
             this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
             this.context = CurrentContext.FIELD
-        }
-    }
-
-    private fun tryInsertNewConstantOnFieldContext(line: DSPFLine) {
-        if (this.context == CurrentContext.FIELD && this.isLineConstant) {
-            this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
         }
     }
 
