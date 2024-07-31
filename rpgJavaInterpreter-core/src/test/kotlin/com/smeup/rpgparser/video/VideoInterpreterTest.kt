@@ -130,6 +130,10 @@ class VideoInterpreterTest : AbstractTest() {
         assertEquals(expected = expected, actual = "video/EXFMT2".outputOf(configuration = configuration))
         assertEquals(expected = 2, actual = constants.size)
         assertEquals(expected = "Article code", actual = (constants[0].value as ConstantValue).value)
+        assertEquals(expected = 12, actual = constants[0].y)
+        assertEquals(expected = 2, actual = constants[0].x)
         assertEquals(expected = "Article name", actual = (constants[1].value as ConstantValue).value)
+        assertEquals(expected = 2, actual = constants[1].y)
+        assertEquals(expected = 8, actual = constants[1].x)
     }
 }
