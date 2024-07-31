@@ -16,6 +16,8 @@
 
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dspfparser.linesclassifier.ConstantValue
+import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
@@ -222,6 +224,9 @@ private val modules = SerializersModule {
     }
     contextual(BigDecimal::class, BigDecimalSerializer)
     contextual(LocalDateTime::class, LocalDateTimeSerializer)
+    polymorphic(DSPFValue::class) {
+        subclass(ConstantValue::class)
+    }
 }
 
 val json = Json {
