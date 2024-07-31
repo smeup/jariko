@@ -22,9 +22,9 @@ internal data class DSPFKeywordsGroup private constructor(val group: MutableList
     }
 
     fun areConstant(): Boolean {
-        return this.group.size == 1
-                && this.group[0].name != null
-                && this.group[0].parameters.isEmpty()
+        return this.group.size == 1 &&
+                this.group[0].name != null &&
+                this.group[0].parameters.isEmpty()
     }
 
     fun getConstantValue(): String {

@@ -121,16 +121,16 @@ internal data class DSPFLine private constructor(
     }
 
     fun isConstant(): Boolean {
-        return this.typeOfName == TypeOfName.BLANK
-                && this.fieldName.isBlank()
-                && this.reference == Reference.BLANK
-                && this.length == null
-                && this.dataTypeKeyboardShift == DTKBS.BLANK
-                && this.decimalsPositions == null
-                && this.fieldType == FieldType.BLANK
-                && this.y != null
-                && this.x != null
-                && this.keywords?.areConstant() ?: false
+        return this.typeOfName == TypeOfName.BLANK &&
+                this.fieldName.isBlank() &&
+                this.reference == Reference.BLANK &&
+                this.length == null &&
+                this.dataTypeKeyboardShift == DTKBS.BLANK &&
+                this.decimalsPositions == null &&
+                this.fieldType == FieldType.BLANK &&
+                this.y != null &&
+                this.x != null &&
+                this.keywords?.areConstant() ?: false
     }
 
     fun isNone(): Boolean {
