@@ -88,10 +88,12 @@ private class DSPFSpecificationsFactory {
 
             // order is important, do not change it
             this.tryInsertNewRecord(it)
+            // try with field context before record context because after matching
+            // record context, context is switched to field leading to a double match
             this.tryInsertNewFieldOnFieldContext(it)
             this.tryInsertNewFieldOnRecordContext(it)
-            this.tryInsertNewConstantOnRecordContext(it)
             this.tryInsertNewConstantOnFieldContext(it)
+            this.tryInsertNewConstantOnRecordContext(it)
         }
     }
 }
