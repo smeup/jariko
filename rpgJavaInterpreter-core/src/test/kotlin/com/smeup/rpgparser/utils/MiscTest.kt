@@ -322,4 +322,36 @@ class MiscTest {
             System.err.println("Stderr restored")
         }
     }
+
+    /**
+     * When compile error occurs, the error event must be the same of what is expected
+     * when the errors occur during the interpretation of the program
+     * */
+    @Test
+    fun onCompileErrorEventMustBeTheSame() {
+        val expectedLines = listOf(10, 11)
+        val dir = File("src/test/resources")
+        File(dir, "ERROR35.rpgle").inputStream().use { src ->
+            var errorLines = mutableListOf<Int>()
+            val configuration = Configuration().apply {
+                jarikoCallback.onError = { errorEvent ->
+                    errorEvent?.sourceReference?.relativeLine?.let {
+                        errorLines.add(it)
+                    }
+                }
+            }
+            kotlin.runCatching {
+                compile(
+                    src = src,
+                    out = ByteArrayOutputStream(),
+                    format = Format.BIN,
+                    programFinders = listOf(),
+                    configuration = configuration
+                )
+            }.onSuccess {
+                fail("ERROR35 cannot be compiled")
+            }
+            assertEquals(expected = expectedLines, actual = errorLines)
+        }
+    }
 }
