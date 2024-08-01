@@ -181,6 +181,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
     }
 }
 
+private fun coerceBoolean(value: BooleanValue, type: Type): Value {
+    // TODO: Add more coercion rules
+    return when (type) {
+        is BooleanType -> value
+        is StringType -> value.asString()
+        else -> TODO("Converting BooleanValue to $type")
+    }
+}
+
 fun coerce(value: Value, type: Type): Value {
     // TODO to be completed
     return when (value) {
@@ -270,6 +279,7 @@ fun coerce(value: Value, type: Type): Value {
                 else -> value
             }
         }
+        is BooleanValue -> coerceBoolean(value, type)
         else -> value
     }
 }
