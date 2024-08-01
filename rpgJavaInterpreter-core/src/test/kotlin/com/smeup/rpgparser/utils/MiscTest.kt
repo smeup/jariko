@@ -329,7 +329,7 @@ class MiscTest {
      * */
     @Test
     fun onCompileErrorEventMustBeTheSame() {
-        val expectedLines = listOf(10, 11)
+        val expectedLines = listOf(9, 10)
         val dir = File("src/test/resources")
         File(dir, "ERROR35.rpgle").inputStream().use { src ->
             var errorLines = mutableListOf<Int>()
@@ -343,7 +343,7 @@ class MiscTest {
             kotlin.runCatching {
                 compile(
                     src = src,
-                    out = ByteArrayOutputStream(),
+                    out = null,
                     format = Format.BIN,
                     programFinders = listOf(),
                     configuration = configuration
@@ -351,7 +351,7 @@ class MiscTest {
             }.onSuccess {
                 fail("ERROR35 cannot be compiled")
             }
-            assertEquals(expected = expectedLines, actual = errorLines)
+            assertEquals(expected = expectedLines.sorted(), actual = errorLines.sorted())
         }
     }
 }

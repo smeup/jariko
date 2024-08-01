@@ -4,7 +4,7 @@
      D* "missing sympol implementation" and "data reference not resolved"
      D* errors
      D* Expected errors at line:
-     D* 10 and 11
+     D* 9 and 10
      V* ==============================================================
      C     MSG           DSPLY
      C                   ABCDE
