@@ -2,10 +2,10 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V* ==============================================================
-     V* 22/03/24  MUTEST  APU001 Creazione
+     V* 01/08/24  MUTEST  APU001 Creazione
      V*=====================================================================
     O *  OBIETTIVO
-    O * Trasferimento del contenuto di una DS in una Stringa.
+    O * Trasferimento del contenuto di una DS in una Stringa non VARYING.
      V* ==============================================================
      D A40_A100        S            100    DIM(300)
      D A40_DS          DS
@@ -30,11 +30,11 @@
      C                   EXSR      £DBG
      C                   SETON                                        LR
       *---------------------------------------------------------------------
-    RD* DS a Stringa
+    RD* DS a Stringa non VARYING
       *---------------------------------------------------------------------
      C     SEZ_A40       BEGSR
     OA* A£.CDOP(EVAL  )
-     D* DS a Stringa
+     D* DS a Stringa non VARYING
      C                   EVAL      £DBG_Pas='P13'
       *
      C                   EVAL      A40_DS_F1='Lorem ipsu'
