@@ -640,7 +640,15 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
             "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
         }
         if (elementType is StringType && !elementType.varying) {
-            val v = (value as StringValue).copy()
+            val v = when (value) {
+                is AbstractStringValue -> {
+                    (value as StringValue).copy()
+                }
+                is DataStructValue -> {
+                    value.asString().copy()
+                }
+                else -> TODO("Not yet implemented")
+            }
             v.pad(elementType.length)
             elements[index - 1] = v
         } else {
