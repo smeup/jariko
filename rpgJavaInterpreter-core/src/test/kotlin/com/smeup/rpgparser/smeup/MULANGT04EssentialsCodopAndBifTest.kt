@@ -44,7 +44,6 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
         assertEquals(expected, "smeup/MU044013".outputOf())
     }
 
-
     /**
      *Assigns content of DS to a String  VARYING in EVAL
      * @see #LS24003679
