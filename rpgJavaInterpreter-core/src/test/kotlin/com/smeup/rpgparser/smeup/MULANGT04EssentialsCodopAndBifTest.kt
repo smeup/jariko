@@ -35,6 +35,16 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     *Assigns content of DS to a String in EVAL
+     * @see #LS24003679
+     */
+    @Test
+    fun executeMU044013() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ae")
+        assertEquals(expected, "smeup/MU044013".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */
