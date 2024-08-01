@@ -645,7 +645,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
                     (value as StringValue).copy()
                 }
                 is DataStructValue -> {
-                    StringValue(value.value)
+                    value.asString().copy()
                 }
                 else -> TODO("Not yet implemented")
             }
