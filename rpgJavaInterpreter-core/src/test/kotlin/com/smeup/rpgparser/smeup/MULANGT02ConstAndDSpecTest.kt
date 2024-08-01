@@ -209,6 +209,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Resolves problem od Data Reference with LIKE when in the RPG source is used an API directive.
+     * @see LS24003656
+     */
+    @Test
+    fun executeMUDRNRAPU00102() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU00102".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Data definition not resolved for patterns containing the ':' in XLate factor 1
      * @see #LS24002758
      */
