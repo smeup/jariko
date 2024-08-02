@@ -115,6 +115,9 @@ private val modules = SerializersModule {
         subclass(WriteStmt::class)
         subclass(ZAddStmt::class)
         subclass(ZSubStmt::class)
+        subclass(ExecSqlStmt::class)
+        subclass(CsqlTextStmt::class)
+        subclass(CsqlEndStmt::class)
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)

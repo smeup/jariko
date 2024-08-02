@@ -1034,6 +1034,15 @@ internal fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: T
     return stmt
 }
 
+internal fun Cspec_fixed_sqlContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return when {
+        this.CS_ExecSQL() != null -> ExecSqlStmt(toPosition(conf.considerPosition))
+        this.CSQL_TEXT() != null -> CsqlTextStmt(toPosition(conf.considerPosition))
+        this.CSQL_END() != null -> CsqlEndStmt(toPosition(conf.considerPosition))
+        else -> todo(conf = conf)
+    }
+}
+
 private fun annidatedReferenceExpression(
     text: String,
     position: Position?

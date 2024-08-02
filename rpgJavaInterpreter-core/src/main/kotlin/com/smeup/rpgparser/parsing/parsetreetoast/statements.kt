@@ -29,6 +29,7 @@ import kotlinx.serialization.Serializable
 fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(conf)
+        this.cspec_fixed_sql() != null -> this.cspec_fixed_sql().toAst(conf)
         this.block() != null -> this.block().toAst(conf)
         else -> todo(conf = conf)
     }
