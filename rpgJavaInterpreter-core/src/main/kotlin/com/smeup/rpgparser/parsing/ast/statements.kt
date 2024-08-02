@@ -2510,3 +2510,33 @@ data class DeallocStmt(
         throw NotImplementedError("DEALLOC statement is not implemented yet")
     }
 }
+
+@Serializable
+data class ExecSqlStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "SQL - EXEC SQL"
+
+    override fun execute(interpreter: InterpreterCore) {}
+}
+
+@Serializable
+data class CsqlTextStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "SQL - Text"
+
+    override fun execute(interpreter: InterpreterCore) {}
+}
+
+@Serializable
+data class CsqlEndStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "SQL - END-EXEC"
+
+    override fun execute(interpreter: InterpreterCore) {}
+}

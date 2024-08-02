@@ -361,13 +361,21 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR06")
     }
 
+    /**
+     * This test is ignored because there is a mock implementation for SQL statements.
+     */
     @Test
+    @Ignore
     fun executeERROR07CallBackTest() {
         // Repeated not supported operation code
         executePgmCallBackTest("ERROR07", SourceReferenceType.Program, "ERROR07", listOf(6, 9))
     }
 
+    /**
+     * This test is ignored because there is a mock implementation for SQL statements.
+     */
     @Test
+    @Ignore
     fun executeERROR07SourceLineTest() {
         executeSourceLineTest("ERROR07")
     }
