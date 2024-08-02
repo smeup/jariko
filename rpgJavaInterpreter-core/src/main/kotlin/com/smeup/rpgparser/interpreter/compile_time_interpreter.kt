@@ -317,6 +317,21 @@ open class BaseCompileTimeInterpreter(
                             val type = it.block().findType(declName, conf)
                             if (type != null) return type
                         }
+                        it.directive() != null -> {
+                            // API Directives
+                            if (it.directive().dir_api() != null) {
+                                val apiDirective = it.directive().dir_api()
+                                val apiId = apiDirective.toApiId(conf)
+                                val type = apiId.loadAndUse { api ->
+                                    api.let {
+                                        it.compilationUnit.dataDefinitions.firstOrNull { def ->
+                                            def.name.equals(declName, ignoreCase = true)
+                                        }
+                                    }?.type
+                                }
+                                if (type != null) return type
+                            }
+                        }
                     }
                 }
             }
