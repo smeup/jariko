@@ -43,4 +43,14 @@ open class MULANGT11Codop2Test : MULANGTTest() {
         val expected = listOf("DENTRO_IF(BLOCCO; ERR_ZERO_DIV;) DENTRO_DO(BLOCCO; ERR_ZERO_DIV;) DENTRO_WHEN(BLOCCO; ERR_ZERO_DIV;) DENTRO_OTHER(BLOCCO; ERR_ZERO_DIV;)")
         assertEquals(expected, "smeup/T11_A10_P04".outputOf())
     }
+
+    /**
+     * Mock of `cspec_fixed_sql` with generic statement.
+     * @see #LS24003702
+     */
+    @Test
+    fun executeMUDRNRAPU00104() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU00104".outputOf())
+    }
 }
