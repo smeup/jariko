@@ -98,10 +98,10 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: NumberOfElementsExpr): Value = proxyLogging(expression) {
-        return@proxyLogging when (val value = expression.value.evalWith(this)) {
-            is ArrayValue -> value.arrayLength().asValue()
-            is OccurableDataStructValue -> value.occurs.asValue()
-            else -> throw IllegalStateException("Cannot ask number of elements of $value")
+        return@proxyLogging when (expression.value.type()) {
+            is ArrayType -> expression.value.type().numberOfElements().asValue()
+            is OccurableDataStructureType -> (expression.value.evalWith(this) as OccurableDataStructValue).occurs.asValue()
+            else -> throw IllegalStateException("Cannot ask number of elements of ${expression.value}")
         }
     }
 
