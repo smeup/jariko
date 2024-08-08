@@ -967,7 +967,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
             // Check if the size of the value matches the expected size within the DS
             // TO REVIEW
             is DataStructureType -> true
-            is StringType -> expectedType.size >= this.value.length
+            is StringType -> true
             else -> false
         }
     }
