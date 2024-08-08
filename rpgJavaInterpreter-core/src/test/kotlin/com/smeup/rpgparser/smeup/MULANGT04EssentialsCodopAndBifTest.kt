@@ -45,7 +45,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String  VARYING in EVAL
+     *Assigns content of DS to a String VARYING in EVAL
      * @see #LS24003679
      */
     @Test
