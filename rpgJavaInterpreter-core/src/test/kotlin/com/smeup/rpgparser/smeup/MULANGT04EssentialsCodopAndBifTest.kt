@@ -55,6 +55,16 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * @see #LS24003755
+     */
+    @Test
+    fun executeMUDRNRAPU00106() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aeean commodo ligula eget dolor. Aenean ma")
+        assertEquals(expected, "smeup/MUDRNRAPU00106".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */
