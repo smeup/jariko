@@ -635,20 +635,29 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
         require(value.assignableTo(elementType)) {
             "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
         }
-        if (elementType is StringType && !elementType.varying) {
-            val v = when (value) {
-                is AbstractStringValue -> {
-                    (value as StringValue).copy()
+        when (elementType) {
+            is StringType -> {
+                val v = when (value) {
+                    is AbstractStringValue -> {
+                        (value as StringValue).copy()
+                    }
+                    is DataStructValue -> {
+                        value.asString().copy()
+                    }
+                    else -> TODO("Not yet implemented")
                 }
-                is DataStructValue -> {
-                    value.asString().copy()
+
+                /*
+                 * Setting the value based of varying flag and length of target.
+                 */
+                if (!elementType.varying && v.length() < elementType.length) {
+                    v.pad(elementType.length)
+                } else if (v.length() > elementType.length) {
+                    v.setSubstring(0, elementType.length)
                 }
-                else -> TODO("Not yet implemented")
+                elements[index - 1] = v
             }
-            v.pad(elementType.length)
-            elements[index - 1] = v
-        } else {
-            elements[index - 1] = value
+            else -> elements[index - 1] = value
         }
     }
 
