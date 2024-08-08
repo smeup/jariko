@@ -143,13 +143,12 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
 
     override fun asTimeStamp(): TimeStampValue = TimeStampValue.of(value)
 
-    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
+    fun setSubstring(startOffset: Int, endOffset: Int) {
         require(startOffset >= 0)
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        substringValue.pad(endOffset - startOffset)
-        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+        value = value.substring(startOffset, endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
