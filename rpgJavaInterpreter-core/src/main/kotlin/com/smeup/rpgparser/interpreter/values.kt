@@ -633,9 +633,6 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        if (!value.assignableTo(elementType)) {
-            println("boom")
-        }
         require(value.assignableTo(elementType)) {
             "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
         }
