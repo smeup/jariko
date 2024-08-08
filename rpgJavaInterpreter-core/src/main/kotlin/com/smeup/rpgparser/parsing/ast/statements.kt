@@ -816,7 +816,7 @@ data class CallStmt(
 
 @Serializable
 data class CallPStmt(
-    val functionCall: FunctionCall,
+    var functionCall: FunctionCall,
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
