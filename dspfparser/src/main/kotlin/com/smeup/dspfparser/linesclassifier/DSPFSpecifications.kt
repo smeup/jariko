@@ -27,7 +27,7 @@ internal data class DSPFSpecifications(
 private enum class CurrentContext {
     FILE,
     RECORD,
-    FIELD,
+    FIELD
 }
 
 private class DSPFSpecificationsFactory {
@@ -35,6 +35,7 @@ private class DSPFSpecificationsFactory {
     private var isLineNone: Boolean = false
     private var isLineRecord: Boolean = false
     private var isLineField: Boolean = false
+    private var isLineConstant: Boolean = false
     private var result: DSPFSpecifications = DSPFSpecifications()
 
     constructor(lines: MutableList<DSPFLine>) {
@@ -65,16 +66,34 @@ private class DSPFSpecificationsFactory {
         }
     }
 
+    private fun tryInsertNewConstantOnFieldContext(line: DSPFLine) {
+        if (this.context == CurrentContext.FIELD && this.isLineConstant) {
+            this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
+        }
+    }
+
+    private fun tryInsertNewConstantOnRecordContext(line: DSPFLine) {
+        if (this.context == CurrentContext.RECORD && this.isLineConstant) {
+            this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line))
+            this.context = CurrentContext.FIELD
+        }
+    }
+
     private fun updateResultWith(lines: MutableList<DSPFLine>) {
         lines.forEach {
             this.isLineNone = it.isNone()
             this.isLineField = it.isField()
             this.isLineRecord = it.isRecord()
+            this.isLineConstant = it.isConstant()
 
             // order is important, do not change it
             this.tryInsertNewRecord(it)
+            // try with field context before record context because after matching
+            // record context, context is switched to field leading to a double match
             this.tryInsertNewFieldOnFieldContext(it)
             this.tryInsertNewFieldOnRecordContext(it)
+            this.tryInsertNewConstantOnFieldContext(it)
+            this.tryInsertNewConstantOnRecordContext(it)
         }
     }
 }

@@ -1,0 +1,10 @@
+                R FMT01
+                                        2  3'Sum of A and B'
+                                        5  3'A:'
+                  A              5S 2I  5  8
+                                        5 16'B:'
+                  B              5S 2I  5 21
+                                        7  3'RESULT:'
+                  RESULT         5S 2O  7 13
+                                        9  3'PGMCTL:'
+                  PGMCTL         1S 0I  9 13

@@ -15,7 +15,7 @@ internal fun String.removeNewLineAndExtend(
     with: Char,
     until: Int
 ): String {
-    var line = this.replace("\n", "")
+    val line = this.replace("\n", "")
     if (until < line.length) throw Exception("Line length (${line.length}) is greater than $until")
 
     return line.extend(with, until)

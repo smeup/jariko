@@ -3,7 +3,7 @@ package com.smeup.dspfparser.linesprocessor
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resources/D1.dspf") {
+internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resources/DECLARATIONS.dspf") {
     init {
         this.linesProcessor.createLines()
     }
@@ -24,7 +24,7 @@ internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resour
     }
 
     @Test
-    fun isTheSameAsPreviousLine() {
+    fun isNone() {
         assertTrue { this.linesProcessor.lines[3].isNone() }
     }
 }

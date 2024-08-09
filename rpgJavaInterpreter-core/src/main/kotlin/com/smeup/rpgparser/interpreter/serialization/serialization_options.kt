@@ -16,6 +16,8 @@
 
 package com.smeup.rpgparser.interpreter.serialization
 
+import com.smeup.dspfparser.linesclassifier.ConstantValue
+import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
@@ -41,6 +43,9 @@ private val module = SerializersModule {
         subclass(DataStructValue::class)
         subclass(OccurableDataStructValue::class)
         subclass(UnlimitedStringValue::class)
+    }
+    polymorphic(DSPFValue::class) {
+        subclass(ConstantValue::class)
     }
 }
 
