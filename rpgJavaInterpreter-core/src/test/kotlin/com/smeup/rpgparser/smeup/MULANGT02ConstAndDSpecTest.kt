@@ -530,6 +530,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Access to an array detected as a function call by parser in ArrayAccessExpr
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00243() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00243".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Access to an array detected as a function call recursively
      * @see #LS24003753
      */
