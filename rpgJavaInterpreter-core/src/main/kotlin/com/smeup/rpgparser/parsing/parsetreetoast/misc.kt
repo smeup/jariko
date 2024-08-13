@@ -2252,7 +2252,6 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
                 resultDigits
             }
             this is UnlimitedStringType && other is StringType -> true
-            this is StringType && other is UnlimitedStringType -> true
             else -> this == other
         }
     }
