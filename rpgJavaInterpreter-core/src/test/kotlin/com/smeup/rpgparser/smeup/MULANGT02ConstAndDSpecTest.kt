@@ -538,4 +538,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00243".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Resolution of InStatement data definitions contained in CompositeStatements
+     * @see #LS24003769
+     */
+    @Test
+    fun executeMUDRNRAPU00245() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00245".outputOf(configuration = smeupConfig))
+    }
 }
