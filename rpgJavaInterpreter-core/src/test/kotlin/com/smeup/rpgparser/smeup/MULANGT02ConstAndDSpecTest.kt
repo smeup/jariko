@@ -538,4 +538,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00243".outputOf(configuration = smeupConfig))
     }
+
+    @Test
+    fun executeMUDRNRAPU00246() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00246".outputOf(configuration = smeupConfig))
+    }
 }
