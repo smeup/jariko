@@ -33,20 +33,44 @@ import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
+private fun List<CompositeStatement>.findWrappedInStatementDataDefinitions(): List<StatementThatCanDefineData> {
+    if (this.isEmpty()) return emptyList()
+
+    val candidates = this.flatMap { it.body }
+    val free = candidates.filterIsInstance<StatementThatCanDefineData>()
+    val unwrapped = candidates.filterIsInstance<CompositeStatement>().findWrappedInStatementDataDefinitions()
+    return free + unwrapped
+}
+
+private fun List<StatementThatCanDefineData>.moveDefineStmtsToEnd(): List<StatementThatCanDefineData> {
+    val defineStmts = this.filterIsInstance<DefineStmt>()
+    val otherStmts = this.filter { it !is DefineStmt }
+    return otherStmts + defineStmts
+}
+
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    this.allStatements(preserveCompositeStatement = true)
-        .filterIsInstance<StatementThatCanDefineData>()
-        .forEach { statementThatCanDefineData ->
-            kotlin.runCatching {
-                this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
-            }.onFailure { error ->
-                if (statementThatCanDefineData is Node) {
-                    kotlin.runCatching {
-                        statementThatCanDefineData.error("Error while creating data definition from statement: $statementThatCanDefineData", error)
-                    }
-                } else throw error
-            }
+    // Filter related statements
+    val candidates = this.allStatements(preserveCompositeStatement = true)
+    val compositeStatements = candidates.filterIsInstance<CompositeStatement>()
+    val freeStatements = candidates.filterIsInstance<StatementThatCanDefineData>()
+
+    // Unwrap StatementThatCanDefineData contained in CompositeStatements
+    val unwrappedCompositeStatements = compositeStatements.findWrappedInStatementDataDefinitions()
+
+    // Move define statements to end as they can be based on other instatement definitions
+    val targetStatements = (freeStatements + unwrappedCompositeStatements).moveDefineStmtsToEnd()
+
+    targetStatements.forEach { statementThatCanDefineData ->
+        kotlin.runCatching {
+            this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
+        }.onFailure { error ->
+            if (statementThatCanDefineData is Node) {
+                kotlin.runCatching {
+                    statementThatCanDefineData.error("Error while creating data definition from statement: $statementThatCanDefineData", error)
+                }
+            } else throw error
         }
+    }
 }
 
 private fun MutableList<InStatementDataDefinition>.addAllDistinct(list: List<InStatementDataDefinition>): List<InStatementDataDefinition> {
