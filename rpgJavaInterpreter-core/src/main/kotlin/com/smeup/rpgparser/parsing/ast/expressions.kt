@@ -210,7 +210,7 @@ data class DifferentThanExpr(var left: Expression, var right: Expression, overri
 // / Logical operations
 // /
 @Serializable
-data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position) {
+data class NotExpr(var base: Expression, override val position: Position? = null) : Expression(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 

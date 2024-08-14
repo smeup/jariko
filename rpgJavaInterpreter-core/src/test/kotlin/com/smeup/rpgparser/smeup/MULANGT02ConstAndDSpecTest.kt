@@ -564,4 +564,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00246".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Access to an array detected as a function call in NOT expressions
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00247() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00247".outputOf(configuration = smeupConfig))
+    }
 }
