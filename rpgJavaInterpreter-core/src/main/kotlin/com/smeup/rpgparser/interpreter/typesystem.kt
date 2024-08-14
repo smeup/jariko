@@ -171,6 +171,28 @@ object LowValType : Type() {
 }
 
 @Serializable
+object StartValType : Type() {
+    override val size: Int
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
+
+    // FIXME: Check if this is true in all cases
+    override fun isNumeric() = false
+}
+
+@Serializable
+object EndValType : Type() {
+    override val size: Int
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
+
+    // FIXME: Check if this is true in all cases
+    override fun isNumeric() = false
+}
+
+@Serializable
 object TimeStampType : Type() {
     override val size: Int
         get() = 26
