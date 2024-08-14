@@ -56,4 +56,14 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
         mockSmeupConfig.dspfConfig = null
         assertEquals(expected, "smeup/MUDRNRAPU00220".outputOf(configuration = mockSmeupConfig))
     }
+
+    /**
+     * SetLL with '*START' and '*END' symbolic constants
+     * @see #LS24003777
+     */
+    @Test
+    fun executeMUDRNRAPU00248() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00248".outputOf(configuration = smeupConfig))
+    }
 }
