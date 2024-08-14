@@ -97,6 +97,16 @@ data class LowValExpr(override val position: Position? = null) : FigurativeConst
 }
 
 @Serializable
+data class StartValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class EndValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
 data class ZeroExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }

@@ -728,6 +728,8 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(position)
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
+        this.SPLAT_START() != null -> StartValExpr(position)
+        this.SPLAT_END() != null -> EndValExpr(position)
         this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
         this.SPLAT_OFF() != null -> OffRefExpr(position)
