@@ -540,6 +540,22 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Resolution of InStatement data definitions contained in CompositeStatements
+     * @see #LS24003769
+     */
+    @Test
+    fun executeMUDRNRAPU00245() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00245".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU00246() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00246".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Access to an array detected as a function call in NOT expressions
      * @see #LS24003380
      */
