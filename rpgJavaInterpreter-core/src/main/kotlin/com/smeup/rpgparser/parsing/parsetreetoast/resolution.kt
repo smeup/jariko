@@ -123,16 +123,35 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
 private fun Node.resolveFunctionCalls(cu: CompilationUnit) {
     // replace FunctionCall with ArrayAccessExpr where it makes sense
     this.specificProcess(FunctionCall::class.java) { fc ->
-        if (fc.args.size == 1) {
-            val data = cu.allDataDefinitions.firstOrNull { it.name == fc.function.name }
-            if (data != null) {
-                fc.replace(ArrayAccessExpr(
-                        array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
-                        index = fc.args[0],
-                        position = fc.position))
-            }
+        fc.tryReplaceWithArrayAccess(cu)
+    }
+}
+
+private fun FunctionCall.tryReplaceWithArrayAccess(cu: CompilationUnit): Optional<Node> {
+    // Only said FunctionCalls with 1 arg can be ArrayAccessExpr
+    if (this.args.size != 1) return Optional.empty()
+
+    // Replacement can only happen when there is a DataDefinition named like this 'FunctionCall'
+    val data = cu.allDataDefinitions.firstOrNull { it.name == this.function.name }
+    data ?: return Optional.empty()
+
+    // Recursively try to process inner expressions
+    var indexExpr = this.args.first()
+    if (indexExpr is FunctionCall) {
+        indexExpr.tryReplaceWithArrayAccess(cu).ifPresent {
+            // Needed for type-checking
+            if (it is Expression) indexExpr = it
         }
     }
+
+    val arrayAccessExpr = ArrayAccessExpr(
+        array = DataRefExpr(ReferenceByName(this.function.name, referred = data)),
+        index = indexExpr,
+        position = this.position
+    )
+
+    val newExpression = this.replace(arrayAccessExpr).children.first()
+    return Optional.of(newExpression)
 }
 
 fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
