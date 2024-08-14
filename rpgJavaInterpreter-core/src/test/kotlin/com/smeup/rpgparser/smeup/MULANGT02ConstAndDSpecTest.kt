@@ -540,6 +540,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Access to an array detected as a function call recursively
+     * @see #LS24003753
+     */
+    @Test
+    fun executeMUDRNRAPU00244() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00244".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Resolution of InStatement data definitions contained in CompositeStatements
      * @see #LS24003769
      */
