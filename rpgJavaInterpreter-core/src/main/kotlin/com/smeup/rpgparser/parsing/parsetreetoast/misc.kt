@@ -2224,6 +2224,7 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 }
 
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
+    // NOTE: With current logic when type matches on duplications the first definition wins
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
     return removeUnnecessaryRecordFormat().filter {
         val dataDefinition = dataDefinitionMap[it.name]
@@ -2241,14 +2242,17 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
     fun Type.matchType(other: Any?): Boolean {
-        if (this is NumberType && other is NumberType) {
-            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
-            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
-                return resultDigits && rpgType == other.rpgType
+        // TODO: Improve logic for StringType/UnlimitedStringType matching
+        return when {
+            this is NumberType && other is NumberType -> {
+                val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+                if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                    return resultDigits && rpgType == other.rpgType
+                }
+                resultDigits
             }
-            return resultDigits
-        } else {
-            return this == other
+            this is UnlimitedStringType && other is StringType -> true
+            else -> this == other
         }
     }
 
