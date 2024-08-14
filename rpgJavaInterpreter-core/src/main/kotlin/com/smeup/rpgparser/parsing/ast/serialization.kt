@@ -16,10 +16,7 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.FieldDefinition
-import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
@@ -142,6 +139,7 @@ private val modules = SerializersModule {
         subclass(NegationExpr::class)
         subclass(EditcExpr::class)
         subclass(EditwExpr::class)
+        subclass(EndValExpr::class)
         subclass(EofExpr::class)
         subclass(EqualExpr::class)
         subclass(EqualityExpr::class)
@@ -186,6 +184,7 @@ private val modules = SerializersModule {
         subclass(ReplaceExpr::class)
         subclass(ScanExpr::class)
         subclass(SqrtExpr::class)
+        subclass(StartValExpr::class)
         subclass(StringLiteral::class)
         subclass(SubstExpr::class)
         subclass(SubarrExpr::class)
