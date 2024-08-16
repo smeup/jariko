@@ -776,9 +776,7 @@ object StartValValue : Value {
     override operator fun compareTo(other: Value): Int =
         if (other is StartValValue) 0 else -1
 
-    override fun asString(): StringValue {
-        TODO("Not yet implemented")
-    }
+    override fun asString() = "*START".asValue()
 }
 
 object EndValValue : Value {
@@ -791,9 +789,7 @@ object EndValValue : Value {
     override operator fun compareTo(other: Value): Int =
         if (other is EndValValue) 0 else 1
 
-    override fun asString(): StringValue {
-        TODO("Not yet implemented")
-    }
+    override fun asString() = "*END".asValue()
 }
 
 object ZeroValue : Value {

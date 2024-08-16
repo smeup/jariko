@@ -160,11 +160,8 @@ fun Expression.createKList(fileMetadata: FileMetadata, interpreter: InterpreterC
     return if (type() is KListType) {
         interpreter.toSearchValues(this, fileMetadata)
     } else {
-        when (val value = interpreter.eval(this)) {
-            is StartValValue -> listOf(fileMetadata.fields.first().fieldName)
-            is EndValValue -> listOf(fileMetadata.fields.last().fieldName)
-            else -> listOf(value.asString(fileMetadata.accessFieldsType[0]))
-        }
+        val value = interpreter.eval(this)
+        listOf(value.asString(fileMetadata.accessFieldsType.first()))
     }
 }
 
