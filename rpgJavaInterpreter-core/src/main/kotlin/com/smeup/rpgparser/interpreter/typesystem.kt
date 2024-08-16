@@ -176,8 +176,6 @@ object StartValType : Type() {
         get() = throw IllegalStateException("Has variable size")
 
     override fun hasVariableSize() = true
-
-    // FIXME: Check if this is true in all cases
     override fun isNumeric() = false
 }
 
@@ -187,8 +185,6 @@ object EndValType : Type() {
         get() = throw IllegalStateException("Has variable size")
 
     override fun hasVariableSize() = true
-
-    // FIXME: Check if this is true in all cases
     override fun isNumeric() = false
 }
 
