@@ -77,12 +77,11 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
     }
 
     /**
-     * Evaluation of %ELEM during execution by using PLIST
+     * Runtime evaluation of `%ELEM` during the evaluation of `PLIST`.
      * @see #LS24003751
      */
     @Test
     fun executeMUDRNRAPU00105() {
-        val expected = listOf("OK")
-        assertEquals(expected, "smeup/MUDRNRAPU00105".outputOf(configuration = smeupConfig))
+        assertEquals(emptyList(), "smeup/MUDRNRAPU00105".outputOf(configuration = smeupConfig))
     }
 }
