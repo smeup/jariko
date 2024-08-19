@@ -1,8 +1,13 @@
      V* ==============================================================
-     V* Runtime evaluation of `£40ANM`, which uses
-     V*  `%ELEM(£40A)` for its initialization, during the evaluation
-     V*   of `£40A` `PLIST` parameter.
-     V* Before the fix, the error occurred was `Void value for £40A`.
+     V* gg/mm/aa APU001 Creazione
+     V* ==============================================================
+    O * PROGRAM GOAL
+    O * Runtime evaluation of `£40ANM`, which uses
+    O *  `%ELEM(£40A)` for its initialization, during the evaluation
+    O *  of `£40A` `PLIST` parameter.
+     V* ==============================================================
+    O * JARIKO ANOMALY
+    O * Before the fix, the error occurred was `Void value for £40A`.
      V* ==============================================================
      D £40A            S             15    DIM(300)
      D £40B            S             12    DIM(300)
