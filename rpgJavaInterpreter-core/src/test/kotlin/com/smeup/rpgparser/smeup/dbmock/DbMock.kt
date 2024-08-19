@@ -16,20 +16,19 @@ interface DbMock : AutoCloseable {
 
     fun buildDbColumnsFromDbFields(fields: List<DbField>): String {
         return fields.mapIndexed { i, it ->
-            when {
-                it.type is StringType -> "${it.fieldName} VARCHAR(${it.type.size}) DEFAULT '' NOT NULL".plus(if (fields.lastIndex != i) ",\n" else "\n")
-                it.type is NumberType -> {
-                    var columnDeclaration = it.fieldName
-                    if ((it.type as NumberType).decimal) {
-                        columnDeclaration += " DECIMAL(${(it.type as NumberType).entireDigits}, ${(it.type as NumberType).decimalDigits}) DEFAULT 0.0"
+            when (it.type) {
+                is StringType -> "\"${it.fieldName}\" VARCHAR(${it.type.size}) DEFAULT '' NOT NULL".plus(if (fields.lastIndex != i) ",\n" else "\n")
+                is NumberType -> buildString {
+                    append("\"${it.fieldName}\"")
+                    val defaultValue = if ((it.type as NumberType).decimal) {
+                        " DECIMAL(${(it.type as NumberType).entireDigits}, ${(it.type as NumberType).decimalDigits}) DEFAULT 0.0"
                     } else {
-                        columnDeclaration += " BIGINT DEFAULT 0"
+                        " BIGINT DEFAULT 0"
                     }
-
-                    columnDeclaration += " NOT NULL".plus(if (fields.lastIndex != i) ",\n" else "\n")
-
-                    columnDeclaration
+                    append(defaultValue)
+                    append(" NOT NULL".plus(if (fields.lastIndex != i) ",\n" else "\n"))
                 }
+
                 else -> todo { "Implements ${it.type} for 'buildDbColumnsFromDbFields'." }
             }
         }
