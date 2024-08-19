@@ -1,3 +1,22 @@
+     V* ==============================================================
+     V* 08/08/2024 APU001 Creation
+     V* ==============================================================
+    O * PROGRAM GOAL
+    O * Assignment the content of DS to an element of array that is
+    O *  String type (varying) with size smaller than DS.
+    O * After declaration of variable there is the assignment of
+    O *  specific substring of "Lorem ipsum" to every field of DS.
+    O * Then, there is the assignment of DS content to an element
+    O *  of array. In AS400 there is a truncate of content for adapting
+    O *  to destination, smaller than DS.
+    O * The implementation is like the original source, by changing
+    O *  only the name of variables and by adding the assignment
+    O *  of substring to undestand about the behavior.
+     V* ==============================================================
+    O * JARIKO ANOMALY
+    O * Before the fix, the error occurred was
+    O *  `Cannot assign DataStructValue to StringType`.
+     V* ==============================================================
      D A40_A100        S            100    DIM(300) VARYING
      D A40_DS          DS
      D  A40_DS_F1                    10
