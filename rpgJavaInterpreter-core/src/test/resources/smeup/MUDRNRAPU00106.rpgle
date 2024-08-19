@@ -69,6 +69,6 @@
      C                                            + 'tincidunt. Cras dapibus'
 
      C                   EVAL      A40_A5=1
-     C                   EVAL      A40_A100(A40_A5)=A40_DS
+     C                   EVAL      A40_A100(A40_A5)=A40_DS                           Jariko Runtime Error: `Cannot assign DataStructValue to StringType`
      C                   EVAL      OUTPUT=A40_A100(A40_A5)
      C     OUTPUT        DSPLY
