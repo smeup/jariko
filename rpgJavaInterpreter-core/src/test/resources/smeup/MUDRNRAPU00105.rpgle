@@ -1,3 +1,9 @@
+     V* ==============================================================
+     V* Runtime evaluation of `£40ANM`, which uses
+     V*  `%ELEM(£40A)` for its initialization, during the evaluation
+     V*   of `£40A` `PLIST` parameter.
+     V* Before the fix, the error occurred was `Void value for £40A`.
+     V* ==============================================================
      D £40A            S             15    DIM(300)
      D £40B            S             12    DIM(300)
 
@@ -18,8 +24,6 @@
      D  £G40C2                       15                                         I Cod.Ogg.Sec.
      D  £G40UT                       10                                         O Utente
      D  £G40AN                        1                                         O Annullata
-
-     C     'OK'          DSPLY
 
      C     *ENTRY        PLIST
      C                   PARM                    £40A                           <--> Schiera
