@@ -1,5 +1,5 @@
      V* ==============================================================
-     V* gg/mm/aa APU001 Creazione
+     V* 07/08/2024 APU001 Creazione
      V* ==============================================================
     O * PROGRAM GOAL
     O * Runtime evaluation of `£40ANM`, which uses
