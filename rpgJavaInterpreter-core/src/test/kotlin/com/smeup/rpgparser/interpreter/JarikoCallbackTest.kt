@@ -670,14 +670,13 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun executeERROR36CallBackTest() {
-        TABDS01LDbMock().use {
-            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+        TABDS01LDbMock().usePopulated {
             executePgmCallBackTest(
                 pgm = "ERROR36",
                 sourceReferenceType = SourceReferenceType.Program,
                 sourceId = "ERROR36",
                 lines = listOf(6),
-                reloadConfig = createTABDS01LReloadConfig()
+                reloadConfig = it.createReloadConfig()
             )
         }
     }
@@ -859,30 +858,5 @@ class JarikoCallbackTest : AbstractTest() {
         )
         val metadataProducer = { file: String -> metadata[file]!! }
         return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
-    }
-
-    private fun createTABDS01LReloadConfig(): ReloadConfig {
-        val metadata = mapOf(
-            "TABDS01L" to FileMetadata(
-                name = "TABDS01L",
-                tableName = "TABDS00F",
-                recordFormat = "TABDSR",
-                fields = listOf(
-                    DbField("S\$SETT", StringType(3)),
-                    DbField("S\$SUBS", StringType(2))
-                ),
-                accessFields = listOf("S\$SETT", "S\$SUBS")
-            )
-        )
-        val metadataProducer = { file: String -> metadata[file]!! }
-        return ReloadConfig(DBNativeAccessConfig(connectionsConfig = listOf(
-            com.smeup.dbnative.ConnectionConfig(
-                fileName = "*",
-                url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
-                user = "SA",
-                password = "",
-                driver = "org.hsqldb.jdbc.JDBCDriver"
-            )
-        )), metadataProducer = metadataProducer)
     }
 }
