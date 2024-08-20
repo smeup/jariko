@@ -45,13 +45,33 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String  VARYING in EVAL
+     *Assigns content of DS to a String VARYING in EVAL
      * @see #LS24003679
      */
     @Test
     fun executeMU044014() {
         val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ae")
         assertEquals(expected, "smeup/MU044014".outputOf())
+    }
+
+    /**
+     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * @see #LS24003755
+     */
+    @Test
+    fun executeMUDRNRAPU00106() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscin")
+        assertEquals(expected, "smeup/MUDRNRAPU00106".outputOf())
+    }
+
+    /**
+     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * @see #LS24003755
+     */
+    @Test
+    fun executeMUDRNRAPU00107() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscin")
+        assertEquals(expected, "smeup/MUDRNRAPU00107".outputOf())
     }
 
     /**

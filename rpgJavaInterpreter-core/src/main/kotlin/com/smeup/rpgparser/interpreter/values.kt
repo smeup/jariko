@@ -143,13 +143,12 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
 
     override fun asTimeStamp(): TimeStampValue = TimeStampValue.of(value)
 
-    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
+    fun setSubstring(startOffset: Int, endOffset: Int) {
         require(startOffset >= 0)
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        substringValue.pad(endOffset - startOffset)
-        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+        value = value.substring(startOffset, endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -633,26 +632,32 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        if (!value.assignableTo(elementType)) {
-            println("boom")
-        }
         require(value.assignableTo(elementType)) {
             "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
         }
-        if (elementType is StringType && !elementType.varying) {
-            val v = when (value) {
-                is AbstractStringValue -> {
-                    (value as StringValue).copy()
+        when (elementType) {
+            is StringType -> {
+                val v = when (value) {
+                    is AbstractStringValue -> {
+                        (value as StringValue).copy()
+                    }
+                    is DataStructValue -> {
+                        value.asString().copy()
+                    }
+                    else -> TODO("Not yet implemented")
                 }
-                is DataStructValue -> {
-                    value.asString().copy()
+
+                /*
+                 * Setting the value based of varying flag and length of target.
+                 */
+                if (!elementType.varying && v.length() < elementType.length) {
+                    v.pad(elementType.length)
+                } else if (v.length() > elementType.length) {
+                    v.setSubstring(0, elementType.length)
                 }
-                else -> TODO("Not yet implemented")
+                elements[index - 1] = v
             }
-            v.pad(elementType.length)
-            elements[index - 1] = v
-        } else {
-            elements[index - 1] = value
+            else -> elements[index - 1] = value
         }
     }
 
@@ -997,7 +1002,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
             // Check if the size of the value matches the expected size within the DS
             // TO REVIEW
             is DataStructureType -> true
-            is StringType -> expectedType.size >= this.value.length
+            is StringType -> true
             else -> false
         }
     }
