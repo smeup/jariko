@@ -3,6 +3,7 @@ package com.smeup.rpgparser.smeup
 import com.smeup.rpgparser.db.utilities.DBServer
 import org.junit.Test
 import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 open class MULANGT50FileAccess1Test : MULANGTTest() {
@@ -55,5 +56,15 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
         val mockSmeupConfig = smeupConfig.copy()
         mockSmeupConfig.dspfConfig = null
         assertEquals(expected, "smeup/MUDRNRAPU00220".outputOf(configuration = mockSmeupConfig))
+    }
+
+    /**
+     * SetLL with '*START' and '*END' symbolic constants
+     * @see #LS24003777
+     */
+    @Test @Ignore
+    fun executeMUDRNRAPU00248() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00248".outputOf(configuration = smeupConfig))
     }
 }
