@@ -33,20 +33,44 @@ import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 
+private fun List<CompositeStatement>.findWrappedInStatementDataDefinitions(): List<StatementThatCanDefineData> {
+    if (this.isEmpty()) return emptyList()
+
+    val candidates = this.flatMap { it.body }
+    val free = candidates.filterIsInstance<StatementThatCanDefineData>()
+    val unwrapped = candidates.filterIsInstance<CompositeStatement>().findWrappedInStatementDataDefinitions()
+    return free + unwrapped
+}
+
+private fun List<StatementThatCanDefineData>.moveDefineStmtsToEnd(): List<StatementThatCanDefineData> {
+    val defineStmts = this.filterIsInstance<DefineStmt>()
+    val otherStmts = this.filter { it !is DefineStmt }
+    return otherStmts + defineStmts
+}
+
 private fun CompilationUnit.findInStatementDataDefinitions() {
-    this.allStatements(preserveCompositeStatement = true)
-        .filterIsInstance<StatementThatCanDefineData>()
-        .forEach { statementThatCanDefineData ->
-            kotlin.runCatching {
-                this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
-            }.onFailure { error ->
-                if (statementThatCanDefineData is Node) {
-                    kotlin.runCatching {
-                        statementThatCanDefineData.error("Error while creating data definition from statement: $statementThatCanDefineData", error)
-                    }
-                } else throw error
-            }
+    // Filter related statements
+    val candidates = this.allStatements(preserveCompositeStatement = true)
+    val compositeStatements = candidates.filterIsInstance<CompositeStatement>()
+    val freeStatements = candidates.filterIsInstance<StatementThatCanDefineData>()
+
+    // Unwrap StatementThatCanDefineData contained in CompositeStatements
+    val unwrappedCompositeStatements = compositeStatements.findWrappedInStatementDataDefinitions()
+
+    // Move define statements to end as they can be based on other instatement definitions
+    val targetStatements = (freeStatements + unwrappedCompositeStatements).moveDefineStmtsToEnd()
+
+    targetStatements.forEach { statementThatCanDefineData ->
+        kotlin.runCatching {
+            this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
+        }.onFailure { error ->
+            if (statementThatCanDefineData is Node) {
+                kotlin.runCatching {
+                    statementThatCanDefineData.error("Error while creating data definition from statement: $statementThatCanDefineData", error)
+                }
+            } else throw error
         }
+    }
 }
 
 private fun MutableList<InStatementDataDefinition>.addAllDistinct(list: List<InStatementDataDefinition>): List<InStatementDataDefinition> {
@@ -99,16 +123,35 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
 private fun Node.resolveFunctionCalls(cu: CompilationUnit) {
     // replace FunctionCall with ArrayAccessExpr where it makes sense
     this.specificProcess(FunctionCall::class.java) { fc ->
-        if (fc.args.size == 1) {
-            val data = cu.allDataDefinitions.firstOrNull { it.name == fc.function.name }
-            if (data != null) {
-                fc.replace(ArrayAccessExpr(
-                        array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
-                        index = fc.args[0],
-                        position = fc.position))
-            }
+        fc.tryReplaceWithArrayAccess(cu)
+    }
+}
+
+private fun FunctionCall.tryReplaceWithArrayAccess(cu: CompilationUnit): Optional<Node> {
+    // Only said FunctionCalls with 1 arg can be ArrayAccessExpr
+    if (this.args.size != 1) return Optional.empty()
+
+    // Replacement can only happen when there is a DataDefinition named like this 'FunctionCall'
+    val data = cu.allDataDefinitions.firstOrNull { it.name == this.function.name }
+    data ?: return Optional.empty()
+
+    // Recursively try to process inner expressions
+    var indexExpr = this.args.first()
+    if (indexExpr is FunctionCall) {
+        indexExpr.tryReplaceWithArrayAccess(cu).ifPresent {
+            // Needed for type-checking
+            if (it is Expression) indexExpr = it
         }
     }
+
+    val arrayAccessExpr = ArrayAccessExpr(
+        array = DataRefExpr(ReferenceByName(this.function.name, referred = data)),
+        index = indexExpr,
+        position = this.position
+    )
+
+    val newExpression = this.replace(arrayAccessExpr).children.first()
+    return Optional.of(newExpression)
 }
 
 fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {

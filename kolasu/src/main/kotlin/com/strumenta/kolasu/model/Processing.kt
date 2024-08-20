@@ -191,7 +191,7 @@ fun Node.transformChildren(operation: (Node) -> Node, inPlace: Boolean = false):
         }
     }
     var instanceToTransform = this
-    if (!changes.isEmpty()) {
+    if (changes.isNotEmpty()) {
         val constructor = this.javaClass.kotlin.primaryConstructor!!
         val params = HashMap<KParameter, Any?>()
         constructor.parameters.forEach { param ->
@@ -206,9 +206,8 @@ fun Node.transformChildren(operation: (Node) -> Node, inPlace: Boolean = false):
     return instanceToTransform
 }
 
-fun Node.replace(other: Node) {
-    if (this.parent == null) {
-        throw IllegalStateException("Parent not set")
-    }
-    this.parent!!.transformChildren(inPlace = true, operation = { if (it == this) other else it })
+fun Node.replace(other: Node): Node {
+    return this.parent?.let {
+        it.transformChildren(inPlace = true, operation = { node -> if (node == this) other else node })
+    } ?: throw IllegalStateException("Parent not set")
 }

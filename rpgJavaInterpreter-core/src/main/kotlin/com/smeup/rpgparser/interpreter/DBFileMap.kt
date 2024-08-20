@@ -160,8 +160,10 @@ fun Expression.createKList(fileMetadata: FileMetadata, interpreter: InterpreterC
     return if (type() is KListType) {
         interpreter.toSearchValues(this, fileMetadata)
     } else {
-        val value = interpreter.eval(this)
-        listOf(value.asString(fileMetadata.accessFieldsType[0]))
+        when (val value = interpreter.eval(this)) {
+            is StartValValue, is EndValValue -> throw NotImplementedError("$value constant not yet supported.")
+            else -> listOf(value.asString(fileMetadata.accessFieldsType.first()))
+        }
     }
 }
 

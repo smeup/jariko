@@ -728,6 +728,8 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(position)
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
+        this.SPLAT_START() != null -> StartValExpr(position)
+        this.SPLAT_END() != null -> EndValExpr(position)
         this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
         this.SPLAT_OFF() != null -> OffRefExpr(position)
@@ -2224,6 +2226,7 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 }
 
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
+    // NOTE: With current logic when type matches on duplications the first definition wins
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
     return removeUnnecessaryRecordFormat().filter {
         val dataDefinition = dataDefinitionMap[it.name]
@@ -2241,14 +2244,17 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
     fun Type.matchType(other: Any?): Boolean {
-        if (this is NumberType && other is NumberType) {
-            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
-            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
-                return resultDigits && rpgType == other.rpgType
+        // TODO: Improve logic for StringType/UnlimitedStringType matching
+        return when {
+            this is NumberType && other is NumberType -> {
+                val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+                if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                    return resultDigits && rpgType == other.rpgType
+                }
+                resultDigits
             }
-            return resultDigits
-        } else {
-            return this == other
+            this is UnlimitedStringType && other is StringType -> true
+            else -> this == other
         }
     }
 

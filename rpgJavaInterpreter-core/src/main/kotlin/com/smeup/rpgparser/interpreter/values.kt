@@ -771,6 +771,32 @@ object LowValValue : Value {
     }
 }
 
+object StartValValue : Value {
+    override fun toString() = "StartValValue"
+
+    // FIXME
+    override fun assignableTo(expectedType: Type) = true
+    override fun copy(): StartValValue = this
+
+    override operator fun compareTo(other: Value): Int =
+        if (other is StartValValue) 0 else -1
+
+    override fun asString() = "*START".asValue()
+}
+
+object EndValValue : Value {
+    override fun toString() = "EndValValue"
+
+    // FIXME
+    override fun assignableTo(expectedType: Type) = true
+    override fun copy(): EndValValue = this
+
+    override operator fun compareTo(other: Value): Int =
+        if (other is EndValValue) 0 else 1
+
+    override fun asString() = "*END".asValue()
+}
+
 object ZeroValue : Value {
 
     override fun copy() = this
@@ -954,7 +980,7 @@ fun Type.blank(): Value {
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
         is FigurativeType -> BlanksValue
-        is LowValType, is HiValType -> TODO()
+        is LowValType, is HiValType, is StartValType, is EndValType -> TODO()
         is UnlimitedStringType -> UnlimitedStringValue("")
         is RecordFormatType -> BlanksValue
     }
