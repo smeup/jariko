@@ -277,7 +277,11 @@ open class InternalInterpreter(
                             it.fields.forEach { field ->
                                 if (field.initializationValue != null) {
                                     val fieldValue = coerce(eval(field.initializationValue), field.type)
-                                    (value as DataStructValue).set(field, fieldValue)
+                                    when (value) {
+                                        is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
+                                        is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                        else -> throw RuntimeException("Expected value to be a DataStructure")
+                                    }
                                 }
                             }
                         }
