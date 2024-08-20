@@ -1,14 +1,54 @@
 package com.smeup.rpgparser.smeup.dbmock
 
-import com.smeup.rpgparser.interpreter.DbField
-import com.smeup.rpgparser.interpreter.NumberType
-import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.dbnative.ConnectionConfig
+import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.rpgparser.db.utilities.execute
+import com.smeup.rpgparser.execution.ReloadConfig
+import com.smeup.rpgparser.interpreter.*
 import kotlin.test.todo
 
 interface DbMock : AutoCloseable {
-    fun createTable(): String
-    fun dropTable(): String
-    fun populateTable(): String
+    val metadata: FileMetadata
+
+    fun createTable(): String = """
+        CREATE TABLE IF NOT EXISTS ${metadata.tableName} (
+            ${this.buildDbColumnsFromDbFields(metadata.fields)})
+        """.trimIndent()
+
+    fun dropTable(): String = "DROP TABLE IF EXISTS ${metadata.tableName}"
+    fun populateTable(): String = buildDefaultPopulationQuery()
+
+    fun createConnectionConfig(): ConnectionConfig = ConnectionConfig(
+        fileName = "*",
+        url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+        user = "SA",
+        password = "",
+        driver = "org.hsqldb.jdbc.JDBCDriver"
+    )
+
+    fun createReloadConfig(): ReloadConfig {
+        val metadataMap = mapOf(
+            metadata.name to FileMetadata(
+                name = metadata.name,
+                tableName = metadata.tableName,
+                recordFormat = metadata.recordFormat,
+                fields = metadata.fields,
+                accessFields = metadata.accessFields
+            )
+        )
+        val metadataProducer = { file: String -> metadataMap[file]!! }
+        val connectionConfig = createConnectionConfig()
+        return ReloadConfig(DBNativeAccessConfig(
+            connectionsConfig = listOf(connectionConfig)),
+            metadataProducer = metadataProducer
+        )
+    }
+
+    fun <R> usePopulated(predicate: (DbMock) -> R) = this.use {
+        val queries = listOf(it.createTable(), it.populateTable())
+        execute(queries)
+        predicate(it)
+    }
 
     override fun close() {
         dropTable()
@@ -33,5 +73,21 @@ interface DbMock : AutoCloseable {
             }
         }
         .joinToString("")
+    }
+
+    private fun buildDefaultPopulationQuery(): String {
+        val names = metadata.fields.joinToString { "\"${it.fieldName}\"" }
+        val values = metadata.fields.joinToString { it.type.getDefault() }
+
+        return """
+            INSERT INTO ${metadata.tableName}($names) 
+            VALUES ($values)
+        """.trimIndent()
+    }
+
+    private fun Type.getDefault() = when (this) {
+        is StringType -> "'${" ".repeat(this.length)}'"
+        is NumberType -> if (this.integer) "1" else "1.0"
+        else -> TODO("Implement default value for type ${this.javaClass.simpleName}") // Add more defaults
     }
 }
