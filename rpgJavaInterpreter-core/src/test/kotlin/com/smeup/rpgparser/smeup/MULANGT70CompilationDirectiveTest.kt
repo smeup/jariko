@@ -67,4 +67,12 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val expected = listOf("HELLO THERE")
         assertEquals(expected, "smeup/MUDRNRAPU00103".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * TODO
+     */
+    @Test
+    fun executeMUDRNRAPU00108() {
+        assertEquals(emptyList(), "smeup/MUDRNRAPU00108".outputOf())
+    }
 }
