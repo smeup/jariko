@@ -19,5 +19,3 @@
      D  U$IMPO               251    400
      D  U$PRZA               401    401
      D  U$PARM               402    901
-
-     D  U$PARM1             1025   1027
