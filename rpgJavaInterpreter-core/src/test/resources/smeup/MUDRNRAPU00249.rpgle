@@ -8,4 +8,4 @@
 
       * Test output
      C                   EVAL      £DBG_Str='ok'
-     C     £DBG_Str      DSPLY
+     C     £6I           DSPLY
