@@ -75,4 +75,14 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
             "smeup/MUDRNRAPU00211".outputOf(configuration = smeupConfig)
         }
     }
+
+    /**
+     * %REALLOC and %ALLOC for dynamic array resizing
+     * @see #LS24003806
+     */
+    @Test
+    fun executeMUDRNRAPU00252() {
+        val expected = listOf("10000", "10000", "10000")
+        assertEquals(expected, "smeup/MUDRNRAPU00252".outputOf(configuration = smeupConfig))
+    }
 }
