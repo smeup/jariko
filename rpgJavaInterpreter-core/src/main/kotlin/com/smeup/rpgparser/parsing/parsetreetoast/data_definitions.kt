@@ -872,26 +872,9 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
     }
 
     var initializationValue: Expression? = null
-    val hasInitValue = this.keyword().find { it.keyword_inz() != null }
-    if (hasInitValue != null) {
-        if (hasInitValue.keyword_inz().simpleExpression() != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
-        } else {
-            // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
-            initializationValue = if (null != this.toTypeInfo().decimalPositions) {
-                RealLiteral(BigDecimal.ZERO, position = toPosition())
-            } else {
-                StringLiteral("", position = toPosition())
-            }
-        }
-    } else {
-        this.toDSFieldInitKeyword(conf = conf)?.apply {
-            initializationValue = this.toAst()
-        }
-    }
-
-    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val arraySizeDeclared = this.arraySizeDeclared(conf)
+    val hasInitValue = this.keyword().find { it.keyword_inz() != null }
+    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val varName = like?.variable?.name ?: this.name
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
@@ -902,6 +885,23 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
             ).evaluateTypeOf(this.rContext(), it, conf)
         }
+
+    if (hasInitValue != null) {
+        initializationValue = if (hasInitValue.keyword_inz().simpleExpression() != null) {
+            hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+        } else {
+            // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
+            when {
+                arraySizeDeclared != null -> null
+                this.toTypeInfo().decimalPositions != null -> RealLiteral(BigDecimal.ZERO, position = toPosition())
+                else -> StringLiteral("", position = toPosition())
+            }
+        }
+    } else {
+        this.toDSFieldInitKeyword(conf = conf)?.apply {
+            initializationValue = this.toAst()
+        }
+    }
 
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
