@@ -243,7 +243,6 @@ fun coerce(value: Value, type: Type): Value {
                     } else {
                         return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
-                    return value
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }
