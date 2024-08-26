@@ -44,5 +44,3 @@
      C     A40_DS2_F3    DSPLY
      C                   EVAL      A40_DS2_F4_S=%CHAR(A40_DS2_F4)
      C     A40_DS2_F4_S  DSPLY
-
-     C                   SETON                                          LR
