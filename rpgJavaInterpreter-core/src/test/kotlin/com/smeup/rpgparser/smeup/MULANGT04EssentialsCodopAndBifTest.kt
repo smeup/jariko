@@ -35,7 +35,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String not VARYING in EVAL
+     * Assigns content of DS to a String not VARYING in EVAL
      * @see #LS24003679
      */
     @Test
@@ -45,7 +45,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String VARYING in EVAL
+     * Assigns content of DS to a String VARYING in EVAL
      * @see #LS24003679
      */
     @Test
@@ -55,7 +55,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
      * @see #LS24003755
      */
     @Test
@@ -65,7 +65,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
      * @see #LS24003755
      */
     @Test
