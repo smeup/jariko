@@ -31,14 +31,14 @@
      C                                         + 't amet, consectetuer'
      C                                         + '0000500520'
 
-     C                   MOVEL     A40_A50       A40_DS1                        Jariko Runtime Error
+     C                   MOVEL     A40_A50       A40_DS1                        Jariko Runtime Error: `MOVE/MOVEL not supported for the type: DataStructureType...`
      C     A40_DS1_F1    DSPLY
      C     A40_DS1_F2    DSPLY
      C     A40_DS1_F3    DSPLY
      C                   EVAL      A40_DS2_F4_S=%CHAR(A40_DS1_F4)
      C     A40_DS2_F4_S  DSPLY
 
-     C                   MOVEL     A40_A50       A40_DS2                        Jariko Runtime Error
+     C                   MOVEL     A40_A50       A40_DS2                        Jariko Runtime Error: `MOVE/MOVEL not supported for the type: DataStructureType...`
      C     A40_DS2_F1    DSPLY
      C     A40_DS2_F2    DSPLY
      C     A40_DS2_F3    DSPLY
