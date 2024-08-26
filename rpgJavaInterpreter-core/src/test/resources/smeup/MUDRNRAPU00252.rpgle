@@ -1,17 +1,6 @@
       * Helper declarations
      D £DBG_Str        S            512
 
-      * Subrouting that increases the number of elements in SWKpt1
-     C     REALCOD       BEGSR
-      *
-     C                   EVAL      SWKpt1 =%ReAlloc(SWKpt1  :
-     C                              %Size(COD) * (nElAl1+nElAg1))
-      *
-     C*                   EVAL      %SUBARR(COD:nElAl1+1:nElAg1)=*BLANKS
-     C                   EVAL      nElAl1=nElAl1+nElAg1
-      *
-     C                   ENDSR
-
       * Declarations needed for test purpose
      D DIMSCH          C                   CONST(10000)
      D COD             S             20    DIM(DIMSCH) BASED(SWKpt1)            Codice
@@ -39,3 +28,15 @@
      C                   EXSR      REALCOD
      C                   EVAL      £DBG_Str=%ELEM(COD)
      C     £DBG_Str      DSPLY
+     C                   SETON                                        LR
+
+      * Subrouting that increases the number of elements in SWKpt1
+     C     REALCOD       BEGSR
+      *
+     C                   EVAL      SWKpt1 =%ReAlloc(SWKpt1  :
+     C                              %Size(COD) * (nElAl1+nElAg1))
+      *
+     C*                   EVAL      %SUBARR(COD:nElAl1+1:nElAg1)=*BLANKS
+     C                   EVAL      nElAl1=nElAl1+nElAg1
+      *
+     C                   ENDSR
