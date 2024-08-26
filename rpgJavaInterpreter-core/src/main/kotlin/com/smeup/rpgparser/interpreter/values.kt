@@ -1266,6 +1266,15 @@ data class OccurableDataStructValue(val occurs: Int) : Value {
         this._occurrence = occurrence
     }
 
+    /**
+     * Initialize a specified field in all the occurrencies
+     */
+    fun initializeField(field: FieldDefinition, value: Value) {
+        this.values.forEach {
+            it.value.set(field, value)
+        }
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is OccurableDataStructureType && occurs == expectedType.occurs
     }
