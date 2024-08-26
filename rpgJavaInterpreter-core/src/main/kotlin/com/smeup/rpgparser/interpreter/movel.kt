@@ -264,13 +264,13 @@ private fun stringToValue(value: String, type: Type): Value {
                     val length = when (it.type) {
                         is StringType -> it.type.length
                         is NumberType -> it.type.numberOfDigits
-                        else -> TODO()
+                        else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Cannot determine length for ${it.type}. ")
                     }
 
                     val subValue = value.substring(previousOffset, previousOffset + length)
                     previousOffset += length
                     if (!subValue.isDecimal() && !subValue.isInt() && it.type is NumberType) {
-                        TODO()
+                        throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Substring `${subValue}` cannot coerce to number for ${it.name} field.")
                     }
 
                     subValue
