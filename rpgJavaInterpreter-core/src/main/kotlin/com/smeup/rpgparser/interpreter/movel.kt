@@ -221,6 +221,8 @@ private fun valueToString(value: Value, type: Type): String {
 
         is BooleanType -> return s
 
+        is DataStructureType -> return s
+
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }
@@ -255,6 +257,27 @@ private fun stringToValue(value: String, type: Type): Value {
         }
 
         is BooleanType -> return StringValue(value)
+
+        is DataStructureType -> {
+            var previousOffset: Int = 0
+            val stringTemp = type.fields.joinToString("") {
+                    val length = when (it.type) {
+                        is StringType -> it.type.length
+                        is NumberType -> it.type.numberOfDigits
+                        else -> TODO()
+                    }
+
+                    val subValue = value.substring(previousOffset, previousOffset + length)
+                    previousOffset += length
+                    if (!subValue.isDecimal() && !subValue.isInt() && it.type is NumberType) {
+                        TODO()
+                    }
+
+                    subValue
+            }
+
+            return DataStructValue(stringTemp)
+        }
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
