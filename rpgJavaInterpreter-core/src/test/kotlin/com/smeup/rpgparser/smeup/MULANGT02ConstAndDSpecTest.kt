@@ -574,6 +574,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Array declaration inside a DS with an empty INZ keyword
+     * @see #LS24003783
+     */
+    @Test
+    fun executeMUDRNRAPU00249() {
+        val expected = listOf(List(99) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00249".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * INZ of a field inside a DS declared with OCCURS keyword
      * @see #LS24003786
      */
