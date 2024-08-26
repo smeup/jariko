@@ -75,6 +75,17 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     * Assigns content of String to a DS with type check and coercion between substring and destination field.
+     * In this test is used `MOVEL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00108() {
+        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        assertEquals(expected, "smeup/MUDRNRAPU00108".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */
