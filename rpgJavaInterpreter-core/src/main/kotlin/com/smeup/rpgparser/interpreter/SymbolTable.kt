@@ -175,17 +175,17 @@ class SymbolTable : ISymbolTable {
     private fun getLocal(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
             val containerValue = get(data.container)
-            return if (data.container.isArray()) {
-                TODO("We do not yet handle an array container")
-            } else if (data.declaredArrayInLine != null) {
-                ProjectedArrayValue.forData(containerValue as DataStructValue, data)
-            } else {
-                // Should be always a DataStructValue
-                when (containerValue) {
-                    is DataStructValue -> return coerce(containerValue[data], data.type)
-                    is OccurableDataStructValue -> return coerce(containerValue.value()[data], data.type)
-                    else -> {
-                        throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+            return when {
+                data.container.isArray() -> TODO("We do not yet handle an array container")
+                containerValue is OccurableDataStructValue -> return coerce(containerValue.value()[data], data.type)
+                data.declaredArrayInLine != null -> ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+                else -> {
+                    // Should be always a DataStructValue
+                    when (containerValue) {
+                        is DataStructValue -> return coerce(containerValue[data], data.type)
+                        else -> {
+                            throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+                        }
                     }
                 }
             }
