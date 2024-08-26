@@ -2505,10 +2505,9 @@ data class TestnStmt(
 @Serializable
 data class DeallocStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        throw NotImplementedError("DEALLOC statement is not implemented yet")
-    }
+) : Statement(position), MockStatement {
+    override val loggableEntityName get() = "DEALLOC"
+    override fun execute(interpreter: InterpreterCore) { }
 }
 
 @Serializable
