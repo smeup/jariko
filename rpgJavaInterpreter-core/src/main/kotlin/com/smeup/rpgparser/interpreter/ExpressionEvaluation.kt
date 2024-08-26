@@ -65,10 +65,6 @@ class ExpressionEvaluation(
         return value
     }
 
-    override fun eval(expression: AddrExpr): Value = proxyLogging(expression) { throw NotImplementedError("AddrExpr are not implemented yet") }
-    override fun eval(expression: AllocExpr): Value = proxyLogging(expression) { throw NotImplementedError("AllocExpr are not implemented yet") }
-    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) { throw NotImplementedError("ReallocExpr are not implemented yet") }
-
     override fun eval(expression: StringLiteral): Value = proxyLogging(expression) { StringValue(expression.value) }
     override fun eval(expression: IntLiteral) = proxyLogging(expression) { IntValue(expression.value) }
     override fun eval(expression: RealLiteral) = proxyLogging(expression) { DecimalValue(expression.value) }
@@ -854,7 +850,7 @@ class ExpressionEvaluation(
 
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
-        return NullValue
+        return expression.defaultValue
     }
 
     private fun lookupLinearSearch(values: List<Value>, target: Value): Int {
