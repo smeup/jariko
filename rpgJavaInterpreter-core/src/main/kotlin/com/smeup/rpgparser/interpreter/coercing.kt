@@ -182,6 +182,12 @@ private fun coerceString(value: StringValue, type: Type): Value {
     }
 }
 
+/**
+ * Coerces a String to DS by scanning every field type to construct right value for final result.
+ * @param value to coerce.
+ * @param type destination of coercion.
+ * @return string value coerced in `DataStructValue`.
+ */
 fun coerceStringToDs(value: String, type: DataStructureType): Value {
     var startOffset = 0
     val valueAsString = type.fields.joinToString("") {
@@ -192,11 +198,14 @@ fun coerceStringToDs(value: String, type: DataStructureType): Value {
             is StringType -> subValue
             is CharacterType -> subValue
             is NumberType -> {
-                if (!subValue.isEmpty()) {
-                    if (!subValue.isNumber()) {
-                        throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not Standard number for ${it.name} field.")
-                    } else if (subValue.isNumber() && it.type.rpgType != null && it.type.rpgType.equals(RpgType.PACKED.rpgType)) {
-                        throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not Packed number for ${it.name} field.")
+                if (subValue.isNotEmpty() && subValue.isNumber()) {
+                    when {
+                        it.type.rpgType == RpgType.PACKED.rpgType -> {
+                            throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not Packed number for ${it.name} field.")
+                        }
+                        else -> {
+                            if (!checkZonedNumberSyntax(subValue, it.type)) throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not valid decimal number for ${it.name} field.")
+                        }
                     }
                 }
 
@@ -211,6 +220,35 @@ fun coerceStringToDs(value: String, type: DataStructureType): Value {
     return DataStructValue(valueAsString)
 }
 
+/**
+ * For AS400 a ZONED number with space is considered legal instead for a decimal number.
+ * This function provides to check if the number follow these requirements.
+ * @param value to check. It'll be split based of entire and decimal digits of `type`.
+ * @param type necessary for splitting the `value`
+ * @return true if the `value` follows the syntax.
+ */
+fun checkZonedNumberSyntax(
+    value: String,
+    type: NumberType
+): Boolean {
+    val entireValue = value.substring(0, type.entireDigits)
+    val decimalValue = value.substring(type.entireDigits, type.entireDigits + type.decimalDigits)
+
+    return when {
+        decimalValue.isEmpty() && entireValue.matches(Regex("^[0-9\\s]+$")) -> true //
+        decimalValue.isNotEmpty() && entireValue.matches(Regex("^[0-9]+$")) && decimalValue.matches(Regex("^[0-9]+$")) -> true
+        else -> false
+    }
+}
+
+/**
+ * For a specific field calculate the end offset based of start offset and field type.
+ * Avoid `StringIndexOutOfBoundsException` by checking end offset with value size.
+ * @param startOffset to consider for end offset.
+ * @param fieldType to get the size base of type.
+ * @param value necessary to check and fix end offset.
+ * @return calculated end offset.
+ */
 fun calculateEndOffsetByDsFieldSize(
     startOffset: Int,
     fieldType: Type,
