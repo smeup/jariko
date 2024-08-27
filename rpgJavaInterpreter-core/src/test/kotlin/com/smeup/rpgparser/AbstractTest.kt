@@ -251,19 +251,21 @@ abstract class AbstractTest {
      * @param configuration The configuration for the execution of the program.
      * @param afterSystemInterface A callback function to be executed after the system interface is created.
      * Default is an empty function.
+     * @param params The command line parameters to be passed to the program. Default is an empty list.
      * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
      */
     protected fun String.outputOf(
         trimEnd: Boolean = true,
         configuration: Configuration = Configuration(),
-        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {}
+        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {},
+        params: CommandLineParms = CommandLineParms(emptyList())
     ): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
         afterSystemInterface(systemInterface)
-        executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
+        executePgm(programName = this, systemInterface = systemInterface, configuration = configuration, params = params)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
 
