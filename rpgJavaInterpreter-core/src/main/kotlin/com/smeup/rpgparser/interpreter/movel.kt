@@ -1,7 +1,9 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.parsing.parsetreetoast.isDecimal
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toDecimal
@@ -259,26 +261,48 @@ private fun stringToValue(value: String, type: Type): Value {
         is BooleanType -> return StringValue(value)
 
         is DataStructureType -> {
-            var previousOffset: Int = 0
-            val stringTemp = type.fields.joinToString("") {
-                    val length = when (it.type) {
-                        is StringType -> it.type.length
-                        is NumberType -> it.type.numberOfDigits
-                        else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Cannot determine length for ${it.type}. ")
-                    }
+            var startOffset = 0
+            val valueAsString = type.fields.joinToString("") {
+                val endOffset = calculateEndOffsetByDsFieldSize(startOffset, it.type, value)
+                val subValue = value.substring(startOffset, endOffset).also { startOffset = endOffset }
 
-                    val subValue = value.substring(previousOffset, previousOffset + length)
-                    previousOffset += length
-                    if (!subValue.isDecimal() && !subValue.isInt() && it.type is NumberType) {
-                        throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Substring `${subValue}` cannot coerce to number for ${it.name} field.")
-                    }
+                when (it.type) {
+                    is StringType -> subValue
+                    is NumberType -> {
+                        if (!subValue.isNumber()) {
+                            throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Substring `$subValue` cannot coerce to Standard number for ${it.name} field.")
+                        } else if (subValue.isNumber() && it.type.rpgType != null && it.type.rpgType.equals(RpgType.PACKED.rpgType)) {
+                            throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Substring `$subValue` cannot coerce to Packed number for ${it.name} field.")
+                        }
 
-                    subValue
+                        subValue
+                    }
+                    else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type $type. Cannot determine length for ${it.type}. ")
+                }
             }
 
-            return DataStructValue(stringTemp)
+            return DataStructValue(valueAsString)
         }
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
+}
+
+private fun calculateEndOffsetByDsFieldSize(
+    startOffset: Int,
+    fieldType: Type,
+    value: String
+): Int {
+    val fieldSize = when (fieldType) {
+        is StringType -> fieldType.length
+        is NumberType -> fieldType.numberOfDigits
+        else -> throw UnsupportedOperationException("Cannot determine length for ${fieldType.javaClass.name}. ")
+    }
+    var endOffset = startOffset + fieldSize
+
+    // Prevents `StringIndexOutOfBoundsException`
+    if (endOffset > value.length) {
+        endOffset = value.length
+    }
+    return endOffset
 }

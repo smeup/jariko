@@ -672,6 +672,8 @@ internal fun String.isDecimal() = this.toDoubleOrNull() != null
 
 internal fun String.toDecimal() = this.toDouble()
 
+internal fun String.isNumber() = this.isInt() || this.isDecimal()
+
 internal fun ParserRuleContext.rContext(): RContext {
     return if (this.parent == null) {
         this as RContext
