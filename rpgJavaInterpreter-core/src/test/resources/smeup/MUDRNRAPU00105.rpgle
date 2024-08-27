@@ -33,3 +33,4 @@
      C     *ENTRY        PLIST
      C                   PARM                    £40A
      C                   PARM                    £G40DS
+     C     £40ANM        DSPLY
