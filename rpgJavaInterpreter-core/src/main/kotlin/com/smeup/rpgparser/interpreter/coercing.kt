@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -167,7 +168,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.isBlank()) {
                 type.blank()
             } else {
-                DataStructValue(value.value)
+                coerceStringToDs(value.value, type)
             }
         }
         is CharacterType -> {
@@ -179,6 +180,57 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is TimeStampType -> TimeStampValue.of(value.value)
         else -> TODO("Converting String to $type")
     }
+}
+
+fun coerceStringToDs(value: String, type: DataStructureType): Value {
+    var startOffset = 0
+    val valueAsString = type.fields.joinToString("") {
+        val endOffset = calculateEndOffsetByDsFieldSize(startOffset, it.type, value)
+        val subValue = value.substring(startOffset, endOffset).also { startOffset = endOffset }
+
+        when (it.type) {
+            is StringType -> subValue
+            is CharacterType -> subValue
+            is NumberType -> {
+                if (!subValue.isEmpty()) {
+                    if (!subValue.isNumber()) {
+                        throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not Standard number for ${it.name} field.")
+                    } else if (subValue.isNumber() && it.type.rpgType != null && it.type.rpgType.equals(RpgType.PACKED.rpgType)) {
+                        throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not Packed number for ${it.name} field.")
+                    }
+                }
+
+                subValue
+            }
+            is RecordFormatType -> subValue
+            is ArrayType -> subValue
+            else -> throw UnsupportedOperationException("Cannot coerce String to $type. Cannot determine length for ${it.type}. ")
+        }
+    }
+
+    return DataStructValue(valueAsString)
+}
+
+fun calculateEndOffsetByDsFieldSize(
+    startOffset: Int,
+    fieldType: Type,
+    value: String
+): Int {
+    val fieldSize = when (fieldType) {
+        is StringType -> fieldType.length
+        is CharacterType -> fieldType.nChars
+        is NumberType -> fieldType.numberOfDigits
+        is RecordFormatType -> fieldType.size
+        is ArrayType -> fieldType.size
+        else -> throw UnsupportedOperationException("Cannot determine length for ${fieldType.javaClass.name}. ")
+    }
+    var endOffset = startOffset + fieldSize
+
+    // Prevents `StringIndexOutOfBoundsException`
+    if (endOffset > value.length) {
+        endOffset = value.length
+    }
+    return endOffset
 }
 
 private fun coerceBoolean(value: BooleanValue, type: Type): Value {

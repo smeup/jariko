@@ -689,7 +689,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR37CallBackTest() {
         executePgmCallBackTest("ERROR37", SourceReferenceType.Program, "ERROR37", mapOf(
-            19 to "MOVE/MOVEL not supported for the type DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=7, decimalDigits=2, rpgType=P))], elementSize=50). Substring `00520` cannot coerce to Packed number for A40_DS1_F4 field"
+            19 to "Cannot coerce String to DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=7, decimalDigits=2, rpgType=P))], elementSize=50). Substring `00520` is not Packed number for A40_DS1_F4 field."
         ))
     }
 
