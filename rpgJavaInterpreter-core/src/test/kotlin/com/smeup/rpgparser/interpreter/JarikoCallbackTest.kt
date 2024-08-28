@@ -723,6 +723,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR40CallBackTest() {
+        executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", mapOf(
+            19 to "Cannot coerce String to DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=3, decimalDigits=2, rpgType=S))], elementSize=50). Substring `0052 ` is not valid decimal number for A40_DS1_F4 field."
+        ))
+    }
+
+    @Test
+    fun executeERROR40SourceLineTest() {
+        executeSourceLineTest("ERROR40")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
