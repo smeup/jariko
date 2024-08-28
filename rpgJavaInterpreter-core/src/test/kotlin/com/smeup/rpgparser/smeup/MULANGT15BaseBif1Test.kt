@@ -85,4 +85,14 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         val expected = listOf("10000", "10000", "10000")
         assertEquals(expected, "smeup/MUDRNRAPU00252".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * %REALLOC for dynamic array resizing when multiple arrays based on the same pointer are present
+     * @see #LS24003806
+     */
+    @Test
+    fun executeMUDRNRAPU00253() {
+        val expected = listOf("10000", "10000", "10000", "10000")
+        assertEquals(expected, "smeup/MUDRNRAPU00253".outputOf(configuration = smeupConfig))
+    }
 }
