@@ -341,6 +341,7 @@ internal fun RpgParser.DspecContext.toAst(
     var ascend: Boolean? = null
     var static = false
     var len: Expression? = null
+    var based: Expression? = null
 
     /* Default value is ISO. */
     var dateFormat: DateFormat = DateFormat.ISO
@@ -382,6 +383,9 @@ internal fun RpgParser.DspecContext.toAst(
         }
         it.keyword_len()?.let {
             len = it.simpleExpression().toAst(conf)
+        }
+        it.keyword_based()?.let {
+            based = it.simpleExpression().toAst(conf)
         }
     }
 
@@ -471,9 +475,7 @@ internal fun RpgParser.DspecContext.toAst(
             RpgType.UNLIMITED_STRING.rpgType -> {
                 UnlimitedStringType
             }
-            RpgType.POINTER.rpgType -> {
-                NumberType(NumberType.MAX_INTEGER_DIGITS, NumberType.INTEGER_DECIMAL_DIGITS, RpgType.POINTER.rpgType)
-            }
+            RpgType.POINTER.rpgType -> PointerType
             else -> todo("Unknown type: <${this.DATA_TYPE().text}>", conf)
     }
 
@@ -504,7 +506,8 @@ internal fun RpgParser.DspecContext.toAst(
         type = type,
         initializationValue = initializationValue,
         position = this.toPosition(true),
-        static = static
+        static = static,
+        basedOn = based
     )
 }
 

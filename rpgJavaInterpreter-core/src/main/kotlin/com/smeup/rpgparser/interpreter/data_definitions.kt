@@ -48,6 +48,7 @@ abstract class AbstractDataDefinition(
      * */
     @Transient open val const: Boolean = false,
     @Transient open val static: Boolean = false,
+    @Transient open var basedOn: Expression? = null,
     /**
      * This scope. Default: got by current parsing entity
      * */
@@ -193,14 +194,17 @@ data class DataDefinition(
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf(),
     @Transient var defaultValue: Value? = null,
+    override var basedOn: Expression? = null,
     override val static: Boolean = false
 ) :
     AbstractDataDefinition(
         name = name,
         type = type,
         position = position,
+        basedOn = basedOn,
         const = const,
-        static = static) {
+        static = static
+    ) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && (type as ArrayType).compileTimeArray()
