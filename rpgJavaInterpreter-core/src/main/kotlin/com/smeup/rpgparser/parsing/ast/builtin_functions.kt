@@ -16,10 +16,7 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.Evaluator
-import com.smeup.rpgparser.interpreter.IntValue
-import com.smeup.rpgparser.interpreter.NullValue
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -499,7 +496,7 @@ data class AddrExpr(override val position: Position? = null) : Expression(positi
 // %ALLOC
 @Serializable
 data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
-    override val defaultValue: Value get() = IntValue(0)
+    override val defaultValue: Value get() = PointerValue.NULL
     override val loggableEntityName get() = "%ALLOC"
     override fun render() = "%ALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
@@ -507,8 +504,8 @@ data class AllocExpr(override val position: Position? = null) : Expression(posit
 
 // %REALLOC
 @Serializable
-data class ReallocExpr(override val position: Position? = null) : Expression(position), MockExpression {
-    override val defaultValue: Value get() = IntValue(0)
+data class ReallocExpr(val value: Expression, override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
     override val loggableEntityName get() = "%REALLOC"
     override fun render() = "%REALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
