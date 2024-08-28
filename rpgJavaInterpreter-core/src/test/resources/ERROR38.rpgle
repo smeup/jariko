@@ -1,7 +1,7 @@
      V* ==============================================================
      D* 26/08/24
      D* Purpose: Must fire the following errors
-     D* line 25 - Cannot assign Standard number as Packed.
+     D* line 19 - Cannot assign Standard number as Packed.
      V* ==============================================================
      D A40_A50         S             50
      D A40_DS1         DS
