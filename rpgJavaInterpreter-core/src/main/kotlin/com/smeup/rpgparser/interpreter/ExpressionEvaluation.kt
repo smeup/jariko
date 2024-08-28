@@ -848,6 +848,15 @@ class ExpressionEvaluation(
         xfoot(array)
     }
 
+    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) {
+        val pointer = expression.value as? DataRefExpr ?: error("%REALLOC is only allowed for pointers")
+        val references = interpreterStatus.getReferences(pointer)
+        require(references.all { it.key.type is ArrayType }) {
+            "%REALLOC is only supported for pointers referencing arrays"
+        }
+        expression.defaultValue
+    }
+
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
         return expression.defaultValue

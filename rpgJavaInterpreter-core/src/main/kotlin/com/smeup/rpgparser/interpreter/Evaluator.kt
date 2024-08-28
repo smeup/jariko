@@ -98,4 +98,5 @@ interface Evaluator {
     fun eval(expression: NullValExpr): Value
     fun eval(expression: XFootExpr): Value
     fun eval(expression: MockExpression): Value
+    fun eval(expression: ReallocExpr): Value
 }
