@@ -311,6 +311,7 @@ data class IntValue(val value: Long) : NumberValue() {
     override operator fun compareTo(other: Value): Int = when (other) {
         is IntValue -> value.compareTo(other.value)
         is DecimalValue -> this.asDecimal().compareTo(other)
+        is PointerValue -> value.compareTo(other.address)
         else -> super.compareTo(other)
     }
 
@@ -327,6 +328,43 @@ data class IntValue(val value: Long) : NumberValue() {
     operator fun minus(other: IntValue) = IntValue(this.bigDecimal.minus(other.bigDecimal).longValueExact())
 
     operator fun times(other: IntValue) = IntValue(this.bigDecimal.times(other.bigDecimal).longValueExact())
+}
+
+@Serializable
+data class PointerValue(val address: Long) : NumberValue() {
+    companion object {
+        val NULL = PointerValue(0)
+    }
+
+    override fun negate(): NumberValue = throw UnsupportedOperationException("Pointers cannot be negative")
+    override fun increment(amount: Long): NumberValue = this + PointerValue(amount)
+    override val bigDecimal: BigDecimal by lazy { BigDecimal(address) }
+
+    override fun asString(): StringValue = StringValue(render())
+
+    override fun compareTo(other: Value): Int = when (other) {
+        is IntValue -> address.compareTo(other.value)
+        is DecimalValue -> this.asDecimal().compareTo(other)
+        is PointerValue -> address.compareTo(other.address)
+        else -> super.compareTo(other)
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean = when (expectedType) {
+        is NumberType -> true
+        is PointerType -> true
+        else -> expectedType is ArrayType && expectedType.element is NumberType
+    }
+
+    override fun copy() = PointerValue(address)
+
+    operator fun plus(other: PointerValue) = PointerValue(address + other.address)
+    operator fun plus(other: IntValue) = PointerValue(address + other.value)
+
+    operator fun minus(other: PointerValue) = PointerValue(address - other.address)
+    operator fun minus(other: IntValue) = PointerValue(address - other.value)
+
+    operator fun times(other: PointerValue) = PointerValue(address * other.address)
+    operator fun times(other: IntValue) = PointerValue(address * other.value)
 }
 
 @Serializable
@@ -973,6 +1011,7 @@ fun Type.blank(): Value {
             }
         }
         is NumberType -> IntValue(0)
+        is PointerType -> PointerValue.NULL
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
         is DateType -> BlanksValue
