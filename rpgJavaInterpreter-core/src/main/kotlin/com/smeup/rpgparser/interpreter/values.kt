@@ -1057,7 +1057,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         } else {
             val substring = this.getSubstring(data.startOffset, data.endOffset)
             if (data.type is NumberType && !checkNumberSyntax(substring.value, data.type)) {
-                throw UnsupportedOperationException("Cannot coerce sub-string `${substring.value}` to ${data.type}`.")
+                throw UnsupportedOperationException("Cannot coerce sub-string `${substring.value}` to ${data.type}.")
             }
             coerce(substring, data.type)
         }
