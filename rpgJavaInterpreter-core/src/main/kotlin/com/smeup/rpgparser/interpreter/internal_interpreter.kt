@@ -80,6 +80,10 @@ class InterpreterStatus(
         }
         return tmpValue
     }
+    fun getReferences(pointer: DataRefExpr) = symbolTable.getValues().filter {
+        val target = it.key.basedOn as? DataRefExpr
+        target?.variable == pointer.variable
+    }
 }
 
 open class InternalInterpreter(

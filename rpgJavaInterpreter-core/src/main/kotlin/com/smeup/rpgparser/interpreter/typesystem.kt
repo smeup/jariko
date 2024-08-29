@@ -236,7 +236,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
 
     init {
-        if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType || rpgType == RpgType.POINTER.rpgType) {
+        if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType) {
             require(entireDigits <= MAX_INTEGER_DIGITS) {
                 "Integer or Unsigned integer can have only length up to 20. Value specified: $this"
             }
@@ -253,7 +253,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() {
             return when (rpgType) {
                 RpgType.PACKED.rpgType -> ceil((numberOfDigits + 1).toDouble() / 2.toFloat()).toInt()
-                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.POINTER.rpgType -> {
+                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> {
                     when (entireDigits) {
                         in 1..3 -> 1
                         in 4..5 -> 2
@@ -286,6 +286,18 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         } else {
             return false
         }
+    }
+
+    override fun isNumeric() = true
+}
+
+@Serializable
+object PointerType : Type() {
+    override val size: Int get() = 8
+
+    override fun canBeAssigned(type: Type): Boolean = when (type) {
+        is PointerType, is NumberType -> true
+        else -> false
     }
 
     override fun isNumeric() = true

@@ -343,5 +343,8 @@ internal fun RpgParser.Bif_allocContext.toAst(conf: ToAstConfiguration = ToAstCo
 }
 
 internal fun RpgParser.Bif_reallocContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReallocExpr {
-    return ReallocExpr(toPosition(conf.considerPosition))
+    return ReallocExpr(
+        this.identifier().toAst(conf),
+        toPosition(conf.considerPosition)
+    )
 }

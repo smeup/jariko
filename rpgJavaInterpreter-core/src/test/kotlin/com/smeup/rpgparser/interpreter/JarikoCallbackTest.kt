@@ -686,6 +686,44 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest(pgm = "ERROR36")
     }
 
+    /**
+     * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
+     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     */
+    @Test
+    fun executeERROR37CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR37",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR37",
+            lines = listOf(9)
+        )
+    }
+
+    @Test
+    fun executeERROR37SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR37")
+    }
+
+    /**
+     * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
+     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     */
+    @Test
+    fun executeERROR38CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR38",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR38",
+            lines = listOf(12)
+        )
+    }
+
+    @Test
+    fun executeERROR38SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR38")
+    }
+
     @Test
     fun executeERROR39CallBackTest() {
         executePgmCallBackTest("ERROR39", SourceReferenceType.Program, "ERROR39", mapOf(
