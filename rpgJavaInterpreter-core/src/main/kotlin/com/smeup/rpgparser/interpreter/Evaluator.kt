@@ -53,6 +53,8 @@ interface Evaluator {
     fun eval(expression: ArrayAccessExpr): Value
     fun eval(expression: HiValExpr): HiValValue
     fun eval(expression: LowValExpr): LowValValue
+    fun eval(expression: StartValExpr): StartValValue
+    fun eval(expression: EndValExpr): EndValValue
     fun eval(expression: ZeroExpr): ZeroValue
     fun eval(expression: AllExpr): AllValue
     fun eval(expression: TranslateExpr): Value

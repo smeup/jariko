@@ -327,6 +327,8 @@ class ExpressionEvaluation(
 
     override fun eval(expression: HiValExpr) = proxyLogging(expression) { HiValValue } as HiValValue
     override fun eval(expression: LowValExpr) = proxyLogging(expression) { LowValValue } as LowValValue
+    override fun eval(expression: StartValExpr) = proxyLogging(expression) { StartValValue } as StartValValue
+    override fun eval(expression: EndValExpr) = proxyLogging(expression) { EndValValue } as EndValValue
     override fun eval(expression: ZeroExpr) = proxyLogging(expression) { ZeroValue } as ZeroValue
     override fun eval(expression: AllExpr) = proxyLogging(expression) {
         AllValue(eval(expression.charsToRepeat).asString().value)
