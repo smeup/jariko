@@ -487,7 +487,7 @@ data class XFootExpr(var value: Expression, override val position: Position? = n
 // %ADDR
 @Serializable
 data class AddrExpr(override val position: Position? = null) : Expression(position), MockExpression {
-    override val defaultValue: Value get() = IntValue(0)
+    override val defaultValue: Value get() = PointerValue.NULL
     override val loggableEntityName get() = "%ADDR"
     override fun render() = "%ADDR"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)

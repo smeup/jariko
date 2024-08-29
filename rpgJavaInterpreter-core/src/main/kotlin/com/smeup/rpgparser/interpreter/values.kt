@@ -1011,7 +1011,7 @@ fun Type.blank(): Value {
             }
         }
         is NumberType -> IntValue(0)
-        is PointerType -> PointerValue(0)
+        is PointerType -> PointerValue.NULL
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
         is DateType -> BlanksValue
