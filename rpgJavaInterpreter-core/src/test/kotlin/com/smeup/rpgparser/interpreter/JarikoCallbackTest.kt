@@ -689,7 +689,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR37CallBackTest() {
         executePgmCallBackTest("ERROR37", SourceReferenceType.Program, "ERROR37", mapOf(
-            19 to "Cannot coerce String to DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=7, decimalDigits=2, rpgType=P))], elementSize=50). Substring `00520` is not Packed number for A40_DS1_F4 field."
+            23 to "Cannot coerce sub-string `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
         ))
     }
 
@@ -701,7 +701,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR38CallBackTest() {
         executePgmCallBackTest("ERROR38", SourceReferenceType.Program, "ERROR38", mapOf(
-            19 to "Cannot coerce String to DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=7, decimalDigits=2, rpgType=P))], elementSize=50). Substring `00520` is not Packed number for A40_DS1_F4 field."
+            23 to "Cannot coerce sub-string `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
         ))
     }
 
@@ -713,7 +713,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR39CallBackTest() {
         executePgmCallBackTest("ERROR39", SourceReferenceType.Program, "ERROR39", mapOf(
-            19 to "Cannot coerce String to DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=3, decimalDigits=2, rpgType=S))], elementSize=50). Substring `0052 ` is not valid decimal number for A40_DS1_F4 field."
+            23 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)`."
         ))
     }
 
@@ -725,7 +725,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR40CallBackTest() {
         executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", mapOf(
-            19 to "Cannot coerce String to DataStructureType(fields=[FieldType(name=A40_DS1_F1, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F2, type=StringType(length=20, varying=false)), FieldType(name=A40_DS1_F3, type=NumberType(entireDigits=5, decimalDigits=0, rpgType=S)), FieldType(name=A40_DS1_F4, type=NumberType(entireDigits=3, decimalDigits=2, rpgType=S))], elementSize=50). Substring `0052 ` is not valid decimal number for A40_DS1_F4 field."
+            23 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)`."
         ))
     }
 
