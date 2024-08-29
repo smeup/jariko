@@ -259,7 +259,7 @@ private fun stringToValue(value: String, type: Type): Value {
         is BooleanType -> return StringValue(value)
 
         is DataStructureType -> {
-            return coerceStringToDs(value, type)
+            return DataStructValue(value)
         }
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")

@@ -134,6 +134,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(BigDecimal.ZERO)
                         }
                     }
+                    type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
+                        throw UnsupportedOperationException("Cannot coerce sub-string `${value.value}` to $type.")
+                    }
                     else -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -145,12 +148,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if (type.rpgType == RpgType.ZONED.rpgType) {
-                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
-                    } else {
-                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
+                    when {
+                        type.rpgType == RpgType.ZONED.rpgType -> {
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
+                        type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
+                            throw UnsupportedOperationException("Cannot coerce sub-string `${value.value}` to $type.")
+                        }
+                        else -> {
+                            val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
                     }
                 } else {
                     DecimalValue(BigDecimal.ZERO)
@@ -168,7 +177,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.isBlank()) {
                 type.blank()
             } else {
-                coerceStringToDs(value.value, type)
+                return DataStructValue(value.value)
             }
         }
         is CharacterType -> {
@@ -180,95 +189,6 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is TimeStampType -> TimeStampValue.of(value.value)
         else -> TODO("Converting String to $type")
     }
-}
-
-/**
- * Coerces a String to DS by scanning every field type to construct right value for final result.
- * @param value to coerce.
- * @param type destination of coercion.
- * @return string value coerced in `DataStructValue`.
- */
-fun coerceStringToDs(value: String, type: DataStructureType): Value {
-    var startOffset = 0
-    val valueAsString = type.fields.joinToString("") {
-        val endOffset = calculateEndOffsetByDsFieldSize(startOffset, it.type, value)
-        val subValue = value.substring(startOffset, endOffset).also { startOffset = endOffset }
-
-        when (it.type) {
-            is StringType -> subValue
-            is CharacterType -> subValue
-            is NumberType -> {
-                if (subValue.isNotEmpty() && subValue.isNumber()) {
-                    when {
-                        it.type.rpgType == RpgType.PACKED.rpgType -> {
-                            throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not Packed number for ${it.name} field.")
-                        }
-                        else -> {
-                            if (!checkZonedNumberSyntax(subValue, it.type)) throw UnsupportedOperationException("Cannot coerce String to $type. Substring `$subValue` is not valid decimal number for ${it.name} field.")
-                        }
-                    }
-                }
-
-                subValue
-            }
-            is RecordFormatType -> subValue
-            is ArrayType -> subValue
-            else -> throw UnsupportedOperationException("Cannot coerce String to $type. Cannot determine length for ${it.type}. ")
-        }
-    }
-
-    return DataStructValue(valueAsString)
-}
-
-/**
- * For AS400 a ZONED number with space is considered legal instead for a decimal number.
- * This function provides to check if the number follow these requirements.
- * @param value to check. It'll be split based of entire and decimal digits of `type`.
- * @param type necessary for splitting the `value`
- * @return true if the `value` follows the syntax.
- */
-fun checkZonedNumberSyntax(
-    value: String,
-    type: NumberType
-): Boolean {
-    val entireValue = value.substring(0, type.entireDigits)
-    val decimalValue = value.substring(type.entireDigits, type.entireDigits + type.decimalDigits)
-
-    return when {
-        decimalValue.isEmpty() && entireValue.matches(Regex("^[0-9\\s]+$")) -> true //
-        decimalValue.isNotEmpty() && entireValue.matches(Regex("^[0-9]+$")) && decimalValue.matches(Regex("^[0-9]+$")) -> true
-        else -> false
-    }
-}
-
-/**
- * For a specific field calculate the end offset based of start offset and field type.
- * Avoid `StringIndexOutOfBoundsException` by checking end offset with value size.
- * @param startOffset to consider for end offset.
- * @param fieldType to get the size base of type.
- * @param value necessary to check and fix end offset.
- * @return calculated end offset.
- */
-fun calculateEndOffsetByDsFieldSize(
-    startOffset: Int,
-    fieldType: Type,
-    value: String
-): Int {
-    val fieldSize = when (fieldType) {
-        is StringType -> fieldType.length
-        is CharacterType -> fieldType.nChars
-        is NumberType -> fieldType.numberOfDigits
-        is RecordFormatType -> fieldType.size
-        is ArrayType -> fieldType.size
-        else -> throw UnsupportedOperationException("Cannot determine length for ${fieldType.javaClass.name}. ")
-    }
-    var endOffset = startOffset + fieldSize
-
-    // Prevents `StringIndexOutOfBoundsException`
-    if (endOffset > value.length) {
-        endOffset = value.length
-    }
-    return endOffset
 }
 
 private fun coerceBoolean(value: BooleanValue, type: Type): Value {
