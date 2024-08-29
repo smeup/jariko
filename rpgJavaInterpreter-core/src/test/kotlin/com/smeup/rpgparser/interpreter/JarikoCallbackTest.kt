@@ -713,7 +713,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR39CallBackTest() {
         executePgmCallBackTest("ERROR39", SourceReferenceType.Program, "ERROR39", mapOf(
-            23 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)`."
+            23 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
         ))
     }
 
@@ -725,7 +725,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR40CallBackTest() {
         executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", mapOf(
-            23 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)`."
+            23 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
         ))
     }
 
