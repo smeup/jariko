@@ -735,6 +735,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR41CallBackTest() {
+        executePgmCallBackTest("ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
+            22 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR41SourceLineTest() {
+        executeSourceLineTest("ERROR41")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
