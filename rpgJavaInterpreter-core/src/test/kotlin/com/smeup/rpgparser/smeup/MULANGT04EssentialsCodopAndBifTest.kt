@@ -35,7 +35,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String not VARYING in EVAL
+     * Assigns content of DS to a String not VARYING in EVAL
      * @see #LS24003679
      */
     @Test
@@ -45,7 +45,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String VARYING in EVAL
+     * Assigns content of DS to a String VARYING in EVAL
      * @see #LS24003679
      */
     @Test
@@ -55,7 +55,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
      * @see #LS24003755
      */
     @Test
@@ -65,13 +65,35 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     *Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
      * @see #LS24003755
      */
     @Test
     fun executeMUDRNRAPU00107() {
         val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscin")
         assertEquals(expected, "smeup/MUDRNRAPU00107".outputOf())
+    }
+
+    /**
+     * Assigns content of String to a DS with type check and coercion between substring and destination field.
+     * In this test is used `MOVEL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00108() {
+        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        assertEquals(expected, "smeup/MUDRNRAPU00108".outputOf())
+    }
+
+    /**
+     * Assigns content of String to a DS with type check and coercion between substring and destination field.
+     * In this test is used `EVAL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00109() {
+        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        assertEquals(expected, "smeup/MUDRNRAPU00109".outputOf())
     }
 
     /**

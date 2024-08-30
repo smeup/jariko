@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -133,6 +134,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(BigDecimal.ZERO)
                         }
                     }
+                    type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
+                        throw UnsupportedOperationException("Cannot coerce `${value.value}` to $type.")
+                    }
                     else -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -144,12 +148,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if (type.rpgType == RpgType.ZONED.rpgType) {
-                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
-                    } else {
-                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
+                    when {
+                        type.rpgType == RpgType.ZONED.rpgType -> {
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
+                        type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
+                            throw UnsupportedOperationException("Cannot coerce `${value.value}` to $type.")
+                        }
+                        else -> {
+                            val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
                     }
                 } else {
                     DecimalValue(BigDecimal.ZERO)

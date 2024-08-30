@@ -1094,7 +1094,29 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         } else if (data.declaredArrayInLine != null) {
             ProjectedArrayValue.forData(this, data)
         } else {
-            coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
+            val substring = this.getSubstring(data.startOffset, data.endOffset)
+            if (data.type is NumberType && !checkNumberSyntax(substring.value, data.type)) {
+                throw UnsupportedOperationException("Cannot coerce sub-string `${substring.value}` to ${data.type}.")
+            }
+            coerce(substring, data.type)
+        }
+    }
+
+    /**
+     * On AS400 for DS there are some syntax rule for number. In example,
+     *  ZONED number with at least space at the end is not allowed.
+     * This function provides to check if the number follow these requirements.
+     * @param value to check.
+     * @param type necessary for checking based of `RpgType`
+     * @return true if the `value` follows the syntax.
+     */
+    fun checkNumberSyntax(
+        value: String,
+        type: NumberType
+    ): Boolean {
+        return when {
+            type.rpgType == RpgType.ZONED.rpgType -> value.trimEnd().length == value.length
+            else -> true
         }
     }
 

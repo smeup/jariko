@@ -725,6 +725,66 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR39CallBackTest() {
+        executePgmCallBackTest("ERROR39", SourceReferenceType.Program, "ERROR39", mapOf(
+            24 to "Cannot coerce `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
+        ))
+    }
+
+    @Test
+    fun executeERROR39SourceLineTest() {
+        executeSourceLineTest("ERROR39")
+    }
+
+    @Test
+    fun executeERROR40CallBackTest() {
+        executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", mapOf(
+            24 to "Cannot coerce `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
+        ))
+    }
+
+    @Test
+    fun executeERROR40SourceLineTest() {
+        executeSourceLineTest("ERROERROR40R41")
+    }
+
+    @Test
+    fun executeERROR41CallBackTest() {
+        executePgmCallBackTest("ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR41SourceLineTest() {
+        executeSourceLineTest("ERROR41")
+    }
+
+    @Test
+    fun executeERROR42CallBackTest() {
+        executePgmCallBackTest("ERROR42", SourceReferenceType.Program, "ERROR42", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR42SourceLineTest() {
+        executeSourceLineTest("ERROR42")
+    }
+
+    @Test
+    fun executeERROR43CallBackTest() {
+        executePgmCallBackTest("ERROR43", SourceReferenceType.Program, "ERROR43", mapOf(
+            23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR43SourceLineTest() {
+        executeSourceLineTest("ERROR43")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
