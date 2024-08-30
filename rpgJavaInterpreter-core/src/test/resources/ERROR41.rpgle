@@ -1,6 +1,7 @@
      V* ==============================================================
      D* 26/08/24
-     D* Purpose: Must fire the following errors
+     D* Purpose: Must fire the following errors during execution of
+     D*  `MOVEL` from `S` to `DS`.
      D* line 23 - Wrong value.
      V* ==============================================================
      D A40_A50         S             50
