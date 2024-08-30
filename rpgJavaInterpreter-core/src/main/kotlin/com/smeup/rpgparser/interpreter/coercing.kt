@@ -135,7 +135,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         }
                     }
                     type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
-                        throw UnsupportedOperationException("Cannot coerce sub-string `${value.value}` to $type.")
+                        throw UnsupportedOperationException("Cannot coerce `${value.value}` to $type.")
                     }
                     else -> {
                         if (!value.isBlank()) {
@@ -154,7 +154,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(decimalValue)
                         }
                         type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
-                            throw UnsupportedOperationException("Cannot coerce sub-string `${value.value}` to $type.")
+                            throw UnsupportedOperationException("Cannot coerce `${value.value}` to $type.")
                         }
                         else -> {
                             val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
