@@ -1,7 +1,7 @@
      V* ==============================================================
      D* 26/08/24
      D* Purpose: Must fire the following errors
-     D* line 23 - Cannot assign String.
+     D* line 22 - Wrong value.
      V* ==============================================================
      D A40_A50         S             50
      D A40_DS1         DS
@@ -20,5 +20,6 @@
      C     A40_DS1_F1    DSPLY
      C     A40_DS1_F2    DSPLY
      C     A40_DS1_F3    DSPLY
+     V*    Is not possible to assign a number with at least one blank char at the end.
      C                   EVAL      A40_DS2_F4_S=%CHAR(A40_DS1_F4)
      C     A40_DS2_F4_S  DSPLY
