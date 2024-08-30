@@ -2,7 +2,7 @@
      D* 26/08/24
      D* Purpose: Must fire the following errors during execution of
      D*  `EVAL` from `S` to `DS`.
-     D* line 23 - Wrong value.
+     D* line 24 - Wrong value.
      V* ==============================================================
      D A40_A50         S             50
      D A40_DS1         DS
