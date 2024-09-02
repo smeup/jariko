@@ -2451,4 +2451,14 @@ Test 6
         val expected = listOf("1")
         assertEquals(expected, "VPARMSCALLER".outputOf())
     }
+
+    /**
+     * BooleanValue to UnlimitedStringValue coercion
+     * @see #LS24003857
+     */
+    @Test
+    fun executeBOOLEAN_TO_UNLIMITED_COERCE() {
+        val expected = listOf("0")
+        assertEquals(expected, "BOOLTOUSCOERCE".outputOf())
+    }
 }
