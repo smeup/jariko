@@ -97,6 +97,36 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     * Assigns content of String (which has negative number) to a DS.
+     * In this test is used `MOVEL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00110() {
+        val expected = listOf(
+            "-1", "0000J", "-2", "0000K", "-3", "0000L", "-4", "0000M", "-5", "0000N", "-6", "0000O", "-7", "0000P", "-8",
+            "0000Q", "-9", "0000R", "-10", "0001I", "-1.00", "0010I", "-2.00", "0020I", "-3.00", "0030I", "-4.00", "0040I",
+            "-5.00", "0050I", "-6.00", "0060I", "-7.00", "0070I", "-8.00", "0080I", "-9.00", "0090I", "-10.00", "0100I"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00110".outputOf())
+    }
+
+    /**
+     * Assigns content of String (which has negative number) to a DS.
+     * In this test is used `EVAL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00111() {
+        val expected = listOf(
+            "-1", "0000J", "-2", "0000K", "-3", "0000L", "-4", "0000M", "-5", "0000N", "-6", "0000O", "-7", "0000P", "-8",
+            "0000Q", "-9", "0000R", "-10", "0001I", "-1.00", "0010I", "-2.00", "0020I", "-3.00", "0030I", "-4.00", "0040I",
+            "-5.00", "0050I", "-6.00", "0060I", "-7.00", "0070I", "-8.00", "0080I", "-9.00", "0090I", "-10.00", "0100I"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00111".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */
