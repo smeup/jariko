@@ -913,7 +913,8 @@ Test 6
             "Compare unlimited with literal",
             "Compare unlimited with limited",
             "Compare uninitialized unlimited with *BLANKS",
-            "Reset an unlimited and compare with *BLANKS"
+            "Reset an unlimited and compare with *BLANKS",
+            "Assignment from a boolean"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
