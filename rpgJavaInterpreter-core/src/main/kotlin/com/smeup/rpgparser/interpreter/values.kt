@@ -458,7 +458,7 @@ data class BooleanValue private constructor(val value: Boolean) : Value {
             else -> super.compareTo(other)
         }
 
-    fun formatNumeric() = if (value) "1" else "0"
+    private fun formatNumeric() = if (value) "1" else "0"
 }
 
 @Serializable
