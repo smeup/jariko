@@ -196,6 +196,7 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
     return when (type) {
         is BooleanType -> value
         is StringType -> value.asString()
+        is UnlimitedStringType -> value.asUnlimitedString()
         else -> TODO("Converting BooleanValue to $type")
     }
 }
