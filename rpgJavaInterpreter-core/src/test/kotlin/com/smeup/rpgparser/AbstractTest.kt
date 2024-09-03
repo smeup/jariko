@@ -448,8 +448,8 @@ abstract class AbstractTest {
                 }
             Assert.assertTrue(
                 "Errors don't correspond.\n" +
-                        "Actual: ${found.joinToString(separator = "\n\\") { it.first }}\n" +
-                        "Expected: ${lines.map { "Line ${it.key}: \"${it.value}\"" }.joinToString(separator = "\n\\") { it } }\n",
+                        "Expected: ${lines.map { "Line ${it.key}: \"${it.value}\"" }.joinToString(separator = "\n\\") { it } }\n" +
+                        "Actual: ${found.joinToString(separator = "\n\\") { it.first }}\n",
                 found.size == found.filter { it.second }.size && found.size == lines.size
             )
         }
