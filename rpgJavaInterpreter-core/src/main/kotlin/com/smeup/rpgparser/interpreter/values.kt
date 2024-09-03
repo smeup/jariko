@@ -1115,7 +1115,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         type: NumberType
     ): Boolean {
         return when {
-            type.rpgType == RpgType.ZONED.rpgType -> if (value.isNotBlank()) value.trimEnd().length == value.length else true
+            type.rpgType == RpgType.ZONED.rpgType -> value.isBlank() || value.trimEnd().length == value.length
             else -> true
         }
     }
