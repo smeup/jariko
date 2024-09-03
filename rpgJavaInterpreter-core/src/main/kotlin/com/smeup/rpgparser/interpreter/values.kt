@@ -41,6 +41,8 @@ interface Value : Comparable<Value>, DSPFValue {
     fun asString(): StringValue
     fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
     fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an TimeStamp - $this")
+    fun asUnlimitedString(): UnlimitedStringValue =
+        throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an UnlimitedString - $this")
     fun assignableTo(expectedType: Type): Boolean
     fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
     fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
@@ -138,6 +140,7 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
         return BooleanValue.FALSE
     }
 
+    override fun asUnlimitedString() = UnlimitedStringValue(value)
     override fun asInt() = value.toInt().asValue()
     override fun asDecimal() = value.toBigDecimal().asValue()
 
@@ -436,8 +439,8 @@ data class BooleanValue private constructor(val value: Boolean) : Value {
     }
 
     override fun asBoolean() = this
-
-    override fun asString() = StringValue(if (value) "1" else "0")
+    override fun asString() = StringValue(formatNumeric())
+    override fun asUnlimitedString() = UnlimitedStringValue(formatNumeric())
 
     companion object {
         val FALSE = BooleanValue(false)
@@ -454,6 +457,8 @@ data class BooleanValue private constructor(val value: Boolean) : Value {
             is BooleanValue -> value.compareTo(other.value)
             else -> super.compareTo(other)
         }
+
+    private fun formatNumeric() = if (value) "1" else "0"
 }
 
 @Serializable

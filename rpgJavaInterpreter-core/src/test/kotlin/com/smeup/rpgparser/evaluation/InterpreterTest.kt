@@ -889,7 +889,8 @@ Test 6
             "Concat literal A with literal B",
             "ok blank",
             "Concat UnlimitedStringType with StringType",
-            "Concat StringType                                 with UnlimitedStringType"
+            "Concat StringType                                 with UnlimitedStringType",
+            "0"
         )
         assertEquals(expected, outputOf("UNLIMIT_S"))
     }
@@ -912,7 +913,8 @@ Test 6
             "Compare unlimited with literal",
             "Compare unlimited with limited",
             "Compare uninitialized unlimited with *BLANKS",
-            "Reset an unlimited and compare with *BLANKS"
+            "Reset an unlimited and compare with *BLANKS",
+            "Assignment from a boolean"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
