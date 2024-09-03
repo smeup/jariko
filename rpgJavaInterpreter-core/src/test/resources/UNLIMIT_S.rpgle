@@ -63,4 +63,9 @@
      C                   Dsply                   UnlInited
       **************************************************************************************
 
+      * Assignment from BooleanType to UnlimitedStringType *********************************
+     C                   Eval      Unlimit = *OFF
+     C                   Eval      Msg = Unlimit
+     C                   Dsply                   Msg
+      **************************************************************************************
 
