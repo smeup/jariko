@@ -889,7 +889,8 @@ Test 6
             "Concat literal A with literal B",
             "ok blank",
             "Concat UnlimitedStringType with StringType",
-            "Concat StringType                                 with UnlimitedStringType"
+            "Concat StringType                                 with UnlimitedStringType",
+            "0"
         )
         assertEquals(expected, outputOf("UNLIMIT_S"))
     }
@@ -2450,15 +2451,5 @@ Test 6
     fun executeCALL_WITH_VOID_PARMS() {
         val expected = listOf("1")
         assertEquals(expected, "VPARMSCALLER".outputOf())
-    }
-
-    /**
-     * BooleanValue to UnlimitedStringValue coercion
-     * @see #LS24003857
-     */
-    @Test
-    fun executeBOOLEAN_TO_UNLIMITED_COERCE() {
-        val expected = listOf("0")
-        assertEquals(expected, "BOOLTOUSCOERCE".outputOf())
     }
 }
