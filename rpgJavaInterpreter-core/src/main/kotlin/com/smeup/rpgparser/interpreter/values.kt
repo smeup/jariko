@@ -20,6 +20,8 @@ import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isDecimal
+import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
@@ -1171,7 +1173,8 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
         /**
          * On AS400 for DS there are some syntax rule for number. In example,
-         *  ZONED number with at least space at the end is not allowed, if it has at least a number.
+         *  ZONED number with at least space at the end is not allowed. Instead, is allowed `value` as
+         *   only blank chars.
          * This function provides to check if the number follow these requirements.
          * @param value to check.
          * @param type necessary for checking based of `RpgType`
