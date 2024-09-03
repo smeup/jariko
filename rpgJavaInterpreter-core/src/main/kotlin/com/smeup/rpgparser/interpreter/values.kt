@@ -20,8 +20,6 @@ import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import com.smeup.rpgparser.parsing.parsetreetoast.isDecimal
-import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
