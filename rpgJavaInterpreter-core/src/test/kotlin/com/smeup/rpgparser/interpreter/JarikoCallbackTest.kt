@@ -528,32 +528,32 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR23CallBackTest() {
         executePgmCallBackTest("ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
-            9 to "Factor 2 cannot be null",
-            14 to "Factor 1 cannot be null"
+            9 to "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
+            14 to "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext"
         ))
     }
 
     @Test
     fun executeERROR24CallBackTest() {
         executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
-            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
     @Test
     fun executeERROR25CallBackTest() {
         executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
-            8 to "For JUL format the date must be between 1940 and 2039",
-            9 to "For JUL format the date must be between 1940 and 2039"
+            8 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
     @Test
     fun executeERROR26CallBackTest() {
         executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
-            8 to "For ISO format the date must be between 0001 and 9999",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+            8 to "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
@@ -565,8 +565,9 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR27CallBackTest() {
         executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA",
-            11 to "An operation is not implemented: IN£UDLDA"
+            10 to "No element of the collection was transformed to a non-null value.",
+            11 to "An operation is not implemented: IN£UDLDA                           \n" +
+                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
         ))
     }
 
