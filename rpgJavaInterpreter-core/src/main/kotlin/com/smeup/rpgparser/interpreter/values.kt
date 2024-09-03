@@ -1108,24 +1108,6 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     }
 
     /**
-     * On AS400 for DS there are some syntax rule for number. In example,
-     *  ZONED number with at least space at the end is not allowed.
-     * This function provides to check if the number follow these requirements.
-     * @param value to check.
-     * @param type necessary for checking based of `RpgType`
-     * @return true if the `value` follows the syntax.
-     */
-    fun checkNumberSyntax(
-        value: String,
-        type: NumberType
-    ): Boolean {
-        return when {
-            type.rpgType == RpgType.ZONED.rpgType -> value.trimEnd().length == value.length
-            else -> true
-        }
-    }
-
-    /**
      * See setSingleField
      */
     fun getSingleField(data: FieldDefinition): Value {
@@ -1185,6 +1167,25 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
             val fieldDefinitions = fields.map { it.key }.toFieldDefinitions()
             fields.onEachIndexed { index, entry -> newInstance.set(fieldDefinitions[index], entry.value) }
             return newInstance
+        }
+
+        /**
+         * On AS400 for DS there are some syntax rule for number. In example,
+         *  ZONED number with at least space at the end is not allowed. Instead, is allowed `value` as
+         *   only blank chars.
+         * This function provides to check if the number follow these requirements.
+         * @param value to check.
+         * @param type necessary for checking based of `RpgType`
+         * @return true if the `value` follows the syntax.
+         */
+        internal fun checkNumberSyntax(
+            value: String,
+            type: NumberType
+        ): Boolean {
+            return when {
+                type.rpgType == RpgType.ZONED.rpgType -> value.isBlank() || value.trimEnd().length == value.length
+                else -> true
+            }
         }
     }
 

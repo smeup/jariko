@@ -97,6 +97,16 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     * Evaluation at runtime of a DS' field that is blank.
+     * @see #LS24003884
+     */
+    @Test
+    fun executeMUDRNRAPU00112() {
+        val expected = listOf("0", "0", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00112".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */
