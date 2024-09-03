@@ -7,7 +7,7 @@
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was
-    O *  `Cannot assign DataStructValue to StringType`.
+    O *  Cannot coerce sub-string `      `.
      V* ==============================================================
      D DS1             DS           100
      D  DS1_FL1                1      6  0
