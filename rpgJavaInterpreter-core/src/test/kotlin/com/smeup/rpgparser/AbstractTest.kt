@@ -411,14 +411,14 @@ abstract class AbstractTest {
      * @param pgm The name of the program to be executed.
      * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
      * @param sourceId The expected identifier of the source where the error is expected to occur.
-     * @param lines The map of lines, number and message, expected.
+     * @param expected The map of lines, number and message, expected.
      * @param reloadConfig The reload configuration to be used for the execution of the program. Default is null.
      */
     protected fun executePgmCallBackTest(
         pgm: String,
         sourceReferenceType: SourceReferenceType,
         sourceId: String,
-        lines: Map<Int, String>,
+        expected: Map<Int, String>,
         reloadConfig: ReloadConfig? = null
     ) {
         val errorEvents = mutableListOf<ErrorEvent>()
@@ -441,16 +441,15 @@ abstract class AbstractTest {
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
                 .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error).message!!
+                    errorEvent.sourceReference!!.relativeLine to ((errorEvent.error).cause?.message ?: (errorEvent.error).message!!)
                 }
-                .map {
-                    Pair(it.value, it.contains(lines))
-                }
+                .toSortedMap()
+            val expectedSorted = expected.toSortedMap()
             Assert.assertTrue(
                 "Errors don't correspond.\n" +
-                        "Actual: ${found.joinToString(separator = "\n\\") { it.first }}\n" +
-                        "Expected: ${lines.map { it.value }.joinToString(separator = "\n\\") { it } }\n",
-                found.size == found.filter { it.second }.size && found.size == lines.size
+                        "Expected:\n${expectedSorted.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n" +
+                        "Actual:\n${found.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n",
+                found == expectedSorted
             )
         }
     }

@@ -121,8 +121,8 @@ private fun getStringOfValue(
     target: AssignableExpression,
     interpreterCore: InterpreterCore,
     value: Expression
-): String = when {
-    target.type() is BooleanType -> {
+): String = when (target.type()) {
+    is BooleanType -> {
         val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
         when {
             (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> valueInterpreted
@@ -131,7 +131,9 @@ private fun getStringOfValue(
             else -> throw UnsupportedOperationException("MOVE/MOVEL for ${target.type()} have to be 0, 1 or blank")
         }
     }
-
+    is DataStructureType -> {
+        value.type().toDataStructureValue(interpreterCore.eval(value)).value
+    }
     else -> valueToString(interpreterCore.eval(value), value.type())
 }
 
