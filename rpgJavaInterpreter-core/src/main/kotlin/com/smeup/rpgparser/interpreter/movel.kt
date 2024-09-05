@@ -19,6 +19,8 @@ private fun clear(value: String, type: Type): String {
             }
         }
 
+        is UnlimitedStringType -> " ".repeat(value.length)
+
         else -> " ".repeat(type.size)
     }
 }
@@ -150,7 +152,7 @@ private fun movel(
         }
         // overwrite valueToMove from left to right to valueToApplyMove
         if (valueToApplyMoveType is BooleanType) valueToMove
-            else valueToMove + result.substring(valueToMove.length)
+        else valueToMove + result.substring(valueToMove.length)
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(0, valueToApplyMove.length)
@@ -170,7 +172,7 @@ private fun move(
         }
         // overwrite valueToMove from left to right to valueToApplyMove
         if (valueToApplyMoveType is BooleanType) valueToMove
-            else result.substring(0, result.length - valueToMove.length) + valueToMove
+        else result.substring(0, result.length - valueToMove.length) + valueToMove
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(valueToMove.length - valueToApplyMove.length)
@@ -200,6 +202,8 @@ private fun valueToString(value: Value, type: Type): String {
                 s + " ".repeat(type.length - s.length)
             }
         }
+
+        is UnlimitedStringType -> return s
 
         is CharacterType -> return s
 
@@ -243,6 +247,8 @@ private fun stringToValue(value: String, type: Type): Value {
                 StringValue(newValue, false)
             }
         }
+
+        is UnlimitedStringType -> return StringValue(value)
 
         is CharacterType -> return StringValue(value)
 
