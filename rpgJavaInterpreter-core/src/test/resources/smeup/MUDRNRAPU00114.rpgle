@@ -3,7 +3,7 @@
      V* ==============================================================
     O * PROGRAM GOAL
     O * Comparing String and Boolean with `COMP` operator with
-    O *  values not equals to `0` and `1`.
+    O *  values not equal to `0` and `1`.
      V* ==============================================================
      D £C5G35          S              1
 

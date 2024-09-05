@@ -147,7 +147,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
-     * Using `COMP` between string and boolean with values not equals to `0` and `1`.
+     * Using `COMP` between string and boolean with values not equal to `0` and `1`.
      * @see #LS24003931
      */
     @Test
