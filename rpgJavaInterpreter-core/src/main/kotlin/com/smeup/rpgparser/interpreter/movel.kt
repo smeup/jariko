@@ -145,16 +145,16 @@ private fun movel(
     valueToApplyMoveType: Type,
     withClear: Boolean = false
 ): String {
-    return if (valueToMove.length <= valueToApplyMove.length) {
+    return if (valueToApplyMoveType is UnlimitedStringType) {
+        valueToMove
+    } else if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
             result = clear(result, valueToApplyMoveType)
         }
-        // overwrite valueToMove from left to right to valueToApplyMove
         if (valueToApplyMoveType is BooleanType) valueToMove
         else valueToMove + result.substring(valueToMove.length)
     } else {
-        // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(0, valueToApplyMove.length)
     }
 }
@@ -248,7 +248,7 @@ private fun stringToValue(value: String, type: Type): Value {
             }
         }
 
-        is UnlimitedStringType -> return StringValue(value)
+        is UnlimitedStringType -> return UnlimitedStringValue(value)
 
         is CharacterType -> return StringValue(value)
 
