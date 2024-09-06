@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.utils
@@ -88,11 +89,7 @@ private fun compileFile(
                     }
                 }.onFailure { error ->
                     if (allowCompilationError(file, error)) {
-                        println("Ast creating error not blocking because this program is in a white list".yellow())
-                        val errStream = ByteArrayOutputStream()
-                        error.printStackTrace(PrintStream(errStream))
-                        println(String(errStream.toByteArray()).yellow())
-                        return CompilationResult(file, null, null, error)
+                        return doAllowOnCompilationResult(error, file)
                     } else {
                         throw error
                     }
@@ -116,11 +113,28 @@ private fun compileFile(
         }
         return CompilationResult(file, compiledFile)
     }.onFailure {
-        System.err.println("Error during AST serializing")
-        it.printStackTrace()
-        return CompilationResult(file, null, it)
+        val prologueMessage = "Error during AST serializing"
+        if (allowCompilationError(file, it)) {
+            return doAllowOnCompilationResult(error = it, file = file, prologueMessage = prologueMessage)
+        } else {
+            System.err.println(prologueMessage)
+            it.printStackTrace()
+            return CompilationResult(file, null, it)
+        }
     }
     error("Something went wrong")
+}
+
+private fun doAllowOnCompilationResult(
+    error: Throwable,
+    file: File,
+    prologueMessage: String = "Ast creating error"
+): CompilationResult {
+    println("$prologueMessage not blocking because this program is in a white list".yellow())
+    val errStream = ByteArrayOutputStream()
+    error.printStackTrace(PrintStream(errStream))
+    println(String(errStream.toByteArray()).yellow())
+    return CompilationResult(file, null, null, error)
 }
 
 /**
