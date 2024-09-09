@@ -21,6 +21,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
+import com.smeup.rpgparser.parsing.parsetreetoast.toInt
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
@@ -210,7 +211,7 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
             is BlanksValue -> if (this.isBlank()) EQUAL else SMALLER
-            is BooleanValue -> if (this.value.isInt() && this.value.toInt() == 1) EQUAL else GREATER
+            is BooleanValue -> if (this.value.isInt() && this.value.toInt() == other.value.toInt()) EQUAL else GREATER
             else -> super.compareTo(other)
         }
 
