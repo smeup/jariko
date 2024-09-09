@@ -17,3 +17,11 @@
      C                   MOVEL     *OFF          £C5G35
      C     £C5G35        COMP      *ON                                    35
      C     *IN35         DSPLY
+
+     C                   MOVEL     *ON           £C5G35
+     C     £C5G35        COMP      *OFF                                   35
+     C     *IN35         DSPLY
+
+     C                   MOVEL     *OFF          £C5G35
+     C     £C5G35        COMP      *OFF                                   35
+     C     *IN35         DSPLY
