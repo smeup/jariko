@@ -738,7 +738,9 @@ data class CallStmt(
             "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
 
-        val params = this.params.mapIndexed { index, it ->
+        // Ignore exceeding params
+        val targetProgramParams = program.params()
+        val params = this.params.take(targetProgramParams.size).mapIndexed { index, it ->
             if (it.dataDefinition != null) {
                 // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
@@ -765,10 +767,7 @@ data class CallStmt(
                     )
                 }
             }
-            require(program.params().size > index) {
-                "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
-            }
-            program.params()[index].name to interpreter[it.param.name]
+            targetProgramParams[index].name to interpreter[it.param.name]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
