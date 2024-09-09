@@ -152,7 +152,7 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00114() {
-        val expected = listOf("0", "0", "0", "0", "0")
+        val expected = listOf("0", "0", "0", "0", "0", "0", "0", "0", "0", "0")
         assertEquals(expected, "smeup/MUDRNRAPU00114".outputOf())
     }
 
