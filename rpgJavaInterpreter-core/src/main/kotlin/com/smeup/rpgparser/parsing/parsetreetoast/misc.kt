@@ -1184,11 +1184,7 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     if (paramName.contains(".")) {
         val parts = paramName.split(".")
         require(parts.isNotEmpty())
-        if (parts.size == 1) {
-            paramName = parts[0]
-        } else {
-            paramName = parts.last()
-        }
+        paramName = parts.last()
     }
     // initialization value valid only if there isn't a variable declaration
     val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
@@ -1196,8 +1192,14 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     } else {
         null
     }
+
+    val factor1Text = this.factor1.text.trim()
+    val factor1Position = this.factor1.toPosition(conf.considerPosition)
+    val result = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
+
     val position = toPosition(conf.considerPosition)
     return PlistParam(
+        result,
         ReferenceByName(paramName),
         this.cspec_fixed_standard_parts().toDataDefinition(
             paramName,
