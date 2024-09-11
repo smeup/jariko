@@ -213,7 +213,7 @@ class ExpressionEvaluation(
                 }
             }
             left is StringValue && right is BooleanValue -> {
-                val s = left.withoutVarying() + right.asString().value
+                val s = left.trimEndIfVarying() + right.asString().value
                 s.asValue()
             }
             else -> {
