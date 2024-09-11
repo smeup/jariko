@@ -19,6 +19,8 @@ private fun clear(value: String, type: Type): String {
             }
         }
 
+        is UnlimitedStringType -> " ".repeat(value.length)
+
         else -> " ".repeat(type.size)
     }
 }
@@ -143,7 +145,9 @@ private fun movel(
     valueToApplyMoveType: Type,
     withClear: Boolean = false
 ): String {
-    return if (valueToMove.length <= valueToApplyMove.length) {
+    return if (valueToApplyMoveType is UnlimitedStringType) {
+        valueToMove
+    } else if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
             result = clear(result, valueToApplyMoveType)
@@ -201,6 +205,8 @@ private fun valueToString(value: Value, type: Type): String {
             }
         }
 
+        is UnlimitedStringType -> return s
+
         is CharacterType -> return s
 
         is NumberType -> {
@@ -243,6 +249,8 @@ private fun stringToValue(value: String, type: Type): Value {
                 StringValue(newValue, false)
             }
         }
+
+        is UnlimitedStringType -> return UnlimitedStringValue(value)
 
         is CharacterType -> return StringValue(value)
 

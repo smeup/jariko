@@ -137,6 +137,26 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     * Using `COMP` between string and boolean.
+     * @see #LS24003931
+     */
+    @Test
+    fun executeMUDRNRAPU00113() {
+        val expected = listOf("1", "0", "0", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00113".outputOf())
+    }
+
+    /**
+     * Using `COMP` between string and boolean with values not equal to `0` and `1`.
+     * @see #LS24003931
+     */
+    @Test
+    fun executeMUDRNRAPU00114() {
+        val expected = listOf("0", "0", "0", "0", "0", "0", "0", "0", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00114".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */
