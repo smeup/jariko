@@ -6,7 +6,7 @@
       * bound to the factor 1 of the param (*IN36)
      C                   CALL      'PRSLTCALLEE'
      C     *IN35         PARM      *OFF          $A                1            Should be updated
-     C     *IN35         PARM      *OFF          $B                1            Should not be updated
+     C                   PARM      *OFF          $B                1            Should not be updated
      C                   PARM      *OFF          $C                1            Shoud have no influence
 
       * Updated value output
