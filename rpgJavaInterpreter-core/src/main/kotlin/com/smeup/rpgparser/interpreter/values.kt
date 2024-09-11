@@ -212,6 +212,8 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
             else -> super.compareTo(other)
         }
 
+    fun withoutVarying() = if (varying) value.trimEnd() else value
+
     override fun getWrappedString() = value
 }
 

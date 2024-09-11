@@ -212,6 +212,10 @@ class ExpressionEvaluation(
                     StringValue(s)
                 }
             }
+            left is StringValue && right is BooleanValue -> {
+                val s = left.withoutVarying() + right.asString().value
+                s.asValue()
+            }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
             }
