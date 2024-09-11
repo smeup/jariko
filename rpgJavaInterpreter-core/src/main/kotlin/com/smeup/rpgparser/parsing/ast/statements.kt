@@ -793,7 +793,11 @@ data class CallStmt(
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
-                interpreter.assign(this.params[index].param.referred!!, value)
+                val currentParam = this.params[index]
+                interpreter.assign(currentParam.param.referred!!, value)
+
+                // If we also have a result field, assign to it
+                currentParam.result?.let { interpreter.assign(it, value) }
             }
         }
     }
@@ -1107,6 +1111,7 @@ data class PlistStmt(
 
 @Serializable
 data class PlistParam(
+    val result: AssignableExpression?,
     val param: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
