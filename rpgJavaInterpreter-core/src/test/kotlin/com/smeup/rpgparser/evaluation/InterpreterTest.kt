@@ -2453,4 +2453,22 @@ Test 6
         val expected = listOf("1")
         assertEquals(expected, "VPARMSCALLER".outputOf())
     }
+
+    @Test
+    fun executeEXCPCALL() {
+        val expected = listOf("ok")
+        assertEquals(expected, "EXCPCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLER() {
+        val expected = listOf("(1,1)", "(0,0)", "(1,1,0,0,0)")
+        assertEquals(expected, "PRSLTCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLERDUPLICATE() {
+        val expected = listOf("0", "0", "0", "1")
+        assertEquals(expected, "PRSLTCALLERDUPLICATE".outputOf())
+    }
 }

@@ -738,7 +738,9 @@ data class CallStmt(
             "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
 
-        val params = this.params.mapIndexed { index, it ->
+        // Ignore exceeding params
+        val targetProgramParams = program.params()
+        val params = this.params.take(targetProgramParams.size).mapIndexed { index, it ->
             if (it.dataDefinition != null) {
                 // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
@@ -765,10 +767,7 @@ data class CallStmt(
                     )
                 }
             }
-            require(program.params().size > index) {
-                "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
-            }
-            program.params()[index].name to interpreter[it.param.name]
+            targetProgramParams[index].name to interpreter[it.param.name]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
@@ -794,7 +793,11 @@ data class CallStmt(
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
-                interpreter.assign(this.params[index].param.referred!!, value)
+                val currentParam = this.params[index]
+                interpreter.assign(currentParam.param.referred!!, value)
+
+                // If we also have a result field, assign to it
+                currentParam.result?.let { interpreter.assign(it, value) }
             }
         }
     }
@@ -1108,6 +1111,7 @@ data class PlistStmt(
 
 @Serializable
 data class PlistParam(
+    val result: AssignableExpression?,
     val param: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
