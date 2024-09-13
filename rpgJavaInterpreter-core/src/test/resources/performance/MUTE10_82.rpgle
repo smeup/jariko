@@ -32,7 +32,7 @@
       * Loop on PGM
      C                   DO        500
      C                   EVAL      XXRET=' '
-     C                   CALL      'MUTE10_06'
+     C                   CALL      'WAIT4BENETTI'
      C                   PARM                    ARRAY
      C                   PARM                    XXRET
      C

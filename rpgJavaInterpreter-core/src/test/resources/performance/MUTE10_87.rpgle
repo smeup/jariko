@@ -32,7 +32,7 @@
       * Variable for loop
      C                   EVAL      $CICL=1000000
       * Call
-     C                   CALL      'MUTE10_08'
+     C                   CALL      'WAIT4BENETTI'
      C                   PARM                    $CICL
       * end time
      C                   TIME                    $TIMEN
