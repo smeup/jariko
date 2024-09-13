@@ -303,6 +303,9 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         is StringType -> {
             return StringValue(value.asString().value)
         }
+        is UnlimitedStringType -> {
+            return StringValue(value.asString().value)
+        }
         is ArrayType -> {
             val sb = StringBuilder()
             when (value) {
