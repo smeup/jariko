@@ -19,18 +19,18 @@
 
      C                   Z-ADD     1             D50                            #Issue executing ZAddStmt at line 20
 
-     C                   EXSR      CALCULATE
+     C                   EXSR      CALCULATES
 
      C                   EVAL      SUM=0
      C                   EVAL      COUNT=1
      C                   Z-ADD     0             D50
-     C                   EXSR      CALCULATE
+     C                   EXSR      CALCULATES
 
      C                   SETON                                          LR
 
 
 
-     C     CALCULATE     BEGSR
+     C     CALCULATES    BEGSR
 
      C     100           DOUEQ     COUNT
      C                   EVAL      SUM+=D50(COUNT)
