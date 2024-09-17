@@ -220,14 +220,11 @@ internal fun String.resolveCompilerDirectives(): String {
 }
 
 private fun String.transformToComment(): String {
-    val newString: String
-    if (this.length >= 7) {
-        newString = this.substring(0, 6) + '*' + this.substring(7)
-    } else {
-        val padding = "       "
-        newString = this + padding.substring(0, 7 - this.length) + '*'
+    return when {
+        this.isBlank() -> "     *"
+        this.length >= 7 -> "${this.substring(0, 6)}*${this.substring(7)}"
+        else -> "$this${"       ".substring(0, 7 - this.length)}*"
     }
-    return newString
 }
 
 private fun containDirectives(inputString: String): Boolean {
