@@ -172,4 +172,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
         assertEquals(expected, "smeup/MU101019".outputOf())
     }
+
+    /**
+     * Z-ADD to a DS field defined as array and overlay.
+     * @see #LS24004081
+     */
+    @Test
+    fun executeMUDRNRAPU00115() {
+        val expected = listOf("99.000000", "0.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00115".outputOf(configuration = smeupConfig))
+    }
 }
