@@ -3,11 +3,11 @@
      V* ==============================================================
     O * PROGRAM GOAL
     O * Assignment of an array, defined as field of DS,
-    O *  to a Standalone variable with with MOVEA.
+    O *  to a Standalone variable with MOVEA.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was
-    O *  Issue executing MoveAStmt at line 30. An operation
+    O *  Issue executing MoveAStmt at line 32. An operation
     O *   is not implemented: takeFirst not yet implemented
     O *   for ProjectedArrayValue.
      V* ==============================================================
@@ -50,6 +50,16 @@
      C     AU1(COUNT)    DSPLY
      C                   EVAL      COUNT+=1
      C                   ENDDO
+     C     AA£O01        DSPLY
+     C     AA£O02        DSPLY
+     C     AA£O03        DSPLY
+     C     AA£O04        DSPLY
+     C     AA£O05        DSPLY
+     C     AA£O06        DSPLY
+     C     AA£O07        DSPLY
+     C     AA£O08        DSPLY
+     C     AA£O09        DSPLY
+     C     AA£O10        DSPLY
      C     £AUATI        DSPLY
     *
      C                   ENDSR
