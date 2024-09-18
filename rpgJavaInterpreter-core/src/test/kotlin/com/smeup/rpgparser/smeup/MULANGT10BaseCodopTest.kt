@@ -172,4 +172,21 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
         assertEquals(expected, "smeup/MU101019".outputOf())
     }
+
+    /**
+     *
+     * @see #LS24004086
+     */
+    @Test
+    fun executeMUDRNRAPU00116() {
+        val expected = listOf(
+            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
+            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
+            "AABBCCDDEEFFGGHHIILL",
+            "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  ",
+            "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  ",
+            "                    ",
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
+    }
 }
