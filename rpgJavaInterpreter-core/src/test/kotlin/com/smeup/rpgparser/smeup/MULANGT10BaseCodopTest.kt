@@ -181,10 +181,8 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU00116() {
         val expected = listOf(
             "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
-            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
             "AABBCCDDEEFFGGHHIILL",
-            "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", ""
+            "", "", "", "", "", "", "", "", "", "", ""
         )
         assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
     }

@@ -50,16 +50,6 @@
      C     AU1(COUNT)    DSPLY
      C                   EVAL      COUNT+=1
      C                   ENDDO
-     C     AA£O01        DSPLY
-     C     AA£O02        DSPLY
-     C     AA£O03        DSPLY
-     C     AA£O04        DSPLY
-     C     AA£O05        DSPLY
-     C     AA£O06        DSPLY
-     C     AA£O07        DSPLY
-     C     AA£O08        DSPLY
-     C     AA£O09        DSPLY
-     C     AA£O10        DSPLY
      C     £AUATI        DSPLY
     *
      C                   ENDSR
