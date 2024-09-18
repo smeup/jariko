@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.smeup
 
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
