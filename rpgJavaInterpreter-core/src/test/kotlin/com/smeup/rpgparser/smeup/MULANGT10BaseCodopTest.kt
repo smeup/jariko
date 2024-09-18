@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.smeup
 
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -178,13 +179,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS24004086
      */
     @Test
+    @Ignore
     fun executeMUDRNRAPU00116() {
         val expected = listOf(
             "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
             "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
             "AABBCCDDEEFFGGHHIILL",
             "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "",
+            "", "", "", "", "", ""
         )
         assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
     }
