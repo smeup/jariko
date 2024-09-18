@@ -179,7 +179,6 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS24004086
      */
     @Test
-    @Ignore
     fun executeMUDRNRAPU00116() {
         val expected = listOf(
             "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
