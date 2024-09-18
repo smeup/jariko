@@ -18,20 +18,18 @@
      D                                             OVERLAY(D5COSO:88)
 
      C                   Z-ADD     1             D50                            #Issue executing ZAddStmt at line 20
-
-     C                   EXSR      CALCULATES
-
-     C                   EVAL      SUM=0
-     C                   EVAL      COUNT=1
+     C                   EXSR      SHOW_RES
      C                   Z-ADD     0             D50
-     C                   EXSR      CALCULATES
+     C                   EXSR      SHOW_RES
 
      C                   SETON                                          LR
 
 
 
-     C     CALCULATES    BEGSR
+     C     SHOW_RES      BEGSR
 
+     C                   EVAL      SUM=0
+     C                   EVAL      COUNT=1
      C     100           DOUEQ     COUNT
      C                   EVAL      SUM+=D50(COUNT)
      C                   EVAL      COUNT+=1
