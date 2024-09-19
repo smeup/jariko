@@ -21,6 +21,9 @@ import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.*
+
+internal typealias CastLookupHandler = (Value, Type) -> Optional<Value>
 
 private fun coerceBlanks(type: Type): Value {
     return when (type) {
@@ -201,7 +204,12 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
     }
 }
 
-fun coerce(value: Value, type: Type): Value {
+fun coerce(value: Value, type: Type, castLookupOverride: CastLookupHandler? = null): Value {
+    castLookupOverride?.let { lookupOverride ->
+        val lookupValue = lookupOverride(value, type)
+        if (lookupValue.isPresent) return lookupValue.get()
+    }
+
     // TODO to be completed
     return when (value) {
         is BlanksValue -> {

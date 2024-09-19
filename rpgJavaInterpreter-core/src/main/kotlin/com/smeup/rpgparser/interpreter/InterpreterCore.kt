@@ -41,6 +41,7 @@ interface InterpreterCore {
         value: Expression,
         operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT
     ): Value
+    fun assign(dataDefinition: AbstractDataDefinition, value: Value, castLookupOverride: CastLookupHandler?): Value
 
     fun assignEachElement(target: AssignableExpression, value: Value): Value
     fun assignEachElement(

@@ -724,7 +724,9 @@ open class InternalInterpreter(
                 dbFile.getDataDefinitionName(field.key)?.let { name ->
                     dataDefinitionByName(name)
                 }?.apply {
-                    assign(this, StringValue(field.value))
+                    assign(this, StringValue(field.value)) { value, type ->
+                        assignFromDbCastOverride(value, type)
+                    }
                 }
                     ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
@@ -839,7 +841,13 @@ open class InternalInterpreter(
         }
     }
 
-    override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    override fun assign(dataDefinition: AbstractDataDefinition, value: Value) = assign(dataDefinition, value, null)
+
+    override fun assign(
+        dataDefinition: AbstractDataDefinition,
+        value: Value,
+        castLookupOverride: CastLookupHandler?
+    ): Value {
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
             // currently the only assignable value for a record format type is blank
@@ -853,7 +861,7 @@ open class InternalInterpreter(
                 error("Cannot assign $value to $dataDefinition")
             }
         } else {
-            val coercedValue = coerce(value, dataDefinition.type)
+            val coercedValue = coerce(value, dataDefinition.type, castLookupOverride)
             set(dataDefinition, coercedValue)
             return coercedValue
         }
@@ -1246,4 +1254,14 @@ internal fun ISymbolTable.restoreFromMemorySlice(
             )
         }
     }
+}
+
+private fun assignFromDbCastOverride(value: Value, type: Type): Optional<Value> = when (value) {
+    is StringValue -> {
+        when (type) {
+            is NumberType -> Optional.of(if (type.integer) value.asInt() else value.asDecimal())
+            else -> Optional.empty()
+        }
+    }
+    else -> Optional.empty()
 }
