@@ -33,6 +33,8 @@ val ELSE_PATTERN = Regex(""".{6}/ELSE\s*$""", RegexOption.IGNORE_CASE)
 val ENDIF_PATTERN = Regex(""".{6}/ENDIF\s*$""", RegexOption.IGNORE_CASE)
 val EOF_PATTERN = Regex(""".{6}/EOF\s*$""", RegexOption.IGNORE_CASE)
 
+private const val SIX_COLUMNS_PADDING = "      "
+
 /**
  * Resolve the EOF directive: after this directive, all rows are ignored until the end of the file
  * and marked in the result string as comments.
@@ -220,14 +222,12 @@ internal fun String.resolveCompilerDirectives(): String {
 }
 
 private fun String.transformToComment(): String {
-    val newString: String
-    if (this.length >= 7) {
-        newString = this.substring(0, 6) + '*' + this.substring(7)
-    } else {
-        val padding = "       "
-        newString = this + padding.substring(0, 7 - this.length) + '*'
+    // We expect to output [6 characters][*][remaining comment]
+    return when {
+        this.isBlank() -> "$SIX_COLUMNS_PADDING*"
+        this.length >= 7 -> "${this.substring(0, 6)}*${this.substring(7)}"
+        else -> "${this.padEnd(6, ' ')}*"
     }
-    return newString
 }
 
 private fun containDirectives(inputString: String): Boolean {
