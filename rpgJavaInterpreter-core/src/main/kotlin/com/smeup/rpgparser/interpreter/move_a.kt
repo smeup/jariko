@@ -55,8 +55,8 @@ private fun moveaNumber(
     interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
-    val newValue = interpreterCore.toArray(value)
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
+    val newValue = interpreterCore.toArray(value, targetArray.elementType)
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {
             targetArray.getElement(it + 1)
@@ -76,7 +76,7 @@ private fun moveaNumber(
     return arrayValue
 }
 
-private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue =
+private fun InterpreterCore.toArray(expression: Expression, targetType: Type): ConcreteArrayValue =
     when (expression) {
         is ArrayAccessExpr -> {
             val arrayValueRaw = eval(expression.array)
@@ -95,7 +95,15 @@ private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue 
                 ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
             }
         }
-        else -> ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
+        else -> {
+            val value = eval(expression)
+            if (value is IntValue && targetType is NumberType && targetType.decimalDigits > 0) {
+                val decimalValue = DecimalValue(value.value.toDouble().div((10).pow(targetType.decimalDigits)).toBigDecimal())
+                ConcreteArrayValue(mutableListOf(decimalValue), targetType)
+            } else {
+                ConcreteArrayValue(mutableListOf(value), targetType)
+            }
+        }
     }
 
 private fun moveaString(
