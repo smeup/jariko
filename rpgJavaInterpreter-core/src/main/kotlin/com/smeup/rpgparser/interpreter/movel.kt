@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
-import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.isDecimal
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toDecimal
@@ -61,12 +61,23 @@ fun movel(
             }
             return interpreterCore.assign(target, arrayValue)
         } else {
-            val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
+            val computedTargetValue = interpreterCore.eval(target)
+            val targetType = target.type()
+
+            // Cannot move a string to a DataStructure with PACKED fields
+            if (value.type() is StringType && targetType is DataStructureType) {
+                val containsPacked = targetType.fields.any { it.type is NumberType && it.type.rpgType == RpgType.PACKED.rpgType }
+                require(!containsPacked) {
+                    "Cannot move a string to a DataStructure with PACKED fields"
+                }
+            }
+
+            val valueToApplyMove: String = valueToString(computedTargetValue, targetType)
             return interpreterCore.assign(
                 target,
                 stringToValue(
-                    movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                    target.type()
+                    movel(valueToMove, valueToApplyMove, targetType, operationExtender != null),
+                    targetType
                 )
             )
         }
