@@ -184,6 +184,22 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * Assignment of an array, defined as field of DS, to a Standalone variable with MOVEA.
+     * @see #LS24004086
+     */
+    @Test
+    fun executeMUDRNRAPU00116() {
+        val expected = listOf(
+            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
+            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
+            "AABBCCDDEEFFGGHHIILL",
+            "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+            "", "", "", "", "", ""
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Z-ADD to a Standalone defined as array.
      * @see #LS24004081
      */

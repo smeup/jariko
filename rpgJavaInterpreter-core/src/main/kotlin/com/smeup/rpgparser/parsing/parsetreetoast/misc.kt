@@ -109,7 +109,7 @@ private fun List<StatementContext?>.getDataDefinition(
 
     fileDefinitions?.let {
         val postProcessedFileDefinitions = it.processWithSpecifications(inputSpecifications)
-        postProcessedFileDefinitions.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
+        postProcessedFileDefinitions.filter { !it.key.justExtName }.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
             dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
     }
