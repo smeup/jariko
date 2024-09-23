@@ -399,14 +399,25 @@ internal fun RpgParser.DspecContext.toAst(
     val baseType =
         when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
             null -> todo(conf = conf)
-            "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-                /* TODO should be packed? */
-                NumberType(elementSize!! - decimalPositions, decimalPositions)
-            } else {
-                if (like != null) {
-                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+            "" -> {
+                if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+                    /* TODO should be packed? */
+                    NumberType(elementSize!! - decimalPositions, decimalPositions)
                 } else {
-                    StringType.createInstance(elementSize!!, varying)
+                    if (like != null) {
+                        val resultType =
+                            compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+
+                        /**
+                         * If we found a DS, we should consider this as a string with the same length as the DS
+                         * use `LIKEDS` to get a DS based on another one
+                         */
+                        if (resultType is DataStructureType)
+                            StringType.createInstance(elementSize!!, varying)
+                        else resultType
+                    } else {
+                        StringType.createInstance(elementSize!!, varying)
+                    }
                 }
             }
             RpgType.CHARACTER.rpgType -> {
