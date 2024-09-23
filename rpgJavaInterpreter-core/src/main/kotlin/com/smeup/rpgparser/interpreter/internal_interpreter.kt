@@ -1220,10 +1220,9 @@ open class InternalInterpreter(
                     }
                 }
 
-                coerce(sourceValue, targetType, castLookupOverride)
             }
             is StringType -> {
-                // TODO: We cannot cast a DS to a string if the DS contains any PACKED field
+                // TODO: We cannot cast a DS to a string if the DS contains any PACKED field, how do I know if that is the case?
             }
             else -> {}
         }
