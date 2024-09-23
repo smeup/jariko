@@ -298,6 +298,10 @@ fun coerce(value: Value, type: Type, castLookupOverride: CastLookupHandler? = nu
             }
         }
         is BooleanValue -> coerceBoolean(value, type)
+        is DataStructValue -> when (type) {
+            is StringType -> value.asString()
+            else -> value
+        }
         else -> value
     }
 }
