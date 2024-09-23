@@ -95,15 +95,16 @@ private fun InterpreterCore.toArray(expression: Expression, targetType: Type): C
                 ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
             }
         }
-        else -> {
+        is IntLiteral -> {
             val value = eval(expression)
-            if (value is IntValue && targetType is NumberType && targetType.decimalDigits > 0) {
-                val decimalValue = DecimalValue(value.value.toDouble().div((10).pow(targetType.decimalDigits)).toBigDecimal())
+            if (targetType is NumberType && targetType.decimalDigits > 0) {
+                val decimalValue = DecimalValue((value as IntValue).value.toDouble().div((10).pow(targetType.decimalDigits)).toBigDecimal())
                 ConcreteArrayValue(mutableListOf(decimalValue), targetType)
             } else {
                 ConcreteArrayValue(mutableListOf(value), targetType)
             }
         }
+        else -> ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
     }
 
 private fun moveaString(
