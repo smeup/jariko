@@ -174,6 +174,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * Z-ADD to a DS field defined as array and overlay.
+     * @see #LS24004081
+     */
+    @Test
+    fun executeMUDRNRAPU00115() {
+        val expected = listOf("99.000000", ".000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00115".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Assignment of an array, defined as field of DS, to a Standalone variable with MOVEA.
      * @see #LS24004086
      */
@@ -187,5 +197,15 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
             "", "", "", "", "", ""
         )
         assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Z-ADD to a Standalone defined as array.
+     * @see #LS24004081
+     */
+    @Test
+    fun executeMUDRNRAPU00120() {
+        val expected = listOf("99.000000", ".000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00120".outputOf(configuration = smeupConfig))
     }
 }

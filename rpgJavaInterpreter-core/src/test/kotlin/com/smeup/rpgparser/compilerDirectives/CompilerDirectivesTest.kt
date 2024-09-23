@@ -2,6 +2,7 @@ package com.smeup.rpgparser.compilerDirectives
 
 import com.smeup.rpgparser.AbstractTest
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFails
 
 class CompilerDirectivesTest : AbstractTest() {
@@ -31,5 +32,15 @@ class CompilerDirectivesTest : AbstractTest() {
         assertFails {
             "compilerDirectives/ERROR04".outputOf()
         }.printStackTrace()
+    }
+
+    /**
+     * Duplicate definition in two different copies
+     * @see #LS24004074
+     */
+    @Test
+    fun executeDUPDEF() {
+        val expected = listOf("ok")
+        assertEquals(expected, "compilerDirectives/DUPDEF".outputOf())
     }
 }
