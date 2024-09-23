@@ -861,7 +861,7 @@ open class InternalInterpreter(
                 error("Cannot assign $value to $dataDefinition")
             }
         } else {
-            val coercedValue = coerce(value, dataDefinition.type, castLookupOverride)
+            val coercedValue = validateAndCoerce(value, dataDefinition.type, castLookupOverride)
             set(dataDefinition, coercedValue)
             return coercedValue
         }
@@ -1200,6 +1200,36 @@ open class InternalInterpreter(
     override fun onInterpretationEnd() {
         val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
         loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
+    }
+
+    /**
+     * Perform runtime checks to ensure we can coerce a value to a target type
+     * If all checks pass, returns the coerced value
+     */
+    private fun validateAndCoerce(sourceValue: Value, targetType: Type, castLookupOverride: CastLookupHandler?): Value {
+        // Perform checks
+        when (targetType) {
+            is DataStructureType -> {
+                // We cannot cast a string to a DS if the DS contains any PACKED field
+                if (sourceValue is StringValue) {
+                    val containsPacked = targetType.fields.any {
+                        it.type is NumberType && it.type.rpgType == RpgType.PACKED.rpgType
+                    }
+                    require(!containsPacked) {
+                        "Cannot assign $sourceValue to $targetType"
+                    }
+                }
+
+                coerce(sourceValue, targetType, castLookupOverride)
+            }
+            is StringType -> {
+                // TODO: We cannot cast a DS to a string if the DS contains any PACKED field
+            }
+            else -> {}
+        }
+
+        // Perform coercion
+        return coerce(sourceValue, targetType, castLookupOverride)
     }
 }
 
