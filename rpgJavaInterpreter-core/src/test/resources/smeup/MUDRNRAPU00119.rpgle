@@ -1,3 +1,10 @@
+     V* ==============================================================
+     V* 19/09/2024 APU001 Creation
+     V* ==============================================================
+    O * PROGRAM GOAL
+    O * Assignment of scalar to a Standalone variable,
+    O *  defined as integer array, with MOVEA.
+     V* ==============================================================
      D MSG             S             30
      D COUNT           S              3  0 INZ(1)
 

@@ -1,3 +1,12 @@
+     V* ==============================================================
+     V* 19/09/2024 APU001 Creation
+     V* ==============================================================
+    O * PROGRAM GOAL
+    O * Assignment of scalar to a Standalone variable,
+    O *  defined as decimal array, with MOVEA.
+    O * The left value number of digits is greater than right
+    O *  decimal digits.
+     V* ==============================================================
      D MSG             S             30
      D COUNT           S              3  0 INZ(1)
 
