@@ -1215,14 +1215,20 @@ open class InternalInterpreter(
                     val containsPacked = targetType.fields.any {
                         it.type is NumberType && it.type.rpgType == RpgType.PACKED.rpgType
                     }
-                    require(!containsPacked) {
-                        "Cannot assign $sourceValue to $targetType"
+                    if (containsPacked) {
+                        error("Cannot assign $sourceValue to $targetType because type contains PACKED fields")
                     }
                 }
-
             }
             is StringType -> {
-                // TODO: We cannot cast a DS to a string if the DS contains any PACKED field, how do I know if that is the case?
+                if (sourceValue is DataStructValue) {
+                    val containsPacked = sourceValue.fields.any {
+                        it.type is NumberType && it.type.rpgType == RpgType.PACKED.rpgType
+                    }
+                    if (containsPacked) {
+                        error("Cannot assign $sourceValue to $targetType because value contains PACKED fields")
+                    }
+                }
             }
             else -> {}
         }
