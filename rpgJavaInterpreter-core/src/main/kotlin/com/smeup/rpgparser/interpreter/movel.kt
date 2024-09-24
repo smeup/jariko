@@ -63,12 +63,21 @@ fun movel(
         } else {
             val computedTargetValue = interpreterCore.eval(target)
             val targetType = target.type()
+            val sourceValueType = value.type()
 
             // Cannot move a string to a DataStructure with PACKED fields
-            if (value.type() is StringType && targetType is DataStructureType) {
+            if (sourceValueType is StringType && targetType is DataStructureType) {
                 val containsPacked = targetType.fields.any { it.type is NumberType && it.type.rpgType == RpgType.PACKED.rpgType }
                 require(!containsPacked) {
                     "Cannot move a string to a DataStructure with PACKED fields"
+                }
+            }
+
+            // Cannot move a DS to a string with PACKED fields
+            if (sourceValueType is DataStructureType && targetType is StringType) {
+                val containsPacked = sourceValueType.fields.any { it.type is NumberType && it.type.rpgType == RpgType.PACKED.rpgType }
+                require(!containsPacked) {
+                    "Cannot move a DataStructure with PACKED fields to a string"
                 }
             }
 

@@ -784,6 +784,66 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR44CallBackTest() {
+        executePgmCallBackTest("ERROR44", SourceReferenceType.Program, "ERROR44", listOf(17))
+    }
+
+    @Test
+    fun executeERROR44SourceLineTest() {
+        executeSourceLineTest("ERROR44")
+    }
+
+    @Test
+    fun executeERROR45CallBackTest() {
+        executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", listOf(17))
+    }
+
+    @Test
+    fun executeERROR45SourceLineTest() {
+        executeSourceLineTest("ERROR45")
+    }
+
+    @Test
+    fun executeERROR46CallBackTest() {
+        executePgmCallBackTest("ERROR46", SourceReferenceType.Program, "ERROR46", listOf(17))
+    }
+
+    @Test
+    fun executeERROR46SourceLineTest() {
+        executeSourceLineTest("ERROR46")
+    }
+
+    @Test
+    fun executeERROR47CallBackTest() {
+        executePgmCallBackTest("ERROR47", SourceReferenceType.Program, "ERROR47", listOf(17))
+    }
+
+    @Test
+    fun executeERROR47SourceLineTest() {
+        executeSourceLineTest("ERROR47")
+    }
+
+    @Test
+    fun executeERROR48CallBackTest() {
+        executePgmCallBackTest("ERROR48", SourceReferenceType.Program, "ERROR48", listOf(17))
+    }
+
+    @Test
+    fun executeERROR48SourceLineTest() {
+        executeSourceLineTest("ERROR48")
+    }
+
+    @Test
+    fun executeERROR49CallBackTest() {
+        executePgmCallBackTest("ERROR49", SourceReferenceType.Program, "ERROR49", listOf(17))
+    }
+
+    @Test
+    fun executeERROR49SourceLineTest() {
+        executeSourceLineTest("ERROR49")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {

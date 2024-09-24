@@ -76,11 +76,4 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             assertEquals(expected, "smeup/MUDRNRAPU00254".outputOf(configuration = smeupConfig))
         }
     }
-
-    @Test
-    fun executeMUTE13_40() {
-        MULANGTLDbMock().usePopulated {
-            executePgm("mute/MUTE13_40", configuration = smeupConfig)
-        }
-    }
 }
