@@ -16,7 +16,7 @@
      C                   EVAL      A40_A50 = 'Lorem ipsum dolor si'
      C                                         + 't amet, consectetuer'
      C                                         + '0000500520'
-
+     V*    Cannot assign a string to a DS with PACKED fields
      C                   EVAL      A40_DS1=A40_A50
      C     A40_DS1_F1    DSPLY
      C     A40_DS1_F2    DSPLY

@@ -427,7 +427,9 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00227() {
-        val expected = listOf("9991\uFFFF\uFFFF99999")
+        val expected = listOf(List(3) {
+            "\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF"
+        }.toString())
         assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
     }
 

@@ -728,7 +728,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR39CallBackTest() {
         executePgmCallBackTest("ERROR39", SourceReferenceType.Program, "ERROR39", mapOf(
-            24 to "Cannot coerce `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
+            21 to "Cannot move a string to a DataStructure with PACKED fields"
         ))
     }
 
@@ -739,9 +739,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR40CallBackTest() {
-        executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", mapOf(
-            24 to "Cannot coerce `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
-        ))
+        executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", listOf(20))
     }
 
     @Test

@@ -5,5 +5,5 @@
      D  STR                                LIKE(£DBG_Str)
      D  NUM2                          5S 0
 
-     D OUT             S                   LIKE(CSDS) INZ(*HIVAL)
+     D OUT             S                   LIKE(CSDS) DIM(3) INZ(*HIVAL)
      C     OUT           DSPLY
