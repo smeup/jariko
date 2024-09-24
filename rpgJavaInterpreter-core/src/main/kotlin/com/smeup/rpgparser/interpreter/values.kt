@@ -992,7 +992,12 @@ fun String.asIsoDate(): Date {
 }
 
 fun createBlankFor(dataDefinition: DataDefinition): Value {
-    val ds = DataStructValue.blank(dataDefinition.type.size)
+    val ds = DataStructValue.blank(
+        dataDefinition.type.size,
+        dataDefinition.fields.map {
+            FieldType(it.name, it.type)
+        }
+    )
     dataDefinition.fields.forEach {
         if (it.type is NumberType) ds.set(it, it.type.toRPGValue(dataDefinition.inz))
     }
@@ -1011,8 +1016,12 @@ fun Type.blank(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
             this.element.blank()
         }
-        is DataStructureType -> DataStructValue.blank(this.size)
-        is OccurableDataStructureType -> OccurableDataStructValue.blank(this.size, this.occurs)
+        is DataStructureType -> DataStructValue.blank(this.size, emptyList())
+        is OccurableDataStructureType -> OccurableDataStructValue.blank(
+            this.size,
+            this.occurs,
+            DataStructureType(emptyList(), 0)
+        )
         is StringType -> {
             if (!this.varying) {
                 StringValue.blank(this.size)
@@ -1039,7 +1048,18 @@ fun Type.blank(): Value {
  * StringValue wrapper
  */
 @Serializable
-data class DataStructValue(var value: String, private val optionalExternalLen: Int? = null) : Value {
+data class DataStructValue(
+    var value: String,
+    /**
+     * This field holds information about the underlying field types associated with this data structure
+     * it is used to perform type checking mainly during assignment or casting.
+     *
+     * It should never be empty except when manually set,
+     * do it with care (currently only done in test cases where value is manually constructed and doesn't matter).
+     */
+    var fields: List<FieldType>,
+    private val optionalExternalLen: Int? = null
+) : Value {
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
     val len by lazy { optionalExternalLen ?: value.length }
@@ -1056,7 +1076,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         }
     }
 
-    override fun copy() = DataStructValue(value).apply {
+    override fun copy() = DataStructValue(value, fields).apply {
         unlimitedStringField.forEach { entry ->
             this.unlimitedStringField[entry.key] = entry.value.copy()
         }
@@ -1146,7 +1166,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     }
 
     companion object {
-        fun blank(length: Int) = DataStructValue(" ".repeat(length))
+        fun blank(length: Int, fields: List<FieldType>) = DataStructValue(" ".repeat(length), fields)
 
         /**
          * Create a new instance of DataStructValue
@@ -1156,7 +1176,10 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
          * */
         fun createInstance(compilationUnit: CompilationUnit, dataStructName: String, values: Map<String, Value>): DataStructValue {
             val dataStructureDefinition = compilationUnit.getDataDefinition(dataStructName)
-            val newInstance = blank(dataStructureDefinition.type.size)
+            val newInstance = blank(
+                dataStructureDefinition.type.size,
+                dataStructureDefinition.fields.map { FieldType(it.name, it.type) }
+            )
             values.forEach {
                 newInstance.set(
                     field = dataStructureDefinition.getFieldByName(it.key),
@@ -1168,7 +1191,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
         internal fun fromFields(fields: Map<FieldType, Value>): DataStructValue {
             val size = fields.entries.fold(0) { acc, entry -> acc + entry.key.type.size }
-            val newInstance = blank(size)
+            val newInstance = blank(size, fields.keys.toList())
             val fieldDefinitions = fields.map { it.key }.toFieldDefinitions()
             fields.onEachIndexed { index, entry -> newInstance.set(fieldDefinitions[index], entry.value) }
             return newInstance
@@ -1215,6 +1238,13 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     fun isBlank(): Boolean {
         return this.value.isBlank()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is DataStructValue) return super.equals(other)
+        return other.value == value
+    }
+
+    override fun hashCode() = value.hashCode()
 }
 
 fun Int.asValue() = IntValue(this.toLong())
@@ -1287,7 +1317,7 @@ object VoidValue : Value {
 }
 
 @Serializable
-data class OccurableDataStructValue(val occurs: Int) : Value {
+data class OccurableDataStructValue(val occurs: Int, val underlyingType: DataStructureType) : Value {
     private var _occurrence = 1
     val occurrence: Int
         get() = _occurrence
@@ -1300,10 +1330,10 @@ data class OccurableDataStructValue(val occurs: Int) : Value {
          * @param length The DS length (AKA DS element size)
          * @param occurs The occurrences number
          * */
-        fun blank(length: Int, occurs: Int): OccurableDataStructValue {
-            return OccurableDataStructValue(occurs).apply {
+        fun blank(length: Int, occurs: Int, dataStructType: DataStructureType): OccurableDataStructValue {
+            return OccurableDataStructValue(occurs, dataStructType).apply {
                 for (index in 1..occurs) {
-                    values[index] = DataStructValue.blank(length)
+                    values[index] = DataStructValue.blank(length, emptyList())
                 }
             }
         }
@@ -1352,7 +1382,7 @@ data class OccurableDataStructValue(val occurs: Int) : Value {
     }
 
     override fun copy(): Value {
-        return OccurableDataStructValue(occurs).apply {
+        return OccurableDataStructValue(occurs, underlyingType).apply {
             this.values.putAll(values.mapValues { it.value.copy() })
         }
     }

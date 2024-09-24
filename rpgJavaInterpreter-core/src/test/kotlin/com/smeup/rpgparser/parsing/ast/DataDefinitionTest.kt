@@ -341,7 +341,7 @@ open class DataDefinitionTest : AbstractTest() {
 
         val result = execute(cu, emptyMap())
         val unnamedDsValue = result["@UNNAMED_DS_48"]
-        assertEquals(DataStructValue("0F0L1L2L3L4L5L"), unnamedDsValue)
+        assertEquals(DataStructValue("0F0L1L2L3L4L5L", emptyList()), unnamedDsValue)
         val log1Value = result["LOG1"]
         assertEquals(StringValue("0F0L1L2L3L4L5L"), log1Value)
         val logValue = result["LOG"] as ProjectedArrayValue

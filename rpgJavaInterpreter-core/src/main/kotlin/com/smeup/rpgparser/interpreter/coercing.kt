@@ -180,7 +180,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.isBlank()) {
                 type.blank()
             } else {
-                DataStructValue(value.value)
+                DataStructValue(value.value, type.fields)
             }
         }
         is CharacterType -> {
@@ -299,7 +299,10 @@ fun coerce(value: Value, type: Type, castLookupOverride: CastLookupHandler? = nu
         }
         is BooleanValue -> coerceBoolean(value, type)
         is DataStructValue -> when (type) {
-            is StringType -> value.asString()
+            is StringType -> {
+                // If too long perform truncation
+                StringValue(value.asString().value.take(type.length), varying = type.varying)
+            }
             else -> value
         }
         else -> value

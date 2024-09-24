@@ -12,7 +12,7 @@ class DSSerializationTest {
         val stringSerializer =
             SerializationOption.getSerializer(false)
         val serializedDS = """
-            {"$CLASS_DISCRIMINATOR_TAG":"com.smeup.rpgparser.interpreter.DataStructValue", "value":"JamesBond   7","optionalExternalLen":null}
+            {"$CLASS_DISCRIMINATOR_TAG":"com.smeup.rpgparser.interpreter.DataStructValue", "value":"JamesBond   7","fields": [],"optionalExternalLen":null}
         """.trimIndent()
         val dsValue = stringSerializer.decodeFromString<Value>(serializedDS)
         assertTrue(dsValue is DataStructValue)

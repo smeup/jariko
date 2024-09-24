@@ -97,7 +97,7 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         // dataStructValue takes into account the following RPG code:
         // D £G40DS          DS           500
         // I don't set any field value because the RPG code doesn't use them
-        val dataStructValue = DataStructValue.blank(500)
+        val dataStructValue = DataStructValue.blank(500, emptyList())
 
         // This is the entry passed to the program
         val entry = CommandLineParms(namedParams = mapOf("£40A" to arrayValue, "£G40DS" to dataStructValue))

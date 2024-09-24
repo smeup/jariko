@@ -280,7 +280,7 @@ private fun stringToValue(value: String, type: Type): Value {
         is BooleanType -> return StringValue(value)
 
         is DataStructureType -> {
-            return DataStructValue(value)
+            return DataStructValue(value, type.fields)
         }
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")

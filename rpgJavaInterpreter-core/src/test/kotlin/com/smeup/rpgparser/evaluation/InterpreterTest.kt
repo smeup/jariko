@@ -1243,7 +1243,7 @@ Test 6
     @Test
     fun executeDS_CALLED_with_DS_parameter() {
         assertEquals(listOf("James", "Bond", "007"),
-            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7"))))
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7", emptyList()))))
     }
 
     @Test
@@ -1596,7 +1596,7 @@ Test 6
 
     @Test
     open fun executeX1X2110() {
-        val dsValue = DataStructValue.blank(30448)
+        val dsValue = DataStructValue.blank(30448, emptyList())
         var dsDataDefinition: DataDefinition? = null
         // TODO: 03/12/2020 Move in inline function of CompilationUnit the logic to set e DS
         val configuration = Configuration(

@@ -95,7 +95,7 @@ fun passDSToJariko() {
     val dsLen = 15
     val commandLineProgram = getProgram(nameOrSource = pgm)
     // create instance
-    val dataStructValue = DataStructValue("".padStart(dsLen))
+    val dataStructValue = DataStructValue("".padStart(dsLen), emptyList())
     // set DS fields fields
     // note explicitEndOffset is required but not significant
     dataStructValue.set(
