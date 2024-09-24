@@ -341,6 +341,7 @@ internal fun RpgParser.DspecContext.toAst(
     var ascend: Boolean? = null
     var static = false
     var len: Expression? = null
+    var based: Expression? = null
 
     /* Default value is ISO. */
     var dateFormat: DateFormat = DateFormat.ISO
@@ -382,6 +383,9 @@ internal fun RpgParser.DspecContext.toAst(
         }
         it.keyword_len()?.let {
             len = it.simpleExpression().toAst(conf)
+        }
+        it.keyword_based()?.let {
+            based = it.simpleExpression().toAst(conf)
         }
     }
 
@@ -471,9 +475,7 @@ internal fun RpgParser.DspecContext.toAst(
             RpgType.UNLIMITED_STRING.rpgType -> {
                 UnlimitedStringType
             }
-            RpgType.POINTER.rpgType -> {
-                NumberType(NumberType.MAX_INTEGER_DIGITS, NumberType.INTEGER_DECIMAL_DIGITS, RpgType.POINTER.rpgType)
-            }
+            RpgType.POINTER.rpgType -> PointerType
             else -> todo("Unknown type: <${this.DATA_TYPE().text}>", conf)
     }
 
@@ -504,7 +506,8 @@ internal fun RpgParser.DspecContext.toAst(
         type = type,
         initializationValue = initializationValue,
         position = this.toPosition(true),
-        static = static
+        static = static,
+        basedOn = based
     )
 }
 
@@ -825,7 +828,10 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
     val caughtErrors = mutableListOf<Throwable>()
     val fieldsList = FieldsList(fieldsExtname + this.parm_fixed().mapNotNull {
         kotlin.runCatching {
-            it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
+            it.toFieldInfo(
+                knownDataDefinitions = knownDataDefinitions,
+                fieldsExtname = fieldsExtname
+            )
         }.onFailure {
             caughtErrors.add(it)
         }.getOrNull()
@@ -851,7 +857,11 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
     return fieldsList
 }
 
-private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
+private fun RpgParser.Parm_fixedContext.toFieldInfo(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: Collection<DataDefinition>,
+    fieldsExtname: List<FieldInfo>? = emptyList()
+): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
     val like = this.keyword()
@@ -872,16 +882,30 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
     }
 
     var initializationValue: Expression? = null
+    val arraySizeDeclared = this.arraySizeDeclared(conf)
     val hasInitValue = this.keyword().find { it.keyword_inz() != null }
+    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
+    val varName = like?.variable?.name ?: this.name
+    val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
+        ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
+        ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
+        ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
+        ?: like?.let {
+            InjectableCompileTimeInterpreter(
+                knownDataDefinitions = knownDataDefinitions.toList(),
+                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+            ).evaluateTypeOf(this.rContext(), it, conf)
+        }
+
     if (hasInitValue != null) {
-        if (hasInitValue.keyword_inz().simpleExpression() != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+        initializationValue = if (hasInitValue.keyword_inz().simpleExpression() != null) {
+            hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
         } else {
             // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
-            initializationValue = if (null != this.toTypeInfo().decimalPositions) {
-                RealLiteral(BigDecimal.ZERO, position = toPosition())
-            } else {
-                StringLiteral("", position = toPosition())
+            when {
+                arraySizeDeclared != null -> null
+                this.toTypeInfo().decimalPositions != null -> RealLiteral(BigDecimal.ZERO, position = toPosition())
+                else -> StringLiteral("", position = toPosition())
             }
         }
     } else {
@@ -889,19 +913,6 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
             initializationValue = this.toAst()
         }
     }
-
-    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
-    val arraySizeDeclared = this.arraySizeDeclared(conf)
-    val varName = like?.variable?.name ?: this.name
-    val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
-        ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
-        ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
-        ?: like?.let {
-            InjectableCompileTimeInterpreter(
-                knownDataDefinitions = knownDataDefinitions.toList(),
-                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-            ).evaluateTypeOf(this.rContext(), it, conf)
-        }
 
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),

@@ -35,6 +35,128 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     }
 
     /**
+     * Assigns content of DS to a String not VARYING in EVAL
+     * @see #LS24003679
+     */
+    @Test
+    fun executeMU044013() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ae")
+        assertEquals(expected, "smeup/MU044013".outputOf())
+    }
+
+    /**
+     * Assigns content of DS to a String VARYING in EVAL
+     * @see #LS24003679
+     */
+    @Test
+    fun executeMU044014() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ae")
+        assertEquals(expected, "smeup/MU044014".outputOf())
+    }
+
+    /**
+     * Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * @see #LS24003755
+     */
+    @Test
+    fun executeMUDRNRAPU00106() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscin")
+        assertEquals(expected, "smeup/MUDRNRAPU00106".outputOf())
+    }
+
+    /**
+     * Assigns content of DS to a String not VARYING in EVAL where, size of DS is greater than String
+     * @see #LS24003755
+     */
+    @Test
+    fun executeMUDRNRAPU00107() {
+        val expected = listOf("Lorem ipsum dolor sit amet, consectetuer adipiscin")
+        assertEquals(expected, "smeup/MUDRNRAPU00107".outputOf())
+    }
+
+    /**
+     * Assigns content of String to a DS with type check and coercion between substring and destination field.
+     * In this test is used `MOVEL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00108() {
+        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        assertEquals(expected, "smeup/MUDRNRAPU00108".outputOf())
+    }
+
+    /**
+     * Assigns content of String to a DS with type check and coercion between substring and destination field.
+     * In this test is used `EVAL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00109() {
+        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        assertEquals(expected, "smeup/MUDRNRAPU00109".outputOf())
+    }
+
+    /**
+     * Assigns content of String (which has negative number) to a DS.
+     * In this test is used `MOVEL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00110() {
+        val expected = listOf(
+            "-1", "0000J", "-2", "0000K", "-3", "0000L", "-4", "0000M", "-5", "0000N", "-6", "0000O", "-7", "0000P", "-8",
+            "0000Q", "-9", "0000R", "-10", "0001I", "-1.00", "0010I", "-2.00", "0020I", "-3.00", "0030I", "-4.00", "0040I",
+            "-5.00", "0050I", "-6.00", "0060I", "-7.00", "0070I", "-8.00", "0080I", "-9.00", "0090I", "-10.00", "0100I"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00110".outputOf())
+    }
+
+    /**
+     * Assigns content of String (which has negative number) to a DS.
+     * In this test is used `EVAL`
+     * @see #LS24003807
+     */
+    @Test
+    fun executeMUDRNRAPU00111() {
+        val expected = listOf(
+            "-1", "0000J", "-2", "0000K", "-3", "0000L", "-4", "0000M", "-5", "0000N", "-6", "0000O", "-7", "0000P", "-8",
+            "0000Q", "-9", "0000R", "-10", "0001I", "-1.00", "0010I", "-2.00", "0020I", "-3.00", "0030I", "-4.00", "0040I",
+            "-5.00", "0050I", "-6.00", "0060I", "-7.00", "0070I", "-8.00", "0080I", "-9.00", "0090I", "-10.00", "0100I"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00111".outputOf())
+    }
+
+    /**
+     * Evaluation at runtime of a DS' field that is blank.
+     * @see #LS24003884
+     */
+    @Test
+    fun executeMUDRNRAPU00112() {
+        val expected = listOf("0", "0", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00112".outputOf())
+    }
+
+    /**
+     * Using `COMP` between string and boolean.
+     * @see #LS24003931
+     */
+    @Test
+    fun executeMUDRNRAPU00113() {
+        val expected = listOf("1", "0", "0", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00113".outputOf())
+    }
+
+    /**
+     * Using `COMP` between string and boolean with values not equal to `0` and `1`.
+     * @see #LS24003931
+     */
+    @Test
+    fun executeMUDRNRAPU00114() {
+        val expected = listOf("0", "0", "0", "0", "0", "0", "0", "0", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00114".outputOf())
+    }
+
+    /**
      * %DIFF with several DurationCodes
      * @see #LS24003282
      */

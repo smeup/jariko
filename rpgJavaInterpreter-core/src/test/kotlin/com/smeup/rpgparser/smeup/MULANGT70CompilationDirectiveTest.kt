@@ -57,4 +57,14 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val expected = listOf("HELLO THERE")
         assertEquals(expected, "smeup/MU711006".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Data Definition with LIKE of another variable imported with API directive
+     * @see #LS24003689
+     */
+    @Test
+    fun executeMUDRNRAPU00103() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU00103".outputOf(configuration = smeupConfig))
+    }
 }

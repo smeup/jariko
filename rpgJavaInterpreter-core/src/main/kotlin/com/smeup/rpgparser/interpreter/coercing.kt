@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -133,6 +134,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(BigDecimal.ZERO)
                         }
                     }
+                    type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
+                        throw UnsupportedOperationException("Cannot coerce `${value.value}` to $type.")
+                    }
                     else -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -144,12 +148,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if (type.rpgType == RpgType.ZONED.rpgType) {
-                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
-                    } else {
-                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
+                    when {
+                        type.rpgType == RpgType.ZONED.rpgType -> {
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
+                        type.rpgType == RpgType.PACKED.rpgType && value.value.isNumber() -> {
+                            throw UnsupportedOperationException("Cannot coerce `${value.value}` to $type.")
+                        }
+                        else -> {
+                            val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
                     }
                 } else {
                     DecimalValue(BigDecimal.ZERO)
@@ -178,6 +188,16 @@ private fun coerceString(value: StringValue, type: Type): Value {
         }
         is TimeStampType -> TimeStampValue.of(value.value)
         else -> TODO("Converting String to $type")
+    }
+}
+
+private fun coerceBoolean(value: BooleanValue, type: Type): Value {
+    // TODO: Add more coercion rules
+    return when (type) {
+        is BooleanType -> value
+        is StringType -> value.asString()
+        is UnlimitedStringType -> value.asUnlimitedString()
+        else -> TODO("Converting BooleanValue to $type")
     }
 }
 
@@ -234,7 +254,6 @@ fun coerce(value: Value, type: Type): Value {
                     } else {
                         return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
-                    return value
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }
@@ -267,9 +286,14 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is StringType -> StringValue(value.value.toString(), varying = type.varying)
                 is DateType -> DateValue(value.value, type.format)
+                is ArrayType -> {
+                    val coercedValue = coerce(value, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+                }
                 else -> value
             }
         }
+        is BooleanValue -> coerceBoolean(value, type)
         else -> value
     }
 }

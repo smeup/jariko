@@ -65,10 +65,6 @@ class ExpressionEvaluation(
         return value
     }
 
-    override fun eval(expression: AddrExpr): Value = proxyLogging(expression) { throw NotImplementedError("AddrExpr are not implemented yet") }
-    override fun eval(expression: AllocExpr): Value = proxyLogging(expression) { throw NotImplementedError("AllocExpr are not implemented yet") }
-    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) { throw NotImplementedError("ReallocExpr are not implemented yet") }
-
     override fun eval(expression: StringLiteral): Value = proxyLogging(expression) { StringValue(expression.value) }
     override fun eval(expression: IntLiteral) = proxyLogging(expression) { IntValue(expression.value) }
     override fun eval(expression: RealLiteral) = proxyLogging(expression) { DecimalValue(expression.value) }
@@ -98,10 +94,10 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: NumberOfElementsExpr): Value = proxyLogging(expression) {
-        return@proxyLogging when (val value = expression.value.evalWith(this)) {
-            is ArrayValue -> value.arrayLength().asValue()
-            is OccurableDataStructValue -> value.occurs.asValue()
-            else -> throw IllegalStateException("Cannot ask number of elements of $value")
+        return@proxyLogging when (expression.value.type()) {
+            is ArrayType -> expression.value.type().numberOfElements().asValue()
+            is OccurableDataStructureType -> (expression.value.evalWith(this) as OccurableDataStructValue).occurs.asValue()
+            else -> throw IllegalStateException("Cannot ask number of elements of ${expression.value}")
         }
     }
 
@@ -216,6 +212,10 @@ class ExpressionEvaluation(
                     StringValue(s)
                 }
             }
+            left is StringValue && right is BooleanValue -> {
+                val s = left.trimEndIfVarying() + right.asString().value
+                s.asValue()
+            }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
             }
@@ -327,6 +327,8 @@ class ExpressionEvaluation(
 
     override fun eval(expression: HiValExpr) = proxyLogging(expression) { HiValValue } as HiValValue
     override fun eval(expression: LowValExpr) = proxyLogging(expression) { LowValValue } as LowValValue
+    override fun eval(expression: StartValExpr) = proxyLogging(expression) { StartValValue } as StartValValue
+    override fun eval(expression: EndValExpr) = proxyLogging(expression) { EndValValue } as EndValValue
     override fun eval(expression: ZeroExpr) = proxyLogging(expression) { ZeroValue } as ZeroValue
     override fun eval(expression: AllExpr) = proxyLogging(expression) {
         AllValue(eval(expression.charsToRepeat).asString().value)
@@ -850,9 +852,18 @@ class ExpressionEvaluation(
         xfoot(array)
     }
 
+    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) {
+        val pointer = expression.value as? DataRefExpr ?: error("%REALLOC is only allowed for pointers")
+        val references = interpreterStatus.getReferences(pointer)
+        require(references.all { it.key.type is ArrayType }) {
+            "%REALLOC is only supported for pointers referencing arrays"
+        }
+        expression.defaultValue
+    }
+
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
-        return NullValue
+        return expression.defaultValue
     }
 
     private fun lookupLinearSearch(values: List<Value>, target: Value): Int {

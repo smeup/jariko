@@ -889,7 +889,8 @@ Test 6
             "Concat literal A with literal B",
             "ok blank",
             "Concat UnlimitedStringType with StringType",
-            "Concat StringType                                 with UnlimitedStringType"
+            "Concat StringType                                 with UnlimitedStringType",
+            "0"
         )
         assertEquals(expected, outputOf("UNLIMIT_S"))
     }
@@ -912,7 +913,8 @@ Test 6
             "Compare unlimited with literal",
             "Compare unlimited with limited",
             "Compare uninitialized unlimited with *BLANKS",
-            "Reset an unlimited and compare with *BLANKS"
+            "Reset an unlimited and compare with *BLANKS",
+            "Assignment from a boolean"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
@@ -2450,5 +2452,23 @@ Test 6
     fun executeCALL_WITH_VOID_PARMS() {
         val expected = listOf("1")
         assertEquals(expected, "VPARMSCALLER".outputOf())
+    }
+
+    @Test
+    fun executeEXCPCALL() {
+        val expected = listOf("ok")
+        assertEquals(expected, "EXCPCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLER() {
+        val expected = listOf("(1,1)", "(0,0)", "(1,1,0,0,0)")
+        assertEquals(expected, "PRSLTCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLERDUPLICATE() {
+        val expected = listOf("0", "0", "0", "1")
+        assertEquals(expected, "PRSLTCALLERDUPLICATE".outputOf())
     }
 }

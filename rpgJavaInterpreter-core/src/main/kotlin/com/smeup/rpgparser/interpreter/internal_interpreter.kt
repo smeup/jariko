@@ -80,6 +80,10 @@ class InterpreterStatus(
         }
         return tmpValue
     }
+    fun getReferences(pointer: DataRefExpr) = symbolTable.getValues().filter {
+        val target = it.key.basedOn as? DataRefExpr
+        target?.variable == pointer.variable
+    }
 }
 
 open class InternalInterpreter(
@@ -178,17 +182,25 @@ open class InternalInterpreter(
                     var startOffset = data.startOffset
                     val size = data.endOffset - data.startOffset
 
-                    // for (i in 1..data.declaredArrayInLine!!) {
-                    // If the size of the arrays are different
-                    val maxElements = min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
-                    for (i in 1..maxElements) {
+                    fun assignValueToArray(value: Value, data: FieldDefinition) {
                         // Added coerce
-                        val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
+                        val valueToAssign = coerce(value, data.type.asArray().element)
                         dataStructValue.setSubstring(
                             startOffset, startOffset + size,
                             data.type.asArray().element.toDataStructureValue(valueToAssign)
                         )
                         startOffset += data.stepSize
+                    }
+
+                    if (value is ArrayValue) {
+                        // If the size of the arrays are different
+                        for (i in 1..min(value.asArray().arrayLength(), data.declaredArrayInLine!!)) {
+                            assignValueToArray(value.asArray().getElement(i), data)
+                        }
+                    } else {
+                        for (i in 1..data.declaredArrayInLine!!) {
+                            assignValueToArray(value, data)
+                        }
                     }
                 } else {
                     when (val containerValue = get(ds.name)) {
@@ -277,7 +289,11 @@ open class InternalInterpreter(
                             it.fields.forEach { field ->
                                 if (field.initializationValue != null) {
                                     val fieldValue = coerce(eval(field.initializationValue), field.type)
-                                    (value as DataStructValue).set(field, fieldValue)
+                                    when (value) {
+                                        is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
+                                        is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                        else -> throw RuntimeException("Expected value to be a DataStructure")
+                                    }
                                 }
                             }
                         }

@@ -209,9 +209,10 @@ fun compile(src: File, compiledProgramsDir: File, configuration: Configuration):
 }
 
 /**
- * Compile program
+ * Compile or syntax check a program
  * @param src Source (rpgle content) as inputstream
- * @param out Output (compiled source) as outpustream
+ * @param out Output (compiled source) as outpustream.
+ * If null, I assume that you are using this method just for syntax check assessment
  * @param format Compiled file format. Default Format.BIN
  * @param muteSupport Support for mute programs. Default false
  * @param programFinders The program finders. This parameter is necessary in case of compiled program
@@ -220,7 +221,7 @@ fun compile(src: File, compiledProgramsDir: File, configuration: Configuration):
 @JvmOverloads
 fun compile(
     src: InputStream,
-    out: OutputStream,
+    out: OutputStream? = null,
     format: Format? = Format.BIN,
     muteSupport: Boolean? = false,
     programFinders: List<RpgProgramFinder>? = null,
@@ -236,18 +237,19 @@ fun compile(
 }
 
 /**
- * Compile program at runtime.
+ * Compile program or syntax check at runtime.
  * This method is available only if called during execution, for example because
  * you needs to serialize a called program before its loading
  * @param src Source (rpgle content) as inputstream
- * @param out Output (compiled source) as outpustream
+ * @param out Output (compiled source) as outpustream.
+ * If null, I assume that you are using this method just for syntax check assessment
  * @param format Compiled file format. Default Format.BIN
  * @param muteSupport Support for mute programs. Default false
  * */
 @JvmOverloads
 fun doCompilationAtRuntime(
     src: InputStream,
-    out: OutputStream,
+    out: OutputStream?,
     format: Format? = Format.BIN,
     muteSupport: Boolean? = false
 ) {
@@ -259,19 +261,20 @@ fun doCompilationAtRuntime(
     cu = RpgParserFacade().apply {
         this.muteSupport = muteSupport!!
     }.parseAndProduceAst(src)
-    if (getAstCreationErrors().isNotEmpty()) {
-        throw getAstCreationErrors().first()
-    }
-    runCatching {
-        when (format) {
-            Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
-            Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
-            else -> error("$format not handled")
+    out?.let { out ->
+        if (getAstCreationErrors().isNotEmpty()) {
+            throw getAstCreationErrors().first()
         }
-    }.onFailure { error ->
-        MainExecutionContext.getConfiguration().jarikoCallback.onCompilationUnitEncodingError(error, cu, format)
+        runCatching {
+            when (format) {
+                Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
+                Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
+                else -> error("$format not handled")
+            }
+        }.onFailure { error ->
+            MainExecutionContext.getConfiguration().jarikoCallback.onCompilationUnitEncodingError(error, cu, format)
+        }
     }
-
     cu.resolveAndValidate()
     println("... done.")
 }

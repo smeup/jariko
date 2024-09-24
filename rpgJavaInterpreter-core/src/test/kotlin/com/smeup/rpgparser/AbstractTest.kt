@@ -251,19 +251,21 @@ abstract class AbstractTest {
      * @param configuration The configuration for the execution of the program.
      * @param afterSystemInterface A callback function to be executed after the system interface is created.
      * Default is an empty function.
+     * @param params The command line parameters to be passed to the program. Default is an empty list.
      * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
      */
     protected fun String.outputOf(
         trimEnd: Boolean = true,
         configuration: Configuration = Configuration(),
-        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {}
+        afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {},
+        params: CommandLineParms = CommandLineParms(emptyList())
     ): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
         afterSystemInterface(systemInterface)
-        executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
+        executePgm(programName = this, systemInterface = systemInterface, configuration = configuration, params = params)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
 
@@ -409,14 +411,14 @@ abstract class AbstractTest {
      * @param pgm The name of the program to be executed.
      * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
      * @param sourceId The expected identifier of the source where the error is expected to occur.
-     * @param lines The map of lines, number and message, expected.
+     * @param expected The map of lines, number and message, expected.
      * @param reloadConfig The reload configuration to be used for the execution of the program. Default is null.
      */
     protected fun executePgmCallBackTest(
         pgm: String,
         sourceReferenceType: SourceReferenceType,
         sourceId: String,
-        lines: Map<Int, String>,
+        expected: Map<Int, String>,
         reloadConfig: ReloadConfig? = null
     ) {
         val errorEvents = mutableListOf<ErrorEvent>()
@@ -439,14 +441,15 @@ abstract class AbstractTest {
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             val found = errorEvents
                 .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error).message!!
+                    errorEvent.sourceReference!!.relativeLine to ((errorEvent.error).cause?.message ?: (errorEvent.error).message!!)
                 }
-                .map {
-                    Pair(it.value, it.contains(lines))
-                }
+                .toSortedMap()
+            val expectedSorted = expected.toSortedMap()
             Assert.assertTrue(
-                "Errors doesn't correspond:\n" + found.joinToString(separator = "\n") { it.first },
-                found.size == found.filter { it.second }.size && found.size == lines.size
+                "Errors don't correspond.\n" +
+                        "Expected:\n${expectedSorted.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n" +
+                        "Actual:\n${found.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n",
+                found == expectedSorted
             )
         }
     }

@@ -26,6 +26,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.smeup.dbmock.TABDS01LDbMock
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
@@ -361,13 +362,21 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR06")
     }
 
+    /**
+     * This test is ignored because there is a mock implementation for SQL statements.
+     */
     @Test
+    @Ignore
     fun executeERROR07CallBackTest() {
         // Repeated not supported operation code
         executePgmCallBackTest("ERROR07", SourceReferenceType.Program, "ERROR07", listOf(6, 9))
     }
 
+    /**
+     * This test is ignored because there is a mock implementation for SQL statements.
+     */
     @Test
+    @Ignore
     fun executeERROR07SourceLineTest() {
         executeSourceLineTest("ERROR07")
     }
@@ -519,32 +528,32 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR23CallBackTest() {
         executePgmCallBackTest("ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
-            9 to "Factor 2 cannot be null",
-            14 to "Factor 1 cannot be null"
+            9 to "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
+            14 to "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext"
         ))
     }
 
     @Test
     fun executeERROR24CallBackTest() {
         executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
-            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
     @Test
     fun executeERROR25CallBackTest() {
         executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
-            8 to "For JUL format the date must be between 1940 and 2039",
-            9 to "For JUL format the date must be between 1940 and 2039"
+            8 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
     @Test
     fun executeERROR26CallBackTest() {
         executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
-            8 to "For ISO format the date must be between 0001 and 9999",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+            8 to "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
@@ -556,8 +565,9 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR27CallBackTest() {
         executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA",
-            11 to "An operation is not implemented: IN£UDLDA"
+            10 to "No element of the collection was transformed to a non-null value.",
+            11 to "An operation is not implemented: IN£UDLDA                           \n" +
+                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
         ))
     }
 
@@ -636,6 +646,143 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR34SourceLineTest() {
         executeSourceLineTest("ERROR34")
+    }
+
+    @Test
+    fun executeERROR35CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR35",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR35",
+            lines = listOf(9, 10))
+    }
+
+    @Test
+    fun executeERROR35CSourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR35")
+    }
+
+    /**
+     * NOTE: This is error is thrown because Reload does not support '*START' and '*END' constants yet.
+     * When this feature gets supported please restore it on Jariko side by following these steps:
+     * - Remove this test or mark it as ignored
+     * - Remove the [@Ignore] decorator from the [MULANGT50FileAccess1Test.executeMUDRNRAPU00248] test
+     * - Remove the runtime error (it should be in [Expression.createKList] if not moved)
+     */
+    @Test
+    fun executeERROR36CallBackTest() {
+        TABDS01LDbMock().usePopulated {
+            executePgmCallBackTest(
+                pgm = "ERROR36",
+                sourceReferenceType = SourceReferenceType.Program,
+                sourceId = "ERROR36",
+                lines = listOf(6),
+                reloadConfig = it.createReloadConfig()
+            )
+        }
+    }
+
+    @Test
+    fun executeERROR36SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR36")
+    }
+
+    /**
+     * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
+     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     */
+    @Test
+    fun executeERROR37CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR37",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR37",
+            lines = listOf(9)
+        )
+    }
+
+    @Test
+    fun executeERROR37SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR37")
+    }
+
+    /**
+     * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
+     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     */
+    @Test
+    fun executeERROR38CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR38",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR38",
+            lines = listOf(12)
+        )
+    }
+
+    @Test
+    fun executeERROR38SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR38")
+    }
+
+    @Test
+    fun executeERROR39CallBackTest() {
+        executePgmCallBackTest("ERROR39", SourceReferenceType.Program, "ERROR39", mapOf(
+            24 to "Cannot coerce `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
+        ))
+    }
+
+    @Test
+    fun executeERROR39SourceLineTest() {
+        executeSourceLineTest("ERROR39")
+    }
+
+    @Test
+    fun executeERROR40CallBackTest() {
+        executePgmCallBackTest("ERROR40", SourceReferenceType.Program, "ERROR40", mapOf(
+            24 to "Cannot coerce `00520` to NumberType(entireDigits=7, decimalDigits=2, rpgType=P)."
+        ))
+    }
+
+    @Test
+    fun executeERROR40SourceLineTest() {
+        executeSourceLineTest("ERROERROR40R41")
+    }
+
+    @Test
+    fun executeERROR41CallBackTest() {
+        executePgmCallBackTest("ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR41SourceLineTest() {
+        executeSourceLineTest("ERROR41")
+    }
+
+    @Test
+    fun executeERROR42CallBackTest() {
+        executePgmCallBackTest("ERROR42", SourceReferenceType.Program, "ERROR42", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR42SourceLineTest() {
+        executeSourceLineTest("ERROR42")
+    }
+
+    @Test
+    fun executeERROR43CallBackTest() {
+        executePgmCallBackTest("ERROR43", SourceReferenceType.Program, "ERROR43", mapOf(
+            23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR43SourceLineTest() {
+        executeSourceLineTest("ERROR43")
     }
 
     @Test

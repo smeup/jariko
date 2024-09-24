@@ -19,6 +19,8 @@ private fun clear(value: String, type: Type): String {
             }
         }
 
+        is UnlimitedStringType -> " ".repeat(value.length)
+
         else -> " ".repeat(type.size)
     }
 }
@@ -121,8 +123,8 @@ private fun getStringOfValue(
     target: AssignableExpression,
     interpreterCore: InterpreterCore,
     value: Expression
-): String = when {
-    target.type() is BooleanType -> {
+): String = when (target.type()) {
+    is BooleanType -> {
         val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
         when {
             (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> valueInterpreted
@@ -131,7 +133,9 @@ private fun getStringOfValue(
             else -> throw UnsupportedOperationException("MOVE/MOVEL for ${target.type()} have to be 0, 1 or blank")
         }
     }
-
+    is DataStructureType -> {
+        value.type().toDataStructureValue(interpreterCore.eval(value)).value
+    }
     else -> valueToString(interpreterCore.eval(value), value.type())
 }
 
@@ -141,7 +145,9 @@ private fun movel(
     valueToApplyMoveType: Type,
     withClear: Boolean = false
 ): String {
-    return if (valueToMove.length <= valueToApplyMove.length) {
+    return if (valueToApplyMoveType is UnlimitedStringType) {
+        valueToMove
+    } else if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
             result = clear(result, valueToApplyMoveType)
@@ -199,6 +205,8 @@ private fun valueToString(value: Value, type: Type): String {
             }
         }
 
+        is UnlimitedStringType -> return s
+
         is CharacterType -> return s
 
         is NumberType -> {
@@ -221,6 +229,8 @@ private fun valueToString(value: Value, type: Type): String {
 
         is BooleanType -> return s
 
+        is DataStructureType -> return s
+
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }
@@ -240,6 +250,8 @@ private fun stringToValue(value: String, type: Type): Value {
             }
         }
 
+        is UnlimitedStringType -> return UnlimitedStringValue(value)
+
         is CharacterType -> return StringValue(value)
 
         is NumberType -> {
@@ -255,6 +267,10 @@ private fun stringToValue(value: String, type: Type): Value {
         }
 
         is BooleanType -> return StringValue(value)
+
+        is DataStructureType -> {
+            return DataStructValue(value)
+        }
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }

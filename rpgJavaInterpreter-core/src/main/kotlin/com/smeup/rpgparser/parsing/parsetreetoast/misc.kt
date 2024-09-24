@@ -109,7 +109,7 @@ private fun List<StatementContext?>.getDataDefinition(
 
     fileDefinitions?.let {
         val postProcessedFileDefinitions = it.processWithSpecifications(inputSpecifications)
-        postProcessedFileDefinitions.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
+        postProcessedFileDefinitions.filter { !it.key.justExtName }.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
             dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
     }
@@ -672,6 +672,10 @@ internal fun String.isDecimal() = this.toDoubleOrNull() != null
 
 internal fun String.toDecimal() = this.toDouble()
 
+internal fun String.isNumber() = this.isInt() || this.isDecimal()
+
+internal fun Boolean.toInt() = if (this) 1 else 0
+
 internal fun ParserRuleContext.rContext(): RContext {
     return if (this.parent == null) {
         this as RContext
@@ -728,6 +732,8 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(position)
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
+        this.SPLAT_START() != null -> StartValExpr(position)
+        this.SPLAT_END() != null -> EndValExpr(position)
         this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
         this.SPLAT_OFF() != null -> OffRefExpr(position)
@@ -1034,6 +1040,15 @@ internal fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: T
     return stmt
 }
 
+internal fun Cspec_fixed_sqlContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return when {
+        this.CS_ExecSQL() != null -> ExecSqlStmt(toPosition(conf.considerPosition))
+        this.CSQL_TEXT() != null -> CsqlTextStmt(toPosition(conf.considerPosition))
+        this.CSQL_END() != null -> CsqlEndStmt(toPosition(conf.considerPosition))
+        else -> todo(conf = conf)
+    }
+}
+
 private fun annidatedReferenceExpression(
     text: String,
     position: Position?
@@ -1171,11 +1186,7 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     if (paramName.contains(".")) {
         val parts = paramName.split(".")
         require(parts.isNotEmpty())
-        if (parts.size == 1) {
-            paramName = parts[0]
-        } else {
-            paramName = parts.last()
-        }
+        paramName = parts.last()
     }
     // initialization value valid only if there isn't a variable declaration
     val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
@@ -1183,8 +1194,14 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     } else {
         null
     }
+
+    val factor1Text = this.factor1.text.trim()
+    val factor1Position = this.factor1.toPosition(conf.considerPosition)
+    val result = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
+
     val position = toPosition(conf.considerPosition)
     return PlistParam(
+        result,
         ReferenceByName(paramName),
         this.cspec_fixed_standard_parts().toDataDefinition(
             paramName,
@@ -2215,6 +2232,7 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 }
 
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
+    // NOTE: With current logic when type matches on duplications the first definition wins
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
     return removeUnnecessaryRecordFormat().filter {
         val dataDefinition = dataDefinitionMap[it.name]
@@ -2232,14 +2250,17 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
     fun Type.matchType(other: Any?): Boolean {
-        if (this is NumberType && other is NumberType) {
-            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
-            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
-                return resultDigits && rpgType == other.rpgType
+        // TODO: Improve logic for StringType/UnlimitedStringType matching
+        return when {
+            this is NumberType && other is NumberType -> {
+                val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+                if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                    return resultDigits && rpgType == other.rpgType
+                }
+                resultDigits
             }
-            return resultDigits
-        } else {
-            return this == other
+            this is UnlimitedStringType && other is StringType -> true
+            else -> this == other
         }
     }
 

@@ -99,4 +99,12 @@
      C                   EndIf
       *****************************************************************************************
 
+      * Assignment from BooleanType to UnlimitedStringType in a DS field  *********************
+     C                   Eval      DS1.Unlimit = *ON
+     C                   If        DS1.Unlimit = '1'
+     C                   Eval      Msg = 'Assignment from a boolean'
+     C                   Dsply                   Msg
+     C                   EndIf
+      *****************************************************************************************
+
 

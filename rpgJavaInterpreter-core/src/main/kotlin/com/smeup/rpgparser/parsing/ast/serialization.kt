@@ -117,6 +117,9 @@ private val modules = SerializersModule {
         subclass(WriteStmt::class)
         subclass(ZAddStmt::class)
         subclass(ZSubStmt::class)
+        subclass(ExecSqlStmt::class)
+        subclass(CsqlTextStmt::class)
+        subclass(CsqlEndStmt::class)
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)
@@ -141,6 +144,7 @@ private val modules = SerializersModule {
         subclass(NegationExpr::class)
         subclass(EditcExpr::class)
         subclass(EditwExpr::class)
+        subclass(EndValExpr::class)
         subclass(EofExpr::class)
         subclass(EqualExpr::class)
         subclass(EqualityExpr::class)
@@ -185,6 +189,7 @@ private val modules = SerializersModule {
         subclass(ReplaceExpr::class)
         subclass(ScanExpr::class)
         subclass(SqrtExpr::class)
+        subclass(StartValExpr::class)
         subclass(StringLiteral::class)
         subclass(SubstExpr::class)
         subclass(SubarrExpr::class)
