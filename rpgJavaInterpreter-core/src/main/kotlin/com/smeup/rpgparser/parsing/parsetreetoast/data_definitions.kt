@@ -839,7 +839,10 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
     val caughtErrors = mutableListOf<Throwable>()
     val fieldsList = FieldsList(fieldsExtname + this.parm_fixed().mapNotNull {
         kotlin.runCatching {
-            it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
+            it.toFieldInfo(
+                knownDataDefinitions = knownDataDefinitions,
+                fieldsExtname = fieldsExtname
+            )
         }.onFailure {
             caughtErrors.add(it)
         }.getOrNull()
@@ -865,7 +868,11 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
     return fieldsList
 }
 
-private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
+private fun RpgParser.Parm_fixedContext.toFieldInfo(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: Collection<DataDefinition>,
+    fieldsExtname: List<FieldInfo>? = emptyList()
+): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
     val like = this.keyword()
@@ -893,6 +900,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
+        ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
         ?: like?.let {
             InjectableCompileTimeInterpreter(
                 knownDataDefinitions = knownDataDefinitions.toList(),

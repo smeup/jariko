@@ -925,9 +925,7 @@ class ProjectedArrayValue(
         }
     }
 
-    override fun elementSize(): Int {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
-    }
+    override fun elementSize(): Int = elementType.size
 
     override fun arrayLength() = arrayLength
 
@@ -965,6 +963,18 @@ class ProjectedArrayValue(
     override fun asString(): StringValue {
         TODO("Not yet implemented")
     }
+
+    fun takeAll(): Value {
+        var result = elements()[0]
+        for (i in 1 until arrayLength()) {
+            result = result.concatenate(elements()[i])
+        }
+        return result
+    }
+
+    override fun takeLast(n: Int): Value = takeAll().takeLast(n)
+
+    override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
