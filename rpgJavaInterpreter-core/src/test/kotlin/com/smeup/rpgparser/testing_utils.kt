@@ -590,7 +590,7 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
         try {
             assertTrue(annotation.result.asBoolean().value)
         } catch (e: AssertionError) {
-            println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
+            println("${annotation.programName}:$line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
             failed++
         }
     }
