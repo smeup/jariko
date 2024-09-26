@@ -76,10 +76,4 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             assertEquals(expected, "smeup/MUDRNRAPU00254".outputOf(configuration = smeupConfig))
         }
     }
-
-    @Test
-    fun executeMUTE13_41() {
-        val expected = listOf("20230930", "113123", "20230930", "113233", "20230930", "113312")
-        assertEquals(expected, "mute/MUTE13_41".outputOf(configuration = smeupConfig))
-    }
 }

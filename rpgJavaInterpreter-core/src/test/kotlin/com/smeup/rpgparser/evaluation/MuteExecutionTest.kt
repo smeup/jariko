@@ -428,6 +428,12 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_41() {
+        val expected = listOf("20230930", "113123", "20230930", "113233", "20230930", "113312")
+        assertEquals(expected, "mute/MUTE13_41".outputOf())
+    }
+
+    @Test
     fun executeMUTE15_01() {
         executePgm("mute/MUTE15_01", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
