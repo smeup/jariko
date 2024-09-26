@@ -16,13 +16,14 @@
 
 package com.smeup.rpgparser.evaluation
 
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.assertNrOfMutesAre
+import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.execute
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.*
+import com.smeup.rpgparser.execution.SimpleReloadConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
@@ -33,6 +34,43 @@ import java.nio.file.Paths
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
+    lateinit var smeupConfig: Configuration
+
+    @BeforeTest
+    open fun setUp() {
+        if (!DBServer.isRunning()) {
+            DBServer.startDB()
+        }
+
+        smeupConfig = Configuration()
+        val path = javaClass.getResource("/smeup/metadata")!!.path
+        val connectionConfigs = listOf(ConnectionConfig(
+            fileName = "*",
+            url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+            user = "SA",
+            password = "",
+            driver = "org.hsqldb.jdbc.JDBCDriver"
+        ))
+        val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = connectionConfigs)
+        smeupConfig.reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(connectionConfigs.map {
+                com.smeup.dbnative.ConnectionConfig(
+                    fileName = it.fileName,
+                    url = it.url,
+                    user = it.user,
+                    password = it.password,
+                    driver = it.driver,
+                    impl = it.impl
+                )
+            }),
+            metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+        val dspfConfig = SimpleDspfConfig(displayFilePath = path)
+        smeupConfig.dspfConfig = DspfConfig(
+            metadataProducer = { displayFile -> dspfConfig.getMetadata(displayFile) },
+            dspfProducer = { displayFile -> dspfConfig.dspfProducer(displayFile) }
+        )
+        smeupConfig.options.muteSupport = true
+    }
 
     @Test
     fun executeSimpleMute() {
@@ -429,8 +467,7 @@ open class MuteExecutionTest : AbstractTest() {
 
     @Test
     fun executeMUTE13_41() {
-        val expected = listOf("20230930", "113123", "20230930", "113233", "20230930", "113312")
-        assertEquals(expected, "mute/MUTE13_41".outputOf())
+        executePgm("mute/MUTE13_41", configuration = smeupConfig)
     }
 
     @Test

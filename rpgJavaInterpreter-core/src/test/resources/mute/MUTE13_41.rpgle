@@ -22,13 +22,12 @@
      C                   EVAL      J1ORFI=113312
      C                   EVAL      SJALOG=JALOGT
      C                   EVAL      JALOGT=SJALOG
-      *
-     C     J1DTIN        DSPLY
-     C     J1ORIN        DSPLY
-     C     J1DTUL        DSPLY
-     C     J1ORUL        DSPLY
-     C     J1DTFI        DSPLY
-     C     J1ORFI        DSPLY
+    MU* VAL1(J1DTIN) VAL2(20230930) COMP(EQ)
+    MU* VAL1(J1ORIN) VAL2(113123) COMP(EQ)
+    MU* VAL1(J1DTUL) VAL2(20230930) COMP(EQ)
+    MU* VAL1(J1ORUL) VAL2(113233) COMP(EQ)
+    MU* VAL1(J1DTFI) VAL2(20230930) COMP(EQ)
+    MU* VAL1(J1ORFI) VAL2(113312) COMP(EQ)
       *
      C                   SETON                                        LR
       *---------------------------------------------------------------------
