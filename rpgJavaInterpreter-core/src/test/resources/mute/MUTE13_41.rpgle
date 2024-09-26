@@ -6,6 +6,7 @@
      V*=====================================================================
      FJALOGT0F  UF A E             DISK
      DJALOGT         E DS                  EXTNAME(JALOGT0F) INZ
+     DJALOGT2        E DS                  EXTNAME(JALOGT0F) INZ
      DSJALOG           S                   LIKE(JALOGT)
       *
       /COPY QILEGEN,£TABB£1DS
@@ -21,13 +22,8 @@
      C                   EVAL      J1DTFI=20230930
      C                   EVAL      J1ORFI=113312
      C                   EVAL      SJALOG=JALOGT
+    MU* VAL1(JALOGT) VAL2(JALOGT2) COMP(EQ)
      C                   EVAL      JALOGT=SJALOG
-    MU* VAL1(J1DTIN) VAL2(20230930) COMP(EQ)
-    MU* VAL1(J1ORIN) VAL2(113123) COMP(EQ)
-    MU* VAL1(J1DTUL) VAL2(20230930) COMP(EQ)
-    MU* VAL1(J1ORUL) VAL2(113233) COMP(EQ)
-    MU* VAL1(J1DTFI) VAL2(20230930) COMP(EQ)
-    MU* VAL1(J1ORFI) VAL2(113312) COMP(EQ)
       *
      C                   SETON                                        LR
       *---------------------------------------------------------------------
