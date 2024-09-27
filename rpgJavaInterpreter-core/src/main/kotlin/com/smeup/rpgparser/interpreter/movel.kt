@@ -147,8 +147,6 @@ private fun movel(
 ): String {
     return if (valueToApplyMoveType is UnlimitedStringType) {
         valueToMove
-    } else if (valueToMove.isBlank() && valueToApplyMoveType.isNumeric()) {
-        "0"
     } else if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
