@@ -471,6 +471,11 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_42() {
+        executePgm("mute/MUTE13_42", configuration = smeupConfig)
+    }
+
+    @Test
     fun executeMUTE15_01() {
         executePgm("mute/MUTE15_01", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
