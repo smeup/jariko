@@ -39,9 +39,8 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 
 internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
-        this.ifstatement() != null -> this.ifstatement().toAst(conf).let { stmt ->
-            stmt.buildIndicatorsFlags(this.ifstatement().beginif().csIFxx(), conf).let { stmt }
-        }
+        this.ifstatement() != null -> this.ifstatement().toAst(conf)
+            .buildIndicatorsFlags(this.ifstatement().beginif().csIFxx(), conf)
         this.selectstatement() != null -> this.selectstatement()
             .let {
                 it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
@@ -53,23 +52,18 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.begindo() != null -> this.begindo()
             .let {
                 it.csDO().cspec_fixed_standard_parts().validate(
-                    stmt = it.toAst(blockContext = this, conf = conf).let { stmt ->
-                        stmt.buildIndicatorsFlags(this.begindo(), conf).let { stmt }
-                    },
+                    stmt = it.toAst(blockContext = this, conf = conf).buildIndicatorsFlags(this.begindo(), conf),
                     conf = conf
                 )
             }
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
-        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf).let { stmt ->
-            stmt.buildIndicatorsFlags(this.csDOWxx(), conf).let { stmt }
-        }
-        this.forstatement() != null -> this.forstatement().toAst(conf).let { stmt ->
-            stmt.buildIndicatorsFlags(this.forstatement().beginfor(), conf).let { stmt }
-        }
+        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
+            .buildIndicatorsFlags(this.csDOWxx(), conf)
+        this.forstatement() != null -> this.forstatement().toAst(conf)
+            .buildIndicatorsFlags(this.forstatement().beginfor(), conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
-        this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = this, conf = conf).let { stmt ->
-            stmt.buildIndicatorsFlags(this.csDOUxx(), conf).let { stmt }
-        }
+        this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = this, conf = conf)
+            .buildIndicatorsFlags(this.csDOUxx(), conf)
         this.monitorstatement() != null -> this.monitorstatement().let {
             it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
                 stmt = it.toAst(conf = conf),
@@ -94,7 +88,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
  * @param conf The configuration object of type `ToAstConfiguration` that provides additional context
  *             for building the indicator condition.
  */
-private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration) {
+private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration): Statement {
     this.indicatorCondition = when (context) {
         is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
         is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
@@ -107,6 +101,8 @@ private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(contex
     if (this.indicatorCondition != null) {
         this.continuedIndicators.populate(context, conf)
     }
+
+    return this
 }
 
 /**
