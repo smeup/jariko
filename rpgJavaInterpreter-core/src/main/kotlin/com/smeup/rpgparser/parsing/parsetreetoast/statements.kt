@@ -26,6 +26,7 @@ import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
+import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.ParserRuleContext
 
 fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
@@ -75,52 +76,67 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 }
 
 /**
- * Builds and sets the indicator condition for a `Statement` object based on the given context.
- * This method checks the type of the provided `context` and invokes the appropriate method to
- * create an indicator condition. If an indicator condition is created, the continued indicators
- * for the `Statement` are populated using the same context and configuration.
+ * Builds indicator flags for the current `Statement` by extracting and setting the indicator conditions from
+ * the provided parsing context.
+ * This function processes the given context, extracting indicator conditions (e.g., on/off states) and
+ * any continued indicators associated with specific types of contexts (such as `CsIFxxContext`, `CsDOWxxContext`, etc.).
+ * It assigns the extracted indicator condition to the `Statement` and populates any continued indicators
+ * using the `populateContinuedIndicators` helper function.
  *
- * @param TContext A generic type that extends `ParserRuleContext`, representing the type of the context.
- * @param context The parser rule context from which to extract the indicator condition.
- *                It is expected to be one of `CsIFxxContext`, `CsDOWxxContext`, `CsDOUxxContext`, `BegindoContext`
- *                or `BeginforContext`.
- *                Other context might be added.
- * @param conf The configuration object of type `ToAstConfiguration` that provides additional context
- *             for building the indicator condition.
+ * @param TContext A generic type extending `ParserRuleContext`, representing the specific context in which
+ *                 the indicator conditions will be built.
+ * @param context The `TContext` instance representing the parsing context that contains the indicator and
+ *                continued indicator information.
+ * @param conf The `ToAstConfiguration` instance used to handle configuration settings and error handling during
+ *             the conversion process.
+ *
+ * @return The current `Statement` with its `indicatorCondition` and `continuedIndicators` fields populated based
+ *         on the provided context.
  */
 private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration): Statement {
-    this.indicatorCondition = when (context) {
-        is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-        is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-        is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-        is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-        is BeginforContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-        else -> null
+    fun populateContinuedIndicators(continuedIndicators: List<Cspec_continuedIndicatorsContext> = emptyList()) {
+        if (this.indicatorCondition != null) {
+            this.continuedIndicators.populate(continuedIndicators, context.children.toList())
+        }
     }
 
-    if (this.indicatorCondition != null) {
-        this.continuedIndicators.populate(context, conf)
+    var continuedIndicators: List<Cspec_continuedIndicatorsContext> = emptyList()
+    this.indicatorCondition = when (context) {
+        is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+        is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+        is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+        is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+        is BeginforContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+        else -> null
     }
 
     return this
 }
 
 /**
- * Converts the provided parser context indicators into an `IndicatorCondition` object.
- * If the `indicators` context has non-empty text, it attempts to generate an `IndicatorCondition`
- * using the indicator key and the state of the indicators (on or off). If the indicator text is
- * empty after trimming, this method returns `null`.
+ * Converts the given indicator context and its associated on/off flag into an `IndicatorCondition` object.
+ * This function checks if the provided `Cs_indicatorsContext` contains a valid indicator text. If the text is
+ * not empty, it attempts to convert it into an `IndicatorCondition` object. If the conversion fails due to a
+ * `NumberFormatException` (non-numeric indicators), an error is reported. If the indicator text is empty,
+ * the function returns `null`.
  *
- * If an error occurs during the conversion of the indicator text to a key (e.g., non-numeric indicators),
- * a `NumberFormatException` is caught, and an error is thrown.
+ * @receiver The `ParserRuleContext` that acts as the context for this operation.
  *
- * @param indicators The context containing the RPG indicators. These are expected to be extracted
- *                   and converted into an indicator key.
- * @param indicatorsOff The context that contains the on/off flag for the indicators. If the flag is
- *                      not an empty string or a space, it indicates that the indicators are off.
- * @param conf The configuration object of type `ToAstConfiguration` that provides additional settings
- *             for error handling and AST generation.
- * @return An `IndicatorCondition` if the indicators text is valid; `null` if the indicators text is empty.
+ * @param indicators The `Cs_indicatorsContext` containing the indicator data (as text) to be converted.
+ * @param indicatorsOff The `OnOffIndicatorsFlagContext` representing the on/off flag for the indicator.
+ *                      The condition checks whether the flag is equal to a space (" ") to determine if it's off.
+ * @param conf The `ToAstConfiguration` used for configuration in case of an error.
+ *
+ * @return An `IndicatorCondition` containing the converted `IndicatorKey` and the on/off state (as a boolean)
+ *         if the indicator text is valid. Returns `null` if the indicator text is empty.
+ *
+ * @throws NumberFormatException If the indicator text cannot be parsed into a valid numeric `IndicatorKey`.
+ *                               In this case, an error is reported with a message about non-numeric indicators.
  */
 private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsContext, indicatorsOff: OnOffIndicatorsFlagContext, conf: ToAstConfiguration) =
     if (indicators.text.isEmptyTrim()) {
@@ -134,29 +150,23 @@ private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsCont
     }
 
 /**
- * Populates the `HashMap` of `IndicatorKey` to `ContinuedIndicator` based on the continued indicators
- * extracted from the provided `ParserRuleContext`. This function processes specific types of contexts
- * (e.g., `CsIFxxContext`, `CsDOWxxContext`, and `CsDOUxxContext`) to extract continued indicators
- * and add them to the map. The indicators are processed for both regular and inline indicators.
+ * Populates the current `HashMap` with a set of continued indicators and their related conditions.
+ * This function processes a list of `Cspec_continuedIndicatorsContext` objects, extracts the relevant information
+ * such as indicator keys, on/off states, and control levels (e.g., "AND", "OR"), and inserts them into the
+ * `HashMap`. Additionally, it handles inline indicators by processing a `children` list of `ParseTree` nodes.
  *
- * @param context The parser rule context from which the continued indicators are extracted. The context
- *                is expected to be one of the RPG-specific contexts like `CsIFxxContext`, `CsDOWxxContext`,
- *                `CsDOUxxContext`, `BegindoContext` or `BeginforContext`.
- *                Other context might be added.
- *
- * @param conf The configuration object of type `ToAstConfiguration` that provides settings for error handling
- *             and context information.
+ * @receiver A `HashMap` where keys are `IndicatorKey` objects, and values are `ContinuedIndicator` instances
+ *           representing indicators with their conditions (e.g., on/off state, control level).
+ * @param continuedIndicators A list of `Cspec_continuedIndicatorsContext` objects representing the indicators
+ *                            to be processed. These indicators do not include inline indicators.
+ * @param children An optional list of `ParseTree` nodes representing additional conditions (such as control levels
+ *                 and indicator states) for inline indicators. By default, an empty list is passed if no children are
+ *                 provided.
  */
-private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(context: ParserRuleContext, conf: ToAstConfiguration) {
-    val continuedIndicators = when (context) {
-        is CsIFxxContext -> context.cspec_continuedIndicators()
-        is CsDOWxxContext -> context.cspec_continuedIndicators()
-        is CsDOUxxContext -> context.cspec_continuedIndicators()
-        is BegindoContext -> context.cspec_continuedIndicators()
-        is BeginforContext -> context.cspec_continuedIndicators()
-        else -> emptyList()
-    }
-
+private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
+    continuedIndicators: List<Cspec_continuedIndicatorsContext>,
+    children: List<ParseTree> = emptyList()
+) {
     // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
     for (i in 0 until continuedIndicators.size) {
         val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
@@ -175,17 +185,17 @@ private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(context: ParserRu
 
     // Add indicatorCondition (inline indicator) also
     var controlLevel =
-        (context.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
+        (children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
     if (controlLevel == "AN") {
         controlLevel = "AND"
     }
     var onOff = false
-    if (!(context.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString()
+    if (!(children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString()
             .isEmptyTrim()
     ) {
         onOff = true
     }
-    val indicator = (context.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString()
+    val indicator = (children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString()
         .toIndicatorKey()
     val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
     this.put(indicator, continuedIndicator)
