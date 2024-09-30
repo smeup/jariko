@@ -2,7 +2,7 @@
      V* 30/09/2024 APU001 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Executes DOW statement by checking indicator state.
+    O * Executes DOU statement by checking indicator state.
      V* ==============================================================
      D  SUM            S              2  0 INZ(0)
      D  SIZE           S              2  0 INZ(10)
@@ -20,7 +20,7 @@
 
 
      C     CALCULATE     BEGSR
-     C   35              DOW       SIZE > SUM                                   # Semantic error: in this point Jariko ignored *IN35 state.
+     C   35              DOU       SIZE = SUM                                   # Semantic error: in this point Jariko ignored *IN35 state.
      C                   EVAL      SUM=SUM+1
      C                   ENDDO
      C                   ENDSR
