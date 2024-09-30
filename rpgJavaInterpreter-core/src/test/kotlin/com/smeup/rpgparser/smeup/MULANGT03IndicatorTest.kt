@@ -63,4 +63,14 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
         val expected = listOf("10", "10")
         assertEquals(expected, "smeup/MUDRNRAPU00126".outputOf())
     }
+
+    /**
+     * Executes DOW statement by checking indicator state.
+     * @see #LS24004236
+     */
+    @Test
+    fun executeMUDRNRAPU00127() {
+        val expected = listOf("10", "10")
+        assertEquals(expected, "smeup/MUDRNRAPU00127".outputOf())
+    }
 }
