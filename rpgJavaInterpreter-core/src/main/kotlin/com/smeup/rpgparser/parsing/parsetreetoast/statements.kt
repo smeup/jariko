@@ -62,7 +62,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
             .buildIndicatorsFlags(this.csDOWxx(), conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
             .buildIndicatorsFlags(this.forstatement().beginfor(), conf)
-        this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
+        this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf).buildIndicatorsFlags(this.begindou(), conf)
         this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = this, conf = conf)
             .buildIndicatorsFlags(this.csDOUxx(), conf)
         this.monitorstatement() != null -> this.monitorstatement().let {
@@ -109,6 +109,8 @@ private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(contex
         is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
             .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
         is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+        is BegindouContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
             .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
         is BeginforContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
             .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
