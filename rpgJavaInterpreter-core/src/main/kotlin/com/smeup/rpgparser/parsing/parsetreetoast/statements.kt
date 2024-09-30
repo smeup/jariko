@@ -53,7 +53,9 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.begindo() != null -> this.begindo()
             .let {
                 it.csDO().cspec_fixed_standard_parts().validate(
-                    stmt = it.toAst(blockContext = this, conf = conf),
+                    stmt = it.toAst(blockContext = this, conf = conf).let { stmt ->
+                        stmt.buildIndicatorsFlags(this.begindo(), conf).let { stmt }
+                    },
                     conf = conf
                 )
             }
@@ -98,6 +100,7 @@ private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(contex
         is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
         is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
         is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+        is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
         else -> null
     }
 
@@ -156,6 +159,7 @@ private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(context: ParserRu
         is CsIFxxContext -> context.cspec_continuedIndicators()
         is CsDOWxxContext -> context.cspec_continuedIndicators()
         is CsDOUxxContext -> context.cspec_continuedIndicators()
+        is BegindoContext -> context.cspec_continuedIndicators()
         else -> emptyList()
     }
 
