@@ -17,8 +17,10 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
 
     @Test
     fun fieldsFromRecordByName() {
-        assertEquals(2, this.specifications.getFieldsFromRecord("REC01").size)
-        assertEquals(1, this.specifications.getFieldsFromRecord("REC11").size)
+        assertEquals(2, this.specifications.getMutableFieldsFromRecord("REC01").size)
+        assertEquals(1, this.specifications.getMutableFieldsFromRecord("REC11").size)
+        assertEquals(1, this.specifications.getMutableFieldsFromRecord("REC21").size)
+        assertEquals(2, this.specifications.getConstantFieldsFromRecord("REC21").size)
     }
 
     @Test

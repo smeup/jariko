@@ -1,8 +1,10 @@
 package com.smeup.rpgparser.video
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dspfparser.linesclassifier.ConstantField
 import com.smeup.dspfparser.linesclassifier.ConstantValue
 import com.smeup.dspfparser.linesclassifier.DSPFField
+import com.smeup.dspfparser.linesclassifier.MutableField
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.DecimalValue
@@ -93,12 +95,12 @@ class VideoInterpreterTest : AbstractTest() {
             // simulates user typing something new in FLD01
             map["FLD01"] = StringValue("NEW_VALUE")
 
-            // user edits existing field value
-            val str = fields.find { it.name == "STR" }!!.value as StringValue
+            // user edits existing mutable fields values
+            val str = (fields.find { (it as MutableField).name == "STR" }!! as MutableField).value as StringValue
             map["STR"] = StringValue(str.asString().value.lowercase())
-            val int = fields.find { it.name == "INT" }!!.value as IntValue
+            val int = (fields.find { (it as MutableField).name == "INT" }!! as MutableField).value as IntValue
             map["INT"] = int.plus(IntValue(1))
-            val dec = fields.find { it.name == "DEC" }!!.value as DecimalValue
+            val dec = (fields.find { (it as MutableField).name == "DEC" }!! as MutableField).value as DecimalValue
             map["DEC"] = dec.increment(1)
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
@@ -117,7 +119,7 @@ class VideoInterpreterTest : AbstractTest() {
             val map = mutableMapOf<String, Value>()
 
             fields.forEach {
-                if (it.value is ConstantValue) {
+                if (it is ConstantField) {
                     constants.add(it)
                 }
             }
@@ -129,10 +131,10 @@ class VideoInterpreterTest : AbstractTest() {
         }
         assertEquals(expected = expected, actual = "video/EXFMT2".outputOf(configuration = configuration))
         assertEquals(expected = 2, actual = constants.size)
-        assertEquals(expected = "Article code", actual = (constants[0].value as ConstantValue).value)
+        assertEquals(expected = "Article code", actual = ((constants[0] as ConstantField).value)!!.value)
         assertEquals(expected = 12, actual = constants[0].y)
         assertEquals(expected = 2, actual = constants[0].x)
-        assertEquals(expected = "Article name", actual = (constants[1].value as ConstantValue).value)
+        assertEquals(expected = "Article name", actual = ((constants[1] as ConstantField).value)!!.value)
         assertEquals(expected = 2, actual = constants[1].y)
         assertEquals(expected = 8, actual = constants[1].x)
     }

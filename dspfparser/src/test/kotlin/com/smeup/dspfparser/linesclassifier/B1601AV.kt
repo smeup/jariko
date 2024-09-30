@@ -14,7 +14,7 @@ internal class B1601AV : DSPFSpecificationsLoader("./src/test/resources/B£1601A
     @Test
     fun fields() {
         val fields = this.specifications.records[0].fields
-        val names = fields.map { it.name }
+        val names = fields.map { (it as MutableField).name }
         assertEquals(8, fields.size)
         assertTrue { names.contains("£RASDI") }
         assertTrue { names.contains("£PDSNP") }
@@ -29,7 +29,7 @@ internal class B1601AV : DSPFSpecificationsLoader("./src/test/resources/B£1601A
     @Test
     fun constants() {
         val constants = this.specifications.records[0].constants
-        val values = constants.map { it.value }
+        val values = constants.map { (it as ConstantField).value }
         assertEquals(5, constants.size)
         assertTrue { values.contains(ConstantValue("**   GESTIONE ARTICOLI   **")) }
         assertTrue { values.contains(ConstantValue("Formato guida")) }
