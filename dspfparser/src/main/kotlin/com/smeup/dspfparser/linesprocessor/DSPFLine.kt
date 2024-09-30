@@ -136,16 +136,4 @@ internal data class DSPFLine private constructor(
     fun isNone(): Boolean {
         return !(this.isHelp() || this.isRecord() || this.isField())
     }
-
-    fun isInput(): Boolean {
-        return this.fieldType == FieldType.I
-    }
-
-    fun isOutput(): Boolean {
-        return this.fieldType == FieldType.O || this.fieldType == FieldType.BLANK
-    }
-
-    fun isInputOutput(): Boolean {
-        return this.fieldType == FieldType.B
-    }
 }
