@@ -279,6 +279,7 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is StringType -> StringValue(value.value.toString(), varying = type.varying)
                 is DateType -> DateValue(value.value, type.format)
+                is NumberType -> if (type.decimalDigits > 0) value.asDecimal() else value
                 is ArrayType -> {
                     val coercedValue = coerce(value, type.element)
                     ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
