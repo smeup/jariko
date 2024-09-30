@@ -35,7 +35,7 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
     }
 
     /**
-     * Executes DOUxx (in this case, DO) statement by checking indicator state.
+     * Executes DO statement by checking indicator state.
      * @see #LS24004236
      */
     @Test

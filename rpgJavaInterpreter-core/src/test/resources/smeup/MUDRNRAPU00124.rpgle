@@ -2,7 +2,7 @@
      V* 30/09/2024 APU001 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Executes DOUEQ statement by checking indicator state.
+    O * Executes DO statement by checking indicator state.
      V* ==============================================================
      D  SUM            S              2  0 INZ(0)
      D  COUNT          S              2  0 INZ(1)
