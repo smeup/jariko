@@ -88,18 +88,18 @@ class VideoInterpreterTest : AbstractTest() {
     @Test
     fun executeEXFMT1() {
         val expected = listOf("FLD01:NEW_VALUE", "STR:uppercase", "INT:124", "DEC:124.45")
-        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+        configuration.jarikoCallback.onExfmt = { record, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
 
             // simulates user typing something new in FLD01
             map["FLD01"] = StringValue("NEW_VALUE")
 
             // user edits existing mutable fields values
-            val str = (fields.find { (it as MutableField).name == "STR" }!! as MutableField).value as StringValue
+            val str = (record.fields.find { (it as MutableField).name == "STR" }!! as MutableField).value as StringValue
             map["STR"] = StringValue(str.asString().value.lowercase())
-            val int = (fields.find { (it as MutableField).name == "INT" }!! as MutableField).value as IntValue
+            val int = (record.fields.find { (it as MutableField).name == "INT" }!! as MutableField).value as IntValue
             map["INT"] = int.plus(IntValue(1))
-            val dec = (fields.find { (it as MutableField).name == "DEC" }!! as MutableField).value as DecimalValue
+            val dec = (record.fields.find { (it as MutableField).name == "DEC" }!! as MutableField).value as DecimalValue
             map["DEC"] = dec.increment(1)
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
@@ -114,14 +114,10 @@ class VideoInterpreterTest : AbstractTest() {
     fun executeEXFMT2() {
         val expected = emptyList<String>()
         val constants = mutableListOf<DSPFField>()
-        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+        configuration.jarikoCallback.onExfmt = { record, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
 
-            fields.forEach {
-                if (it is ConstantField) {
-                    constants.add(it)
-                }
-            }
+            record.constants.forEach { constants.add(it) }
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
         }

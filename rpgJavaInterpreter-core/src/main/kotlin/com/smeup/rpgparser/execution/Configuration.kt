@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.linesclassifier.DSPFField
+import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
@@ -180,7 +181,7 @@ data class JarikoCallback(
     /**
      * It is invoked on EXFMT execution.
      */
-    var onExfmt: (fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
+    var onExfmt: (record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
         _, _ -> null
     },
 

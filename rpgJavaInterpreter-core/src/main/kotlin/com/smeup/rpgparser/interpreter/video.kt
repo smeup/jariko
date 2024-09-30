@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.linesclassifier.DSPFField
+import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 
@@ -54,23 +55,19 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
  * Fields of specified record will be returned and updated with the latest
  * value of the corresponding data definition just before EXFMT starts.
  */
-internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): List<DSPFField> {
-    val fields = mutableListOf<DSPFField>()
+internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): DSPFRecord {
+    var record: DSPFRecord? = null
     val symbolTable = interpreter.getGlobalSymbolTable()
     val displayFiles = interpreter.getStatus().displayFiles
 
     displayFiles?.forEach { dspf ->
-        val record = dspf.value.records.first { it.name == recordName }
-        record.fields.forEach { field ->
+        record = dspf.value.records.first { it.name == recordName }
+        record!!.fields.forEach { field ->
             field.value = symbolTable[field.name]
-            fields.add(field)
-        }
-        record.constants.forEach { field ->
-            fields.add(field)
         }
     }
 
-    return fields
+    return record!!
 }
 
 /**
