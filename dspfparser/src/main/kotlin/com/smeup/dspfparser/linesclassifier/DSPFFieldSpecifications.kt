@@ -1,6 +1,7 @@
 package com.smeup.dspfparser.linesclassifier
 
 import com.smeup.dspfparser.linesprocessor.DSPFLine
+import com.smeup.dspfparser.linesprocessor.LineType
 import com.smeup.dspfparser.positionals.FieldType
 import kotlinx.serialization.Serializable
 
@@ -12,7 +13,7 @@ internal data class DSPFFieldSpecifications private constructor(
 
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFField {
-            if (declaration.isConstant()) {
+            if (declaration.type == LineType.CONSTANT) {
                 return ConstantField(
                     value = ConstantValue(declaration.keywords!!.getConstantValue()),
                     x = declaration.x,

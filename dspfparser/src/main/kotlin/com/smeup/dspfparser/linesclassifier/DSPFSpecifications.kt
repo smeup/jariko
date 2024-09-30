@@ -1,6 +1,7 @@
 package com.smeup.dspfparser.linesclassifier
 
 import com.smeup.dspfparser.linesprocessor.DSPFLine
+import com.smeup.dspfparser.linesprocessor.LineType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,10 +37,7 @@ private enum class CurrentContext {
 
 private class DSPFSpecificationsFactory {
     private var context: CurrentContext = CurrentContext.FILE
-    private var isLineNone: Boolean = false
-    private var isLineRecord: Boolean = false
-    private var isLineField: Boolean = false
-    private var isLineConstant: Boolean = false
+    private var currentLineType: LineType = LineType.NULL
     private var result: DSPFSpecifications = DSPFSpecifications()
 
     constructor(lines: MutableList<DSPFLine>) {
@@ -51,33 +49,33 @@ private class DSPFSpecificationsFactory {
     }
 
     private fun tryInsertNewRecord(line: DSPFLine) {
-        if (this.isLineRecord) {
+        if (this.currentLineType == LineType.RECORD) {
             this.result.records.add(DSPFRecordSpecifications.fromLine(line))
             this.context = CurrentContext.RECORD
         }
     }
 
     private fun tryInsertNewFieldOnRecordContext(line: DSPFLine) {
-        if (this.context == CurrentContext.RECORD && this.isLineField) {
+        if (this.context == CurrentContext.RECORD && this.currentLineType == LineType.FIELD) {
             this.result.records.last().fields.add(DSPFFieldSpecifications.fromLine(line) as MutableField)
             this.context = CurrentContext.FIELD
         }
     }
 
     private fun tryInsertNewFieldOnFieldContext(line: DSPFLine) {
-        if (this.context == CurrentContext.FIELD && this.isLineField) {
+        if (this.context == CurrentContext.FIELD && this.currentLineType == LineType.FIELD) {
             this.result.records.last().fields.add(DSPFFieldSpecifications.fromLine(line) as MutableField)
         }
     }
 
     private fun tryInsertNewConstantOnFieldContext(line: DSPFLine) {
-        if (this.context == CurrentContext.FIELD && this.isLineConstant) {
+        if (this.context == CurrentContext.FIELD && this.currentLineType == LineType.CONSTANT) {
             this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line) as ConstantField)
         }
     }
 
     private fun tryInsertNewConstantOnRecordContext(line: DSPFLine) {
-        if (this.context == CurrentContext.RECORD && this.isLineConstant) {
+        if (this.context == CurrentContext.RECORD && this.currentLineType == LineType.CONSTANT) {
             this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line) as ConstantField)
             this.context = CurrentContext.FIELD
         }
@@ -85,10 +83,7 @@ private class DSPFSpecificationsFactory {
 
     private fun updateResultWith(lines: MutableList<DSPFLine>) {
         lines.forEach {
-            this.isLineNone = it.isNone()
-            this.isLineField = it.isField()
-            this.isLineRecord = it.isRecord()
-            this.isLineConstant = it.isConstant()
+            this.currentLineType = it.type
 
             // order is important, do not change it
             this.tryInsertNewRecord(it)

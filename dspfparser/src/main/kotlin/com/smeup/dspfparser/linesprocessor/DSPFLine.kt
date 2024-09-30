@@ -7,6 +7,15 @@ import com.smeup.dspfparser.positionals.Reserved
 import com.smeup.dspfparser.positionals.TypeOfName
 import kotlinx.serialization.Serializable
 
+enum class LineType {
+    NULL,
+    OTHER,
+    HELP,
+    RECORD,
+    FIELD,
+    CONSTANT
+}
+
 @Serializable
 internal data class DSPFLine private constructor(
     val count: Int,
@@ -22,11 +31,12 @@ internal data class DSPFLine private constructor(
     val fieldType: FieldType,
     val y: Int? = null,
     val x: Int? = null,
-    val keywords: DSPFKeywordsGroup? = null
+    val keywords: DSPFKeywordsGroup? = null,
+    var type: LineType = LineType.NULL
 ) {
     companion object {
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
-            return DSPFLine(
+            val line = DSPFLine(
                 this.getCount(lineSubstrings),
                 this.getSequenceNumber(lineSubstrings),
                 this.getA(lineSubstrings),
@@ -42,6 +52,7 @@ internal data class DSPFLine private constructor(
                 this.getX(lineSubstrings),
                 this.getKeywords(lineSubstrings)
             )
+            return line
         }
 
         private fun getCount(lineSubstrings: DSPFLineSubstrings): Int {
@@ -108,20 +119,12 @@ internal data class DSPFLine private constructor(
         }
     }
 
-    fun isHelp(): Boolean {
-        return this.typeOfName == TypeOfName.H && this.fieldName.isBlank()
-    }
-
-    fun isRecord(): Boolean {
-        return this.typeOfName == TypeOfName.R && this.fieldName.isNotBlank()
-    }
-
-    fun isField(): Boolean {
-        return this.typeOfName == TypeOfName.BLANK && this.fieldName.isNotBlank()
-    }
-
-    fun isConstant(): Boolean {
-        return this.typeOfName == TypeOfName.BLANK &&
+    init {
+        when {
+            this.typeOfName == TypeOfName.H && this.fieldName.isBlank() -> this.type = LineType.HELP
+            this.typeOfName == TypeOfName.R && this.fieldName.isNotBlank() -> this.type = LineType.RECORD
+            this.typeOfName == TypeOfName.BLANK && this.fieldName.isNotBlank() -> this.type = LineType.FIELD
+            this.typeOfName == TypeOfName.BLANK &&
                 this.fieldName.isBlank() &&
                 this.reference == Reference.BLANK &&
                 this.length == null &&
@@ -131,9 +134,8 @@ internal data class DSPFLine private constructor(
                 this.y != null &&
                 this.x != null &&
                 this.keywords?.areConstant() ?: false
-    }
-
-    fun isNone(): Boolean {
-        return !(this.isHelp() || this.isRecord() || this.isField())
+                    -> this.type = LineType.CONSTANT
+            else -> this.type = LineType.OTHER
+        }
     }
 }

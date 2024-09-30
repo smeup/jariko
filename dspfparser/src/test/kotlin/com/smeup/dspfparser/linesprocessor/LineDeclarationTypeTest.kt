@@ -1,7 +1,7 @@
 package com.smeup.dspfparser.linesprocessor
 
 import kotlin.test.Test
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resources/DECLARATIONS.dspf") {
     init {
@@ -10,21 +10,21 @@ internal class LineDeclarationTypeTest : LinesProcessorLoader("./src/test/resour
 
     @Test
     fun isRecord() {
-        assertTrue { this.linesProcessor.lines[0].isRecord() }
+        assertEquals(this.linesProcessor.lines[0].type, LineType.RECORD)
     }
 
     @Test
     fun isHelp() {
-        assertTrue { this.linesProcessor.lines[1].isHelp() }
+        assertEquals(this.linesProcessor.lines[1].type, LineType.HELP)
     }
 
     @Test
     fun isField() {
-        assertTrue { this.linesProcessor.lines[2].isField() }
+        assertEquals(this.linesProcessor.lines[2].type, LineType.FIELD)
     }
 
     @Test
-    fun isNone() {
-        assertTrue { this.linesProcessor.lines[3].isNone() }
+    fun isOther() {
+        assertEquals(this.linesProcessor.lines[3].type, LineType.OTHER)
     }
 }
