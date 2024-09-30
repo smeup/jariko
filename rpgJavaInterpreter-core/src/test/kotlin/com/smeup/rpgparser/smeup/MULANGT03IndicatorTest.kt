@@ -43,4 +43,14 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
         val expected = listOf("10", "10")
         assertEquals(expected, "smeup/MUDRNRAPU00124".outputOf())
     }
+
+    /**
+     * Executes FOR statement by checking indicator state.
+     * @see #LS24004236
+     */
+    @Test
+    fun executeMUDRNRAPU00125() {
+        val expected = listOf("10", "10")
+        assertEquals(expected, "smeup/MUDRNRAPU00125".outputOf())
+    }
 }
