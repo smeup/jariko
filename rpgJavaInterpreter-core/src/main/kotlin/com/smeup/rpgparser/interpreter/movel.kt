@@ -147,8 +147,6 @@ private fun movel(
 ): String {
     return if (valueToApplyMoveType is UnlimitedStringType) {
         valueToMove
-    } else if (valueToMove.isBlank() && valueToApplyMoveType.isNumeric()) {
-        "0"
     } else if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
@@ -259,12 +257,12 @@ private fun stringToValue(value: String, type: Type): Value {
         is NumberType -> {
             return if (type.integer) {
                 // integer
-                IntValue(value.toLong())
+                if (value.isBlank()) IntValue.ZERO else value.toLong().asValue()
             } else {
                 // decimal
                 val integerPart = value.substring(0, type.entireDigits)
                 val decimalPart = value.substring(type.entireDigits, value.length)
-                DecimalValue(BigDecimal("$integerPart.$decimalPart"))
+                if (value.isBlank()) DecimalValue.ZERO else DecimalValue(BigDecimal("$integerPart.$decimalPart"))
             }
         }
 
