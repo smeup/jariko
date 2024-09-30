@@ -59,9 +59,9 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
      * @see #LS24004236
      */
     @Test
-    fun executeMUDRNRAPU00126() {
+    fun executeMUDRNRAPU00128() {
         val expected = listOf("10", "10")
-        assertEquals(expected, "smeup/MUDRNRAPU00126".outputOf())
+        assertEquals(expected, "smeup/MUDRNRAPU00128".outputOf())
     }
 
     /**
@@ -69,8 +69,8 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
      * @see #LS24004236
      */
     @Test
-    fun executeMUDRNRAPU00127() {
+    fun executeMUDRNRAPU00129() {
         val expected = listOf("10", "10")
-        assertEquals(expected, "smeup/MUDRNRAPU00127".outputOf())
+        assertEquals(expected, "smeup/MUDRNRAPU00129".outputOf())
     }
 }
