@@ -2,7 +2,6 @@ package com.smeup.rpgparser.video
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.linesclassifier.ConstantField
-import com.smeup.dspfparser.linesclassifier.ConstantValue
 import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.dspfparser.linesclassifier.MutableField
 import com.smeup.rpgparser.AbstractTest
