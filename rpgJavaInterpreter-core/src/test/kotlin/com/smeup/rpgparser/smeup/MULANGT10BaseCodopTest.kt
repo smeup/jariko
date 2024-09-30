@@ -200,7 +200,8 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Assignment of a scalar to an array, where the digits of scalar are lower than decimal's digits of array type.
+     * Assignment of a scalar to an array, where the digits of scalar are lower than decimal's digits of array type,
+     *  with `MOVEA`.
      * @see #LS24004106
      */
     @Test
@@ -213,7 +214,8 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Assignment of a scalar to an array, where the digits of scalar are greater than decimal's digits of array type.
+     * Assignment of a scalar to an array, where the digits of scalar are greater than decimal's digits of array type,
+     *  with `MOVEA`.
      * @see #LS24004106
      */
     @Test
@@ -226,7 +228,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Assignment of a scalar to an array, declared as integer type too.
+     * Assignment of a scalar to an array, declared as integer type too, with `MOVEA`.
      * @see #LS24004106
      */
     @Test
@@ -246,5 +248,46 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU00120() {
         val expected = listOf("99.000000", ".000000")
         assertEquals(expected, "smeup/MUDRNRAPU00120".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `MOVE`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00126() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00126".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `MOVEL`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00127() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000",
+            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00127".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `EVAL`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00128() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000",
+            "123.000000", "123.000000"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00128".outputOf(configuration = smeupConfig))
     }
 }
