@@ -88,14 +88,11 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
  *
  * @param TContext A generic type that extends `ParserRuleContext`, representing the type of the context.
  * @param context The parser rule context from which to extract the indicator condition.
- *                It is expected to be one of `CsIFxxContext`, `CsDOWxxContext`, or `CsDOUxxContext`.
+ *                It is expected to be one of `CsIFxxContext`, `CsDOWxxContext`, `CsDOUxxContext`, `BegindoContext`
+ *                or `BeginforContext`.
  *                Other context might be added.
  * @param conf The configuration object of type `ToAstConfiguration` that provides additional context
  *             for building the indicator condition.
- *
- * @see RpgParser.CsIFxxContext
- * @see RpgParser.CsDOWxxContext
- * @see RpgParser.CsDOUxxContext
  */
 private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration) {
     this.indicatorCondition = when (context) {
@@ -128,7 +125,6 @@ private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(contex
  * @param conf The configuration object of type `ToAstConfiguration` that provides additional settings
  *             for error handling and AST generation.
  * @return An `IndicatorCondition` if the indicators text is valid; `null` if the indicators text is empty.
- * @throws NumberFormatException If the indicators text is non-numeric and cannot be parsed into a valid indicator key.
  */
 private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsContext, indicatorsOff: OnOffIndicatorsFlagContext, conf: ToAstConfiguration) =
     if (indicators.text.isEmptyTrim()) {
@@ -149,13 +145,11 @@ private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsCont
  *
  * @param context The parser rule context from which the continued indicators are extracted. The context
  *                is expected to be one of the RPG-specific contexts like `CsIFxxContext`, `CsDOWxxContext`,
- *                or `CsDOUxxContext`.
+ *                `CsDOUxxContext`, `BegindoContext` or `BeginforContext`.
  *                Other context might be added.
  *
  * @param conf The configuration object of type `ToAstConfiguration` that provides settings for error handling
  *             and context information.
- *
- * @throws IllegalStateException If the context is not of a recognized type for extracting continued indicators.
  */
 private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(context: ParserRuleContext, conf: ToAstConfiguration) {
     val continuedIndicators = when (context) {
