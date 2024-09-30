@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
