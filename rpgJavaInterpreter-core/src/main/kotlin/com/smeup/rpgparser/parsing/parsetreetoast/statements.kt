@@ -41,7 +41,7 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
-            .buildIndicatorsFlags(this.ifstatement().beginif().csIFxx(), conf)
+            .buildIndicatorsFlags(this.ifstatement().beginif().csIFxx() ?: this.ifstatement().beginif(), conf)
         this.selectstatement() != null -> this.selectstatement()
             .let {
                 it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
@@ -78,47 +78,44 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 }
 
 /**
- * Builds indicator flags for the current `Statement` by extracting and setting the indicator conditions from
- * the provided parsing context.
- * This function processes the given context, extracting indicator conditions (e.g., on/off states) and
- * any continued indicators associated with specific types of contexts (such as `CsIFxxContext`, `CsDOWxxContext`, etc.).
- * It assigns the extracted indicator condition to the `Statement` and populates any continued indicators
- * using the `populateContinuedIndicators` helper function.
+ * Builds and assigns indicator conditions and flags for the given statement.
  *
- * @param TContext A generic type extending `ParserRuleContext`, representing the specific context in which
- *                 the indicator conditions will be built.
- * @param context The `TContext` instance representing the parsing context that contains the indicator and
- *                continued indicator information.
- * @param conf The `ToAstConfiguration` instance used to handle configuration settings and error handling during
- *             the conversion process.
+ * This method inspects the context type and generates an indicator condition
+ * based on the indicators and configuration provided. It also handles the
+ * processing of continued indicators.
  *
- * @return The current `Statement` with its `indicatorCondition` and `continuedIndicators` fields populated based
- *         on the provided context.
+ * @param TContext The type of the parser rule context, which must extend [ParserRuleContext].
+ * @param context The parsing rule context, which is one of several specific types such as
+ *                [CsIFxxContext], [CsDOWxxContext], [CsDOUxxContext], etc.
+ * @param conf The configuration used to build the AST (Abstract Syntax Tree).
+ * @return The current [Statement] with updated indicator conditions and continued indicators.
  */
-private fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration): Statement {
-    fun populateContinuedIndicators(continuedIndicators: List<Cspec_continuedIndicatorsContext> = emptyList()) {
-        if (this.indicatorCondition != null) {
-            this.continuedIndicators.populate(continuedIndicators, context.children.toList())
-        }
-    }
-
+internal fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration): Statement {
     var continuedIndicators: List<Cspec_continuedIndicatorsContext> = emptyList()
     this.indicatorCondition = when (context) {
         is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is BeginifContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         is BegindowContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         is BegindouContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         is BeginforContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { populateContinuedIndicators(context.cspec_continuedIndicators()) }
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is Cspec_fixedContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
         else -> null
+    }
+
+    if (this.indicatorCondition != null) {
+        this.continuedIndicators.populate(continuedIndicators, context.children.toList())
     }
 
     return this
