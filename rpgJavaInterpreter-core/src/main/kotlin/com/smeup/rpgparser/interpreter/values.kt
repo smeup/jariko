@@ -1012,15 +1012,15 @@ fun String.asIsoDate(): Date {
 fun createBlankFor(dataDefinition: DataDefinition): Value {
     val ds = DataStructValue.blank(dataDefinition.type.size)
     dataDefinition.fields.forEach {
-        if (it.type is NumberType) ds.set(it, it.type.toRPGValue(dataDefinition.inz))
+        if (it.type is NumberType && (dataDefinition.inz || it.initializationValue != null)) ds.set(it, it.type.toRPGValue())
     }
     return ds
 }
 
-private fun NumberType.toRPGValue(iniz: Boolean): Value =
+private fun NumberType.toRPGValue(): Value =
     when (rpgType) {
-        RpgType.ZONED.rpgType, RpgType.PACKED.rpgType -> if (iniz) DecimalValue.ZERO else DecimalValue.ONE
-        RpgType.BINARY.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> if (iniz) IntValue.ZERO else IntValue.ONE
+        RpgType.ZONED.rpgType, RpgType.PACKED.rpgType -> DecimalValue.ZERO
+        RpgType.BINARY.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> IntValue.ZERO
         else -> TODO("Please handle RpgType $rpgType")
     }
 
