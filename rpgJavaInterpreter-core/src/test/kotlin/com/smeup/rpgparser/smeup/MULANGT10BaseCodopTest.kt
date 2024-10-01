@@ -366,4 +366,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU00128".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Assignment of a ZeroValue to an IntValue.
+     * @see #LS24004319
+     */
+    @Test
+    fun executeMUDRNRAPU00262() {
+        val expected = listOf("0")
+        assertEquals(expected, "smeup/MUDRNRAPU00262".outputOf(configuration = smeupConfig))
+    }
 }
