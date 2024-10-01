@@ -610,4 +610,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("1", "0")
         assertEquals(expected, "smeup/MUDRNRAPU01103".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Access to a DS numeric field not initialized both by parent or from itself.
+     * @note This behaviour is different on AS400: a field of DS not initialized is a
+     *       hexadecimal value instead `0`.
+     * @see #LS24004159
+     */
+    @Test
+    fun executeMUDRNRAPU00131() {
+        val expected = listOf(".00", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00131".outputOf())
+    }
 }
