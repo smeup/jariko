@@ -769,40 +769,10 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
             // we need capture error inside runParserRuleContext in order
             // to avoid that some errors pass silently
             this.cspec_fixed_standard().runParserRuleContext(conf) { standardContext ->
-                standardContext.toAst(conf)
+                standardContext
+                    .toAst(conf)
                     .also {
-                        it.indicatorCondition = this.toIndicatorCondition(conf)
-                        if (it.indicatorCondition != null) {
-                            val continuedIndicators = this.cspec_continuedIndicators()
-                            // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
-                            for (i in 0 until continuedIndicators.size) {
-                                val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
-                                var onOff = false
-                                if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
-                                    onOff = true
-                                }
-                                val controlLevel = when (continuedIndicators[i].start.type) {
-                                    AndIndicator -> "AND"
-                                    OrIndicator -> "OR"
-                                    else -> ""
-                                }
-                                val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-                                it.continuedIndicators.put(indicator, continuedIndicator)
-                            }
-
-                            // Add indicatorCondition (inline indicator) also
-                            var controlLevel = (this.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
-                            if (controlLevel == "AN") {
-                                controlLevel = "AND"
-                            }
-                            var onOff = false
-                            if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
-                                onOff = true
-                            }
-                            val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
-                            val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-                            it.continuedIndicators.put(indicator, continuedIndicator)
-                        }
+                        it.buildIndicatorsFlags(this, conf)
                     }
             }
         this.cspec_fixed_x2() != null ->
@@ -812,17 +782,6 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         else -> todo(conf = conf)
     }
 }
-
-internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): IndicatorCondition? =
-    if (this.indicators.text.isEmptyTrim()) {
-        null
-    } else {
-        try {
-            IndicatorCondition(this.indicators.text.toIndicatorKey(), " " != this.indicatorsOff.text)
-        } catch (e: NumberFormatException) {
-            error("Non numeric indicators", e, conf)
-        }
-    }
 
 internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
