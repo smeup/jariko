@@ -622,4 +622,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf(".00", "0")
         assertEquals(expected, "smeup/MUDRNRAPU00131".outputOf())
     }
+
+    /**
+     * LIKE on DS field with absolute path
+     * @see #LS24003324
+     */
+    @Test
+    fun executeMUDRNRAPU00263() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00263".outputOf(configuration = smeupConfig))
+    }
 }
