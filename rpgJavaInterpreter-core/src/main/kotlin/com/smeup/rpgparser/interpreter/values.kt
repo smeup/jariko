@@ -845,7 +845,11 @@ object EndValValue : Value {
     override fun asString() = "*END".asValue()
 }
 
+/**
+ * Character/numeric fields: All zeros. The value is '0' or X'F0'. For numeric float fields: The value is '0 E0'.
+ */
 object ZeroValue : Value {
+    const val STRING_REPRESENTATION = "0"
 
     override fun copy() = this
 
@@ -858,9 +862,13 @@ object ZeroValue : Value {
         return true
     }
 
-    override fun asString(): StringValue {
-        TODO("Not yet implemented")
-    }
+    override fun asString() = STRING_REPRESENTATION.asValue()
+    override fun asInt() = IntValue.ZERO
+    override fun asDecimal() = DecimalValue.ZERO
+    override fun asUnlimitedString() = UnlimitedStringValue(STRING_REPRESENTATION)
+
+    // FIXME: Check if it also applies to booleans and if that is the case uncomment line below
+    // override fun asBoolean() = BooleanValue.FALSE
 }
 
 class AllValue(val charsToRepeat: String) : Value {
