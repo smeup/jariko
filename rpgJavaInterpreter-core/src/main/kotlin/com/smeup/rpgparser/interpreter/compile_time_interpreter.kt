@@ -225,36 +225,14 @@ open class BaseCompileTimeInterpreter(
     }
 
     override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Int {
-        return when (expression) {
-            is DataRefExpr -> {
-                try {
-                    evaluateElementSizeOf(rContext, expression.variable.name, conf, procedureName)
-                } catch (e: NotFoundAtCompileTimeException) {
-                    if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf, procedureName)
-                    } else {
-                        expression.error(message = e.message, cause = e)
-                    }
-                }
+        return try {
+            evaluateTypeOf(rContext, expression, conf, procedureName).elementSize()
+        } catch (e: RuntimeException) {
+            if (delegatedCompileTimeInterpreter != null) {
+                return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf, procedureName)
+            } else {
+                expression.error(message = e.message, cause = e)
             }
-            is QualifiedAccessExpr -> {
-                try {
-                    // Definition should be already known (DS are declared first)
-                    val container = expression.container as DataRefExpr
-                    val containerDefinition = knownDataDefinitions.find { it.name == container.variable.name }
-                    val baseDefinition = containerDefinition!!.fields.find {
-                        it.name.equals(expression.field.name, ignoreCase = true)
-                    }
-                    baseDefinition!!.elementSize()
-                } catch (e: NotFoundAtCompileTimeException) {
-                    if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf, procedureName)
-                    } else {
-                        expression.error(message = e.message, cause = e)
-                    }
-                }
-            }
-            else -> TODO(expression.toString())
         }
     }
 
