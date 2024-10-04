@@ -3,7 +3,8 @@
 //-----------------
 buildscript {
 
-    ext.antlr_version = '4.13.2'
+    ext.antlrVersion = "${antlrVersion}"
+    ext.junitVersion = "${junitVersion}"
 
     repositories {
         mavenCentral()
@@ -33,8 +34,8 @@ repositories {
 }
 
 dependencies {
-    implementation "org.antlr:antlr4:$antlr_version"
-    implementation "org.antlr:antlr4-runtime:$antlr_version"
+    implementation "org.antlr:antlr4:$antlrVersion"
+    implementation "org.antlr:antlr4-runtime:$antlrVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"

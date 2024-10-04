@@ -22,7 +22,8 @@ import java.text.SimpleDateFormat
 buildscript {
     ext.kotlinVersion = "${kotlinVersion}"
     ext.jvmVersion = "${jvmVersion}"
-    ext.antlr_version = '4.13.2'
+    ext.antlrVersion = "${antlrVersion}"
+    ext.junitVersion = "${junitVersion}"
 
     repositories {
         mavenCentral()
@@ -41,15 +42,16 @@ buildscript {
 
 apply plugin: 'antlr'
 
-def antlrVersion = ext.antlr_version
+def antlrVersion = ext.antlrVersion
+def junitVersion = ext.junitVersion
 def generatedMain = "generated-src/antlr/main"
 def generatedMainFile = file(generatedMain)
 
 def unlimitedStringTypeFlag = "jariko.features.UnlimitedStringTypeFlag"
 
 dependencies {
-    antlr "org.antlr:antlr4:$antlr_version"
-    implementation "org.antlr:antlr4-runtime:$antlr_version"
+    antlr "org.antlr:antlr4:$antlrVersion"
+    implementation "org.antlr:antlr4-runtime:$antlrVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
