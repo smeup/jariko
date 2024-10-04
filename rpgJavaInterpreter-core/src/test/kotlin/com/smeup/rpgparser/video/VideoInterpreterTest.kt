@@ -3,7 +3,6 @@ package com.smeup.rpgparser.video
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.linesclassifier.ConstantField
 import com.smeup.dspfparser.linesclassifier.DSPFField
-import com.smeup.dspfparser.linesclassifier.MutableField
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.DecimalValue
@@ -95,11 +94,11 @@ class VideoInterpreterTest : AbstractTest() {
             map["FLD01"] = StringValue("NEW_VALUE")
 
             // user edits existing mutable fields values
-            val str = (record.fields.find { (it as MutableField).name == "STR" }!! as MutableField).value as StringValue
+            val str = record.fields.find { it.name == "STR" }!!.value as StringValue
             map["STR"] = StringValue(str.asString().value.lowercase())
-            val int = (record.fields.find { (it as MutableField).name == "INT" }!! as MutableField).value as IntValue
+            val int = record.fields.find { it.name == "INT" }!!.value as IntValue
             map["INT"] = int.plus(IntValue(1))
-            val dec = (record.fields.find { (it as MutableField).name == "DEC" }!! as MutableField).value as DecimalValue
+            val dec = record.fields.find { it.name == "DEC" }!!.value as DecimalValue
             map["DEC"] = dec.increment(1)
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
