@@ -3,7 +3,7 @@
 //-----------------
 buildscript {
 
-    ext.antlr_version = '4.7.2'
+    ext.antlr_version = '4.13.2'
 
     repositories {
         mavenCentral()
@@ -39,10 +39,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.1'
 
-    implementation 'com.fifesoft:rsyntaxtextarea:2.5.8'
-    implementation 'com.fifesoft:autocomplete:2.5.8'
+    implementation 'com.fifesoft:rsyntaxtextarea:3.5.1'
+    implementation 'com.fifesoft:autocomplete:3.3.1'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
 
