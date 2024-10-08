@@ -918,9 +918,9 @@ object JulValue : Value {
 class ProjectedArrayValue(
     val container: DataStructValue,
     val field: FieldDefinition,
-    val startOffset: Int,
+    var startOffset: Int,
     val step: Int,
-    val arrayLength: Int
+    var arrayLength: Int
 ) : ArrayValue() {
     override val elementType: Type
         get() = (this.field.type as ArrayType).element
@@ -983,6 +983,11 @@ class ProjectedArrayValue(
     override fun takeLast(n: Int): Value = takeAll().takeLast(n)
 
     override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
+
+    override fun take(from: Int, to: Int): ProjectedArrayValue {
+        //todo
+        return ProjectedArrayValue(container, field, startOffset = from * step, step, arrayLength = to)
+    }
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
