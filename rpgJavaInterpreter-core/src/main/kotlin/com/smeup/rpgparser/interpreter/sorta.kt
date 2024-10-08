@@ -13,7 +13,6 @@ fun sortA(value: Value, arrayType: ArrayType) {
 
     when (value) {
         is ConcreteArrayValue -> {
-            // TODO pass the correct charset to the default sorting algorithm
             if (ascend) {
                 value.elements.sort()
             } else {
@@ -25,16 +24,20 @@ fun sortA(value: Value, arrayType: ArrayType) {
             require(value.field.type is ArrayType)
 
             val numOfElements = value.arrayLength
-            val totalLengthOfAllElements = value.container.len
-            val elementSize = totalLengthOfAllElements / numOfElements
+            val elements: List<String> = value.container.value.chunked(value.step)
 
-            val elements: List<String> = value.container.value.chunked(elementSize)
-            val elementsToCalculateSort: List<String> = elements.map {
+            val start = value.startOffset / value.step
+            val end = (start + numOfElements).coerceAtMost(elements.size)
+
+            val elementsLeft = if (start > 0) elements.subList(0, start) else emptyList()
+            val elementsRight = if (end < elements.size) elements.subList(end, elements.size) else emptyList()
+
+            val elementsToCalculateSort: MutableList<String> = elements.subList(start, end).map {
                 it.substring(
                     value.field.calculatedStartOffset!!,
                     value.field.calculatedEndOffset!!
                 )
-            }
+            }.toMutableList()
             // crete a map <Index, ValueToSort>
             val indexesMap: Map<Int, String> = elementsToCalculateSort.mapIndexed { i, v -> i + 1 to v }.toMap()
             // sort the map
@@ -50,12 +53,15 @@ fun sortA(value: Value, arrayType: ArrayType) {
                 .sortedBy { sortedValues.indexOf(it.value) }
                 .associate { it.toPair() }
 
-            var containerValue = StringBuilder()
-            sortedMap.keys.forEach { key ->
-                containerValue.append(elements[key - 1])
-            }
+            val sortedElementsToSort = sortedMap.keys.map { elements[start + it - 1] }
+
+            val resultList = elementsLeft + sortedElementsToSort + elementsRight
+
             // return value
-            value.container.value = containerValue.toString()
+            value.container.value = resultList.joinToString("")
+
+            value.startOffset = 0
+            value.arrayLength = value.elements().size
         }
     }
 }

@@ -984,10 +984,8 @@ class ProjectedArrayValue(
 
     override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
 
-    override fun take(from: Int, to: Int): ProjectedArrayValue {
-        //todo
-        return ProjectedArrayValue(container, field, startOffset = from * step, step, arrayLength = to)
-    }
+    override fun take(from: Int, to: Int): ProjectedArrayValue =
+        ProjectedArrayValue(container, field, startOffset = from * step, step, arrayLength = to)
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
