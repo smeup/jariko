@@ -2,6 +2,7 @@ package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -631,5 +632,15 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00263() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00263".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Verifies the sort of ds array values
+     * @see #LS24004379
+     */
+    @Test
+    fun executeMUDRNRAPU01104() {
+        val expected = listOf("ORIGINAL", "3", "2", "4", "1", "5", "ORDERED", "3", "1", "2", "4", "5")
+        assertEquals(expected, "smeup/MUDRNRAPU01104".outputOf(configuration = smeupConfig))
     }
 }
