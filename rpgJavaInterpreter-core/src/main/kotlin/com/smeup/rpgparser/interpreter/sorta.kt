@@ -59,9 +59,6 @@ fun sortA(value: Value, arrayType: ArrayType) {
 
             // return value
             value.container.value = resultList.joinToString("")
-
-            value.startOffset = 0
-            value.arrayLength = value.elements().size
         }
     }
 }

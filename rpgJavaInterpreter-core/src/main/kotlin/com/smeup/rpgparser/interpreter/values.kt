@@ -918,9 +918,9 @@ object JulValue : Value {
 class ProjectedArrayValue(
     val container: DataStructValue,
     val field: FieldDefinition,
-    var startOffset: Int,
+    val startOffset: Int,
     val step: Int,
-    var arrayLength: Int
+    val arrayLength: Int
 ) : ArrayValue() {
     override val elementType: Type
         get() = (this.field.type as ArrayType).element
