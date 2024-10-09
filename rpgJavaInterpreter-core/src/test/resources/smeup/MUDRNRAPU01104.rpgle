@@ -2,11 +2,12 @@
      V* 07/10/2024 APU011 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Verifies the sort of ds array values
+    O * Verifies the sorting of values in an array in a data structure
+    O * when the factor one is a reference to an array field.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:
-    O *   Issue executing SortAStmt at line 25.
+    O *   Issue executing SortAStmt at line 26.
     O *   An operation is not implemented: take not yet implemented for ProjectedArrayValue
      V* ==============================================================
 
