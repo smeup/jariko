@@ -632,4 +632,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00263".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Verifies the sort of ds array values
+     * @see #LS24004379
+     */
+    @Test
+    fun executeMUDRNRAPU01104() {
+        val expected = listOf("ORIGINAL", "3", "2", "4", "1", "5", "ORDERED", "3", "1", "2", "4", "5")
+        assertEquals(expected, "smeup/MUDRNRAPU01104".outputOf(configuration = smeupConfig))
+    }
 }
