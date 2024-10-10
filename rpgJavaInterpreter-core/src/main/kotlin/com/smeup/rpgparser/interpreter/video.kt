@@ -9,7 +9,7 @@ internal fun DSPF.getDbFields(): List<DbField> {
     val fields = mutableListOf<DbField>()
 
     records.forEach { record ->
-        record.fields.forEach { field ->
+        record.mutables.forEach { field ->
             val type: Type
             val rpgType: RpgType
             // currently REFFLD are not supported, so I created random fallback values
@@ -61,7 +61,7 @@ internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, r
 
     displayFiles?.forEach { dspf ->
         record = dspf.value.records.first { it.name == recordName }
-        record!!.fields.forEach { field ->
+        record!!.mutables.forEach { field ->
             field.value = symbolTable[field.name]
         }
     }

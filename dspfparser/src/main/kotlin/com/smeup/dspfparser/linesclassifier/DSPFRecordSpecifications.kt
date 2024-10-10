@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 internal data class DSPFRecordSpecifications private constructor(
     override val name: String
 ) : DSPFRecord {
-    override val fields: MutableList<MutableField> = mutableListOf()
+    override val mutables: MutableList<MutableField> = mutableListOf()
     override val constants: MutableList<ConstantField> = mutableListOf()
 
     companion object {

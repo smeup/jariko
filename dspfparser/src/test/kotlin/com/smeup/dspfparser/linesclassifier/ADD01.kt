@@ -12,10 +12,10 @@ internal class ADD01 : DSPFSpecificationsLoader("./src/test/resources/ADD01.dspf
     }
 
     @Test
-    fun fields() {
-        val fields = this.specifications.records[0].fields
-        val names = fields.map { it.name }
-        assertEquals(4, fields.size)
+    fun mutables() {
+        val mutables = this.specifications.records[0].mutables
+        val names = mutables.map { it.name }
+        assertEquals(4, mutables.size)
         assertTrue { names.contains("A") }
         assertTrue { names.contains("B") }
         assertTrue { names.contains("RESULT") }

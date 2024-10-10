@@ -40,12 +40,12 @@ private fun parseInput(input: String): Map<String, String> {
 private fun printRecord(record: DSPFRecord) {
     println()
     print("OUTPUT fields:\n")
-    record.fields.filter { it.type == DSPFFieldType.OUTPUT }.forEach {
+    record.mutables.filter { it.type == DSPFFieldType.OUTPUT }.forEach {
         println("\t|${it.name}=${(it.value as Value).asString().value}|")
     }
     println()
     print("INPUT fields:\n")
-    record.fields.filter { it.type == DSPFFieldType.INPUT }.forEach {
+    record.mutables.filter { it.type == DSPFFieldType.INPUT }.forEach {
         println("\t|${it.name}=${(it.value as Value).asString().value}|")
     }
     println()
@@ -58,10 +58,10 @@ private fun askInputFor(record: DSPFRecord): Map<String, Value> {
     val updatedVariables = parseInput(line)
 
     updatedVariables.keys.forEach { variable ->
-        record.fields.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
+        record.mutables.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
     }
 
-    record.fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
+    record.mutables.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
         if (it.isNumeric && it.precision!! == 0)
             variablesAndValues[it.name] = IntValue(updatedVariables[it.name]!!.toLong())
         if (it.isNumeric && it.precision!! > 0)

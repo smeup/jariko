@@ -16,7 +16,7 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
     }
 
     @Test
-    fun fieldsFromRecordByName() {
+    fun mutableFieldsFromRecordByName() {
         assertEquals(2, this.specifications.getMutableFieldsFromRecord("REC01").size)
         assertEquals(1, this.specifications.getMutableFieldsFromRecord("REC11").size)
         assertEquals(1, this.specifications.getMutableFieldsFromRecord("REC21").size)
@@ -24,8 +24,8 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
     }
 
     @Test
-    fun fields_1() {
-        val first = this.specifications.records[0].fields[0]
+    fun mutables_1() {
+        val first = this.specifications.records[0].mutables[0]
         assertEquals("FLD01", first.name)
         assertFalse { first.isNumeric }
         assertTrue { first.type == DSPFFieldType.OUTPUT }
@@ -33,7 +33,7 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
         assertEquals(1, first.y)
         assertEquals(2, first.x)
 
-        val second = this.specifications.records[0].fields[1]
+        val second = this.specifications.records[0].mutables[1]
         assertEquals("FLD02", second.name)
         assertTrue { second.isNumeric }
         assertTrue { second.type == DSPFFieldType.INPUT }
@@ -43,8 +43,8 @@ internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/res
     }
 
     @Test
-    fun fields_2() {
-        val first = this.specifications.records[1].fields[0]
+    fun mutables_2() {
+        val first = this.specifications.records[1].mutables[0]
         assertEquals("FLD11", first.name)
         assertFalse { first.isNumeric }
         assertTrue { first.type == DSPFFieldType.INPUT_OUTPUT }

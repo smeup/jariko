@@ -12,10 +12,10 @@ internal class B1601BV : DSPFSpecificationsLoader("./src/test/resources/B£1601B
     }
 
     @Test
-    fun fields() {
-        val fields = this.specifications.records[0].fields
-        val names = fields.map { it.name }
-        assertEquals(15, fields.size)
+    fun mutables() {
+        val mutables = this.specifications.records[0].mutables
+        val names = mutables.map { it.name }
+        assertEquals(15, mutables.size)
         assertTrue { names.contains("£RASDI") }
         assertTrue { names.contains("£PDSNP") }
         assertTrue { names.contains("£PDSJN") }

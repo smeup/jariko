@@ -94,11 +94,11 @@ class VideoInterpreterTest : AbstractTest() {
             map["FLD01"] = StringValue("NEW_VALUE")
 
             // user edits existing mutable fields values
-            val str = record.fields.find { it.name == "STR" }!!.value as StringValue
+            val str = record.mutables.find { it.name == "STR" }!!.value as StringValue
             map["STR"] = StringValue(str.asString().value.lowercase())
-            val int = record.fields.find { it.name == "INT" }!!.value as IntValue
+            val int = record.mutables.find { it.name == "INT" }!!.value as IntValue
             map["INT"] = int.plus(IntValue(1))
-            val dec = record.fields.find { it.name == "DEC" }!!.value as DecimalValue
+            val dec = record.mutables.find { it.name == "DEC" }!!.value as DecimalValue
             map["DEC"] = dec.increment(1)
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
