@@ -439,10 +439,13 @@ open class InternalInterpreter(
         }
     }
 
-    private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int =
-        statements.indexOfFirst {
+    private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int {
+        val flatStatements = statements.explode()
+
+        return flatStatements.indexOfFirst {
             it is TagStmt && it.tag == tag
         }
+    }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
         val result = TreeMap<String, Value>(String.CASE_INSENSITIVE_ORDER)
