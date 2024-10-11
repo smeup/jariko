@@ -336,7 +336,7 @@ open class BaseCompileTimeInterpreter(
                                 val apiId = apiDirective.toApiId(conf)
                                 val type = apiId.loadAndUse { api ->
                                     api.let {
-                                        it.compilationUnit.dataDefinitions.firstOrNull { def ->
+                                        it.compilationUnit.allDataDefinitions.firstOrNull { def ->
                                             def.name.equals(declName, ignoreCase = true)
                                         }
                                     }?.type
