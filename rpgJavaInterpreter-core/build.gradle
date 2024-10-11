@@ -63,7 +63,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.24.1'
 
     implementation 'commons-io:commons-io:2.17.0'
-    implementation 'com.github.ajalt:clikt:2.1.0'
+    implementation 'com.github.ajalt:clikt:3.5.2'
 
     api "io.github.smeup.reload:base:$reloadVersion"
     api "io.github.smeup.reload:sql:$reloadVersion"
