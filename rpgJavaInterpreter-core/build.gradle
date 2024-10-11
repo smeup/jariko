@@ -71,7 +71,7 @@ dependencies {
     api "io.github.smeup.reload:manager:$reloadVersion"
     api "io.github.smeup.reload:jt400:$reloadVersion"
 
-    implementation 'com.github.ziggy42:kolor:0.0.2'
+    implementation 'com.github.ziggy42:kolor:1.0.0'
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
