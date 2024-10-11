@@ -642,4 +642,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ORIGINAL", "3", "2", "4", "1", "5", "ORDERED", "3", "1", "2", "4", "5")
         assertEquals(expected, "smeup/MUDRNRAPU01104".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Like on an InStatement definition inside an API
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00264() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00264".outputOf(configuration = smeupConfig))
+    }
 }
