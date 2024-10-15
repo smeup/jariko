@@ -440,9 +440,7 @@ open class InternalInterpreter(
     }
 
     private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int {
-        val flatStatements = statements.explode()
-
-        return flatStatements.indexOfFirst {
+        return statements.explode().indexOfFirst {
             it is TagStmt && it.tag == tag
         }
     }
