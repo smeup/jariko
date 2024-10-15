@@ -943,7 +943,13 @@ class ProjectedArrayValue(
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val startIndex = (this.startOffset + this.step * (index - 1))
         val endIndex = (startIndex + this.field.elementSize())
-        container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
+        val coercedValue: StringValue = coerce(value, this.field.type.element).let {
+            when (it) {
+                is DecimalValue -> it.asStringWithoutComma()
+                else -> it.asString()
+            }
+        }
+        container.setSubstring(startIndex, endIndex, coercedValue)
     }
 
     override fun getElement(index: Int): Value {
@@ -986,6 +992,8 @@ class ProjectedArrayValue(
 
     override fun take(from: Int, to: Int): ProjectedArrayValue =
         ProjectedArrayValue(container, field, startOffset = from * step, step, arrayLength = to)
+
+    private fun DecimalValue.asStringWithoutComma(): StringValue = StringValue(value.toPlainString().replace(".", ""))
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)

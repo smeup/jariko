@@ -663,4 +663,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("FLG-FALSE", "EMPTY", "FLG-TRUE")
         assertEquals(expected, "smeup/MUDRNRAPU01105".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Assignment of integer value to a DS decimal subfield
+     * @see #LS24004450
+     */
+    @Test
+    fun executeMUDRNRAPU00132() {
+        val expected = listOf("10.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00132".outputOf(configuration = smeupConfig))
+    }
 }
