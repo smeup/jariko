@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.video
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dspfparser.linesclassifier.ConstantField
+import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.DecimalValue
@@ -13,7 +15,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class VideoInterpeterTest : AbstractTest() {
+class VideoInterpreterTest : AbstractTest() {
 
     lateinit var configuration: Configuration
     lateinit var configurationForRetroCompatibilityTest: Configuration
@@ -85,18 +87,18 @@ class VideoInterpeterTest : AbstractTest() {
     @Test
     fun executeEXFMT1() {
         val expected = listOf("FLD01:NEW_VALUE", "STR:uppercase", "INT:124", "DEC:124.45")
-        configuration.jarikoCallback.onExfmt = { fields, runtimeInterpreterSnapshot ->
+        configuration.jarikoCallback.onExfmt = { record, runtimeInterpreterSnapshot ->
             val map = mutableMapOf<String, Value>()
 
             // simulates user typing something new in FLD01
             map["FLD01"] = StringValue("NEW_VALUE")
 
-            // user edits existing field value
-            val str = fields.find { it.name == "STR" }!!.value as StringValue
+            // user edits existing mutable fields values
+            val str = record.mutables.find { it.name == "STR" }!!.value as StringValue
             map["STR"] = StringValue(str.asString().value.lowercase())
-            val int = fields.find { it.name == "INT" }!!.value as IntValue
+            val int = record.mutables.find { it.name == "INT" }!!.value as IntValue
             map["INT"] = int.plus(IntValue(1))
-            val dec = fields.find { it.name == "DEC" }!!.value as DecimalValue
+            val dec = record.mutables.find { it.name == "DEC" }!!.value as DecimalValue
             map["DEC"] = dec.increment(1)
 
             OnExfmtResponse(runtimeInterpreterSnapshot, map)
@@ -105,5 +107,29 @@ class VideoInterpeterTest : AbstractTest() {
             assertNotNull(it.displayFiles?.get("EXFMT1V"))
         }
         assertEquals(expected = expected, actual = "video/EXFMT1".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeEXFMT2() {
+        val expected = emptyList<String>()
+        val constants = mutableListOf<DSPFField>()
+        configuration.jarikoCallback.onExfmt = { record, runtimeInterpreterSnapshot ->
+            val map = mutableMapOf<String, Value>()
+
+            record.constants.forEach { constants.add(it) }
+
+            OnExfmtResponse(runtimeInterpreterSnapshot, map)
+        }
+        configuration.jarikoCallback.afterAstCreation = {
+            assertNotNull(it.displayFiles?.get("EXFMT2V"))
+        }
+        assertEquals(expected = expected, actual = "video/EXFMT2".outputOf(configuration = configuration))
+        assertEquals(expected = 2, actual = constants.size)
+        assertEquals(expected = "Article code", actual = ((constants[0] as ConstantField).value)!!.value)
+        assertEquals(expected = 12, actual = constants[0].y)
+        assertEquals(expected = 2, actual = constants[0].x)
+        assertEquals(expected = "Article name", actual = ((constants[1] as ConstantField).value)!!.value)
+        assertEquals(expected = 2, actual = constants[1].y)
+        assertEquals(expected = 8, actual = constants[1].x)
     }
 }

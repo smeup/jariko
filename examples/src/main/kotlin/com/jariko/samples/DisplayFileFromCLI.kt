@@ -1,7 +1,7 @@
 package com.jariko.samples
 
-import com.smeup.dspfparser.linesclassifier.DSPFField
 import com.smeup.dspfparser.linesclassifier.DSPFFieldType
+import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.JarikoCallback
@@ -37,31 +37,31 @@ private fun parseInput(input: String): Map<String, String> {
     }
 }
 
-private fun printFields(fields: List<DSPFField>) {
+private fun printRecord(record: DSPFRecord) {
     println()
     print("OUTPUT fields:\n")
-    fields.filter { it.type == DSPFFieldType.OUTPUT }.forEach {
+    record.mutables.filter { it.type == DSPFFieldType.OUTPUT }.forEach {
         println("\t|${it.name}=${(it.value as Value).asString().value}|")
     }
     println()
     print("INPUT fields:\n")
-    fields.filter { it.type == DSPFFieldType.INPUT }.forEach {
+    record.mutables.filter { it.type == DSPFFieldType.INPUT }.forEach {
         println("\t|${it.name}=${(it.value as Value).asString().value}|")
     }
     println()
     println("Insert input: ")
 }
 
-private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
+private fun askInputFor(record: DSPFRecord): Map<String, Value> {
     val variablesAndValues = mutableMapOf<String, Value>()
     val line = readln()
     val updatedVariables = parseInput(line)
 
     updatedVariables.keys.forEach { variable ->
-        fields.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
+        record.mutables.find { field -> field.name == variable } ?: throw UnknownVariable(variable)
     }
 
-    fields.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
+    record.mutables.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
         if (it.isNumeric && it.precision!! == 0)
             variablesAndValues[it.name] = IntValue(updatedVariables[it.name]!!.toLong())
         if (it.isNumeric && it.precision!! > 0)
@@ -73,11 +73,11 @@ private fun askInputFor(fields: List<DSPFField>): Map<String, Value> {
     return variablesAndValues
 }
 
-private fun onExfmt(fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot): OnExfmtResponse? {
-    printFields(fields)
+private fun onExfmt(record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot): OnExfmtResponse? {
+    printRecord(record)
     while (true) {
         try {
-            val variablesAndValues = askInputFor(fields)
+            val variablesAndValues = askInputFor(record)
             return OnExfmtResponse(runtimeInterpreterSnapshot, variablesAndValues)
         } catch (e: Exception) {
             e.printStackTrace()
