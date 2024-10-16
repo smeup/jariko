@@ -654,6 +654,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Declaration with DIM based on a constant whose definition is not known yet
+     * @see #LS24004491
+     */
+    @Test
+    fun executeMUDRNRAPU00267() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00267".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Assignment of integer value to a DS decimal subfield
      * @see #LS24004450
      */
