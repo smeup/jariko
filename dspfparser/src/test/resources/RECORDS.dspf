@@ -7,3 +7,8 @@
                 R REC11
                   FLD11          3A  B 10  8
                                             COLOR(RED)
+                R REC21
+                  FLD21          3A  B 10  8
+                                       12  2'Article code'
+                                        2 12'Article code but -
+                                            with a long multiline description'

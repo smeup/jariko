@@ -2394,10 +2394,10 @@ data class ExfmtStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
-        val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
+        val record = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
         val snapshot = RuntimeInterpreterSnapshot()
-        val response = jarikoCallback.onExfmt(fields, snapshot)
-        response ?: error("RuntimeInterpreterSnapshot is not yet handled")
+        val response = jarikoCallback.onExfmt(record, snapshot)
+        response ?: error("In the current implementation onExfmt callback cannot return null")
         copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }

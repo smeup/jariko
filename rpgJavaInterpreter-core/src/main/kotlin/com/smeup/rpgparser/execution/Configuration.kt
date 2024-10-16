@@ -18,7 +18,7 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.dspfparser.linesclassifier.DSPFField
+import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
@@ -179,8 +179,13 @@ data class JarikoCallback(
 
     /**
      * It is invoked on EXFMT execution.
+     * If implementer returns a not null value of type [OnExfmtResponse] program behaves
+     * normally and continues execution
+     * If implementer returns a null value that means program should stop because implementers intend to
+     * asynchronously wait for user input and does not want to keep server busy; it has the responsibility to
+     * provide a way to restore previous program state. This feature is not yet available.
      */
-    var onExfmt: (fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
+    var onExfmt: (record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
         _, _ -> null
     },
 

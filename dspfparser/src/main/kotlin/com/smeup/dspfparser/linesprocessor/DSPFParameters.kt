@@ -17,14 +17,14 @@ internal data class DSPFParameters private constructor(
             return text.removeFirst('(').removeLast(')')
         }
 
-        private fun tryRemoveSurroundingSingleQuotes(text: String): String {
+        private fun removeSingleQuotes(text: String): String {
             return text.removeFirst('\'').removeLast('\'')
         }
 
         private fun getArguments(text: String): MutableList<String> {
             val arguments: MutableList<String> = mutableListOf()
             this.removeBrackets(text).split(' ').forEach {
-                arguments.add(this.tryRemoveSurroundingSingleQuotes(it))
+                arguments.add(this.removeSingleQuotes(it))
             }
             return arguments
         }
