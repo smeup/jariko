@@ -604,4 +604,73 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("test", "te", "st")
         assertEquals(expected, "smeup/MUDRNRAPU01102".outputOf(configuration = smeupConfig))
     }
+
+    @Test
+    fun executeMUDRNRAPU01103() {
+        val expected = listOf("1", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU01103".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to a DS numeric field not initialized both by parent or from itself.
+     * @note This behaviour is different on AS400: a field of DS not initialized is a
+     *       hexadecimal value instead `0`.
+     * @see #LS24004159
+     */
+    @Test
+    fun executeMUDRNRAPU00131() {
+        val expected = listOf(".00", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00131".outputOf())
+    }
+
+    /**
+     * LIKE on DS field with absolute path
+     * @see #LS24003324
+     */
+    @Test
+    fun executeMUDRNRAPU00263() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00263".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Verifies the sort of ds array values
+     * @see #LS24004379
+     */
+    @Test
+    fun executeMUDRNRAPU01104() {
+        val expected = listOf("ORIGINAL", "3", "2", "4", "1", "5", "ORDERED", "3", "1", "2", "4", "5")
+        assertEquals(expected, "smeup/MUDRNRAPU01104".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Like on an InStatement definition inside an API
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00264() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00264".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Allows for the correct handling of composed (nested) statements during execution, ensuring that `TagStmts`
+     *  can be found even within complex structures.
+     * @see #LS24004437
+     */
+    @Test
+    fun executeMUDRNRAPU01105() {
+        val expected = listOf("FLG-FALSE", "EMPTY", "FLG-TRUE")
+        assertEquals(expected, "smeup/MUDRNRAPU01105".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of integer value to a DS decimal subfield
+     * @see #LS24004450
+     */
+    @Test
+    fun executeMUDRNRAPU00132() {
+        val expected = listOf("10.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00132".outputOf(configuration = smeupConfig))
+    }
 }

@@ -845,7 +845,11 @@ object EndValValue : Value {
     override fun asString() = "*END".asValue()
 }
 
+/**
+ * Character/numeric fields: All zeros. The value is '0' or X'F0'. For numeric float fields: The value is '0 E0'.
+ */
 object ZeroValue : Value {
+    const val STRING_REPRESENTATION = "0"
 
     override fun copy() = this
 
@@ -858,9 +862,13 @@ object ZeroValue : Value {
         return true
     }
 
-    override fun asString(): StringValue {
-        TODO("Not yet implemented")
-    }
+    override fun asString() = STRING_REPRESENTATION.asValue()
+    override fun asInt() = IntValue.ZERO
+    override fun asDecimal() = DecimalValue.ZERO
+    override fun asUnlimitedString() = UnlimitedStringValue(STRING_REPRESENTATION)
+
+    // FIXME: Check if it also applies to booleans and if that is the case uncomment line below
+    // override fun asBoolean() = BooleanValue.FALSE
 }
 
 class AllValue(val charsToRepeat: String) : Value {
@@ -935,7 +943,13 @@ class ProjectedArrayValue(
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val startIndex = (this.startOffset + this.step * (index - 1))
         val endIndex = (startIndex + this.field.elementSize())
-        container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
+        val coercedValue: StringValue = coerce(value, this.field.type.element).let {
+            when (it) {
+                is DecimalValue -> it.asStringWithoutComma()
+                else -> it.asString()
+            }
+        }
+        container.setSubstring(startIndex, endIndex, coercedValue)
     }
 
     override fun getElement(index: Int): Value {
@@ -975,6 +989,11 @@ class ProjectedArrayValue(
     override fun takeLast(n: Int): Value = takeAll().takeLast(n)
 
     override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
+
+    override fun take(from: Int, to: Int): ProjectedArrayValue =
+        ProjectedArrayValue(container, field, startOffset = from * step, step, arrayLength = to)
+
+    private fun DecimalValue.asStringWithoutComma(): StringValue = StringValue(value.toPlainString().replace(".", ""))
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
@@ -1004,15 +1023,15 @@ fun String.asIsoDate(): Date {
 fun createBlankFor(dataDefinition: DataDefinition): Value {
     val ds = DataStructValue.blank(dataDefinition.type.size)
     dataDefinition.fields.forEach {
-        if (it.type is NumberType) ds.set(it, it.type.toRPGValue(dataDefinition.inz))
+        if (it.type is NumberType && (dataDefinition.inz || it.initializationValue != null)) ds.set(it, it.type.toRPGValue())
     }
     return ds
 }
 
-private fun NumberType.toRPGValue(iniz: Boolean): Value =
+private fun NumberType.toRPGValue(): Value =
     when (rpgType) {
-        RpgType.ZONED.rpgType, RpgType.PACKED.rpgType -> if (iniz) DecimalValue.ZERO else DecimalValue.ONE
-        RpgType.BINARY.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> if (iniz) IntValue.ZERO else IntValue.ONE
+        RpgType.ZONED.rpgType, RpgType.PACKED.rpgType -> DecimalValue.ZERO
+        RpgType.BINARY.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> IntValue.ZERO
         else -> TODO("Please handle RpgType $rpgType")
     }
 

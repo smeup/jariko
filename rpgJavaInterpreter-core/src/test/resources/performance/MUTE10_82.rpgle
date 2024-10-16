@@ -1,10 +1,17 @@
+      *====================================================================
+      * smeup V6R1.025DV
+      * Nome sorgente       : MUTE10_82
+      * Sorgente di origine : QTEMP/MUSRC(MUTE10_82)
+      * Esportato il        : 20241004 155649
+      *====================================================================
      V*=====================================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 11/12/19  001362  BERNI Creato
-     V* 11/12/19  V5R1    BMA   Check-out 001362 in SMEUP_TST
+     V* 06/09/23  005098  BERNI Creato a partire dal MUTE10_06B
+     V* 07/09/23  V6R1    BMA Check-out 005098 in SMEDEV
      V*=====================================================================
+     D*  OBIETTIVO
      D*  Pgm testing performance with big array
      V*---------------------------------------------------------------------
      D $TIMST          S               Z   INZ
@@ -32,7 +39,7 @@
       * Loop on PGM
      C                   DO        500
      C                   EVAL      XXRET=' '
-     C                   CALL      'WAIT4BENETTI'
+     C                   CALL      'MUTE10_06A'
      C                   PARM                    ARRAY
      C                   PARM                    XXRET
      C

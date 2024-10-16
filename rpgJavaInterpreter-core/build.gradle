@@ -22,7 +22,8 @@ import java.text.SimpleDateFormat
 buildscript {
     ext.kotlinVersion = "${kotlinVersion}"
     ext.jvmVersion = "${jvmVersion}"
-    ext.antlr_version = '4.7.2'
+    ext.antlrVersion = "${antlrVersion}"
+    ext.junitVersion = "${junitVersion}"
 
     repositories {
         mavenCentral()
@@ -41,26 +42,27 @@ buildscript {
 
 apply plugin: 'antlr'
 
-def antlrVersion = ext.antlr_version
+def antlrVersion = ext.antlrVersion
+def junitVersion = ext.junitVersion
 def generatedMain = "generated-src/antlr/main"
 def generatedMainFile = file(generatedMain)
 
 def unlimitedStringTypeFlag = "jariko.features.UnlimitedStringTypeFlag"
 
 dependencies {
-    antlr "org.antlr:antlr4:$antlr_version"
-    implementation "org.antlr:antlr4-runtime:$antlr_version"
+    antlr "org.antlr:antlr4:$antlrVersion"
+    implementation "org.antlr:antlr4-runtime:$antlrVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
     api project(":kolasu")
     api project(":dspfparser")
 
-    implementation "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
-    implementation "org.apache.logging.log4j:log4j-api:2.23.0"
-    implementation 'org.apache.logging.log4j:log4j-core:2.23.0'
+    implementation "org.apache.logging.log4j:log4j-api-kotlin:1.5.0"
+    implementation "org.apache.logging.log4j:log4j-api:2.24.1"
+    implementation 'org.apache.logging.log4j:log4j-core:2.24.1'
 
-    implementation 'commons-io:commons-io:2.7'
+    implementation 'commons-io:commons-io:2.17.0'
     implementation 'com.github.ajalt:clikt:2.1.0'
 
     api "io.github.smeup.reload:base:$reloadVersion"
@@ -69,16 +71,16 @@ dependencies {
     api "io.github.smeup.reload:manager:$reloadVersion"
     api "io.github.smeup.reload:jt400:$reloadVersion"
 
-    implementation 'com.github.ziggy42:kolor:0.0.2'
+    implementation 'com.github.ziggy42:kolor:1.0.0'
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
 
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
-    testImplementation 'junit:junit:4.13.1'
-    testImplementation 'org.hsqldb:hsqldb:2.7.1'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.3.1'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation 'org.hsqldb:hsqldb:2.7.3'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
 }
 
 configurations.all() {
