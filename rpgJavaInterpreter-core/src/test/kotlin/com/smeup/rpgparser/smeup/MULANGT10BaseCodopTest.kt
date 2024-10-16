@@ -376,4 +376,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("123")
         assertEquals(expected, "smeup/MUDRNRAPU00262".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * DOWxx with indicator as factor 1
+     * @see #LS24004474
+     */
+    @Test
+    fun executeMUDRNRAPU00266() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/MUDRNRAPU00266".outputOf(configuration = smeupConfig))
+    }
 }
