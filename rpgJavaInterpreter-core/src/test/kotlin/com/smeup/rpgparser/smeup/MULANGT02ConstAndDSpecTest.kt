@@ -665,7 +665,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Like on a definition that is defined as a field of an occurable data structure
+     * Using %LEN on a definition inside a DIM
      * @see #LS24004434
      */
     @Test
@@ -675,7 +675,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Using %LEN on a definition inside a DIM
+     * Assignment of integer value to a DS decimal subfield
      * @see #LS24004450
      */
     @Test
