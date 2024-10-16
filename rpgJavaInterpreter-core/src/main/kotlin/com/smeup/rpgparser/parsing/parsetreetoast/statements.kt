@@ -224,11 +224,12 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
         else -> todo(conf = conf)
     }
 
+    val factor1Ast = this.factor1.toAstIfSymbolicConstant() ?: this.factor1.content.toAst(conf = conf)
     val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
 
     return DOWxxStmt(
         comparisonOperator = comparison,
-        factor1 = this.factor1.content.toAst(conf = conf),
+        factor1 = factor1Ast,
         factor2 = factor2Ast,
         position = toPosition(conf.considerPosition),
         body = blockContext.statement().map { it.toAst(conf) }
