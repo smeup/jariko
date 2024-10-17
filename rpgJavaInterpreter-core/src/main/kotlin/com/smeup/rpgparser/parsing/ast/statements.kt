@@ -733,9 +733,8 @@ data class CallStmt(
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
             return
         }
-
-        require(program != null) {
-            "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
+        if (program == null) {
+            throw ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
         }
 
         // Ignore exceeding params
@@ -930,10 +929,9 @@ data class MonitorStmt(
     override fun execute(interpreter: InterpreterCore) {
         try {
             interpreter.execute(this.monitorBody)
-        } catch (_: Exception) {
-            onErrorClauses.forEach {
-                interpreter.execute(it.body)
-            }
+        } catch (e: InterpreterProgramStatusErrorException) {
+            val errorClause = onErrorClauses.firstOrNull { e.statusCode.matches(it.status) }
+            errorClause?.let { interpreter.execute(it.body) }
         }
     }
 }
@@ -1018,7 +1016,7 @@ data class IfStmt(
 }
 
 @Serializable
-data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position),
+data class OnErrorClause(val status: String, override val body: List<Statement>, override val position: Position? = null) : Node(position),
     CompositeStatement
 
 @Serializable

@@ -580,8 +580,9 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
 
 internal fun RpgParser.OnErrorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OnErrorClause {
     val body = this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+    val status = this.factor().text.trim()
     val position = toPosition(conf.considerPosition)
-    return OnErrorClause(body, position)
+    return OnErrorClause(status, body, position)
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
