@@ -675,6 +675,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Using %LEN on a definition inside a DIM
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00265() {
+        val expected = listOf(List(500) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00265".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Assignment of integer value to a DS decimal subfield
      * @see #LS24004450
      */

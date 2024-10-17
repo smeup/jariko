@@ -81,6 +81,8 @@ open class BaseCompileTimeInterpreter(
                 return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
                     else
                 TODO(expression.toString())
+            // TODO: Check if we need a different logic in other cases
+            is LenExpr -> evaluateElementSizeOf(rContext, expression.value, ToAstConfiguration()).asValue()
             else -> TODO(expression.toString())
         }
     }
