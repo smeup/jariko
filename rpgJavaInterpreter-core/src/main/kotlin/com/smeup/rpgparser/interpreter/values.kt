@@ -678,8 +678,12 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun arrayLength() = elements.size
 
     override fun setElement(index: Int, value: Value) {
-        require(index >= 1)
-        require(index <= arrayLength())
+        if (index < 1) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+        }
+        if (index > arrayLength()) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+        }
         require(value.assignableTo(elementType)) {
             "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
         }
@@ -710,8 +714,12 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     }
 
     override fun getElement(index: Int): Value {
-        require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
-        require(index <= arrayLength())
+        if (index < 1) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+        }
+        if (index > arrayLength()) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+        }
         return elements[index - 1]
     }
 
@@ -938,8 +946,12 @@ class ProjectedArrayValue(
     override fun arrayLength() = arrayLength
 
     override fun setElement(index: Int, value: Value) {
-        require(index >= 1)
-        require(index <= arrayLength())
+        if (index < 1) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+        }
+        if (index > arrayLength()) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+        }
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val startIndex = (this.startOffset + this.step * (index - 1))
         val endIndex = (startIndex + this.field.elementSize())
@@ -953,11 +965,12 @@ class ProjectedArrayValue(
     }
 
     override fun getElement(index: Int): Value {
-        require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
-        if (index > arrayLength()) {
-            println()
+        if (index < 1) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
-        require(index <= arrayLength())
+        if (index > arrayLength()) {
+            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+        }
 
         val startIndex = (this.startOffset + this.step * (index - 1))
         val endIndex = (startIndex + this.field.elementSize())
