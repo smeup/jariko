@@ -8,6 +8,7 @@
      C     SUB_R         BEGSR
      C                   IF        FOO=''                                       #Cannot find searched value for InStatementDataDefinition name=FOO...
      C                   ENDIF
+     C                   MOVEL     'FOO'           FOO
      C     'A'           IFEQ      *BLANKS
      C                   CALL      'MYPGM'
      C                   PARM                    FOO             10
