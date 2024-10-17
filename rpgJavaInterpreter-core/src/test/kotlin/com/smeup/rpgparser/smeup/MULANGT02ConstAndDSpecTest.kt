@@ -654,6 +654,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Declaration with DIM based on a constant whose definition is not known yet
+     * @see #LS24004491
+     */
+    @Test
+    fun executeMUDRNRAPU00267() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00267".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Allows for the correct handling of composed (nested) statements during execution, ensuring that `TagStmts`
      *  can be found even within complex structures.
      * @see #LS24004437
