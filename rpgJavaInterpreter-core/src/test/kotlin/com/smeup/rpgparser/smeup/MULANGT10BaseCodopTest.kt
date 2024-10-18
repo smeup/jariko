@@ -386,4 +386,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1")
         assertEquals(expected, "smeup/MUDRNRAPU00266".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * State of context after a CALL failed setting an error indicator
+     * @see #LS24004538
+     */
+    @Test
+    fun executeMUDRNRAPU00268() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00268".outputOf(configuration = smeupConfig))
+    }
 }
