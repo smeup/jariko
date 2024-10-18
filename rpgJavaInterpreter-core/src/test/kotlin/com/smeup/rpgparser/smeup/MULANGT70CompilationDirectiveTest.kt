@@ -67,4 +67,15 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val expected = listOf("HELLO THERE")
         assertEquals(expected, "smeup/MUDRNRAPU00103".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Using API which declares a standalone variable that is already declared inline from MUDRNRAPU00133_API,
+     *  imported by API directive.
+     * @see #LS24004504
+     */
+    @Test
+    fun executeMUDRNRAPU00133() {
+        val expected = listOf("OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00133".outputOf(configuration = smeupConfig))
+    }
 }
