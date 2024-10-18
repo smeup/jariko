@@ -15,3 +15,5 @@
 
      C                   EXSR      SUB_R
       /API QILEGEN,MUDRNRAPU00133_API                                           #Error in API: Cannot find searched value for InStatementDataDefinition name=FOO...
+
+     C                   SETON                                          LR
