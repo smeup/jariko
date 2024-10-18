@@ -7,6 +7,7 @@ import com.smeup.dspfparser.positionals.Reserved
 import com.smeup.dspfparser.positionals.TypeOfName
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 internal class LineTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf") {
     init {
@@ -29,6 +30,19 @@ internal class LineTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf")
         assertEquals(FieldType.B, line.fieldType)
         assertEquals(12, line.y)
         assertEquals(22, line.x)
+        assertNotEquals(line.type, LineType.CONSTANT)
+    }
+
+    @Test
+    fun line_2() {
+        val line = this.linesProcessor.lines[1]
+        assertNotEquals(line.type, LineType.CONSTANT)
+    }
+
+    @Test
+    fun line_3() {
+        val line = this.linesProcessor.lines[2]
+        assertNotEquals(line.type, LineType.CONSTANT)
     }
 
     @Test
@@ -36,5 +50,6 @@ internal class LineTest : LinesProcessorLoader("./src/test/resources/FAKE.dspf")
         val line = this.linesProcessor.lines[3]
         assertEquals(12, line.y)
         assertEquals(22, line.x)
+        assertEquals(line.type, LineType.CONSTANT)
     }
 }

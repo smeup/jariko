@@ -1,36 +1,38 @@
 package com.smeup.dspfparser.linesclassifier
 
 import com.smeup.dspfparser.linesprocessor.DSPFLine
+import com.smeup.dspfparser.linesprocessor.LineType
 import com.smeup.dspfparser.positionals.FieldType
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFFieldSpecifications private constructor(
-    override val name: String,
-    override var value: DSPFValue? = null,
-    override val isNumeric: Boolean,
-    override val length: Int? = null,
-    override val precision: Int? = null,
-    override val type: DSPFFieldType,
     override val x: Int?,
-    override val y: Int?,
-    override var hasError: Boolean = false
+    override val y: Int?
 ) : DSPFField {
 
     companion object {
-        fun fromLine(declaration: DSPFLine): DSPFFieldSpecifications {
-            val isNumeric = declaration.decimalsPositions != null
+        fun fromLine(declaration: DSPFLine): DSPFField {
+            if (declaration.type == LineType.CONSTANT) {
+                return ConstantField(
+                    value = ConstantValue(declaration.keywords!!.getConstantValue()),
+                    x = declaration.x,
+                    y = declaration.y
+                )
+            } else {
+                val isNumeric = declaration.decimalsPositions != null
 
-            return DSPFFieldSpecifications(
-                name = declaration.fieldName,
-                value = null,
-                isNumeric = isNumeric,
-                length = declaration.length,
-                precision = declaration.decimalsPositions,
-                type = this.getType(declaration),
-                x = declaration.x,
-                y = declaration.y
-            )
+                return MutableField(
+                    name = declaration.fieldName,
+                    value = null,
+                    isNumeric = isNumeric,
+                    length = declaration.length,
+                    precision = declaration.decimalsPositions,
+                    type = this.getType(declaration),
+                    x = declaration.x,
+                    y = declaration.y
+                )
+            }
         }
 
         private fun getType(declaration: DSPFLine): DSPFFieldType {

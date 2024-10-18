@@ -654,6 +654,37 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Declaration with DIM based on a constant whose definition is not known yet
+     * @see #LS24004491
+     */
+    @Test
+    fun executeMUDRNRAPU00267() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00267".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Allows for the correct handling of composed (nested) statements during execution, ensuring that `TagStmts`
+     *  can be found even within complex structures.
+     * @see #LS24004437
+     */
+    @Test
+    fun executeMUDRNRAPU01105() {
+        val expected = listOf("FLG-FALSE", "EMPTY", "FLG-TRUE")
+        assertEquals(expected, "smeup/MUDRNRAPU01105".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Using %LEN on a definition inside a DIM
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00265() {
+        val expected = listOf(List(500) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00265".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Assignment of integer value to a DS decimal subfield
      * @see #LS24004450
      */
