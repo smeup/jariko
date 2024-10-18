@@ -386,4 +386,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1")
         assertEquals(expected, "smeup/MUDRNRAPU00266".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Comparing number and `*ZEROS` by using `IFxx`.
+     * @see #LS24004528
+     */
+    @Test
+    fun executeMUDRNRAPU00134() {
+        val expected = listOf("OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00134".outputOf(configuration = smeupConfig))
+    }
 }
