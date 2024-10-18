@@ -1,7 +1,7 @@
      V* ==============================================================
      V* 17/10/2024 APU001 Creation
      V* ==============================================================
-    O * This code is used for purpose of MUDRNRAPU00133 program.
+    O * This code is used for purposes of MUDRNRAPU00133 program.
      V* ==============================================================
      D MSG             S             10          INZ('OK')
 
