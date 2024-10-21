@@ -320,6 +320,7 @@ data class IntValue(val value: Long) : NumberValue() {
         is IntValue -> value.compareTo(other.value)
         is DecimalValue -> this.asDecimal().compareTo(other)
         is PointerValue -> value.compareTo(other.address)
+        is ZeroValue -> value.compareTo(ZeroValue.asInt().value)
         else -> super.compareTo(other)
     }
 
