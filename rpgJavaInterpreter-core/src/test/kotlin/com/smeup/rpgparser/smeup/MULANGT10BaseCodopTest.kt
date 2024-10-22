@@ -388,6 +388,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * State of context after a CALL failed setting an error indicator
+     * @see #LS24004538
+     */
+    @Test
+    fun executeMUDRNRAPU00268() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00268".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Comparing number and `*ZEROS` by using `IFxx`.
      * @see #LS24004528
      */
