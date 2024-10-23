@@ -1,3 +1,11 @@
+     V* ==============================================================
+     V* 23/10/2024 APU002 Creation
+     V* ==============================================================
+    O * PROGRAM GOAL
+    O * Execute a nested GOTO in a subroutine redirecting to a TAG at
+    O * the end of the same subroutine
+     V* ==============================================================
+
      C                   EXSR      SR
      C                   SETON                                          LR
 
