@@ -6,6 +6,17 @@
     O * a GOTO redirecting to a TAG in the latter subroutine
      V* ==============================================================
 
+     C                   EXSR      SR1
+     C     1             IFEQ      0
+     C     '3'           DSPLY
+     C                   ENDIF
+     C                   SETON                                          LR
+
+     C     SR1           BEGSR
+     C     1             IFEQ      1
+     C     '1'           DSPLY
+     C                   EXSR      SR2
+     C     '2'           DSPLY
      C                   ENDIF
      C                   ENDSR
 
