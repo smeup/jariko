@@ -57,8 +57,9 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     // Unwrap StatementThatCanDefineData contained in CompositeStatements
     val unwrappedCompositeStatements = compositeStatements.findWrappedInStatementDataDefinitions()
 
-    // Move define statements to end as they can be based on other instatement definitions
-    val targetStatements = (freeStatements + unwrappedCompositeStatements).moveDefineStmtsToEnd()
+    // Move define statements to end as they can be based on other instatement definitions,
+    // after removing duplicates with same internal object ID
+    val targetStatements = (freeStatements + unwrappedCompositeStatements).distinct().moveDefineStmtsToEnd()
 
     targetStatements.forEach { statementThatCanDefineData ->
         kotlin.runCatching {
