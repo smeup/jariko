@@ -931,7 +931,8 @@ data class MonitorStmt(
             interpreter.execute(this.monitorBody)
         } catch (e: InterpreterProgramStatusErrorException) {
             val errorClause = onErrorClauses.firstOrNull { e.statusCode.matches(it.status) }
-            errorClause?.let { interpreter.execute(it.body) }
+            errorClause ?: throw e
+            interpreter.execute(errorClause.body)
         }
     }
 }
