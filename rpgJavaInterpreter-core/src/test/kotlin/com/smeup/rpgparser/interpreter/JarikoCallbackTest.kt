@@ -762,6 +762,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR44CallBackTest() {
+        executePgmCallBackTest("ERROR44", SourceReferenceType.Program, "ERROR44", mapOf(
+            8 to "Error calling program or procedure - Could not find program MISSING"
+        ))
+    }
+
+    @Test
+    fun executeERROR44SourceLineTest() {
+        executeSourceLineTest("ERROR44")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
