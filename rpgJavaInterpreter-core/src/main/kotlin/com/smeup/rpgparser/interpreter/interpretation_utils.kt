@@ -20,6 +20,11 @@ import com.smeup.rpgparser.parsing.ast.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+data class WithOffset<T>(
+    val data: T,
+    val offset: Int
+)
+
 fun Value.stringRepresentation(format: String? = null): String {
     return when (this) {
         is StringValue -> value

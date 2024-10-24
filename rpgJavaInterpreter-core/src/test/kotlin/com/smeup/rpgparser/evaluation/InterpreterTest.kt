@@ -1321,6 +1321,48 @@ Test 6
     }
 
     @Test
+    fun executeGOTOTST1() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST1"))
+    }
+
+    @Test
+    fun executeGOTOTST2() {
+        val expected = listOf("3")
+        assertEquals(expected, outputOf("GOTOTST2"))
+    }
+
+    @Test
+    fun executeGOTOTST3() {
+        val expected = listOf("1")
+        assertEquals(expected, outputOf("GOTOTST3"))
+    }
+
+    @Test
+    fun executeGOTOTST4() {
+        val expected = listOf("1")
+        assertEquals(expected, outputOf("GOTOTST4"))
+    }
+
+    @Test
+    fun executeGOTOTST5() {
+        val expected = listOf("1", "3")
+        assertEquals(expected, outputOf("GOTOTST5"))
+    }
+
+    @Test
+    fun executeGOTOTST6() {
+        val expected = listOf("1", "4", "3")
+        assertEquals(expected, outputOf("GOTOTST6"))
+    }
+
+    @Test
+    fun executeGOTOTST7() {
+        val expected = listOf("1", "4", "2")
+        assertEquals(expected, outputOf("GOTOTST7"))
+    }
+
+    @Test
     fun executeGotoENDSR() {
         assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
     }
