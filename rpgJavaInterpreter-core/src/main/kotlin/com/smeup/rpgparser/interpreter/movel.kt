@@ -34,44 +34,56 @@ fun movel(
 ): Value {
     if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
-            throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement")
-        }
-
-        if (value.type() is DateType) {
-            return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
-        }
-
-        val valueToMove: String = getStringOfValue(target, interpreterCore, value)
-        if (target.type() is ArrayType) {
-            // for each element of array apply move
-            val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
-            val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
-            arrayValue.elements.forEachIndexed { index, el ->
-                arrayValue.setElement(
-                    index + 1, stringToValue(
-                        movel(
-                            valueToMove,
-                            valueToString(el, valueToApplyMoveElementType),
-                            valueToApplyMoveElementType,
-                            operationExtender != null
-                        ),
-                        valueToApplyMoveElementType
-                    )
-                )
+            if (target.type() !is ArrayType) {
+                throw UnsupportedOperationException("Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${value.type()} to Result as ${target.type()}.")
             }
-            return interpreterCore.assign(target, arrayValue)
-        } else {
-            val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
-            return interpreterCore.assign(
-                target,
-                stringToValue(
-                    movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                    target.type()
+        }
+
+        return movelFactorAsScalar(operationExtender, target, value, dataAttributes, interpreterCore)
+    } else {
+        return interpreterCore.assign(target, interpreterCore.eval(value))
+    }
+}
+
+fun movelFactorAsScalar(
+    operationExtender: String?,
+    target: AssignableExpression,
+    value: Expression,
+    dataAttributes: Expression?,
+    interpreterCore: InterpreterCore
+): Value {
+    if (value.type() is DateType) {
+        return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
+    }
+
+    val valueToMove: String = getStringOfValueBaseOfTarget(target, interpreterCore, value)
+    if (target.type() is ArrayType) {
+        // for each element of array apply move
+        val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+        val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
+        arrayValue.elements.forEachIndexed { index, el ->
+            arrayValue.setElement(
+                index + 1, stringToValue(
+                    movel(
+                        valueToMove,
+                        valueToString(el, valueToApplyMoveElementType),
+                        valueToApplyMoveElementType,
+                        operationExtender != null
+                    ),
+                    valueToApplyMoveElementType
                 )
             )
         }
+        return interpreterCore.assign(target, arrayValue)
     } else {
-        return interpreterCore.assign(target, interpreterCore.eval(value))
+        val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
+        return interpreterCore.assign(
+            target,
+            stringToValue(
+                movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
+                target.type()
+            )
+        )
     }
 }
 
@@ -85,7 +97,7 @@ fun move(
         if (value.type() is ArrayType) {
             throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVE/MOVE(P) statement")
         }
-        val valueToMove: String = getStringOfValue(target, interpreterCore, value)
+        val valueToMove: String = getStringOfValueBaseOfTarget(target, interpreterCore, value)
         if (target.type() is ArrayType) {
             // for each element of array apply move
             val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
@@ -119,7 +131,7 @@ fun move(
     }
 }
 
-private fun getStringOfValue(
+private fun getStringOfValueBaseOfTarget(
     target: AssignableExpression,
     interpreterCore: InterpreterCore,
     value: Expression
