@@ -794,6 +794,7 @@ data class CallStmt(
                 }
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
+                MainExecutionContext.getProgramStack().pop()
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
