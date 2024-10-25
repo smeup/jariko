@@ -59,8 +59,9 @@ fun movel(
     return if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
             movelFactorAsArray(operationExtender, target, value, dataAttributes, interpreterCore)
+        } else {
+            movelFactorAsScalar(operationExtender, target, value, dataAttributes, interpreterCore)
         }
-        movelFactorAsScalar(operationExtender, target, value, dataAttributes, interpreterCore)
     } else {
         interpreterCore.assign(target, interpreterCore.eval(value))
     }
