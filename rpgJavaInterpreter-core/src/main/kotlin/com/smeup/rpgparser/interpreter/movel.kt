@@ -26,6 +26,29 @@ private fun clear(value: String, type: Type): String {
     }
 }
 
+/**
+ * Performs RPGLE `MOVEL` operation by assigning `value` (Factor 2) to `target`,
+ * handling both scalar and array types for `value`.
+ *
+ * If `value` is of type `ArrayType`, it delegates to `movelFactorAsArray` to handle array
+ * operations. If `value` is a scalar, it delegates to `movelFactorAsScalar`. For figurative constants,
+ * it directly assigns the evaluated constant to the `target`.
+ *
+ * @param operationExtender Optional modifier specifying an extender for the `MOVEL` operation.
+ *        When non-null, enables the "clear" functionality, which clears existing target values
+ *        before assignment.
+ * @param target The target `AssignableExpression` where the result of the `MOVEL` operation
+ *        will be assigned.
+ * @param value The `Expression` representing Factor 2 in RPGLE. This can be a figurative constant,
+ *        scalar, or array.
+ * @param dataAttributes Optional `Expression` containing additional attributes, in example for date format.
+ *        Can be null.
+ * @param interpreterCore The `InterpreterCore` instance handling expression evaluation and assignment.
+ *
+ * @return The result `Value` of the `MOVEL` operation after assigning `value` to `target`.
+ *
+ * @throws IllegalArgumentException if the type of `target` or `value` does not support the `MOVEL` operation.
+ */
 fun movel(
     operationExtender: String?,
     target: AssignableExpression,
@@ -33,16 +56,37 @@ fun movel(
     dataAttributes: Expression?,
     interpreterCore: InterpreterCore
 ): Value {
-    if (value !is FigurativeConstantRef) {
+    return if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
-            return movelFactorAsArray(operationExtender, target, value, dataAttributes, interpreterCore)
+            movelFactorAsArray(operationExtender, target, value, dataAttributes, interpreterCore)
         }
-        return movelFactorAsScalar(operationExtender, target, value, dataAttributes, interpreterCore)
+        movelFactorAsScalar(operationExtender, target, value, dataAttributes, interpreterCore)
     } else {
-        return interpreterCore.assign(target, interpreterCore.eval(value))
+        interpreterCore.assign(target, interpreterCore.eval(value))
     }
 }
 
+/**
+ * Handles `MOVEL` operation when `source` (Factor 2) is an array type, assigning its elements
+ * to `target` (Result). Elements are transferred up to the minimum length between `source` and
+ * `target` arrays, applying any `operationExtender` if specified.
+ *
+ * @param operationExtender Optional modifier specifying an extender for the `MOVEL` operation.
+ *        When non-null, enables the "clear" functionality, which clears existing target values
+ *        before assignment.
+ * @param target The `AssignableExpression` target array where elements from `source` will be
+ *        assigned.
+ * @param source The `Expression` source array (Factor 2) providing elements to transfer to `target`.
+ * @param dataAttributes Optional `Expression` containing additional attributes, in example for date format.
+ *        Can be null.
+ * @param interpreterCore The `InterpreterCore` instance for evaluating, retrieving, and assigning
+ *        expressions.
+ *
+ * @return The resulting `Value` after assigning elements from `source` to `target`.
+ *
+ * @throws UnsupportedOperationException If `target` is not an array type or if `source` and `target`
+ *         have incompatible types for `MOVEL` operation.
+ */
 fun movelFactorAsArray(
     operationExtender: String?,
     target: AssignableExpression,
@@ -59,17 +103,12 @@ fun movelFactorAsArray(
 
             val maxSize = min(arraySourceValue.elements.size, arrayTargetValue.elements.size)
             for (i in 1 until maxSize + 1) {
-                val valueToMove: String = valueToString(arraySourceValue.getElement(i), arraySourceType)
                 arrayTargetValue.setElement(
-                    i, stringToValue(
-                        movel(
-                            valueToMove,
-                            valueToString(arrayTargetValue.getElement(i), arrayTargetType),
-                            arrayTargetType,
-                            operationExtender != null
-                        ),
-                        arrayTargetType
-                    )
+                    i,
+                    valueToString(arraySourceValue.getElement(i), arraySourceType),
+                    valueToString(arrayTargetValue.getElement(i), arrayTargetType),
+                    arrayTargetType,
+                    operationExtender
                 )
             }
             interpreterCore.assign(target, arrayTargetValue)
@@ -80,6 +119,25 @@ fun movelFactorAsArray(
     }
 }
 
+/**
+ * Performs `MOVEL` operation when `value` (Factor 2) is a scalar, assigning it to `target`.
+ * Handles specific transformations if `value` is a date type, and applies the value to each
+ * element if `target` is an array. If `operationExtender` is specified, enables clearing
+ * behavior during assignment.
+ *
+ * @param operationExtender Optional modifier specifying an extender for the `MOVEL` operation.
+ *        When non-null, enables the "clear" functionality, which clears existing target values
+ *        before assignment.
+ * @param target The `AssignableExpression` where the transformed `value` will be assigned.
+ * @param value The scalar `Expression` (Factor 2) to be moved to `target`.
+ * @param dataAttributes Optional `Expression` containing additional attributes, in example for date format.
+ *        Can be null.
+ * @param interpreterCore The `InterpreterCore` instance used for expression evaluation and assignment.
+ *
+ * @return The resulting `Value` after the `MOVEL` operation, representing the assigned target value.
+ *
+ * @throws UnsupportedOperationException if `target` is of an incompatible type for `MOVEL`.
+ */
 fun movelFactorAsScalar(
     operationExtender: String?,
     target: AssignableExpression,
@@ -92,33 +150,32 @@ fun movelFactorAsScalar(
     }
 
     val valueToMove: String = getStringOfValueBaseOfTarget(target, interpreterCore, value)
-    if (target.type() is ArrayType) {
-        // for each element of array apply move
-        val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
-        val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
-        arrayValue.elements.forEachIndexed { index, el ->
-            arrayValue.setElement(
-                index + 1, stringToValue(
-                    movel(
-                        valueToMove,
-                        valueToString(el, valueToApplyMoveElementType),
-                        valueToApplyMoveElementType,
-                        operationExtender != null
-                    ),
-                    valueToApplyMoveElementType
+    return when (target.type()) {
+        is ArrayType -> {
+            // For each element of array apply MOVEL
+            val arrayValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+            val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
+            arrayValue.elements.forEachIndexed { index, el ->
+                arrayValue.setElement(
+                    index + 1,
+                    valueToMove,
+                    valueToString(el, valueToApplyMoveElementType),
+                    valueToApplyMoveElementType,
+                    operationExtender
+                )
+            }
+            interpreterCore.assign(target, arrayValue)
+        }
+        else -> {
+            val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
+            return interpreterCore.assign(
+                target,
+                stringToValue(
+                    movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
+                    target.type()
                 )
             )
         }
-        return interpreterCore.assign(target, arrayValue)
-    } else {
-        val valueToApplyMove: String = valueToString(interpreterCore.eval(target), target.type())
-        return interpreterCore.assign(
-            target,
-            stringToValue(
-                movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                target.type()
-            )
-        )
     }
 }
 
@@ -321,4 +378,33 @@ private fun stringToValue(value: String, type: Type): Value {
 
         else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
+}
+
+/**
+ * Sets an element in the `ConcreteArrayValue` array at the specified `index`, transforming
+ * `sourceValueAsString` and applying it to the target based on `MOVEL` operation rules and
+ * `targetType`. If `operationExtender` is provided, it enables the "clear" functionality in the
+ * `MOVEL` operation, allowing existing values to be cleared before setting the new value.
+ *
+ * @param index The position in the array where the element will be set.
+ * @param sourceValueAsString The new source value as a string to be assigned after transformation.
+ * @param targetValueAsString The current value at `index`, used as a basis for `MOVEL` transformation.
+ * @param targetType The `Type` of the target element, ensuring type compatibility during the assignment.
+ * @param operationExtender Optional flag that, if non-null, enables the "clear" functionality within
+ *        `MOVEL`, allowing `targetValueAsString` to be cleared before `sourceValueAsString` is assigned.
+ *
+ * @throws IndexOutOfBoundsException if `index` is outside the bounds of the array.
+ */
+private fun ConcreteArrayValue.setElement(index: Int, sourceValueAsString: String, targetValueAsString: String, targetType: Type, operationExtender: String?) {
+    this.setElement(
+        index, stringToValue(
+            movel(
+                sourceValueAsString,
+                targetValueAsString,
+                targetType,
+                operationExtender != null
+            ),
+            targetType
+        )
+    )
 }
