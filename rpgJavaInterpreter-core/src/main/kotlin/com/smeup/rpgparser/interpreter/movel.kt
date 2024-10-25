@@ -130,7 +130,7 @@ fun move(
 ): Value {
     if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
-            throw UnsupportedOperationException("Cannot set an array as factor 2 in MOVE/MOVE(P) statement")
+            throw UnsupportedOperationException("Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${value.type()} to Result as ${target.type()}.")
         }
         val valueToMove: String = getStringOfValueBaseOfTarget(target, interpreterCore, value)
         if (target.type() is ArrayType) {
