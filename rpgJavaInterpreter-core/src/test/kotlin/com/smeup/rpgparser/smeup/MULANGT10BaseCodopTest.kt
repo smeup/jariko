@@ -466,4 +466,64 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("123", "123", "123", "12.300", "12.300", "12.300", "9.900", "9.900")
         assertEquals(expected, "smeup/MUDRNRAPU00140".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * EVAL an integer array to another. The size of first is lower than destination.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00141() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00141".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * EVAL an integer array to another. The size of first is greater than destination.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00142() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00142".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * EVAL a decimal array to integer.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00143() {
+        val expected = listOf("1.200", "1.200", "1.200", "1", "1", "1", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00143".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * EVAL an integer array to decimal.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00144() {
+        val expected = listOf("1", "1", "1", "1.000", "1.000", "1.000", "2.200", "2.200")
+        assertEquals(expected, "smeup/MUDRNRAPU00144".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * EVAL a decimal array to integer. The number of digits of first are greater than second.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00145() {
+        val expected = listOf("12.345", "12.345", "12.345", "12", "12", "12", "9", "9")
+        assertEquals(expected, "smeup/MUDRNRAPU00145".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * EVAL a decimal array to integer. The number of digits of first are greater than second.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00146() {
+        val expected = listOf("123", "123", "123", "123.000", "123.000", "12.300", "9.900", "9.900")
+        assertEquals(expected, "smeup/MUDRNRAPU00146".outputOf(configuration = smeupConfig))
+    }
 }
