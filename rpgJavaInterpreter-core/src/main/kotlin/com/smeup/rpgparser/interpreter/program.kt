@@ -154,12 +154,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             // set reinitialization to false because symboltable cleaning currently is handled directly
             // in internal interpreter before exit
             // todo i don't know whether parameter reinitialization has still sense
-            kotlin.runCatching {
-                interpreter.execute(this.cu, params, false, callerParams)
-            }.onFailure {
-                MainExecutionContext.getProgramStack().pop()
-                throw it
-            }
+            interpreter.execute(this.cu, params, false, callerParams)
             MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm(name, interpreter.getGlobalSymbolTable(), null)
             params.keys.forEach { params[it] = interpreter[it] }
             changedInitialValues = params().map { interpreter[it.name] }

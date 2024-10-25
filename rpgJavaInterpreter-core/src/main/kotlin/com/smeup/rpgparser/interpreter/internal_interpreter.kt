@@ -33,6 +33,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.getContainingCompilationUnit
+import com.smeup.rpgparser.utils.peekOrNull
 import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -395,6 +397,32 @@ open class InternalInterpreter(
         logHandlers = systemInterface.getAllLogHandlers()
     }
 
+    /**
+     * Execute a [MainBody]
+     * @param main The [MainBody]
+     */
+    private fun execute(main: MainBody) {
+        // Execute the main body
+        var throwable = kotlin.runCatching {
+            execute(main.stmts)
+        }.exceptionOrNull()
+
+        val unwrappedStatement = main.stmts.explode(true)
+
+        // Recursive deal with top level goto flow
+        while (throwable is GotoTopLevelException) {
+            // We need to know the statement unwrapped in order to jump directly into a nested tag
+            val offset = throwable.indexOfTaggedStatement(unwrappedStatement)
+            require(0 <= offset && offset < unwrappedStatement.size) { "Offset $offset is not valid." }
+            throwable = kotlin.runCatching {
+                executeUnwrappedAt(unwrappedStatement, offset)
+            }.exceptionOrNull()
+        }
+
+        // If the GOTO-flow threw a different exception, dispatch it to the parent flow
+        throwable?.let { throw it }
+    }
+
     fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
@@ -410,10 +438,10 @@ open class InternalInterpreter(
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
             execINZSR(compilationUnit)
             if (compilationUnit.minTimeOut == null) {
-                execute(compilationUnit.main.stmts)
+                execute(compilationUnit.main)
             } else {
                 val elapsed = measureNanoTime {
-                    execute(compilationUnit.main.stmts)
+                    execute(compilationUnit.main)
                 }.nanoseconds
 
                 if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
@@ -439,7 +467,11 @@ open class InternalInterpreter(
         }
     }
 
-    private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int = statements.explode().indexOfFirst {
+    private fun GotoException.indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+
+    private fun GotoTopLevelException.indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+
+    private fun List<Statement>.indexOfTag(tag: String) = indexOfFirst {
         it is TagStmt && it.tag == tag
     }
 
@@ -449,22 +481,115 @@ open class InternalInterpreter(
         return result
     }
 
-    override fun execute(statements: List<Statement>) {
-        var i = 0
-        while (i < statements.size) {
-            try {
+    override fun execute(statements: List<Statement>) = executeAt(statements, 0)
+
+    /**
+     * Execute a list of statements starting for an arbitrary offset.
+     * @param statements The list of statements to execute.
+     * @param offset The starting offset.
+     */
+    private fun executeAt(statements: List<Statement>, offset: Int) {
+        /*
+         * FIXME:
+         * This method has a lot of code duplicated with [executeUnwrappedAt] because it can be called
+         * passing only a part of statement to execute (like when executing statement bodies).
+         * if you manage to refactor this, please also remove this comment.
+         */
+
+        var i = offset
+        try {
+            while (i < statements.size) {
                 executeWithMute(statements[i++])
-            } catch (e: GotoException) {
-                i = e.indexOfTaggedStatement(statements)
-                if (i < 0 || i >= statements.size) throw e
-            } catch (e: InterpreterProgramStatusErrorException) {
-                /**
-                 * Program status error not caught from MONITOR statements should end up here
-                 * We should treat these cases as common Jariko runtime errors
-                 */
-                throw e.fireErrorEvent(e.position)
             }
+        } catch (e: GotoException) {
+            val containingCU = statements.firstOrNull()?.getContainingCompilationUnit()
+
+            // If tag is in top level we need to quit subroutine and rollback context to top level
+            val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+            topLevelStatements?.let {
+                val topLevelIndex = e.indexOfTaggedStatement(it)
+                if (0 <= topLevelIndex && topLevelIndex < it.size)
+                    throw GotoTopLevelException(e.tag)
+            }
+
+            // Scope might have been changed in the meanwhile with an EXSR after the previous GOTO
+            val scope = MainExecutionContext.getSubroutineStack().peekOrNull()
+            performJump(
+                scope = scope,
+                goto = e
+            )
+        } catch (e: InterpreterProgramStatusErrorException) {
+            /**
+             * Program status error not caught from MONITOR statements should end up here
+             * We should treat these cases as common Jariko runtime errors
+             */
+            throw e.fireErrorEvent(e.position)
         }
+    }
+
+    /**
+     * Execute an unwrapped list of statement.
+     * @param unwrappedStatements The unwrapped list of statements. It is up to the caller to ensure statements are unwrapped.
+     * @param offset Offset to start the execution from.
+     */
+    private fun executeUnwrappedAt(unwrappedStatements: List<Statement>, offset: Int) {
+        /**
+         * As we execute composite statements recursively, trying to sequentially execute
+         * the unwrapped statement list would result in executing every statement multiple times.
+         *
+         * The following instruction associates to each statement the offset to add in order to find
+         * the real next statement to execute in the list.
+         */
+        val offsetAwareStatements = unwrappedStatements.map {
+            WithOffset(
+                data = it,
+                offset = if (it is CompositeStatement) it.body.size else 0
+            )
+        }
+
+        var index = offset
+        try {
+            while (index < offsetAwareStatements.size) {
+                val offsetStatement = offsetAwareStatements[index]
+                executeWithMute(offsetStatement.data)
+                index += offsetStatement.offset + 1
+            }
+        } catch (e: GotoException) {
+            val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
+
+            // If tag is in top level we need to quit subroutine and rollback context to top level
+            val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+            topLevelStatements?.let {
+                val topLevelIndex = e.indexOfTaggedStatement(it)
+                if (0 <= topLevelIndex && topLevelIndex < it.size)
+                    throw GotoTopLevelException(e.tag)
+            }
+
+            // Scope might have been changed in the meanwhile with an EXSR after the previous GOTO
+            val scope = MainExecutionContext.getSubroutineStack().peekOrNull()
+            performJump(
+                scope = scope,
+                goto = e
+            )
+        }
+    }
+
+    /**
+     * Perform a jump in the provided scope
+     * @param scope The subroutine scope to perform the jump into
+     * @param goto The [GotoException] that caused this jump
+     */
+    private fun performJump(scope: ReferenceByName<Subroutine>?, goto: GotoException) {
+        // In case of something wrong with the goto, we dispatch the goto to the parent flow
+
+        val scopeLevelStatements = scope?.referred?.stmts ?: throw goto
+        val unwrappedStatements = scopeLevelStatements.explode(true)
+
+        val index = goto.indexOfTaggedStatement(unwrappedStatements)
+        val isInRange = 0 <= index && index < unwrappedStatements.size
+        if (!isInRange) throw goto
+
+        executeUnwrappedAt(unwrappedStatements, index)
     }
 
     @Deprecated(message = "No longer used")
