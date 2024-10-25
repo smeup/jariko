@@ -986,6 +986,18 @@ open class InternalInterpreter(
             }
         } else {
             val coercedValue = coerce(value, dataDefinition.type)
+            /*
+             * If the source (from `value`) and target (from `dataDefinition`) are two array with size of source smaller than target,
+             *  copy the last missed values from target to new `coercedValue`.
+             */
+            if (value is ConcreteArrayValue && coercedValue is ConcreteArrayValue && dataDefinition.type is ArrayType) {
+                if (value.elements.size < dataDefinition.type.numberOfElements()) {
+                    val targetValue = (globalSymbolTable[dataDefinition] as ConcreteArrayValue)
+                    for (i in (value.elements.size + 1)..targetValue.elements.size) {
+                        coercedValue.setElement(i, targetValue.getElement(i))
+                    }
+                }
+            }
             set(dataDefinition, coercedValue)
             return coercedValue
         }
