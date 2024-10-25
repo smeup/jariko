@@ -135,6 +135,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
+        MainExecutionContext.getSubroutineStack().push(subroutine)
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
             interpreter.execute(subroutine.referred!!.stmts)
@@ -142,6 +143,10 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
             // Nothing to do here
         } catch (e: GotoException) {
             if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+        } finally {
+            // NOTE: The next instruction should never throw. If it does, there is something wrong in how the stack is used.
+            // Investigate where and how it is used and manipulated.
+            MainExecutionContext.getSubroutineStack().pop()
         }
     }
 
@@ -789,6 +794,7 @@ data class CallStmt(
                 }
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
+                MainExecutionContext.getProgramStack().pop()
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
