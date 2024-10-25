@@ -6,6 +6,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.isDecimal
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toDecimal
 import java.math.BigDecimal
+import kotlin.math.min
 
 private fun clear(value: String, type: Type): String {
     return when (type) {
@@ -34,14 +35,48 @@ fun movel(
 ): Value {
     if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
-            if (target.type() !is ArrayType) {
-                throw UnsupportedOperationException("Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${value.type()} to Result as ${target.type()}.")
-            }
+            return movelFactorAsArray(operationExtender, target, value, dataAttributes, interpreterCore)
         }
-
         return movelFactorAsScalar(operationExtender, target, value, dataAttributes, interpreterCore)
     } else {
         return interpreterCore.assign(target, interpreterCore.eval(value))
+    }
+}
+
+fun movelFactorAsArray(
+    operationExtender: String?,
+    target: AssignableExpression,
+    source: Expression,
+    dataAttributes: Expression?,
+    interpreterCore: InterpreterCore
+): Value {
+    return when (target.type()) {
+        is ArrayType -> {
+            val arraySourceValue: ConcreteArrayValue = interpreterCore.eval(source) as ConcreteArrayValue
+            val arrayTargetValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+            val arraySourceType: Type = (source.type() as ArrayType).element
+            val arrayTargetType: Type = (target.type() as ArrayType).element
+
+            val maxSize = min(arraySourceValue.elements.size, arrayTargetValue.elements.size)
+            for (i in 1 until maxSize + 1) {
+                val valueToMove: String = valueToString(arraySourceValue.getElement(i), arraySourceType)
+                arrayTargetValue.setElement(
+                    i, stringToValue(
+                        movel(
+                            valueToMove,
+                            valueToString(arrayTargetValue.getElement(i), arrayTargetType),
+                            arrayTargetType,
+                            operationExtender != null
+                        ),
+                        arrayTargetType
+                    )
+                )
+            }
+            interpreterCore.assign(target, arrayTargetValue)
+        }
+        else -> {
+            throw UnsupportedOperationException("Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${source.type()} to Result as ${target.type()}.")
+        }
     }
 }
 
