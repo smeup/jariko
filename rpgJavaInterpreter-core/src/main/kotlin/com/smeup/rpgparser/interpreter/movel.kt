@@ -97,12 +97,12 @@ fun movelFactorAsArray(
 ): Value {
     return when (target.type()) {
         is ArrayType -> {
-            val arraySourceValue: ConcreteArrayValue = interpreterCore.eval(source) as ConcreteArrayValue
-            val arrayTargetValue: ConcreteArrayValue = interpreterCore.eval(target) as ConcreteArrayValue
+            val arraySourceValue: ArrayValue = interpreterCore.eval(source) as ArrayValue
+            val arrayTargetValue: ArrayValue = interpreterCore.eval(target) as ArrayValue
             val arraySourceType: Type = (source.type() as ArrayType).element
             val arrayTargetType: Type = (target.type() as ArrayType).element
 
-            val maxSize = min(arraySourceValue.elements.size, arrayTargetValue.elements.size)
+            val maxSize = min(arraySourceValue.arrayLength(), arrayTargetValue.arrayLength())
             for (i in 1 until maxSize + 1) {
                 arrayTargetValue.setElement(
                     i,
@@ -382,7 +382,7 @@ private fun stringToValue(value: String, type: Type): Value {
 }
 
 /**
- * Sets an element in the `ConcreteArrayValue` array at the specified `index`, transforming
+ * Sets an element in the `ArrayValue` array at the specified `index`, transforming
  * `sourceValueAsString` and applying it to the target based on `MOVEL` operation rules and
  * `targetType`. If `operationExtender` is provided, it enables the "clear" functionality in the
  * `MOVEL` operation, allowing existing values to be cleared before setting the new value.
@@ -396,7 +396,7 @@ private fun stringToValue(value: String, type: Type): Value {
  *
  * @throws IndexOutOfBoundsException if `index` is outside the bounds of the array.
  */
-private fun ConcreteArrayValue.setElement(index: Int, sourceValueAsString: String, targetValueAsString: String, targetType: Type, operationExtender: String?) {
+private fun ArrayValue.setElement(index: Int, sourceValueAsString: String, targetValueAsString: String, targetType: Type, operationExtender: String?) {
     this.setElement(
         index, stringToValue(
             movel(
