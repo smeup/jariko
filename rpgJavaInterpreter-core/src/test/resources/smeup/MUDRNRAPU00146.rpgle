@@ -6,9 +6,8 @@
     O *  of first are lower than second.
      V* ==============================================================
     O * JARIKO ANOMALY
-    O * Before the fix, the error occurred was
-    O *  `Value ConcreteArrayValue cannot be assigned
-    O *  to data: DataDefinition'
+    O * Before the fix, the result of array have latest two
+    O *  elements as 0.
      V* ==============================================================
      D ARR_1           S              3  0 DIM(3) INZ(123)
      D ARR_2           S              6  3 DIM(5) INZ(9.9)
