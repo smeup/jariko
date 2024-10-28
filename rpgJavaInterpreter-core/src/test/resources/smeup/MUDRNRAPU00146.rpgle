@@ -11,7 +11,7 @@
     O *  to data: DataDefinition'
      V* ==============================================================
      D ARR_1           S              3  0 DIM(3) INZ(123)
-     D ARR_2           S              5  3 DIM(5) INZ(9.9)
+     D ARR_2           S              6  3 DIM(5) INZ(9.9)
      D TMP             S              7
      D COUNT           S              2  0 INZ(1)
 
