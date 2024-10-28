@@ -21,7 +21,7 @@
      C                   EVAL      COUNT=COUNT+1
      C                   ENDDO
 
-     C                   EVAL      ARR_2=ARR_1                                  #Value ConcreteArrayValue cannot be assigned to data: DataDefinition
+     C                   EVAL      ARR_2=ARR_1
 
      C                   EVAL      COUNT=1
      C     COUNT         DOUEQ     6
