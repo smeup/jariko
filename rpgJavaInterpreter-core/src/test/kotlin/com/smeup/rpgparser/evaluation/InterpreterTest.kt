@@ -842,6 +842,30 @@ Test 6
     }
 
     @Test
+    fun executeMONITORTST1() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST1".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST2() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST2".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST3() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST3".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST4() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST4".outputOf())
+    }
+
+    @Test
     fun executeDO_TST01() {
         val si = CollectorSystemInterface().apply { printOutput = true }
         assertStartsWith(outputOf("DO_TST01", si = si), "DO_TST01(91ms) Spent")
@@ -1360,6 +1384,18 @@ Test 6
     fun executeGOTOTST7() {
         val expected = listOf("1", "4", "2")
         assertEquals(expected, outputOf("GOTOTST7"))
+    }
+
+    @Test
+    fun executeGOTOTST8() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST8"))
+    }
+
+    @Test
+    fun executeGOTOTST9() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST9"))
     }
 
     @Test

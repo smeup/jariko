@@ -518,6 +518,12 @@ open class InternalInterpreter(
                 scope = scope,
                 goto = e
             )
+        } catch (e: InterpreterProgramStatusErrorException) {
+            /**
+             * Program status error not caught from MONITOR statements should end up here
+             * We should treat these cases as common Jariko runtime errors
+             */
+            throw e.fireErrorEvent(e.position)
         }
     }
 
@@ -615,6 +621,10 @@ open class InternalInterpreter(
                 }
             }
         } catch (e: ControlFlowException) {
+            throw e
+        } catch (e: InterpreterProgramStatusErrorException) {
+            // If position is not set, consider it to be the statement position
+            if (e.position == null) e.position = statement.position
             throw e
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
