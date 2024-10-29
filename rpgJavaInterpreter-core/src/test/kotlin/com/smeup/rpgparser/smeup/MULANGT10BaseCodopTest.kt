@@ -406,4 +406,75 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("OK")
         assertEquals(expected, "smeup/MUDRNRAPU00134".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * MOVEL an integer array to another. The size of first is lower than destination.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00135() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00135".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to another. The size of first is greater than destination.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00136() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00136".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL a decimal array to integer.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00137() {
+        val expected = listOf("1.200", "1.200", "1.200", "1200", "1200", "1200", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00137".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to decimal.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00138() {
+        val expected = listOf("1", "1", "1", ".001", ".001", ".001", "2.200", "2.200")
+        assertEquals(expected, "smeup/MUDRNRAPU00138".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL a decimal array to integer. The number of digits of first are greater than second.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00139() {
+        val expected = listOf("12.345", "12.345", "12.345", "123", "123", "123", "9", "9")
+        assertEquals(expected, "smeup/MUDRNRAPU00139".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL a decimal array to integer. The number of digits of first are greater than second.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00140() {
+        val expected = listOf("123", "123", "123", "12.300", "12.300", "12.300", "9.900", "9.900")
+        assertEquals(expected, "smeup/MUDRNRAPU00140".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to another. The size of first is lower than destination. In this case the target
+     *  is a DS array.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00147() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00147".outputOf(configuration = smeupConfig))
+    }
 }
