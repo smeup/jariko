@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 24/10/2024 APU001 Creation
+     V* 29/10/2024 APU001 Improvements
      V* ==============================================================
     O * PROGRAM GOAL
     O * MOVEL a integer array to decimal. The number of digits

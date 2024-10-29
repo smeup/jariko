@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 28/10/2024 APU001 Creation
+     V* 29/10/2024 APU001 Improvements
      V* ==============================================================
     O * PROGRAM GOAL
     O * MOVEL an integer array to another. The size of first is lower
