@@ -726,22 +726,19 @@ data class CallStmt(
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program: Program?
+        val callIssueException = ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
         try {
             program = interpreter.getSystemInterface().findProgram(programToCall)
             if (errorIndicator != null) {
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
             }
         } catch (e: Exception) {
-            if (errorIndicator == null) {
-                throw e
-            }
+            errorIndicator ?: throw callIssueException
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
             return
         }
 
-        require(program != null) {
-            "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
-        }
+        program ?: throw callIssueException
 
         // Ignore exceeding params
         val targetProgramParams = program.params()
@@ -936,10 +933,10 @@ data class MonitorStmt(
     override fun execute(interpreter: InterpreterCore) {
         try {
             interpreter.execute(this.monitorBody)
-        } catch (_: Exception) {
-            onErrorClauses.forEach {
-                interpreter.execute(it.body)
-            }
+        } catch (e: InterpreterProgramStatusErrorException) {
+            val errorClause = onErrorClauses.firstOrNull { it.codes.any { code -> e.statusCode.matches(code) } }
+            errorClause ?: throw e
+            interpreter.execute(errorClause.body)
         }
     }
 }
@@ -1024,7 +1021,7 @@ data class IfStmt(
 }
 
 @Serializable
-data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position),
+data class OnErrorClause(val codes: List<String>, override val body: List<Statement>, override val position: Position? = null) : Node(position),
     CompositeStatement
 
 @Serializable

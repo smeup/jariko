@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 24/10/2024 APU001 Creation
+     V* 29/10/2024 APU001 Improvements
      V* ==============================================================
     O * PROGRAM GOAL
     O * MOVEL a integer array to decimal. The number of digits
@@ -14,19 +15,16 @@
      D TMP             S              7
      D COUNT           S              2  0 INZ(1)
 
-     C     COUNT         DOUEQ     4
+     C                   FOR       COUNT=1 TO %ELEM(ARR_1)
      C                   EVAL      TMP=%CHAR(ARR_1(COUNT))
      C     TMP           DSPLY
-     C                   EVAL      COUNT=COUNT+1
-     C                   ENDDO
+     C                   ENDFOR
 
      C                   MOVEL     ARR_1         ARR_2                          #Cannot set an array as factor 2 in MOVEL/MOVEL(P) statement
 
-     C                   EVAL      COUNT=1
-     C     COUNT         DOUEQ     6
+     C                   FOR       COUNT=1 TO %ELEM(ARR_2)
      C                   EVAL      TMP=%CHAR(ARR_2(COUNT))
      C     TMP           DSPLY
-     C                   EVAL      COUNT=COUNT+1
-     C                   ENDDO
+     C                   ENDFOR
 
      C                   SETON                                          LR
