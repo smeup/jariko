@@ -1387,6 +1387,18 @@ Test 6
     }
 
     @Test
+    fun executeGOTOTST8() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST8"))
+    }
+
+    @Test
+    fun executeGOTOTST9() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST9"))
+    }
+
+    @Test
     fun executeGotoENDSR() {
         assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
     }
