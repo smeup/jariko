@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.utils
 
 import com.smeup.rpgparser.execution.ParsingProgram
+import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ancestor
@@ -168,6 +169,20 @@ internal fun <T> Stack<T>.popIfPresent(): T? {
 internal fun <T> Stack<T>.peekOrNull(): T? = if (isNotEmpty()) {
     this.peek()
 } else null
+
+/**
+ * Rollback the stack state to the state it was prior of the specified program was called.
+ * @param name The name of the program
+ * @return `true` if the program was actually found in the stack and `false` else-wise
+ */
+internal fun Stack<RpgProgram>.rollbackBefore(name: String): Boolean {
+    while (true) {
+        val previous = this.popIfPresent() ?: break
+        if (previous.name == name) return true
+    }
+
+    return false
+}
 
 /**
  * Get the [CompilationUnit] that contains the current [Node]

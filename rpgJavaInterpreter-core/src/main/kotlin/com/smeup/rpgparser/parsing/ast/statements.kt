@@ -29,10 +29,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.resizeTo
-import com.smeup.rpgparser.utils.substringOfLength
+import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -789,9 +786,17 @@ data class CallStmt(
                 if (errorIndicator == null) {
                     throw e
                 }
+
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
-                MainExecutionContext.getProgramStack().pop()
+
+                /**
+                 * Restore the program stack state to what it was before this call.
+                 *
+                 * Note: MainExecutionContext.getProgramStack().pop() is not enough because entries of programs that
+                 * quit with error indicators must be in the program stack until onCallPgmError is invoked.
+                 */
+                MainExecutionContext.getProgramStack().rollbackBefore(programToCall)
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
