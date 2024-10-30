@@ -124,4 +124,14 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         val expected = listOf("10000", "10000", "10000", "10000")
         assertEquals(expected, "smeup/MUDRNRAPU00253".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * %LOOKUP for field of DS which is an overlay to its DS declared as array.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00149() {
+        val expected = listOf("1", "*SCP")
+        assertEquals(expected, "smeup/MUDRNRAPU00149".outputOf(configuration = smeupConfig))
+    }
 }
