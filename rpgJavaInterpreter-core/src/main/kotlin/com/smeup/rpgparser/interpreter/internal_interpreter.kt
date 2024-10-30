@@ -997,8 +997,8 @@ open class InternalInterpreter(
         } else {
             val coercedValue = coerce(value, dataDefinition.type)
             /*
-             * If the source (from `value`) and target (from `dataDefinition`) are two array with size of source smaller than target,
-             *  copy the last missed values from target to new `coercedValue`.
+             * If the source (from `value`) and target (from `dataDefinition`) are two arrays with size of source smaller than target,
+             *  copies the last missed values from target to new `coercedValue`.
              */
             if (value is ArrayValue && coercedValue is ArrayValue && dataDefinition.type is ArrayType) {
                 if (value.arrayLength() < dataDefinition.type.numberOfElements()) {
