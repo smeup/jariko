@@ -1,9 +1,9 @@
      V* ==============================================================
      V* 30/10/2024 APU001 Creation
+     V* 31/10/2024 APU001 Edited PROGRAM GOAL
      V* ==============================================================
     O * PROGRAM GOAL
-    O * %LOOKUP for field of DS which is an overlay to
-    O *  its DS declared as array.
+    O * DS field declared as Array and CTDATA
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was
