@@ -3,7 +3,7 @@
      V* 31/10/2024 APU001 Edited PROGRAM GOAL
      V* ==============================================================
     O * PROGRAM GOAL
-    O * DS field declared as Array and CTDATA
+    O * DS field declared as Array and CTDATA.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was
