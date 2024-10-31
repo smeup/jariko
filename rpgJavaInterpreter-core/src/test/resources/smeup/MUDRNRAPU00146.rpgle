@@ -1,9 +1,10 @@
      V* ==============================================================
      V* 25/10/2024 APU001 Creation
      V* 29/10/2024 APU001 Improvements
+     V* 31/10/2024 APU001 Typo
      V* ==============================================================
     O * PROGRAM GOAL
-    O * MOVEL a integer array to decimal. The number of digits
+    O * EVAL a integer array to decimal. The number of digits
     O *  of first are lower than second.
      V* ==============================================================
     O * JARIKO ANOMALY

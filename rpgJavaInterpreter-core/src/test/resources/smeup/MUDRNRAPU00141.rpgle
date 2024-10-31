@@ -1,9 +1,10 @@
      V* ==============================================================
      V* 25/10/2024 APU001 Creation
      V* 29/10/2024 APU001 Improvements
+     V* 31/10/2024 APU001 Typo
      V* ==============================================================
     O * PROGRAM GOAL
-    O * MOVEL an integer array to another. The size of first is lower
+    O * EVAL an integer array to another. The size of first is lower
     O *  than destination.
      V* ==============================================================
     O * JARIKO ANOMALY

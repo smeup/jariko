@@ -1,9 +1,10 @@
      V* ==============================================================
      V* 28/10/2024 APU001 Creation
      V* 29/10/2024 APU001 Improvements
+     V* 31/10/2024 APU001 Typo
      V* ==============================================================
     O * PROGRAM GOAL
-    O * WVAL an integer array to another. The size of first is lower
+    O * EVAL an integer array to another. The size of first is lower
     O *  than destination, and the target is ana array of DS.
      V* ==============================================================
     O * JARIKO ANOMALY
