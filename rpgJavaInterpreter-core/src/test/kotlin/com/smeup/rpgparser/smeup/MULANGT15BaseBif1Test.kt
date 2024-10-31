@@ -126,7 +126,7 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
     }
 
     /**
-     * %LOOKUP for field of DS which is an overlay to its DS declared as array.
+     * DS field declared as Array and CTDATA.
      * @see #LS24004654
      */
     @Test
