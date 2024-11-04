@@ -83,7 +83,7 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-    testImplementation 'org.hsqldb:hsqldb:2.7.3'
+    testImplementation 'org.hsqldb:hsqldb:2.7.4'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
 }
 
