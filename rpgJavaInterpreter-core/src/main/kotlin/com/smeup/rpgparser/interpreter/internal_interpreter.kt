@@ -19,9 +19,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.rpgparser.execution.ErrorEvent
-import com.smeup.rpgparser.execution.ErrorEventSource
-import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -46,6 +44,7 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.system.measureNanoTime
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 object InterpreterConfiguration {
@@ -244,6 +243,9 @@ open class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
+        callback.startJarikoTrace(initTrace)
         val start = System.nanoTime()
 
         val programName = interpretationContext.currentProgramName
@@ -355,7 +357,10 @@ open class InternalInterpreter(
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
+        callback.finishJarikoTrace(initTrace)
 
+        val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
+        callback.startJarikoTrace(loadTrace)
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
@@ -364,6 +369,7 @@ open class InternalInterpreter(
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
         renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+        callback.finishJarikoTrace(loadTrace)
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -615,9 +621,7 @@ open class InternalInterpreter(
                 if (statement is MockStatement) {
                     MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement(statement)
                 } else {
-                    if (logsEnabled())
-                        executeWithLogging(statement)
-                    else statement.execute(this)
+                    execute(statement)
                 }
             }
         } catch (e: ControlFlowException) {
@@ -1290,13 +1294,59 @@ open class InternalInterpreter(
         }
     }
 
-    private inline fun executeWithLogging(statement: Statement) {
+    /**
+     * Execute a statement keeping track of its state for observability purposes
+     */
+    private fun execute(statement: Statement) {
         val programName = this.interpretationContext.currentProgramName
-        val sourceProducer = { LogSourceData(programName, statement.position.line()) }
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
+        val sourceProducer = if (logsEnabled()) {
+            { LogSourceData(programName, statement.position.line()) }
+        } else null
+        val telemetryTrace = openTelemetryScope(statement)
 
+        sourceProducer?.let { openLoggingScope(statement, it) }
+
+        val executionTime = measureNanoTime {
+            statement.execute(this)
+        }.nanoseconds
+
+        sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+        closeTelemetryScope(telemetryTrace)
+    }
+
+    override fun onInterpretationEnd() {
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
+        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
+    }
+
+    private fun openTelemetryScope(statement: Statement): JarikoTrace? {
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val trace = when (statement) {
+            is CallStmt -> JarikoTrace(
+                kind = JarikoTraceKind.Program,
+                description = eval(statement.expression).asString().value.trim()
+            )
+            is CompositeStatement -> JarikoTrace(
+                kind = JarikoTraceKind.CompositeStatement,
+                description = statement.loggableEntityName
+            )
+            else -> null
+        }
+
+        return trace?.let {
+            callback.startJarikoTrace(it)
+            it
+        }
+    }
+
+    private fun closeTelemetryScope(trace: JarikoTrace?) {
+        trace ?: return
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        callback.finishJarikoTrace(trace)
+    }
+
+    private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
         renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
-
         if (statement is CompositeStatement) {
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
         } else {
@@ -1304,13 +1354,23 @@ open class InternalInterpreter(
         }
 
         if (statement is LoopStatement) {
-            renderLogInternal { LazyLogEntry.produceLoopStart(sourceProducer, statement.loggableEntityName, statement.loopSubject) }
+            renderLogInternal {
+                LazyLogEntry.produceLoopStart(
+                    sourceProducer,
+                    statement.loggableEntityName,
+                    statement.loopSubject
+                )
+            }
         }
+    }
 
-        val executionTime = measureNanoTime {
-            statement.execute(this)
-        }.nanoseconds
-
+    private fun closeLoggingScope(
+        statement: Statement,
+        programName: String,
+        sourceProducer: LogSourceProvider,
+        executionTime: Duration
+    ) {
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
         loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
 
         if (statement is LoopStatement) {
@@ -1328,12 +1388,14 @@ open class InternalInterpreter(
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
         }
 
-        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(sourceProducer, ProgramUsageType.Statement, statement.loggableEntityName, executionTime) }
-    }
-
-    override fun onInterpretationEnd() {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
-        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
+        renderLogInternal {
+            LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                sourceProducer,
+                ProgramUsageType.Statement,
+                statement.loggableEntityName,
+                executionTime
+            )
+        }
     }
 }
 
