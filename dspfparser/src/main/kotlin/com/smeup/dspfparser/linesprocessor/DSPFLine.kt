@@ -7,6 +7,15 @@ import com.smeup.dspfparser.positionals.Reserved
 import com.smeup.dspfparser.positionals.TypeOfName
 import kotlinx.serialization.Serializable
 
+enum class LineType {
+    NULL,
+    OTHER,
+    HELP,
+    RECORD,
+    FIELD,
+    CONSTANT
+}
+
 @Serializable
 internal data class DSPFLine private constructor(
     val count: Int,
@@ -21,11 +30,13 @@ internal data class DSPFLine private constructor(
     val decimalsPositions: Int? = null,
     val fieldType: FieldType,
     val y: Int? = null,
-    val x: Int? = null
+    val x: Int? = null,
+    val keywords: DSPFKeywordsGroup? = null,
+    var type: LineType = LineType.NULL
 ) {
     companion object {
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
-            return DSPFLine(
+            val line = DSPFLine(
                 this.getCount(lineSubstrings),
                 this.getSequenceNumber(lineSubstrings),
                 this.getA(lineSubstrings),
@@ -38,8 +49,10 @@ internal data class DSPFLine private constructor(
                 this.getDecimalsPositions(lineSubstrings),
                 this.getFieldType(lineSubstrings),
                 this.getY(lineSubstrings),
-                this.getX(lineSubstrings)
+                this.getX(lineSubstrings),
+                this.getKeywords(lineSubstrings)
             )
+            return line
         }
 
         private fun getCount(lineSubstrings: DSPFLineSubstrings): Int {
@@ -100,34 +113,29 @@ internal data class DSPFLine private constructor(
             return lineSubstrings.x.trim().toInt()
         }
 
-        // Could-Have: getKeywords
+        private fun getKeywords(lineSubstrings: DSPFLineSubstrings): DSPFKeywordsGroup? {
+            if (lineSubstrings.keywords.isBlank()) return null
+            return DSPFKeywordsGroup.fromString(lineSubstrings.keywords)
+        }
     }
 
-    fun isHelp(): Boolean {
-        return this.typeOfName == TypeOfName.H && this.fieldName.isBlank()
-    }
-
-    fun isRecord(): Boolean {
-        return this.typeOfName == TypeOfName.R && this.fieldName.isNotBlank()
-    }
-
-    fun isField(): Boolean {
-        return this.typeOfName == TypeOfName.BLANK && this.fieldName.isNotBlank()
-    }
-
-    fun isNone(): Boolean {
-        return !(this.isHelp() || this.isRecord() || this.isField())
-    }
-
-    fun isInput(): Boolean {
-        return this.fieldType == FieldType.I
-    }
-
-    fun isOutput(): Boolean {
-        return this.fieldType == FieldType.O || this.fieldType == FieldType.BLANK
-    }
-
-    fun isInputOutput(): Boolean {
-        return this.fieldType == FieldType.B
+    init {
+        when {
+            this.typeOfName == TypeOfName.H && this.fieldName.isBlank() -> this.type = LineType.HELP
+            this.typeOfName == TypeOfName.R && this.fieldName.isNotBlank() -> this.type = LineType.RECORD
+            this.typeOfName == TypeOfName.BLANK && this.fieldName.isNotBlank() -> this.type = LineType.FIELD
+            this.typeOfName == TypeOfName.BLANK &&
+                this.fieldName.isBlank() &&
+                this.reference == Reference.BLANK &&
+                this.length == null &&
+                this.dataTypeKeyboardShift == DTKBS.BLANK &&
+                this.decimalsPositions == null &&
+                this.fieldType == FieldType.BLANK &&
+                this.y != null &&
+                this.x != null &&
+                this.keywords?.areConstant() ?: false
+                    -> this.type = LineType.CONSTANT
+            else -> this.type = LineType.OTHER
+        }
     }
 }

@@ -17,9 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.RpgParser.Cspec_fixedContext
-import com.smeup.rpgparser.RpgParser.Parm_fixedContext
-import com.smeup.rpgparser.RpgParser.StatementContext
+import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
@@ -83,6 +81,8 @@ open class BaseCompileTimeInterpreter(
                 return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
                     else
                 TODO(expression.toString())
+            // TODO: Check if we need a different logic in other cases
+            is LenExpr -> evaluateElementSizeOf(rContext, expression.value, ToAstConfiguration()).asValue()
             else -> TODO(expression.toString())
         }
     }
@@ -151,7 +151,7 @@ open class BaseCompileTimeInterpreter(
             if (it.name.equals(declName, ignoreCase = true)) {
                 return it.elementSize()
             }
-            val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
+            val field = it.fields.find { field -> field.name.equals(declName, ignoreCase = true) }
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
 
@@ -172,23 +172,50 @@ open class BaseCompileTimeInterpreter(
                     it.dspec() != null -> {
                         val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
                         if (declName.equals(name, ignoreCase = true)) {
-                            return it.dspec().TO_POSITION().text.asInt()
+                            /**
+                             * If this is a D-Spec based on a LIKE, recursively find and return its size
+                             * else-wise return explicit size
+                             */
+                            val likeSize = it.dspec().keyword().firstOrNull { it.keyword_like() != null }?.let {
+                                val target = it.keyword_like()!!.name.text.trim()
+                                findSize(statements, target, conf, innerBlock)
+                            }
+                            return likeSize ?: it.dspec().TO_POSITION().text.asInt()
                         }
                     }
                     it.cspec_fixed() != null -> {
-                        val size = it.cspec_fixed().findType(declName, conf)?.size
+                        val size = it.cspec_fixed().findType(
+                            declName = declName,
+                            lookupIn = statements,
+                            conf = conf
+                        )?.size
                         if (size != null) return size
                     }
                     it.dcl_ds() != null -> {
                         val name = it.dcl_ds().name
                         val fields = fileDefinitions?.let { defs -> it.dcl_ds().getExtnameFields(defs, conf) } ?: emptyList()
-                        if (name == declName) {
+                        if (name.equals(declName, ignoreCase = true)) {
                             return it.dcl_ds().elementSizeOf(knownDataDefinitions, fields)
                         }
                     }
                     it.block() != null -> {
                         val size = it.block().findType(declName, conf)?.size
                         if (size != null) return size
+                    }
+                    it.directive() != null -> {
+                        // API Directives
+                        if (it.directive().dir_api() != null) {
+                            val apiDirective = it.directive().dir_api()
+                            val apiId = apiDirective.toApiId(conf)
+                            val size = apiId.loadAndUse { api ->
+                                api.let {
+                                    it.compilationUnit.dataDefinitions.firstOrNull { def ->
+                                        def.name.equals(declName, ignoreCase = true)
+                                    }
+                                }?.type?.size
+                            }
+                            if (size != null) return size
+                        }
                     }
                 }
             }
@@ -200,19 +227,14 @@ open class BaseCompileTimeInterpreter(
     }
 
     override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Int {
-        return when (expression) {
-            is DataRefExpr -> {
-                try {
-                    evaluateElementSizeOf(rContext, expression.variable.name, conf, procedureName)
-                } catch (e: NotFoundAtCompileTimeException) {
-                    if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf, procedureName)
-                    } else {
-                        expression.error(message = e.message, cause = e)
-                    }
-                }
+        return try {
+            evaluateTypeOf(rContext, expression, conf, procedureName).elementSize()
+        } catch (e: RuntimeException) {
+            if (delegatedCompileTimeInterpreter != null) {
+                return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf, procedureName)
+            } else {
+                expression.error(message = e.message, cause = e)
             }
-            else -> TODO(expression.toString())
         }
     }
 
@@ -221,6 +243,23 @@ open class BaseCompileTimeInterpreter(
             is DataRefExpr -> {
                 try {
                     evaluateTypeOf(rContext, expression.variable.name, conf, procedureName)
+                } catch (e: NotFoundAtCompileTimeException) {
+                    if (delegatedCompileTimeInterpreter != null) {
+                        return delegatedCompileTimeInterpreter.evaluateTypeOf(rContext, expression, conf, procedureName)
+                    } else {
+                        throw RuntimeException(e)
+                    }
+                }
+            }
+            is QualifiedAccessExpr -> {
+                try {
+                    // Definition should be already known (DS are declared first))
+                    val container = expression.container as DataRefExpr
+                    val containerDefinition = knownDataDefinitions.find { it.name == container.variable.name }
+                    val baseDefinition = containerDefinition!!.fields.find {
+                        it.name.equals(expression.field.name, ignoreCase = true)
+                    }
+                    baseDefinition!!.type
                 } catch (e: NotFoundAtCompileTimeException) {
                     if (delegatedCompileTimeInterpreter != null) {
                         return delegatedCompileTimeInterpreter.evaluateTypeOf(rContext, expression, conf, procedureName)
@@ -281,12 +320,31 @@ open class BaseCompileTimeInterpreter(
                             }
                         }
                         it.cspec_fixed() != null -> {
-                            val type = it.cspec_fixed().findType(declName, conf)
+                            val type = it.cspec_fixed().findType(
+                                declName = declName,
+                                lookupIn = statements,
+                                conf = conf
+                            )
                             if (type != null) return type
                         }
                         it.block() != null -> {
                             val type = it.block().findType(declName, conf)
                             if (type != null) return type
+                        }
+                        it.directive() != null -> {
+                            // API Directives
+                            if (it.directive().dir_api() != null) {
+                                val apiDirective = it.directive().dir_api()
+                                val apiId = apiDirective.toApiId(conf)
+                                val type = apiId.loadAndUse { api ->
+                                    api.let {
+                                        it.compilationUnit.allDataDefinitions.firstOrNull { def ->
+                                            def.name.equals(declName, ignoreCase = true)
+                                        }
+                                    }?.type
+                                }
+                                if (type != null) return type
+                            }
                         }
                     }
                 }
@@ -304,16 +362,21 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    private fun Cspec_fixedContext.findType(declName: String, conf: ToAstConfiguration): Type? {
+    private fun Cspec_fixedContext.findType(
+        declName: String,
+        lookupIn: List<StatementContext>? = null,
+        conf: ToAstConfiguration = ToAstConfiguration()
+    ): Type? {
+        val targetStatementsPool = lookupIn ?: rContext().getUnwrappedStatements()
         return when (val ast = this.toAst(conf)) {
             is DefineStmt -> {
-                if (declName != ast.newVarName) return null
-                val type = findType(rContext().statement(), ast.originalName, conf)
+                if (!declName.equals(ast.newVarName, ignoreCase = true)) return null
+                val type = findType(targetStatementsPool, ast.originalName, conf)
                 type
             }
             is StatementThatCanDefineData -> {
                 val dataDefinition = ast.dataDefinition()
-                dataDefinition.firstOrNull { it.name == declName }?.type
+                dataDefinition.firstOrNull { it.name.equals(declName, ignoreCase = true) }?.type
             }
             else -> null
         }
@@ -333,8 +396,13 @@ open class BaseCompileTimeInterpreter(
                             procedureContext.subprocedurestatement().mapNotNull { it.statement() })
             }
         }
-        statements.addAll(this.statement() + this.subroutine().flatMap { it.statement() })
+        statements.addAll(this.getUnwrappedStatements())
 
         return statements.toList()
     }
+
+    /**
+     * Retrieve the list of all statements including those contained in subroutines
+     */
+    private fun RContext.getUnwrappedStatements() = this.statement() + this.subroutine().flatMap { it.statement() }
 }

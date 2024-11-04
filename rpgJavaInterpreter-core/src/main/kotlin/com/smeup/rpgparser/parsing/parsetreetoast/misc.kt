@@ -109,13 +109,17 @@ private fun List<StatementContext?>.getDataDefinition(
 
     fileDefinitions?.let {
         val postProcessedFileDefinitions = it.processWithSpecifications(inputSpecifications)
-        postProcessedFileDefinitions.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
+        postProcessedFileDefinitions.filter { !it.key.justExtName }.values.flatten().removeDuplicatedDataDefinition().forEach { def ->
             dataDefinitionProviders.add(def.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
         }
     }
 
-    // Move the D specs with like because depending on other D specs definitions
-    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf)
+    /**
+     * Statements sorting to accommodate processing needs
+     * Step 1: Move the D specs with like because depending on other D specs definitions
+     * Step 2: Move statements marked as CONST to the start because they might be used as a dependency
+     */
+    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf).moveConstantsToStart()
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
@@ -138,7 +142,9 @@ private fun List<StatementContext?>.getDataDefinition(
                             conf = conf,
                             knownDataDefinitions = knownDataDefinitions.values.toList(),
                             parentDataDefinitions = parentDataDefinitions,
-                            procedureName = procedureName)
+                            fileDefinitions = fileDefinitions,
+                            procedureName = procedureName
+                        )
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
 
@@ -179,6 +185,19 @@ private fun List<StatementContext>.moveLikeStatementToTheEnd(conf: ToAstConfigur
         !(it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false)
     }
     return otherStatements + likeStatements
+}
+
+private fun List<StatementContext>.moveConstantsToStart(): List<StatementContext> {
+    val constantStatements = this.filter { it.isConstant() }
+    val otherStatements = this.filter { !it.isConstant() }
+
+    return constantStatements + otherStatements
+}
+
+private fun StatementContext.isConstant() = when {
+    this.dcl_c() != null -> this.dcl_c().keyword_const() != null
+    this.dspec() != null -> this.dspec().keyword().any { keyword -> keyword.keyword_const() != null }
+    else -> false
 }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
@@ -666,6 +685,14 @@ internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 
 internal fun String.isInt() = this.toIntOrNull() != null
 
+internal fun String.isDecimal() = this.toDoubleOrNull() != null
+
+internal fun String.toDecimal() = this.toDouble()
+
+internal fun String.isNumber() = this.isInt() || this.isDecimal()
+
+internal fun Boolean.toInt() = if (this) 1 else 0
+
 internal fun ParserRuleContext.rContext(): RContext {
     return if (this.parent == null) {
         this as RContext
@@ -722,6 +749,8 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(position)
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
+        this.SPLAT_START() != null -> StartValExpr(position)
+        this.SPLAT_END() != null -> EndValExpr(position)
         this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
         this.SPLAT_OFF() != null -> OffRefExpr(position)
@@ -757,40 +786,10 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
             // we need capture error inside runParserRuleContext in order
             // to avoid that some errors pass silently
             this.cspec_fixed_standard().runParserRuleContext(conf) { standardContext ->
-                standardContext.toAst(conf)
+                standardContext
+                    .toAst(conf)
                     .also {
-                        it.indicatorCondition = this.toIndicatorCondition(conf)
-                        if (it.indicatorCondition != null) {
-                            val continuedIndicators = this.cspec_continuedIndicators()
-                            // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
-                            for (i in 0 until continuedIndicators.size) {
-                                val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
-                                var onOff = false
-                                if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
-                                    onOff = true
-                                }
-                                val controlLevel = when (continuedIndicators[i].start.type) {
-                                    AndIndicator -> "AND"
-                                    OrIndicator -> "OR"
-                                    else -> ""
-                                }
-                                val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-                                it.continuedIndicators.put(indicator, continuedIndicator)
-                            }
-
-                            // Add indicatorCondition (inline indicator) also
-                            var controlLevel = (this.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
-                            if (controlLevel == "AN") {
-                                controlLevel = "AND"
-                            }
-                            var onOff = false
-                            if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
-                                onOff = true
-                            }
-                            val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
-                            val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-                            it.continuedIndicators.put(indicator, continuedIndicator)
-                        }
+                        it.buildIndicatorsFlags(this, conf)
                     }
             }
         this.cspec_fixed_x2() != null ->
@@ -800,17 +799,6 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         else -> todo(conf = conf)
     }
 }
-
-internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): IndicatorCondition? =
-    if (this.indicators.text.isEmptyTrim()) {
-        null
-    } else {
-        try {
-            IndicatorCondition(this.indicators.text.toIndicatorKey(), " " != this.indicatorsOff.text)
-        } catch (e: NumberFormatException) {
-            error("Non numeric indicators", e, conf)
-        }
-    }
 
 internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
@@ -1028,6 +1016,15 @@ internal fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: T
     return stmt
 }
 
+internal fun Cspec_fixed_sqlContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return when {
+        this.CS_ExecSQL() != null -> ExecSqlStmt(toPosition(conf.considerPosition))
+        this.CSQL_TEXT() != null -> CsqlTextStmt(toPosition(conf.considerPosition))
+        this.CSQL_END() != null -> CsqlEndStmt(toPosition(conf.considerPosition))
+        else -> todo(conf = conf)
+    }
+}
+
 private fun annidatedReferenceExpression(
     text: String,
     position: Position?
@@ -1165,11 +1162,7 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     if (paramName.contains(".")) {
         val parts = paramName.split(".")
         require(parts.isNotEmpty())
-        if (parts.size == 1) {
-            paramName = parts[0]
-        } else {
-            paramName = parts.last()
-        }
+        paramName = parts.last()
     }
     // initialization value valid only if there isn't a variable declaration
     val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
@@ -1177,8 +1170,14 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     } else {
         null
     }
+
+    val factor1Text = this.factor1.text.trim()
+    val factor1Position = this.factor1.toPosition(conf.considerPosition)
+    val result = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
+
     val position = toPosition(conf.considerPosition)
     return PlistParam(
+        result,
         ReferenceByName(paramName),
         this.cspec_fixed_standard_parts().toDataDefinition(
             paramName,
@@ -2209,6 +2208,7 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 }
 
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
+    // NOTE: With current logic when type matches on duplications the first definition wins
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
     return removeUnnecessaryRecordFormat().filter {
         val dataDefinition = dataDefinitionMap[it.name]
@@ -2226,14 +2226,17 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
     fun Type.matchType(other: Any?): Boolean {
-        if (this is NumberType && other is NumberType) {
-            val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
-            if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
-                return resultDigits && rpgType == other.rpgType
+        // TODO: Improve logic for StringType/UnlimitedStringType matching
+        return when {
+            this is NumberType && other is NumberType -> {
+                val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+                if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                    return resultDigits && rpgType == other.rpgType
+                }
+                resultDigits
             }
-            return resultDigits
-        } else {
-            return this == other
+            this is UnlimitedStringType && other is StringType -> true
+            else -> this == other
         }
     }
 

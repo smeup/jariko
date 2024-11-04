@@ -144,12 +144,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if (type.rpgType == RpgType.ZONED.rpgType) {
-                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
-                    } else {
-                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
+                    when {
+                        type.rpgType == RpgType.ZONED.rpgType -> {
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
+                        else -> {
+                            val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
                     }
                 } else {
                     DecimalValue(BigDecimal.ZERO)
@@ -178,6 +181,16 @@ private fun coerceString(value: StringValue, type: Type): Value {
         }
         is TimeStampType -> TimeStampValue.of(value.value)
         else -> TODO("Converting String to $type")
+    }
+}
+
+private fun coerceBoolean(value: BooleanValue, type: Type): Value {
+    // TODO: Add more coercion rules
+    return when (type) {
+        is BooleanType -> value
+        is StringType -> value.asString()
+        is UnlimitedStringType -> value.asUnlimitedString()
+        else -> TODO("Converting BooleanValue to $type")
     }
 }
 
@@ -234,7 +247,10 @@ fun coerce(value: Value, type: Type): Value {
                     } else {
                         return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
-                    return value
+                }
+                is ArrayType -> {
+                    val coercedValue = coerce(value, type.element)
+                    ConcreteArrayValue(MutableList(type.element.size) { coercedValue }, type.element)
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }
@@ -267,39 +283,45 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is StringType -> StringValue(value.value.toString(), varying = type.varying)
                 is DateType -> DateValue(value.value, type.format)
+                is NumberType -> if (type.decimalDigits > 0) value.asDecimal() else value
+                is ArrayType -> {
+                    val coercedValue = coerce(value, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+                }
                 else -> value
             }
         }
+        is BooleanValue -> coerceBoolean(value, type)
         else -> value
     }
 }
 
 fun Type.lowValue(): Value {
-    when (this) {
-        is NumberType -> {
-            return computeLowValue(this)
+    return when (this) {
+        is NumberType -> computeLowValue(this)
+        is StringType -> computeLowValue(this)
+        is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
+        is DataStructureType -> {
+            val fields = this.fields.associateWith { field -> field.type.lowValue() }
+            DataStructValue.fromFields(fields)
         }
-        is StringType -> {
-            return computeLowValue(this)
-        }
-        is ArrayType -> {
-            return createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
-        }
+        is BooleanType -> BooleanValue.FALSE
+        is RecordFormatType -> BlanksValue
         else -> TODO("Converting LowValValue to $this")
     }
 }
 
 fun Type.hiValue(): Value {
-    when (this) {
-        is NumberType -> {
-            return computeHiValue(this)
+    return when (this) {
+        is NumberType -> computeHiValue(this)
+        is StringType -> computeHiValue(this)
+        is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
+        is DataStructureType -> {
+            val fields = this.fields.associateWith { field -> field.type.hiValue() }
+            DataStructValue.fromFields(fields)
         }
-        is StringType -> {
-            return computeHiValue(this)
-        }
-        is ArrayType -> {
-            return createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
-        }
+        is BooleanType -> BooleanValue.TRUE
+        is RecordFormatType -> BlanksValue
         else -> TODO("Converting HiValValue to $this")
     }
 }

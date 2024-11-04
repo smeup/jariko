@@ -47,4 +47,35 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val myConfig = smeupConfig.copy().apply { jarikoCallback.onApiInclusion = { _, _ -> } }
         assertEquals(expected, "smeup/MU711004".outputOf(configuration = myConfig))
     }
+
+    /**
+     * COPY where its name has lower alphabetic character.
+     * @see #LS24003436
+     */
+    @Test
+    fun executeMU711006() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MU711006".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data Definition with LIKE of another variable imported with API directive
+     * @see #LS24003689
+     */
+    @Test
+    fun executeMUDRNRAPU00103() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU00103".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Using API which declares a standalone variable that is already declared inline from MUDRNRAPU00133_API,
+     *  imported by API directive.
+     * @see #LS24004504
+     */
+    @Test
+    fun executeMUDRNRAPU00133() {
+        val expected = listOf("OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00133".outputOf(configuration = smeupConfig))
+    }
 }

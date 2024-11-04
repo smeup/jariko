@@ -17,18 +17,22 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.RpgParser.BlockContext
+import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.ComparisonOperator
+import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
+import org.antlr.v4.runtime.tree.ParseTree
+import org.antlr.v4.runtime.ParserRuleContext
 
 fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(conf)
+        this.cspec_fixed_sql() != null -> this.cspec_fixed_sql().toAst(conf)
         this.block() != null -> this.block().toAst(conf)
         else -> todo(conf = conf)
     }
@@ -37,6 +41,7 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
+            .buildIndicatorsFlags(this.ifstatement().beginif().csIFxx() ?: this.ifstatement().beginif(), conf)
         this.selectstatement() != null -> this.selectstatement()
             .let {
                 it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
@@ -48,15 +53,20 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.begindo() != null -> this.begindo()
             .let {
                 it.csDO().cspec_fixed_standard_parts().validate(
-                    stmt = it.toAst(blockContext = this, conf = conf),
+                    stmt = it.toAst(blockContext = this, conf = conf).buildIndicatorsFlags(this.begindo(), conf),
                     conf = conf
                 )
             }
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
+            .buildIndicatorsFlags(this.begindow(), conf)
         this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
+            .buildIndicatorsFlags(this.csDOWxx(), conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
+            .buildIndicatorsFlags(this.forstatement().beginfor(), conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
+            .buildIndicatorsFlags(this.begindou(), conf)
         this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = this, conf = conf)
+            .buildIndicatorsFlags(this.csDOUxx(), conf)
         this.monitorstatement() != null -> this.monitorstatement().let {
             it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
                 stmt = it.toAst(conf = conf),
@@ -65,6 +75,133 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         }
         else -> todo(message = "Missing composite statement implementation for this block: ${this.text}", conf = conf)
     }
+}
+
+/**
+ * Builds and assigns indicator conditions and flags for the given statement.
+ *
+ * This method inspects the context type and generates an indicator condition
+ * based on the indicators and configuration provided. It also handles the
+ * processing of continued indicators.
+ *
+ * @param TContext The type of the parser rule context, which must extend [ParserRuleContext].
+ * @param context The parsing rule context, which is one of several specific types such as
+ *                [CsIFxxContext], [CsDOWxxContext], [CsDOUxxContext], etc.
+ * @param conf The configuration used to build the AST (Abstract Syntax Tree).
+ * @return The current [Statement] with updated indicator conditions and continued indicators.
+ */
+internal fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration): Statement {
+    var continuedIndicators: List<Cspec_continuedIndicatorsContext> = emptyList()
+    this.indicatorCondition = when (context) {
+        is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is BeginifContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is BegindowContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is BegindouContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is BeginforContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        is Cspec_fixedContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+            .also { continuedIndicators = context.cspec_continuedIndicators() }
+        else -> null
+    }
+
+    if (this.indicatorCondition != null) {
+        this.continuedIndicators.populate(continuedIndicators, context.children.toList())
+    }
+
+    return this
+}
+
+/**
+ * Converts the given indicator context and its associated on/off flag into an `IndicatorCondition` object.
+ * This function checks if the provided `Cs_indicatorsContext` contains a valid indicator text. If the text is
+ * not empty, it attempts to convert it into an `IndicatorCondition` object. If the conversion fails due to a
+ * `NumberFormatException` (non-numeric indicators), an error is reported. If the indicator text is empty,
+ * the function returns `null`.
+ *
+ * @receiver The `ParserRuleContext` that acts as the context for this operation.
+ *
+ * @param indicators The `Cs_indicatorsContext` containing the indicator data (as text) to be converted.
+ * @param indicatorsOff The `OnOffIndicatorsFlagContext` representing the on/off flag for the indicator.
+ *                      The condition checks whether the flag is equal to a space (" ") to determine if it's off.
+ * @param conf The `ToAstConfiguration` used for configuration in case of an error.
+ *
+ * @return An `IndicatorCondition` containing the converted `IndicatorKey` and the on/off state (as a boolean)
+ *         if the indicator text is valid. Returns `null` if the indicator text is empty.
+ *
+ * @throws NumberFormatException If the indicator text cannot be parsed into a valid numeric `IndicatorKey`.
+ *                               In this case, an error is reported with a message about non-numeric indicators.
+ */
+private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsContext, indicatorsOff: OnOffIndicatorsFlagContext, conf: ToAstConfiguration) =
+    if (indicators.text.isEmptyTrim()) {
+        null
+    } else {
+        try {
+            IndicatorCondition(indicators.text.toIndicatorKey(), " " != indicatorsOff.text)
+        } catch (e: NumberFormatException) {
+            error("Non numeric indicators", e, conf)
+        }
+    }
+
+/**
+ * Populates the current `HashMap` with a set of continued indicators and their related conditions.
+ * This function processes a list of `Cspec_continuedIndicatorsContext` objects, extracts the relevant information
+ * such as indicator keys, on/off states, and control levels (e.g., "AND", "OR"), and inserts them into the
+ * `HashMap`. Additionally, it handles inline indicators by processing a `children` list of `ParseTree` nodes.
+ *
+ * @receiver A `HashMap` where keys are `IndicatorKey` objects, and values are `ContinuedIndicator` instances
+ *           representing indicators with their conditions (e.g., on/off state, control level).
+ * @param continuedIndicators A list of `Cspec_continuedIndicatorsContext` objects representing the indicators
+ *                            to be processed. These indicators do not include inline indicators.
+ * @param children An optional list of `ParseTree` nodes representing additional conditions (such as control levels
+ *                 and indicator states) for inline indicators. By default, an empty list is passed if no children are
+ *                 provided.
+ */
+private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
+    continuedIndicators: List<Cspec_continuedIndicatorsContext>,
+    children: List<ParseTree> = emptyList()
+) {
+    // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
+    for (i in 0 until continuedIndicators.size) {
+        val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
+        var onOff = false
+        if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+            onOff = true
+        }
+        val controlLevel = when (continuedIndicators[i].start.type) {
+            AndIndicator -> "AND"
+            OrIndicator -> "OR"
+            else -> ""
+        }
+        val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
+        this.put(indicator, continuedIndicator)
+    }
+
+    // Add indicatorCondition (inline indicator) also
+    var controlLevel =
+        (children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
+    if (controlLevel == "AN") {
+        controlLevel = "AND"
+    }
+    var onOff = false
+    if (!(children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString()
+            .isEmptyTrim()
+    ) {
+        onOff = true
+    }
+    val indicator = (children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString()
+        .toIndicatorKey()
+    val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
+    this.put(indicator, continuedIndicator)
 }
 
 internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
@@ -87,11 +224,12 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
         else -> todo(conf = conf)
     }
 
+    val factor1Ast = this.factor1.toAstIfSymbolicConstant() ?: this.factor1.content.toAst(conf = conf)
     val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
 
     return DOWxxStmt(
         comparisonOperator = comparison,
-        factor1 = this.factor1.content.toAst(conf = conf),
+        factor1 = factor1Ast,
         factor2 = factor2Ast,
         position = toPosition(conf.considerPosition),
         body = blockContext.statement().map { it.toAst(conf) }
@@ -442,8 +580,9 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
 
 internal fun RpgParser.OnErrorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OnErrorClause {
     val body = this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+    val codes = this.csON_ERROR().onErrorCode().map { it.text.trim() }.ifEmpty { listOf("") }
     val position = toPosition(conf.considerPosition)
-    return OnErrorClause(body, position)
+    return OnErrorClause(codes, body, position)
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {

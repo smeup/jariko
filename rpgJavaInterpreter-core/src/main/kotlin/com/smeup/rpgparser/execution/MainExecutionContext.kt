@@ -20,7 +20,9 @@ import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.logging.AnalyticsLoggingContext
+import com.smeup.rpgparser.parsing.ast.Subroutine
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
+import com.strumenta.kolasu.model.ReferenceByName
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -39,6 +41,7 @@ object MainExecutionContext {
     private val noConfiguration: Configuration by lazy { Configuration() }
     private val noProgramStack: Stack<RpgProgram> by lazy { Stack<RpgProgram>() }
     private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
+    private val noProgramSubroutineStack: Stack<ReferenceByName<Subroutine>> by lazy { Stack<ReferenceByName<Subroutine>>() }
     //
 
     // If for some reason we have problems in MainExecutionContext.execute set this variable to true
@@ -169,6 +172,11 @@ object MainExecutionContext {
     }
 
     /**
+     * @return The subroutine stack. This is an execution stack.
+     */
+    fun getSubroutineStack() = context.get()?.subroutineStack ?: noProgramSubroutineStack
+
+    /**
      * Logs entries
      */
     fun log(renderer: LazyLogEntry) {
@@ -218,6 +226,7 @@ data class Context(
     val logging: AnalyticsLoggingContext = AnalyticsLoggingContext(),
     val memorySliceMgr: MemorySliceMgr? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
+    val subroutineStack: Stack<ReferenceByName<Subroutine>> = Stack<ReferenceByName<Subroutine>>(),
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
     var executionFunctionName: String? = null,

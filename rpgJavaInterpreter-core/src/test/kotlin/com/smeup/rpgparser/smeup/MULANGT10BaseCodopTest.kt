@@ -132,4 +132,349 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00216".outputOf())
     }
+
+    /**
+     * MOVE with Boolean Type
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101016() {
+        val expected = listOf("*IN36: 0;*IN36: 1;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101016".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL with Boolean Type
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101017() {
+        val expected = listOf("*IN36: 0;*IN36: 1;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101017".outputOf())
+    }
+
+    /**
+     * MOVE with Boolean Type and factor 2 as decimal.
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101018() {
+        val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101018".outputOf())
+    }
+
+    /**
+     * MOVEL with Boolean Type and factor 2 as decimal.
+     * @see #LS24003505
+     */
+    @Test
+    fun executeMU101019() {
+        val expected = listOf("*IN36: 0;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 1;*IN36: 0;*IN36: 0.")
+        assertEquals(expected, "smeup/MU101019".outputOf())
+    }
+
+    /**
+     * Z-ADD to a DS field defined as array and overlay.
+     * @see #LS24004081
+     */
+    @Test
+    fun executeMUDRNRAPU00115() {
+        val expected = listOf("99.000000", ".000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00115".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of an array, defined as field of DS, to a Standalone variable with MOVEA.
+     * @see #LS24004086
+     */
+    @Test
+    fun executeMUDRNRAPU00116() {
+        val expected = listOf(
+            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
+            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
+            "AABBCCDDEEFFGGHHIILL",
+            "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+            "", "", "", "", "", ""
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, where the digits of scalar are lower than decimal's digits of array type,
+     *  with `MOVEA`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00117() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            ".000123", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00117".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, where the digits of scalar are greater than decimal's digits of array type,
+     *  with `MOVEA`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00118() {
+        val expected = listOf(
+            ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00",
+            "123.45", ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00118".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `MOVEA`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00119() {
+        val expected = listOf(
+            "0", "0", "0", "0", "0", "0", "0", "0", "0",
+            "123", "0", "0", "0", "0", "0", "0", "0", "0"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00119".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Z-ADD to a Standalone defined as array.
+     * @see #LS24004081
+     */
+    @Test
+    fun executeMUDRNRAPU00120() {
+        val expected = listOf("99.000000", ".000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00120".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a DS containing packed fields to a string
+     * @see #LS24004056
+     */
+    @Test
+    fun executeMUDRNRAPU00255() {
+        val expected = listOf(
+            "A    Dÿ D\u001F 0000771",
+            "A    Dÿ D\u001F 0000771",
+            "A    Dÿ D\u001F 0000771"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00255".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a string to a DS containing packed fields
+     * @see #LS24004056
+     */
+    @Test
+    fun executeMUDRNRAPU00256() {
+        val expected = listOf("", "", "")
+        assertEquals(expected, "smeup/MUDRNRAPU00256".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a DS to a DS when they contain zoned fields
+     * @see #LS24004056
+     */
+    @Test
+    fun executeMUDRNRAPU00258() {
+        val expected = List(3) { "A    0044005510000771" }
+        assertEquals(expected, "smeup/MUDRNRAPU00258".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a DS with a string when they contain zoned fields
+     * @see #LS24004056
+     */
+    @Test
+    fun executeMUDRNRAPU00259() {
+        val expected = List(5) { "A    0044005510000771" }
+        assertEquals(expected, "smeup/MUDRNRAPU00259".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a DS with a DS when they contain packed fields
+     * @see #LS24004056
+     */
+    @Test
+    fun executeMUDRNRAPU00260() {
+        val expected = List(3) { "A    Dÿ D\u001F 0000771" }
+        assertEquals(expected, "smeup/MUDRNRAPU00260".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of numeric values on standalone fields
+     * @see #LS24004056
+     */
+    @Test
+    fun executeMUDRNRAPU00261() {
+        val expected = listOf(
+            "44.10",
+            "108.20",
+            "222.30",
+            "04410",
+            "44.10",
+            "10820",
+            "108.20",
+            "22230",
+            "222.30",
+            "",
+            ".00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00261".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `MOVE`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00126() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00126".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `MOVEL`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00127() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000",
+            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00127".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a scalar to an array, declared as integer type too, with `EVAL`.
+     * @see #LS24004106
+     */
+    @Test
+    fun executeMUDRNRAPU00128() {
+        val expected = listOf(
+            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
+            "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000",
+            "123.000000", "123.000000"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU00128".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a ZeroValue to an IntValue.
+     * @see #LS24004319
+     */
+    @Test
+    fun executeMUDRNRAPU00262() {
+        val expected = listOf("123")
+        assertEquals(expected, "smeup/MUDRNRAPU00262".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DOWxx with indicator as factor 1
+     * @see #LS24004474
+     */
+    @Test
+    fun executeMUDRNRAPU00266() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/MUDRNRAPU00266".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * State of context after a CALL failed setting an error indicator
+     * @see #LS24004538
+     */
+    @Test
+    fun executeMUDRNRAPU00268() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00268".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comparing number and `*ZEROS` by using `IFxx`.
+     * @see #LS24004528
+     */
+    @Test
+    fun executeMUDRNRAPU00134() {
+        val expected = listOf("OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00134".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to another. The size of first is lower than destination.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00135() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00135".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to another. The size of first is greater than destination.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00136() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00136".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL a decimal array to integer.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00137() {
+        val expected = listOf("1.200", "1.200", "1.200", "1200", "1200", "1200", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00137".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to decimal.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00138() {
+        val expected = listOf("1", "1", "1", ".001", ".001", ".001", "2.200", "2.200")
+        assertEquals(expected, "smeup/MUDRNRAPU00138".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL a decimal array to integer. The number of digits of first are greater than second.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00139() {
+        val expected = listOf("12.345", "12.345", "12.345", "123", "123", "123", "9", "9")
+        assertEquals(expected, "smeup/MUDRNRAPU00139".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL a decimal array to integer. The number of digits of first are greater than second.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00140() {
+        val expected = listOf("123", "123", "123", "12.300", "12.300", "12.300", "9.900", "9.900")
+        assertEquals(expected, "smeup/MUDRNRAPU00140".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEL an integer array to another. The size of first is lower than destination. In this case the target
+     *  is a DS array.
+     * @see #LS24004606
+     */
+    @Test
+    fun executeMUDRNRAPU00147() {
+        val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU00147".outputOf(configuration = smeupConfig))
+    }
 }

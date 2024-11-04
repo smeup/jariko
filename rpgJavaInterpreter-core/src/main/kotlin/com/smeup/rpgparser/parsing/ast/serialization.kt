@@ -16,6 +16,8 @@
 
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dspfparser.linesclassifier.ConstantValue
+import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
@@ -115,6 +117,9 @@ private val modules = SerializersModule {
         subclass(WriteStmt::class)
         subclass(ZAddStmt::class)
         subclass(ZSubStmt::class)
+        subclass(ExecSqlStmt::class)
+        subclass(CsqlTextStmt::class)
+        subclass(CsqlEndStmt::class)
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)
@@ -131,13 +136,15 @@ private val modules = SerializersModule {
         subclass(CharExpr::class)
         subclass(CheckExpr::class)
         subclass(DataRefExpr::class)
-        subclass(DecExpr::class)
+        subclass(DecNumericExpr::class)
+        subclass(DecTimeExpr::class)
         subclass(DiffExpr::class)
         subclass(DifferentThanExpr::class)
         subclass(DivExpr::class)
         subclass(NegationExpr::class)
         subclass(EditcExpr::class)
         subclass(EditwExpr::class)
+        subclass(EndValExpr::class)
         subclass(EofExpr::class)
         subclass(EqualExpr::class)
         subclass(EqualityExpr::class)
@@ -182,6 +189,7 @@ private val modules = SerializersModule {
         subclass(ReplaceExpr::class)
         subclass(ScanExpr::class)
         subclass(SqrtExpr::class)
+        subclass(StartValExpr::class)
         subclass(StringLiteral::class)
         subclass(SubstExpr::class)
         subclass(SubarrExpr::class)
@@ -194,6 +202,7 @@ private val modules = SerializersModule {
         subclass(ParmsExpr::class)
         subclass(StatusExpr::class)
         subclass(SizeExpr::class)
+        subclass(XFootExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)
@@ -220,6 +229,9 @@ private val modules = SerializersModule {
     }
     contextual(BigDecimal::class, BigDecimalSerializer)
     contextual(LocalDateTime::class, LocalDateTimeSerializer)
+    polymorphic(DSPFValue::class) {
+        subclass(ConstantValue::class)
+    }
 }
 
 val json = Json {

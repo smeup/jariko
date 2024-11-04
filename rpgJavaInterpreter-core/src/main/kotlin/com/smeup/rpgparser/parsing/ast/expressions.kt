@@ -97,6 +97,16 @@ data class LowValExpr(override val position: Position? = null) : FigurativeConst
 }
 
 @Serializable
+data class StartValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
+data class EndValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
 data class ZeroExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -210,7 +220,7 @@ data class DifferentThanExpr(var left: Expression, var right: Expression, overri
 // / Logical operations
 // /
 @Serializable
-data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position) {
+data class NotExpr(var base: Expression, override val position: Position? = null) : Expression(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -333,7 +343,7 @@ data class QualifiedAccessExpr(val container: Expression, val field: ReferenceBy
 }
 
 @Serializable
-data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
+data class ArrayAccessExpr(var array: Expression, var index: Expression, override val position: Position? = null) :
     AssignableExpression(position) {
     override fun render(): String {
         return "${this.array.render()}(${index.render()}))"

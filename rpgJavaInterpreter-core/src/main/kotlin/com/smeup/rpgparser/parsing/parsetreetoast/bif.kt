@@ -60,6 +60,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_parms() != null -> this.bif_parms().toAst(conf)
         this.bif_open() != null -> this.bif_open().toAst(conf)
         this.bif_size() != null -> this.bif_size().toAst(conf)
+        this.bif_xfoot() != null -> this.bif_xfoot().toAst(conf)
         this.bif_alloc() != null -> this.bif_alloc().toAst(conf)
         this.bif_realloc() != null -> this.bif_realloc().toAst(conf)
         this.bif_addr() != null -> this.bif_addr().toAst(conf)
@@ -129,11 +130,20 @@ internal fun RpgParser.Bif_charContext.toAst(conf: ToAstConfiguration = ToAstCon
 }
 
 internal fun RpgParser.Bif_decContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DecExpr {
-    return DecExpr(
-        this.expression(0).toAst(conf),
-        this.expression(1).toAst(conf),
-        this.expression(2).toAst(conf),
-        toPosition(conf.considerPosition))
+    val position = toPosition(conf.considerPosition)
+
+    // Target is mandatory
+    val target = this.expression(0).toAst(conf)
+    return if (this.expression().size < 3) {
+        // %DEC(date time or timestamp expression {:format})
+        val format = kotlin.runCatching { this.expression(1) }.getOrNull()?.toAst(conf)
+        DecTimeExpr(target, format, position)
+    } else {
+        // %DEC(Numeric expression :digits : dec pos)
+        val digits = this.expression(1).toAst(conf)
+        val decPos = this.expression(2).toAst(conf)
+        DecNumericExpr(target, digits, decPos, position)
+    }
 }
 
 internal fun RpgParser.Bif_intContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IntExpr {
@@ -178,7 +188,12 @@ internal fun RpgParser.Bif_diffContext.toAst(conf: ToAstConfiguration = ToAstCon
 internal fun RpgParser.DurationCodeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DurationCode =
     when {
         SPLAT_MSECONDS() != null || SPLAT_MS() != null -> DurationInMSecs
+        SPLAT_SECONDS() != null || SPLAT_S() != null -> DurationInSecs
+        SPLAT_MINUTES() != null || SPLAT_MN() != null -> DurationInMinutes
+        SPLAT_HOURS() != null || SPLAT_H() != null -> DurationInHours
         SPLAT_DAYS() != null || SPLAT_D() != null -> DurationInDays
+        SPLAT_MONTHS() != null || SPLAT_M() != null -> DurationInMonths
+        SPLAT_YEARS() != null || SPLAT_Y() != null -> DurationInYears
         else -> todo(conf = conf)
     }
 
@@ -314,6 +329,11 @@ internal fun RpgParser.Bif_sizeContext.toAst(conf: ToAstConfiguration = ToAstCon
         toPosition(conf.considerPosition))
 }
 
+internal fun RpgParser.Bif_xfootContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()) = XFootExpr(
+    this.expression().toAst(conf),
+    toPosition(conf.considerPosition)
+)
+
 internal fun RpgParser.Bif_addrContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddrExpr {
     return AddrExpr(toPosition(conf.considerPosition))
 }
@@ -323,5 +343,8 @@ internal fun RpgParser.Bif_allocContext.toAst(conf: ToAstConfiguration = ToAstCo
 }
 
 internal fun RpgParser.Bif_reallocContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReallocExpr {
-    return ReallocExpr(toPosition(conf.considerPosition))
+    return ReallocExpr(
+        this.identifier().toAst(conf),
+        toPosition(conf.considerPosition)
+    )
 }

@@ -1,12 +1,24 @@
+      *====================================================================
+      * smeup V6R1.025DV
+      * Nome sorgente       : MUTE10_08A
+      * Sorgente di origine : QTEMP/MUSRC(MUTE10_08A)
+      * Esportato il        : 20241004 155649
+      *====================================================================
      V*=====================================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
      V* 16/12/19  001378  BMA   Creato
+     V* 17/12/19  V5R1    PEDSTE Check-out 001378 in SMEUP_TST
+     V* 23/12/19  V5R1    PEDSTE Check-out 001378 in SMEDEV
+     V* 04/03/21  002673 BMA Tolte annotation NOXMI e variati timeout
+     V*  5/03/21  V5R1    BERNIC Check-out 002673 in SMEDEV
+     V* 07/09/23  005098  BERNI Rinominato da MUTE10_08 per errore nella nomenclatura
+     V* 07/09/23  V6R1    BMA Check-out 005098 in SMEDEV
      V*=====================================================================
      D* OBIETTIVO
      D*  Programma finalizzato ai test performance su Statement vari
-     V*---------------------------------------------------------------------
+     D*---------------------------------------------------------------------
       * Considerare i seguenti codici operativi
       *+----------+--+---------!--+
       *!RPGLE     !ST!BUILT-IN !ST!
@@ -16,7 +28,7 @@
      D $N1             S              5I 0
      D $V              S              5I 0
      D V1              S          30000
-     D S1              S            100    INZ('TEST performance')
+     D S1              S            100    INZ('TEST performance')              COSTANTE
      D V2              S          30000    Varying
      D TXT             S            100    DIM(10) PERRCD(1) CTDATA             _NOTXT
      D RES             S            100    DIM(10)

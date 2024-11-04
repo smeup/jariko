@@ -18,7 +18,7 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.dspfparser.linesclassifier.DSPFField
+import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
@@ -26,6 +26,7 @@ import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.utils.Format
 import java.io.File
 
 const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
@@ -178,8 +179,13 @@ data class JarikoCallback(
 
     /**
      * It is invoked on EXFMT execution.
+     * If implementer returns a not null value of type [OnExfmtResponse] program behaves
+     * normally and continues execution
+     * If implementer returns a null value that means program should stop because implementers intend to
+     * asynchronously wait for user input and does not want to keep server busy; it has the responsibility to
+     * provide a way to restore previous program state. This feature is not yet available.
      */
-    var onExfmt: (fields: List<DSPFField>, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
+    var onExfmt: (record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
         _, _ -> null
     },
 
@@ -220,6 +226,16 @@ data class JarikoCallback(
             }
         } ?: System.err.println(errorEvent)
     },
+
+    /**
+     * It is invoked in case of compilation unit encoding errors.
+     * The default implementation throws the error
+     * */
+    var onCompilationUnitEncodingError: (
+        error: Throwable,
+        compilationUnit: CompilationUnit,
+        encodingFormat: Format?
+    ) -> Unit = { error, _, _ -> throw error },
 
     /***
      * It is invoked in case of runtime errors occurred inside the program called, only if the error indicator
@@ -293,14 +309,14 @@ data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSour
 
     /**
      * The source code line from which the error event has been fired.
-     * Could be null
+     * If for some reason the source code line is not available, it returns the error message.
      * */
     val fragment = absoluteLine?.let { line ->
         when (errorEventSource) {
             ErrorEventSource.Parser -> MainExecutionContext.getParsingProgramStack().takeIf { it.isNotEmpty() }?.peek()?.sourceLines?.get(line - 1)
             ErrorEventSource.Interpreter -> MainExecutionContext.getProgramStack().takeIf { it.isNotEmpty() }?.peek()?.cu?.source?.split("\\r\\n|\\n".toRegex())?.get(line - 1)
         }
-    }
+    } ?: error.message ?: ""
 
     override fun toString(): String {
         return "ErrorEvent(error=$error, errorEventSource=$errorEventSource, absoluteLine=$absoluteLine, sourceReference=$sourceReference, fragment=$fragment)"

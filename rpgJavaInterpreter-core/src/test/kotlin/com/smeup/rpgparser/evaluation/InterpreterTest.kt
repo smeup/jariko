@@ -423,6 +423,14 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeMOVEL07() {
+        assertEquals(
+            listOf("0"),
+            outputOf("MOVEL07")
+        )
+    }
+
+    @Test
     fun executeMOVELDEF1_variable_definition_after_first_usage() {
         assertEquals(listOf("02"), outputOf("MOVELDEF1"))
     }
@@ -540,6 +548,11 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeXFOOT2DEF_creatingVariable() {
         assertEquals(listOf("15.3"), outputOf("XFOOT2DEF"))
+    }
+
+    @Test
+    fun executeXFOOTBIF() {
+        assertEquals(listOf("15.3"), outputOf("XFOOTBIF"))
     }
 
     @Test
@@ -777,6 +790,14 @@ Test 6
     }
 
     @Test
+    fun executeMOVE01() {
+        assertEquals(
+            listOf("0"),
+            outputOf("MOVE01")
+        )
+    }
+
+    @Test
     fun executeMOVEP() {
         assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC", "  ABC", "  ABC"), outputOf("MOVEP"))
     }
@@ -818,6 +839,30 @@ Test 6
     @Test
     fun executeDOVAR02_ModifyingStartVarDoesntAffectDO() {
         assertEquals("DOVAR02".outputOf(), listOf("N = 11", "I = 6"))
+    }
+
+    @Test
+    fun executeMONITORTST1() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST1".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST2() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST2".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST3() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST3".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST4() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST4".outputOf())
     }
 
     @Test
@@ -868,7 +913,8 @@ Test 6
             "Concat literal A with literal B",
             "ok blank",
             "Concat UnlimitedStringType with StringType",
-            "Concat StringType                                 with UnlimitedStringType"
+            "Concat StringType                                 with UnlimitedStringType",
+            "0"
         )
         assertEquals(expected, outputOf("UNLIMIT_S"))
     }
@@ -891,7 +937,8 @@ Test 6
             "Compare unlimited with literal",
             "Compare unlimited with limited",
             "Compare uninitialized unlimited with *BLANKS",
-            "Reset an unlimited and compare with *BLANKS"
+            "Reset an unlimited and compare with *BLANKS",
+            "Assignment from a boolean"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
@@ -1295,6 +1342,60 @@ Test 6
     @Test
     fun executeGoto02N() {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02N"))
+    }
+
+    @Test
+    fun executeGOTOTST1() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST1"))
+    }
+
+    @Test
+    fun executeGOTOTST2() {
+        val expected = listOf("3")
+        assertEquals(expected, outputOf("GOTOTST2"))
+    }
+
+    @Test
+    fun executeGOTOTST3() {
+        val expected = listOf("1")
+        assertEquals(expected, outputOf("GOTOTST3"))
+    }
+
+    @Test
+    fun executeGOTOTST4() {
+        val expected = listOf("1")
+        assertEquals(expected, outputOf("GOTOTST4"))
+    }
+
+    @Test
+    fun executeGOTOTST5() {
+        val expected = listOf("1", "3")
+        assertEquals(expected, outputOf("GOTOTST5"))
+    }
+
+    @Test
+    fun executeGOTOTST6() {
+        val expected = listOf("1", "4", "3")
+        assertEquals(expected, outputOf("GOTOTST6"))
+    }
+
+    @Test
+    fun executeGOTOTST7() {
+        val expected = listOf("1", "4", "2")
+        assertEquals(expected, outputOf("GOTOTST7"))
+    }
+
+    @Test
+    fun executeGOTOTST8() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST8"))
+    }
+
+    @Test
+    fun executeGOTOTST9() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST9"))
     }
 
     @Test
@@ -2423,5 +2524,29 @@ Test 6
         val program = getProgram(source, systemInterface)
         program.singleCall(emptyList())
         assertEquals(systemInterface.consoleOutput, listOf(date, year, month, day))
+    }
+
+    @Test
+    fun executeCALL_WITH_VOID_PARMS() {
+        val expected = listOf("1")
+        assertEquals(expected, "VPARMSCALLER".outputOf())
+    }
+
+    @Test
+    fun executeEXCPCALL() {
+        val expected = listOf("ok")
+        assertEquals(expected, "EXCPCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLER() {
+        val expected = listOf("(1,1)", "(0,0)", "(1,1,0,0,0)")
+        assertEquals(expected, "PRSLTCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLERDUPLICATE() {
+        val expected = listOf("0", "0", "0", "1")
+        assertEquals(expected, "PRSLTCALLERDUPLICATE".outputOf())
     }
 }

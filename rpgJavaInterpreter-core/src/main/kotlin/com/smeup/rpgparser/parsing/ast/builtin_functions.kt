@@ -16,15 +16,17 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.Evaluator
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * For expressions with this interface there isn't resolution but will be called the callback `onMockExpression` and returned a null value.
  */
-interface MockExpression
+interface MockExpression {
+    val defaultValue get(): Value = NullValue
+}
 
 // %LOOKUP
 @Serializable
@@ -100,7 +102,7 @@ data class LookupLeExpr(
 @Serializable
 data class ScanExpr(
     var value: Expression,
-    val source: Expression,
+    var source: Expression,
     val start: Expression? = null,
     val length: Expression? = null,
     override val position: Position? = null
@@ -191,13 +193,13 @@ data class SubstExpr(
     var string: Expression,
     // i don't know but fix: Error com.strumenta.kolasu.model.ImmutablePropertyException: Cannot mutate property 'start' of node FunctionCall(
     var start: Expression,
-    val length: Expression? = null,
+    var length: Expression? = null,
     override val position: Position? = null
 ) : AssignableExpression(position) {
     override val loggableEntityName: String
         get() = "%SUBST"
     override fun render(): String {
-        val len = if (length != null) ": ${length.render()}" else ""
+        val len = length?.let { ": ${it.render()}" } ?: ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
     override fun size(): Int {
@@ -254,20 +256,38 @@ data class RemExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
-// %DEC
+// Abstract %DEC definition
 @Serializable
-data class DecExpr(
-    var value: Expression,
-    var intDigits: Expression,
-    val decDigits: Expression,
+abstract class DecExpr(
     override val position: Position? = null
 ) : Expression(position) {
     override val loggableEntityName: String
         get() = "%DEC"
+}
+
+// %DEC with numeric value
+@Serializable
+data class DecNumericExpr(
+    var value: Expression,
+    var intDigits: Expression,
+    val decDigits: Expression,
+    @Transient override val position: Position? = null
+) : DecExpr(position) {
     override fun render(): String {
         return this.value.render()
     }
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %DEC with timestamp value
+@Serializable
+data class DecTimeExpr(
+    var timestamp: Expression,
+    var format: Expression?,
+    @Transient override val position: Position? = null
+) : DecExpr(position) {
+    override fun render() = timestamp.render()
+    override fun evalWith(evaluator: Evaluator) = evaluator.eval(this)
 }
 
 // %INT
@@ -456,9 +476,19 @@ data class SizeExpr(var value: Expression, override val position: Position? = nu
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %XFOOT
+@Serializable
+data class XFootExpr(var value: Expression, override val position: Position? = null) : Expression(position) {
+    override val loggableEntityName get() = "%XFOOT"
+    override fun render() = "%XFOOT(${this.value.render()})"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %ADDR
 @Serializable
 data class AddrExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
+    override val loggableEntityName get() = "%ADDR"
     override fun render() = "%ADDR"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -466,13 +496,17 @@ data class AddrExpr(override val position: Position? = null) : Expression(positi
 // %ALLOC
 @Serializable
 data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
+    override val loggableEntityName get() = "%ALLOC"
     override fun render() = "%ALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %REALLOC
 @Serializable
-data class ReallocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+data class ReallocExpr(val value: Expression, override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
+    override val loggableEntityName get() = "%REALLOC"
     override fun render() = "%REALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }

@@ -50,25 +50,48 @@ internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfig
 
 private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
     return apiId.runNode {
-        val parentPgmName = MainExecutionContext.getExecutionProgramName()
-        MainExecutionContext.setExecutionProgramName(apiId.toString())
-        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).apply {
-            MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, this)
-        }.validate()
-        this.copy(
-            fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
-            dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
-            subroutines = this.subroutines.include(api.compilationUnit.subroutines),
-            compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
-            directives = this.directives.include(api.compilationUnit.directives),
-            position = this.position,
-            apiDescriptors = api.compilationUnit.apiDescriptors?.let {
-                this.apiDescriptors?.plus(it)
-            } ?: this.apiDescriptors,
-            procedures = this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
-        ).apply {
-            MainExecutionContext.setExecutionProgramName(parentPgmName)
+        apiId.loadAndUse { api ->
+            this.copy(
+                fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
+                dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
+                subroutines = this.subroutines.include(api.compilationUnit.subroutines),
+                compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
+                directives = this.directives.include(api.compilationUnit.directives),
+                position = this.position,
+                apiDescriptors = api.compilationUnit.apiDescriptors?.let {
+                    this.apiDescriptors?.plus(it)
+                } ?: this.apiDescriptors,
+                procedures = this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
+            )
         }
+    }
+}
+
+/**
+ * Uses an API by loading it and applying the provided logic function.
+ *
+ * This function encapsulates the process of setting the current parsing program name to the API's ID,
+ * loading the API, invoking a callback to signal the API's inclusion, and then applying a user-defined
+ * logic function to the loaded API.
+ * After the logic function is applied, the original parsing program name is restored.
+ * This ensures that the API processing is isolated and does not affect the global
+ * execution context outside of this function's scope.
+ *
+ * @param T The return type of the logic function applied to the API.
+ * @param logic A higher-order function that takes an [Api] instance and returns a value of type [T].
+ *              This function is applied to the API after it is loaded and validated.
+ * @return Returns the result of the logic function applied to the loaded API.
+ */
+internal fun <T> ApiId.loadAndUse(logic: (api: Api) -> T): T {
+    val parentPgmName = MainExecutionContext.getExecutionProgramName()
+    val apiId = this
+    MainExecutionContext.setExecutionProgramName(this.toString())
+    val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).apply {
+        MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, this)
+    }.validate()
+    logic.invoke(api).let { result ->
+        MainExecutionContext.setExecutionProgramName(parentPgmName)
+        return result
     }
 }
 

@@ -24,14 +24,17 @@ import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
-import com.smeup.rpgparser.parsing.parsetreetoast.ParseTreeToAstError
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.smeup.dbmock.TABDS01LDbMock
+import com.smeup.rpgparser.utils.Format
+import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
-import java.io.StringReader
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.util.*
+import kotlin.test.*
 import kotlin.test.DefaultAsserter.assertTrue
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 /**
  * Test suite to test Jariko callback features
@@ -107,7 +110,7 @@ class JarikoCallbackTest : AbstractTest() {
                         println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     }
                     val src = when (sourceReference.sourceReferenceType) {
-                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
+                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId.uppercase(Locale.getDefault()))]
                         SourceReferenceType.Program -> pgm
                     }
                     require(src != null)
@@ -359,13 +362,21 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR06")
     }
 
+    /**
+     * This test is ignored because there is a mock implementation for SQL statements.
+     */
     @Test
+    @Ignore
     fun executeERROR07CallBackTest() {
         // Repeated not supported operation code
         executePgmCallBackTest("ERROR07", SourceReferenceType.Program, "ERROR07", listOf(6, 9))
     }
 
+    /**
+     * This test is ignored because there is a mock implementation for SQL statements.
+     */
     @Test
+    @Ignore
     fun executeERROR07SourceLineTest() {
         executeSourceLineTest("ERROR07")
     }
@@ -444,7 +455,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR16CallBackTest() {
-        executePgmCallBackTest("ERROR16", SourceReferenceType.Program, "ERROR16", listOf(12))
+        executePgmCallBackTest("ERROR16", SourceReferenceType.Program, "ERROR16", listOf(12), createMockReloadConfig())
     }
 
     @Test
@@ -517,32 +528,32 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR23CallBackTest() {
         executePgmCallBackTest("ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
-            9 to "Factor 2 cannot be null",
-            14 to "Factor 1 cannot be null"
+            9 to "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
+            14 to "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext"
         ))
     }
 
     @Test
     fun executeERROR24CallBackTest() {
         executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
-            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
     @Test
     fun executeERROR25CallBackTest() {
         executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
-            8 to "For JUL format the date must be between 1940 and 2039",
-            9 to "For JUL format the date must be between 1940 and 2039"
+            8 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
     @Test
     fun executeERROR26CallBackTest() {
         executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
-            8 to "For ISO format the date must be between 0001 and 9999",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD'"
+            8 to "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
         ))
     }
 
@@ -554,14 +565,212 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR27CallBackTest() {
         executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-            10 to "Error while creating data definition from statement: DefineStmt(originalName=*LDA, newVarName=£UDLDA",
-            11 to "An operation is not implemented: IN£UDLDA"
+            10 to "No element of the collection was transformed to a non-null value.",
+            11 to "An operation is not implemented: IN£UDLDA                           \n" +
+                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
         ))
     }
 
     @Test
     fun executeERROR27SourceLineTest() {
         executeSourceLineTest("ERROR27")
+    }
+
+    @Test
+    fun executeERROR29CallBackTest() {
+        executePgmCallBackTest("ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR29SourceLineTest() {
+        executeSourceLineTest("ERROR29")
+    }
+
+    @Test
+    fun executeERROR30CallBackTest() {
+        executePgmCallBackTest("ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR30SourceLineTest() {
+        executeSourceLineTest("ERROR30")
+    }
+
+    @Test
+    fun executeERROR31CallBackTest() {
+        executePgmCallBackTest("ERROR31", SourceReferenceType.Program, "ERROR31", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR31SourceLineTest() {
+        executeSourceLineTest("ERROR31")
+    }
+
+    @Test
+    fun executeERROR32CallBackTest() {
+        executePgmCallBackTest("ERROR32", SourceReferenceType.Program, "ERROR32", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR32SourceLineTest() {
+        executeSourceLineTest("ERROR32")
+    }
+
+    @Test
+    fun executeERROR33CallBackTest() {
+        executePgmCallBackTest("ERROR33", SourceReferenceType.Program, "ERROR33", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR33SourceLineTest() {
+        executeSourceLineTest("ERROR33")
+    }
+
+    @Test
+    fun executeERROR34CallBackTest() {
+        executePgmCallBackTest("ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
+    }
+
+    @Test
+    fun executeERROR34SourceLineTest() {
+        executeSourceLineTest("ERROR34")
+    }
+
+    @Test
+    fun executeERROR35CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR35",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR35",
+            lines = listOf(9, 10))
+    }
+
+    @Test
+    fun executeERROR35CSourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR35")
+    }
+
+    /**
+     * NOTE: This is error is thrown because Reload does not support '*START' and '*END' constants yet.
+     * When this feature gets supported please restore it on Jariko side by following these steps:
+     * - Remove this test or mark it as ignored
+     * - Remove the [@Ignore] decorator from the [MULANGT50FileAccess1Test.executeMUDRNRAPU00248] test
+     * - Remove the runtime error (it should be in [Expression.createKList] if not moved)
+     */
+    @Test
+    fun executeERROR36CallBackTest() {
+        TABDS01LDbMock().usePopulated {
+            executePgmCallBackTest(
+                pgm = "ERROR36",
+                sourceReferenceType = SourceReferenceType.Program,
+                sourceId = "ERROR36",
+                lines = listOf(6),
+                reloadConfig = it.createReloadConfig()
+            )
+        }
+    }
+
+    @Test
+    fun executeERROR36SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR36")
+    }
+
+    /**
+     * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
+     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     */
+    @Test
+    fun executeERROR37CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR37",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR37",
+            lines = listOf(9)
+        )
+    }
+
+    @Test
+    fun executeERROR37SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR37")
+    }
+
+    /**
+     * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
+     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     */
+    @Test
+    fun executeERROR38CallBackTest() {
+        executePgmCallBackTest(
+            pgm = "ERROR38",
+            sourceReferenceType = SourceReferenceType.Program,
+            sourceId = "ERROR38",
+            lines = listOf(12)
+        )
+    }
+
+    @Test
+    fun executeERROR38SourceLineTest() {
+        executeSourceLineTest(pgm = "ERROR38")
+    }
+
+    @Test
+    fun executeERROR41CallBackTest() {
+        executePgmCallBackTest("ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR41SourceLineTest() {
+        executeSourceLineTest("ERROR41")
+    }
+
+    @Test
+    fun executeERROR42CallBackTest() {
+        executePgmCallBackTest("ERROR42", SourceReferenceType.Program, "ERROR42", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR42SourceLineTest() {
+        executeSourceLineTest("ERROR42")
+    }
+
+    @Test
+    fun executeERROR43CallBackTest() {
+        executePgmCallBackTest("ERROR43", SourceReferenceType.Program, "ERROR43", mapOf(
+            23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
+        ))
+    }
+
+    @Test
+    fun executeERROR43SourceLineTest() {
+        executeSourceLineTest("ERROR43")
+    }
+
+    @Test
+    fun executeERROR44CallBackTest() {
+        executePgmCallBackTest("ERROR44", SourceReferenceType.Program, "ERROR44", mapOf(
+            8 to "Error calling program or procedure - Could not find program MISSING"
+        ))
+    }
+
+    @Test
+    fun executeERROR44SourceLineTest() {
+        executeSourceLineTest("ERROR44")
     }
 
     @Test
@@ -658,116 +867,54 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
-     * This function is used to test the execution of a program and validate the error handling mechanism.
-     * It expects the program to fail and checks if the error events are correctly captured.
-     *
-     * @param pgm The name of the program to be executed.
-     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
-     * @param sourceId The expected identifier of the source where the error is expected to occur.
-     * @param lines The list of line numbers where the errors are expected.
+     * Tests the handling of encoding errors during the compilation unit processing.
+     * This test simulates a scenario where an encoding error occurs while compiling a program.
+     * It sets up callbacks to capture both encoding errors and general errors, then attempts to compile
+     * a program with a known encoding issue. The test asserts that both the encoding error and the general
+     * error callbacks are triggered, indicating that the error handling mechanisms are functioning as expected.
+     * NB: When the encoding errors in ERROR28 are resolved, this test will fail and should be adapted
+     * to mock another kind of encoding error
      */
-    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
-        val errorEvents = mutableListOf<ErrorEvent>()
-        runCatching {
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    println(errorEvent)
-                    errorEvents.add(errorEvent)
-                }
-                options = Options(debuggingInformation = true)
-                reloadConfig = createMockReloadConfig()
-            }
-            executePgm(pgm, configuration = configuration)
-        }.onSuccess {
-            Assert.fail("Program must exit with error")
-        }.onFailure {
-            println(it.stackTraceToString())
-            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
-            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            Assert.assertEquals(lines.sorted(), errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
-        }
-    }
+    @Test
+    @Ignore("This test is not working because the encoding error in ERROR28.rpgle was " +
+            "due to the fact that we will try to compile also ast with errors")
+    fun onCompilationUnitEncodingErrorTest() {
+        // Flags to track if callbacks are triggered
+        var enteredInOnCompilationUnitEncodingError = false
+        var enteredInOnError = false
 
-    /**
-     * This function is used to test the execution of a program and validate the error handling mechanism.
-     * It expects the program to fail and checks if the error events are correctly captured.
-     *
-     * @param pgm The name of the program to be executed.
-     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
-     * @param sourceId The expected identifier of the source where the error is expected to occur.
-     * @param lines The map of lines, number and message, expected.
-     */
-    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: Map<Int, String>) {
-        val errorEvents = mutableListOf<ErrorEvent>()
-        runCatching {
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    println(errorEvent)
-                    errorEvents.add(errorEvent)
-                }
-                options = Options(debuggingInformation = true)
-                reloadConfig = createMockReloadConfig()
-            }
-            executePgm(pgm, configuration = configuration)
-        }.onSuccess {
-            Assert.fail("Program must exit with error")
-        }.onFailure {
-            println(it.stackTraceToString())
-            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
-            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            val found = errorEvents
-                .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to (errorEvent.error as ParseTreeToAstError).message!!
-                }
-                .map {
-                    Pair(it.value, it.contains(lines))
-                }
-            Assert.assertTrue(
-                "Errors doesn't correspond:\n" + found.joinToString(separator = "\n") { it.first },
-                found.size == found.filter { it.second }.size && found.size == lines.size
-            )
-        }
-    }
-
-    internal fun Map.Entry<Int, String>.contains(list: Map<Int, String>): Boolean {
-        list.forEach {
-            if (this.value.contains(it.value) && this.key == it.key) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * Verify that the sourceLine is properly set in case of error.
-     * ErrorEvent must contain a reference of an absolute line of the source code
-     * */
-    private fun executeSourceLineTest(pgm: String, throwableConsumer: (Throwable) -> Unit = {}) {
-        lateinit var lines: List<String>
-        val errorEvents = mutableListOf<ErrorEvent>()
+        // Configuration setup with callbacks for encoding errors and general errors
         val configuration = Configuration().apply {
-            jarikoCallback.beforeParsing = { it ->
-                if (MainExecutionContext.getParsingProgramStack().peek().name == pgm) {
-                    lines = StringReader(it).readLines()
-                }
-                it
+            jarikoCallback.onCompilationUnitEncodingError = { _, _, _ ->
+                enteredInOnCompilationUnitEncodingError = true
             }
-            jarikoCallback.onError = { errorEvents.add(it) }
-            // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
-            // of runtime error
-            options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
-            reloadConfig = createMockReloadConfig()
-        }
-        kotlin.runCatching {
-            executePgm(pgm, configuration = configuration)
-        }.onSuccess {
-            Assert.fail("$pgm must exit with error")
-        }.onFailure {
-            throwableConsumer(it)
-            errorEvents.forEach {
-                Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
+            jarikoCallback.onError = { _ ->
+                enteredInOnError = true
             }
         }
+
+        // Path to the resources directory containing the program to compile
+        val resourcePath = File({}.javaClass.getResource("/smeup/QILEGEN").file).parentFile
+
+        // Attempt to compile the program, expecting an encoding error
+        {}.javaClass.getResource("/smeup/ERROR28.rpgle").openStream().use { inputStream ->
+            val programFinders = listOf(DirRpgProgramFinder(resourcePath))
+            kotlin.runCatching {
+                compile(
+                    src = inputStream,
+                    out = ByteArrayOutputStream(),
+                    format = Format.BIN,
+                    programFinders = programFinders,
+                    configuration = configuration
+                )
+            }.onSuccess {
+                Assert.fail("Program must exit with error")
+            }
+        }
+
+        // Assert that both encoding and general error callbacks were triggered
+        Assert.assertTrue(enteredInOnCompilationUnitEncodingError)
+        Assert.assertTrue(enteredInOnError)
     }
 
     private fun createMockReloadConfig(): ReloadConfig {

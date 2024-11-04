@@ -198,14 +198,23 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00101() {
-        MULANGTLDbMock().use {
-            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+        MULANGTLDbMock().usePopulated {
             val expected = listOf("HELLO THERE")
             assertEquals(
                 expected = expected,
                 "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
             )
         }
+    }
+
+    /**
+     * Resolves problem od Data Reference with LIKE when in the RPG source is used an API directive.
+     * @see LS24003656
+     */
+    @Test
+    fun executeMUDRNRAPU00102() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU00102".outputOf(configuration = smeupConfig))
     }
 
     /**
@@ -257,8 +266,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     @Test
     fun executeMUDRNRAPU00202() {
-        MULANGTLDbMock().use {
-            com.smeup.rpgparser.db.utilities.execute(listOf(it.createTable(), it.populateTable()))
+        MULANGTLDbMock().usePopulated {
             val expected = listOf("ok")
             assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
         }
@@ -401,5 +409,288 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00225() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00225".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comptime DS with EXTNAME resolution and data structures INZ(*HIVAL)
+     * @see #LS24003257
+     */
+    @Test
+    fun executeMUDRNRAPU00226() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00226".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Data structures INZ(*HIVAL) values test
+     * @see #LS24003257
+     */
+    @Test
+    fun executeMUDRNRAPU00227() {
+        val expected = listOf("9991\uFFFF\uFFFF99999")
+        assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * LIKE on a PList with case in-sensitive lookup
+     * @see #LS24003296
+     */
+    @Test
+    fun executeMUDRNRAPU00230() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00230".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comptime LIKE referencing another D-Spec with LIKE
+     * @see #LS24003329
+     */
+    @Test
+    fun executeMUDRNRAPU00233() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00233".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comptime DEFINE support based on a comptime resolution inside a subroutine
+     * @see #LS24003177
+     */
+    @Test
+    fun executeMUDRNRAPU00231() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00231".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Variable of type A defined with LEN keyword
+     * @see #LS24003324
+     */
+    @Test
+    fun executeMUDRNRAPU00232() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00232".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to an array detected as a function call by parser in ScanExpr
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00234() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00234".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * F-spec of type 'O' that is not a printer file
+     * @see #LS24003409
+     */
+    @Test
+    fun executeMUDRNRAPU00235() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00235".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to an array detected as a function call by parser in IfStmt
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00236() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00236".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Dspec with LIKE on a field defined in an API
+     * @see #LS24003456
+     */
+    @Test
+    fun executeMUDRNRAPU00238() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00238".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to an array detected as a function call by parser in SubstExpr
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00239() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00239".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU00241() {
+        val expected = listOf("0")
+        assertEquals(expected, "smeup/MUDRNRAPU00241".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to an array detected as a function call by parser in ArrayAccessExpr
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00243() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00243".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to an array detected as a function call recursively
+     * @see #LS24003753
+     */
+    @Test
+    fun executeMUDRNRAPU00244() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00244".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Resolution of InStatement data definitions contained in CompositeStatements
+     * @see #LS24003769
+     */
+    @Test
+    fun executeMUDRNRAPU00245() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00245".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU00246() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00246".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to an array detected as a function call in NOT expressions
+     * @see #LS24003380
+     */
+    @Test
+    fun executeMUDRNRAPU00247() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00247".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Array declaration inside a DS with an empty INZ keyword
+     * @see #LS24003783
+     */
+    @Test
+    fun executeMUDRNRAPU00249() {
+        val expected = listOf(List(99) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00249".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * INZ of a field inside a DS declared with OCCURS keyword
+     * @see #LS24003786
+     */
+    @Test
+    fun executeMUDRNRAPU00250() {
+        val expected = listOf(List(40) { ".00" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00250".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU01101() {
+        val expected = listOf("test", "test")
+        assertEquals(expected, "smeup/MUDRNRAPU01101".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU01102() {
+        val expected = listOf("test", "te", "st")
+        assertEquals(expected, "smeup/MUDRNRAPU01102".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU01103() {
+        val expected = listOf("1", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU01103".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to a DS numeric field not initialized both by parent or from itself.
+     * @note This behaviour is different on AS400: a field of DS not initialized is a
+     *       hexadecimal value instead `0`.
+     * @see #LS24004159
+     */
+    @Test
+    fun executeMUDRNRAPU00131() {
+        val expected = listOf(".00", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00131".outputOf())
+    }
+
+    /**
+     * LIKE on DS field with absolute path
+     * @see #LS24003324
+     */
+    @Test
+    fun executeMUDRNRAPU00263() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00263".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Verifies the sort of ds array values
+     * @see #LS24004379
+     */
+    @Test
+    fun executeMUDRNRAPU01104() {
+        val expected = listOf("ORIGINAL", "3", "2", "4", "1", "5", "ORDERED", "3", "1", "2", "4", "5")
+        assertEquals(expected, "smeup/MUDRNRAPU01104".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Like on an InStatement definition inside an API
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00264() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00264".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Declaration with DIM based on a constant whose definition is not known yet
+     * @see #LS24004491
+     */
+    @Test
+    fun executeMUDRNRAPU00267() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00267".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Allows for the correct handling of composed (nested) statements during execution, ensuring that `TagStmts`
+     *  can be found even within complex structures.
+     * @see #LS24004437
+     */
+    @Test
+    fun executeMUDRNRAPU01105() {
+        val expected = listOf("FLG-FALSE", "EMPTY", "FLG-TRUE")
+        assertEquals(expected, "smeup/MUDRNRAPU01105".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Using %LEN on a definition inside a DIM
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00265() {
+        val expected = listOf(List(500) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00265".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of integer value to a DS decimal subfield
+     * @see #LS24004450
+     */
+    @Test
+    fun executeMUDRNRAPU00132() {
+        val expected = listOf("10.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00132".outputOf(configuration = smeupConfig))
     }
 }

@@ -1,5 +1,10 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.execution.CommandLineParms
+import com.smeup.rpgparser.interpreter.ConcreteArrayValue
+import com.smeup.rpgparser.interpreter.DataStructValue
+import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.interpreter.StringValue
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -74,5 +79,49 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         assertFailsWith(RuntimeException::class) {
             "smeup/MUDRNRAPU00211".outputOf(configuration = smeupConfig)
         }
+    }
+
+    /**
+     * Runtime evaluation of `%ELEM` during the evaluation of `PLIST`.
+     * @see #LS24003751
+     */
+    @Test
+    fun executeMUDRNRAPU00105() {
+        // arrayValue takes into account the following RPG code:
+        // D £40A            S             15    DIM(300)
+        val arrayValue = ConcreteArrayValue(
+            elements = MutableList(300) { _ -> StringValue.blank(15) },
+            elementType = StringType(15)
+        )
+
+        // dataStructValue takes into account the following RPG code:
+        // D £G40DS          DS           500
+        // I don't set any field value because the RPG code doesn't use them
+        val dataStructValue = DataStructValue.blank(500)
+
+        // This is the entry passed to the program
+        val entry = CommandLineParms(namedParams = mapOf("£40A" to arrayValue, "£G40DS" to dataStructValue))
+        val expected = listOf("300")
+        assertEquals(expected = expected, actual = "smeup/MUDRNRAPU00105".outputOf(configuration = smeupConfig, params = entry))
+    }
+
+    /**
+     * %REALLOC and %ALLOC for dynamic array resizing
+     * @see #LS24003806
+     */
+    @Test
+    fun executeMUDRNRAPU00252() {
+        val expected = listOf("10000", "10000", "10000")
+        assertEquals(expected, "smeup/MUDRNRAPU00252".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * %REALLOC for dynamic array resizing when multiple arrays based on the same pointer are present
+     * @see #LS24003806
+     */
+    @Test
+    fun executeMUDRNRAPU00253() {
+        val expected = listOf("10000", "10000", "10000", "10000")
+        assertEquals(expected, "smeup/MUDRNRAPU00253".outputOf(configuration = smeupConfig))
     }
 }

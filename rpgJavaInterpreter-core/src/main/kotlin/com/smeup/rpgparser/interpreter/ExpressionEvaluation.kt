@@ -65,10 +65,6 @@ class ExpressionEvaluation(
         return value
     }
 
-    override fun eval(expression: AddrExpr): Value = proxyLogging(expression) { throw NotImplementedError("AddrExpr are not implemented yet") }
-    override fun eval(expression: AllocExpr): Value = proxyLogging(expression) { throw NotImplementedError("AllocExpr are not implemented yet") }
-    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) { throw NotImplementedError("ReallocExpr are not implemented yet") }
-
     override fun eval(expression: StringLiteral): Value = proxyLogging(expression) { StringValue(expression.value) }
     override fun eval(expression: IntLiteral) = proxyLogging(expression) { IntValue(expression.value) }
     override fun eval(expression: RealLiteral) = proxyLogging(expression) { DecimalValue(expression.value) }
@@ -98,10 +94,10 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: NumberOfElementsExpr): Value = proxyLogging(expression) {
-        return@proxyLogging when (val value = expression.value.evalWith(this)) {
-            is ArrayValue -> value.arrayLength().asValue()
-            is OccurableDataStructValue -> value.occurs.asValue()
-            else -> throw IllegalStateException("Cannot ask number of elements of $value")
+        return@proxyLogging when (expression.value.type()) {
+            is ArrayType -> expression.value.type().numberOfElements().asValue()
+            is OccurableDataStructureType -> (expression.value.evalWith(this) as OccurableDataStructValue).occurs.asValue()
+            else -> throw IllegalStateException("Cannot ask number of elements of ${expression.value}")
         }
     }
 
@@ -150,18 +146,33 @@ class ExpressionEvaluation(
 
     override fun eval(expression: BlanksRefExpr) = proxyLogging(expression) { BlanksValue } as BlanksValue
 
-    override fun eval(expression: DecExpr): Value = proxyLogging(expression) {
+    override fun eval(expression: DecNumericExpr): Value = proxyLogging(expression) {
         val decDigits = expression.decDigits.evalWith(this).asInt().value
         val valueAsString = expression.value.evalWith(this).asString().value
         val valueAsBigDecimal = valueAsString.asBigDecimal()
-        require(valueAsBigDecimal != null) {
-            "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
-        }
+        valueAsBigDecimal ?: throw ProgramStatusCode.INVALID_CHARACTERS.toThrowable("value: $valueAsString", expression.position)
 
         return@proxyLogging if (decDigits == 0L) {
             IntValue(valueAsBigDecimal.toLong())
         } else {
             DecimalValue(valueAsBigDecimal)
+        }
+    }
+
+    override fun eval(expression: DecTimeExpr): Value = proxyLogging(expression) {
+        val value = expression.timestamp.evalWith(this)
+        val format = expression.format
+
+        return@proxyLogging when (value) {
+            is TimeStampValue -> {
+                if (format != null) error("%DEC(time:format) is allowed only when time is DateValue")
+                value.toDecimal()
+            }
+            is DateValue -> {
+                if (format != null) TODO("%DEC(time{:format}) with custom format is not implemented yet")
+                value.toDecimal()
+            }
+            else -> error("%DEC(time{:format}) is allowed only when time is TimeStampValue or DateValue")
         }
     }
 
@@ -198,6 +209,10 @@ class ExpressionEvaluation(
                     val s = left.value + right.value
                     StringValue(s)
                 }
+            }
+            left is StringValue && right is BooleanValue -> {
+                val s = left.trimEndIfVarying() + right.asString().value
+                s.asValue()
             }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
@@ -310,6 +325,8 @@ class ExpressionEvaluation(
 
     override fun eval(expression: HiValExpr) = proxyLogging(expression) { HiValValue } as HiValValue
     override fun eval(expression: LowValExpr) = proxyLogging(expression) { LowValValue } as LowValValue
+    override fun eval(expression: StartValExpr) = proxyLogging(expression) { StartValValue } as StartValValue
+    override fun eval(expression: EndValExpr) = proxyLogging(expression) { EndValValue } as EndValValue
     override fun eval(expression: ZeroExpr) = proxyLogging(expression) { ZeroValue } as ZeroValue
     override fun eval(expression: AllExpr) = proxyLogging(expression) {
         AllValue(eval(expression.charsToRepeat).asString().value)
@@ -408,7 +425,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: SubstExpr): Value = proxyLogging(expression) {
-        val length = if (expression.length != null) expression.length.evalWith(this).asInt().value.toInt() else 0
+        val length = expression.length?.evalWith(this)?.asInt()?.value?.toInt() ?: 0
         val start = expression.start.evalWith(this).asInt().value.toInt() - 1
         val originalString = expression.string.evalWith(this).asString().value
         return@proxyLogging if (length == 0) {
@@ -595,6 +612,9 @@ class ExpressionEvaluation(
         val v1 = expression.left.evalWith(this)
         val v2 = expression.right.evalWith(this)
         require(v1 is NumberValue && v2 is NumberValue)
+
+        if (v2.bigDecimal.isZero())
+            throw ProgramStatusCode.DIVIDE_BY_ZERO.toThrowable("v1: $v1, v2: $v2", expression.position)
 
         // Detects what kind of eval must be evaluated
         val res = if (expression.parent is EvalStmt) {
@@ -784,7 +804,11 @@ class ExpressionEvaluation(
 
     override fun eval(expression: SqrtExpr): Value = proxyLogging(expression) {
         val value = evalAsDecimal(expression.value)
-        DecimalValue(BigDecimal.valueOf(sqrt(value.toDouble())))
+        val sqrt = sqrt(value.toDouble())
+        if (sqrt.isNaN()) {
+            ProgramStatusCode.NEGATIVE_SQUARE_ROOT.toThrowable("value: $value", expression.position)
+        }
+        BigDecimal.valueOf(sqrt).asValue()
     }
 
     override fun eval(expression: AssignmentExpr) =
@@ -798,7 +822,9 @@ class ExpressionEvaluation(
         StringValue(value.toString())
     }
 
-    override fun eval(expression: ParmsExpr): Value = proxyLogging(expression) { IntValue(interpreterStatus.params.toLong()) }
+    override fun eval(expression: ParmsExpr): Value = proxyLogging(expression) {
+        interpreterStatus.callerParams.asValue()
+    }
 
     override fun eval(expression: OpenExpr): Value = proxyLogging(expression) {
         val name = expression.name
@@ -825,9 +851,24 @@ class ExpressionEvaluation(
 
     override fun eval(expression: NullValExpr): Value = proxyLogging(expression) { NullValue }
 
+    override fun eval(expression: XFootExpr): Value = proxyLogging(expression) {
+        val arrayRef = expression.value as? DataRefExpr ?: error("%XFOOT is only allowed for array expression")
+        val array = eval(arrayRef) as? ArrayValue ?: error("%XFOOT is only allowed for ArrayValue")
+        xfoot(array)
+    }
+
+    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) {
+        val pointer = expression.value as? DataRefExpr ?: error("%REALLOC is only allowed for pointers")
+        val references = interpreterStatus.getReferences(pointer)
+        require(references.all { it.key.type is ArrayType }) {
+            "%REALLOC is only supported for pointers referencing arrays"
+        }
+        expression.defaultValue
+    }
+
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
-        return NullValue
+        return expression.defaultValue
     }
 
     private fun lookupLinearSearch(values: List<Value>, target: Value): Int {

@@ -20,9 +20,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 
 interface Evaluator {
-    fun eval(expression: AddrExpr): Value
-    fun eval(expression: AllocExpr): Value
-    fun eval(expression: ReallocExpr): Value
     fun eval(expression: IntLiteral): Value
     fun eval(expression: RealLiteral): Value
     fun eval(expression: StringLiteral): Value
@@ -39,7 +36,8 @@ interface Evaluator {
     fun eval(expression: LessEqualThanExpr): Value
     fun eval(expression: LessThanExpr): Value
     fun eval(expression: BlanksRefExpr): BlanksValue
-    fun eval(expression: DecExpr): Value
+    fun eval(expression: DecNumericExpr): Value
+    fun eval(expression: DecTimeExpr): Value
     fun eval(expression: PlusExpr): Value
     fun eval(expression: MinusExpr): Value
     fun eval(expression: MultExpr): Value
@@ -52,6 +50,8 @@ interface Evaluator {
     fun eval(expression: ArrayAccessExpr): Value
     fun eval(expression: HiValExpr): HiValValue
     fun eval(expression: LowValExpr): LowValValue
+    fun eval(expression: StartValExpr): StartValValue
+    fun eval(expression: EndValExpr): EndValValue
     fun eval(expression: ZeroExpr): ZeroValue
     fun eval(expression: AllExpr): AllValue
     fun eval(expression: TranslateExpr): Value
@@ -96,5 +96,7 @@ interface Evaluator {
     fun eval(expression: OpenExpr): Value
     fun eval(expression: SizeExpr): Value
     fun eval(expression: NullValExpr): Value
+    fun eval(expression: XFootExpr): Value
     fun eval(expression: MockExpression): Value
+    fun eval(expression: ReallocExpr): Value
 }

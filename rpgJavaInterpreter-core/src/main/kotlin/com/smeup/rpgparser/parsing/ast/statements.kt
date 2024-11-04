@@ -135,6 +135,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
+        MainExecutionContext.getSubroutineStack().push(subroutine)
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
             interpreter.execute(subroutine.referred!!.stmts)
@@ -142,6 +143,10 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
             // Nothing to do here
         } catch (e: GotoException) {
             if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+        } finally {
+            // NOTE: The next instruction should never throw. If it does, there is something wrong in how the stack is used.
+            // Investigate where and how it is used and manipulated.
+            MainExecutionContext.getSubroutineStack().pop()
         }
     }
 
@@ -721,24 +726,23 @@ data class CallStmt(
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program: Program?
+        val callIssueException = ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
         try {
             program = interpreter.getSystemInterface().findProgram(programToCall)
             if (errorIndicator != null) {
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
             }
         } catch (e: Exception) {
-            if (errorIndicator == null) {
-                throw e
-            }
+            errorIndicator ?: throw callIssueException
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
             return
         }
 
-        require(program != null) {
-            "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
-        }
+        program ?: throw callIssueException
 
-        val params = this.params.mapIndexed { index, it ->
+        // Ignore exceeding params
+        val targetProgramParams = program.params()
+        val params = this.params.take(targetProgramParams.size).mapIndexed { index, it ->
             if (it.dataDefinition != null) {
                 // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
@@ -765,10 +769,7 @@ data class CallStmt(
                     )
                 }
             }
-            require(program.params().size > index) {
-                "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
-            }
-            program.params()[index].name to interpreter[it.param.name]
+            targetProgramParams[index].name to interpreter[it.param.name]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
@@ -790,11 +791,16 @@ data class CallStmt(
                 }
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
+                MainExecutionContext.getProgramStack().pop()
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
-                interpreter.assign(this.params[index].param.referred!!, value)
+                val currentParam = this.params[index]
+                interpreter.assign(currentParam.param.referred!!, value)
+
+                // If we also have a result field, assign to it
+                currentParam.result?.let { interpreter.assign(it, value) }
             }
         }
     }
@@ -816,7 +822,7 @@ data class CallStmt(
 
 @Serializable
 data class CallPStmt(
-    val functionCall: FunctionCall,
+    var functionCall: FunctionCall,
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
@@ -927,17 +933,17 @@ data class MonitorStmt(
     override fun execute(interpreter: InterpreterCore) {
         try {
             interpreter.execute(this.monitorBody)
-        } catch (_: Exception) {
-            onErrorClauses.forEach {
-                interpreter.execute(it.body)
-            }
+        } catch (e: InterpreterProgramStatusErrorException) {
+            val errorClause = onErrorClauses.firstOrNull { it.codes.any { code -> e.statusCode.matches(code) } }
+            errorClause ?: throw e
+            interpreter.execute(errorClause.body)
         }
     }
 }
 
 @Serializable
 data class IfStmt(
-    val condition: Expression,
+    var condition: Expression,
     @SerialName("body")
     val thenBody: List<Statement>,
     val elseIfClauses: List<ElseIfClause> = emptyList(),
@@ -1015,7 +1021,7 @@ data class IfStmt(
 }
 
 @Serializable
-data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position),
+data class OnErrorClause(val codes: List<String>, override val body: List<Statement>, override val position: Position? = null) : Node(position),
     CompositeStatement
 
 @Serializable
@@ -1108,6 +1114,7 @@ data class PlistStmt(
 
 @Serializable
 data class PlistParam(
+    val result: AssignableExpression?,
     val param: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2390,10 +2397,10 @@ data class ExfmtStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
-        val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
+        val record = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
         val snapshot = RuntimeInterpreterSnapshot()
-        val response = jarikoCallback.onExfmt(fields, snapshot)
-        response ?: error("RuntimeInterpreterSnapshot is not yet handled")
+        val response = jarikoCallback.onExfmt(record, snapshot)
+        response ?: error("In the current implementation onExfmt callback cannot return null")
         copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }
@@ -2505,8 +2512,37 @@ data class TestnStmt(
 @Serializable
 data class DeallocStmt(
     override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        throw NotImplementedError("DEALLOC statement is not implemented yet")
-    }
+) : Statement(position), MockStatement {
+    override val loggableEntityName get() = "DEALLOC"
+    override fun execute(interpreter: InterpreterCore) { }
+}
+
+@Serializable
+data class ExecSqlStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "SQL - EXEC SQL"
+
+    override fun execute(interpreter: InterpreterCore) {}
+}
+
+@Serializable
+data class CsqlTextStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "SQL - Text"
+
+    override fun execute(interpreter: InterpreterCore) {}
+}
+
+@Serializable
+data class CsqlEndStmt(
+    override val position: Position? = null
+) : Statement(position), MockStatement {
+    override val loggableEntityName: String
+        get() = "SQL - END-EXEC"
+
+    override fun execute(interpreter: InterpreterCore) {}
 }

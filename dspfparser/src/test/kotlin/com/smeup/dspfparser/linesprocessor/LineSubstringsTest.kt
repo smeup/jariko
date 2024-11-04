@@ -26,7 +26,7 @@ internal class LineSubstringsTest : LinesProcessorLoader("./src/test/resources/F
         assertEquals("B", line.fieldType)
         assertEquals(" 12", line.y)
         assertEquals(" 22", line.x)
-        assertEquals("TEXT('Hello')", line.keywords!!)
+        assertEquals("TEXT('Hello')", line.keywords)
     }
 
     @Test

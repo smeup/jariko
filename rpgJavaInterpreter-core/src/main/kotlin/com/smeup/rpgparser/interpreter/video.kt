@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.dspfparser.linesclassifier.DSPFField
+import com.smeup.dspfparser.linesclassifier.DSPFRecord
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 
@@ -9,10 +9,10 @@ internal fun DSPF.getDbFields(): List<DbField> {
     val fields = mutableListOf<DbField>()
 
     records.forEach { record ->
-        record.fields.forEach { field ->
+        record.mutables.forEach { field ->
             val type: Type
             val rpgType: RpgType
-            // currently parser can't handle REFFLD, so I created random fallback values
+            // currently REFFLD are not supported, so I created random fallback values
             val fallbackLength = 10
             val fallbackPrecision = 10
 
@@ -52,22 +52,21 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
 
 /**
  * Fields of specified record will be returned and updated with the latest
- * value of the corrisponding data definition just before EXFMT starts.
+ * value of the corresponding data definition just before EXFMT starts.
  */
-internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): List<DSPFField> {
-    val fields = mutableListOf<DSPFField>()
+internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): DSPFRecord {
+    var record: DSPFRecord? = null
     val symbolTable = interpreter.getGlobalSymbolTable()
     val displayFiles = interpreter.getStatus().displayFiles
 
     displayFiles?.forEach { dspf ->
-        val record = dspf.value.records.first { it.name == recordName }
-        record.fields.forEach { field ->
+        record = dspf.value.records.first { it.name == recordName }
+        record!!.mutables.forEach { field ->
             field.value = symbolTable[field.name]
-            fields.add(field)
         }
     }
 
-    return fields
+    return record!!
 }
 
 /**

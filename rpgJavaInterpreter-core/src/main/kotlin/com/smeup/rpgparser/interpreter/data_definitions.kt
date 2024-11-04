@@ -48,6 +48,7 @@ abstract class AbstractDataDefinition(
      * */
     @Transient open val const: Boolean = false,
     @Transient open val static: Boolean = false,
+    @Transient open var basedOn: Expression? = null,
     /**
      * This scope. Default: got by current parsing entity
      * */
@@ -137,9 +138,10 @@ data class Prefix(internal val prefix: String, private val numCharsReplaced: Int
 }
 
 enum class FileType(val keyword: String?) {
-    DB(null), VIDEO("C"), PRINTER("O");
+    DB(null), VIDEO("C"), PRINTER(null);
 
     companion object {
+        // see https://www.ibm.com/docs/sl/i/7.3?topic=statement-position-17-file-type
         fun getByKeyword(keyword: String): FileType {
             return FileType.values().firstOrNull() {
                 it.keyword == keyword
@@ -192,14 +194,17 @@ data class DataDefinition(
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf(),
     @Transient var defaultValue: Value? = null,
+    override var basedOn: Expression? = null,
     override val static: Boolean = false
 ) :
     AbstractDataDefinition(
         name = name,
         type = type,
         position = position,
+        basedOn = basedOn,
         const = const,
-        static = static) {
+        static = static
+    ) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && (type as ArrayType).compileTimeArray()
@@ -298,6 +303,9 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         is StringType -> {
             return StringValue(value.asString().value)
         }
+        is UnlimitedStringType -> {
+            return StringValue(value.asString().value)
+        }
         is ArrayType -> {
             val sb = StringBuilder()
             when (value) {
@@ -321,6 +329,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 return StringValue("1")
             return StringValue("0")
         }
+        is DataStructureType -> {
+            return when (value) {
+                is DataStructValue -> value.asString()
+                else -> TODO("Not implemented")
+            }
+        }
+        is RecordFormatType -> return StringValue.blank(this.size)
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
 }
@@ -469,6 +484,11 @@ class InStatementDataDefinition(
     override fun toString(): String {
         return "InStatementDataDefinition name=$name, type=$type, position=$position"
     }
+
+    // TODO("Require investigation")
+    override fun hashCode() = name.hashCode()
+
+    override fun equals(other: Any?) = other?.let { this.name == (other as AbstractDataDefinition).name } ?: false
 }
 
 /**
