@@ -1,6 +1,9 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
+import java.lang.Math.pow
+import java.math.BigDecimal
+import kotlin.math.pow
 
 fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
     return when (target) {
@@ -62,7 +65,7 @@ private fun moveaNumber(
             targetArray.getElement(it + 1)
         } else {
             val newValueIndex = it - startIndex + 1
-            if (newValueIndex < newValue.arrayLength()) {
+            var elementValue = if (newValueIndex < newValue.arrayLength()) {
                 newValue.getElement(newValueIndex + 1)
             } else {
                 if (operationExtenter == null) {
@@ -71,6 +74,11 @@ private fun moveaNumber(
                     IntValue.ZERO
                 }
             }
+            // Proper conversion between a left side decimal to right side integer
+            if (elementValue is DecimalValue && targetArray.elementType is NumberType && (targetArray.elementType as NumberType).decimalDigits == 0) {
+                elementValue = DecimalValue(elementValue.value * BigDecimal(10.0.pow(((targetArray.elementType as NumberType).entireDigits - (newValue.elementType as NumberType).entireDigits).toDouble())))
+            }
+            elementValue
         }
     }
     return arrayValue
