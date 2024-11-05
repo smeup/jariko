@@ -62,8 +62,8 @@ private fun moveaNumber(
             targetArray.getElement(it + 1)
         } else {
             val newValueIndex = it - startIndex + 1
-            if (newValueIndex < newValue.elements.size) {
-                newValue.elements[newValueIndex]
+            if (newValueIndex < newValue.arrayLength()) {
+                newValue.getElement(newValueIndex + 1)
             } else {
                 if (operationExtenter == null) {
                     targetArray.getElement(it + 1)
@@ -76,7 +76,7 @@ private fun moveaNumber(
     return arrayValue
 }
 
-private fun InterpreterCore.toArray(expression: Expression, targetType: Type): ConcreteArrayValue =
+private fun InterpreterCore.toArray(expression: Expression, targetType: Type): ArrayValue =
     when (expression) {
         is ArrayAccessExpr -> {
             val arrayValueRaw = eval(expression.array)
@@ -90,7 +90,7 @@ private fun InterpreterCore.toArray(expression: Expression, targetType: Type): C
         }
         is DataRefExpr -> {
             if (expression.type() is ArrayType) {
-                eval(expression) as ConcreteArrayValue
+                eval(expression) as ArrayValue
             } else {
                 ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
             }
