@@ -91,6 +91,8 @@ open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
+    private val configuration = MainExecutionContext.getConfiguration()
+
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
     }
@@ -243,7 +245,7 @@ open class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
-        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
         callback.startJarikoTrace(initTrace)
         val start = System.nanoTime()
@@ -357,7 +359,7 @@ open class InternalInterpreter(
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
         renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
-        callback.finishJarikoTrace(initTrace)
+        callback.finishJarikoTrace()
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
         callback.startJarikoTrace(loadTrace)
@@ -369,7 +371,7 @@ open class InternalInterpreter(
         renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
         renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
         renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
-        callback.finishJarikoTrace(loadTrace)
+        callback.finishJarikoTrace()
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -612,14 +614,14 @@ open class InternalInterpreter(
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
                 statement.position?.let { fireCopyObservingCallback(it.start.line) }
-                if (MainExecutionContext.getConfiguration().options.mustInvokeOnStatementCallback()) {
+                if (configuration.options.mustInvokeOnStatementCallback()) {
                     statement.position?.relative()?.let {
-                        MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
+                        configuration.jarikoCallback.onEnterStatement(it.first, it.second)
                     }
                 }
 
                 if (statement is MockStatement) {
-                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement(statement)
+                    configuration.jarikoCallback.onMockStatement(statement)
                 } else {
                     execute(statement)
                 }
@@ -657,7 +659,7 @@ open class InternalInterpreter(
         val errorEvent =
             ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
         errorEvent.pushRuntimeErrorEvent()
-        MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
+        configuration.jarikoCallback.onError.invoke(errorEvent)
         return this
     }
 
@@ -670,7 +672,7 @@ open class InternalInterpreter(
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
         if (!MainExecutionContext.getProgramStack()
-                .empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()
+                .empty() && configuration.options.mustCreateCopyBlocks()
         ) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
@@ -678,12 +680,12 @@ open class InternalInterpreter(
                 from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
                 to = currentStatementLine,
                 onEnter = { copyBlock ->
-                    MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(
+                    configuration.jarikoCallback.onEnterCopy.invoke(
                         copyBlock.copyId
                     )
                 },
                 onExit = { copyBlock ->
-                    MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(
+                    configuration.jarikoCallback.onExitCopy.invoke(
                         copyBlock.copyId
                     )
                 }
@@ -1217,7 +1219,7 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
+                return configuration.jarikoCallback.getActivationGroup.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup
                 )?.assignedName ?: activationGroup
             }
@@ -1258,7 +1260,7 @@ open class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
+        return configuration.jarikoCallback.exitInRT.invoke(
             interpretationContext.currentProgramName
         ) ?: exitRT
     }
@@ -1297,12 +1299,13 @@ open class InternalInterpreter(
     /**
      * Execute a statement keeping track of its state for observability purposes
      */
-    private fun execute(statement: Statement) {
+    private inline fun execute(statement: Statement) {
         val programName = this.interpretationContext.currentProgramName
         val sourceProducer = if (logsEnabled()) {
             { LogSourceData(programName, statement.position.line()) }
         } else null
-        val telemetryTrace = openTelemetryScope(statement)
+
+        val trace = openTelemetryScope(statement)
 
         sourceProducer?.let { openLoggingScope(statement, it) }
 
@@ -1311,7 +1314,7 @@ open class InternalInterpreter(
         }.nanoseconds
 
         sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
-        closeTelemetryScope(telemetryTrace)
+        trace?.let { closeTelemetryScope() }
     }
 
     override fun onInterpretationEnd() {
@@ -1320,7 +1323,7 @@ open class InternalInterpreter(
     }
 
     private fun openTelemetryScope(statement: Statement): JarikoTrace? {
-        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val callback = configuration.jarikoCallback
         val trace = when (statement) {
             is CallStmt -> JarikoTrace(
                 kind = JarikoTraceKind.Program,
@@ -1339,10 +1342,9 @@ open class InternalInterpreter(
         }
     }
 
-    private fun closeTelemetryScope(trace: JarikoTrace?) {
-        trace ?: return
-        val callback = MainExecutionContext.getConfiguration().jarikoCallback
-        callback.finishJarikoTrace(trace)
+    private fun closeTelemetryScope() {
+        val callback = configuration.jarikoCallback
+        callback.finishJarikoTrace()
     }
 
     private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {

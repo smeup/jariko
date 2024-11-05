@@ -301,7 +301,7 @@ data class JarikoCallback(
      * It is invoked whenever we finish a telemetry trace.
      * @param trace The object containing all the information about this trace.
      */
-    var finishJarikoTrace: ((trace: JarikoTrace) -> Unit) = {
+    var finishJarikoTrace: (() -> Unit) = {
         // Defaults to a no-op
     },
 
@@ -317,7 +317,7 @@ data class JarikoCallback(
      * It is invoked whenever we finish a telemetry trace defined as annotation in an RPG program.
      * @param trace The object containing all the information about this trace.
      */
-    var finishRpgTrace: ((trace: RpgTrace) -> Unit) = {
+    var finishRpgTrace: (() -> Unit) = {
         // Defaults to a no-op
     }
 )

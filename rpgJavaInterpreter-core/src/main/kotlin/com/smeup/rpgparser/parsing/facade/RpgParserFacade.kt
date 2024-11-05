@@ -206,7 +206,7 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(endLogSource, "RPGLOAD", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(endLogSource, "RPGLOAD", elapsedLoad))
         MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(endLogSource, ProgramUsageType.Parsing, "RPGLOAD", elapsedLoad))
-        callback.finishJarikoTrace(rpgLoadTrace)
+        callback.finishJarikoTrace()
 
         val lexerTrace = JarikoTrace(JarikoTraceKind.Parsing, "LEXER")
         callback.startJarikoTrace(lexerTrace)
@@ -228,7 +228,7 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "LEXER", elapsedLexer))
         MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "LEXER", elapsedLexer))
-        callback.finishJarikoTrace(lexerTrace)
+        callback.finishJarikoTrace()
 
         val parserTrace = JarikoTrace(JarikoTraceKind.Parsing, "PARSER")
         callback.startJarikoTrace(parserTrace)
@@ -249,7 +249,7 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "PARSER", elapsedParser))
         MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "PARSER", elapsedParser))
-        callback.finishJarikoTrace(parserTrace)
+        callback.finishJarikoTrace()
         return parser
     }
 
@@ -278,7 +278,7 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "CHKPTREE", elapsed))
         MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "CHKPTREE", elapsed))
-        callback.finishJarikoTrace(trace)
+        callback.finishJarikoTrace()
     }
 
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
@@ -381,7 +381,7 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "END"))
         MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "RCONTEXT", elapsedRoot))
         MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "RCONTEXT", elapsedRoot))
-        callback.finishJarikoTrace(trace)
+        callback.finishJarikoTrace()
         var mutes: MutesImmutableMap? = null
         if (muteSupport) {
             mutes = findMutes(code, errors)
@@ -407,7 +407,7 @@ class RpgParserFacade {
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
                     MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "AST", elapsed))
                     MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "AST", elapsed))
-                    callback.finishJarikoTrace(trace)
+                    callback.finishJarikoTrace()
                 }
             } else {
                 null
@@ -469,7 +469,7 @@ class RpgParserFacade {
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
             MainExecutionContext.log(LazyLogEntry.produceParsingEnd(logSource, "AST", elapsed))
             MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "AST", elapsed))
-            callback.finishJarikoTrace(trace)
+            callback.finishJarikoTrace()
             compilationUnit
         }.onFailure {
             throw AstCreatingException(result.src, it)
