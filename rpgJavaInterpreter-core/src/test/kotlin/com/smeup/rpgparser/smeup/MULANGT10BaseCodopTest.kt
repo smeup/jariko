@@ -570,8 +570,6 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         assertEquals(expected, "smeup/MUDRNRAPU00156".outputOf(configuration = smeupConfig))
     }
 
-
-
     /**
      * MOVEA between a DS field declared as array and a standalone array. Both as integer.
      * Size of DS field as array is greater than standalone.
@@ -581,5 +579,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU00157() {
         val expected = listOf("2", "2", "2", "1", "1", "1")
         assertEquals(expected, "smeup/MUDRNRAPU00157".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. DS field array is declared as decimal;
+     *  standalone array as integer.
+     * Size of DS field as array is lower than standalone.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00158() {
+        val expected = listOf("2", "2", "2", "2", "2", "1200", "1200", "1200", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00158".outputOf(configuration = smeupConfig))
     }
 }
