@@ -21,7 +21,7 @@
      C     TMP           DSPLY
      C                   ENDFOR
 
-     C                   MOVEA(P)  DS1_ARR1      ARR1
+     C                   MOVEA(P)  DS1_ARR1      ARR1                           #ProjectedArrayValue cannot be cast to class ConcreteArrayValue
 
      C                   FOR       COUNT=1 TO %ELEM(ARR1)
      C                   EVAL      TMP=%CHAR(ARR1(COUNT))
