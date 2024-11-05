@@ -548,4 +548,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
         assertEquals(expected, "smeup/MUDRNRAPU00148".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. Both as integer.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00155() {
+        val expected = listOf("2", "2", "2", "2", "2", "1", "1", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00155".outputOf(configuration = smeupConfig))
+    }
 }
