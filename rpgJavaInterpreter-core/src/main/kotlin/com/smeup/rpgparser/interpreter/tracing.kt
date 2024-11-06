@@ -24,8 +24,9 @@ enum class JarikoTraceKind {
     Parsing,
     SymbolTable,
     CompositeStatement,
-    Program,
-    Subroutine
+    CallStmt,
+    ExecuteSubroutine,
+    FunctionCall
 }
 
 /**

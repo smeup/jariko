@@ -823,11 +823,11 @@ class JarikoCallbackTest : AbstractTest() {
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val symtblTraces = traces.filter { it.kind == JarikoTraceKind.SymbolTable }
 
-        // (INIT + LOAD) * (n.called programs = 2)
-        assertEquals(symtblTraces.size, 4)
+        // (INIT + LOAD) * (n.called programs + n.called procedures = 4)
+        assertEquals(symtblTraces.size, 8)
 
-        assert(symtblTraces.filter { it.description == "INIT" }.size == 2)
-        assert(symtblTraces.filter { it.description == "LOAD" }.size == 2)
+        assertEquals(symtblTraces.filter { it.description == "INIT" }.size, 4)
+        assertEquals(symtblTraces.filter { it.description == "LOAD" }.size, 4)
     }
 
     @Test
@@ -844,6 +844,8 @@ class JarikoCallbackTest : AbstractTest() {
 
         // 2 for each called program
         assertEquals(compositeTraces.size, 4)
+
+        assertEquals(compositeTraces.filter { it.description == "IF" }.size, 4)
     }
 
     @Test
@@ -856,10 +858,12 @@ class JarikoCallbackTest : AbstractTest() {
             }
         }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
-        val programTraces = traces.filter { it.kind == JarikoTraceKind.Program }
+        val programTraces = traces.filter { it.kind == JarikoTraceKind.CallStmt }
 
         // Only one call
         assertEquals(programTraces.size, 1)
+
+        assertEquals(programTraces.filter { it.description == "TRACETST2" }.size, 1)
     }
 
     @Test
@@ -872,10 +876,12 @@ class JarikoCallbackTest : AbstractTest() {
             }
         }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
-        val programTraces = traces.filter { it.kind == JarikoTraceKind.Subroutine }
+        val programTraces = traces.filter { it.kind == JarikoTraceKind.ExecuteSubroutine }
 
         // 1 subroutine call per program
         assertEquals(programTraces.size, 2)
+
+        assertEquals(programTraces.filter { it.description == "SR" }.size, 2)
     }
 
     @Test
@@ -893,12 +899,30 @@ class JarikoCallbackTest : AbstractTest() {
         // (RPGLOAD + LEXER + PARSER + RCONTEXT + CHKPTREE + AST) * (n.called programs = 2)
         assertEquals(parsingTraces.size, 12)
 
-        assert(parsingTraces.filter { it.description == "RPGLOAD" }.size == 2)
-        assert(parsingTraces.filter { it.description == "LEXER" }.size == 2)
-        assert(parsingTraces.filter { it.description == "PARSER" }.size == 2)
-        assert(parsingTraces.filter { it.description == "RCONTEXT" }.size == 2)
-        assert(parsingTraces.filter { it.description == "CHKPTREE" }.size == 2)
-        assert(parsingTraces.filter { it.description == "AST" }.size == 2)
+        assertEquals(parsingTraces.filter { it.description == "RPGLOAD" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "LEXER" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "PARSER" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "RCONTEXT" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "CHKPTREE" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "AST" }.size, 2)
+    }
+
+    @Test
+    fun traceFunctionCallTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val functionCallTraces = traces.filter { it.kind == JarikoTraceKind.FunctionCall }
+
+        // Two in the root program
+        assertEquals(functionCallTraces.size, 2)
+
+        assertEquals(functionCallTraces.filter { it.description == "CALL1" }.size, 2)
     }
 
     @Test

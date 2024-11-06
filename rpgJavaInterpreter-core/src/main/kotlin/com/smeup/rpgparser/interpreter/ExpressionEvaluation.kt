@@ -533,18 +533,22 @@ class ExpressionEvaluation(
 
     override fun eval(expression: FunctionCall): Value = proxyLogging(expression) {
         val functionToCall = expression.function.name
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
+        callback.startJarikoTrace(trace)
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
             ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
-            val paramsValues = expression.args.map {
-                if (it is DataRefExpr) {
-                    FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
-                } else {
-                    FunctionValue(value = it.evalWith(this))
-                }
+        val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
+        val paramsValues = expression.args.map {
+            if (it is DataRefExpr) {
+                FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
+            } else {
+                FunctionValue(value = it.evalWith(this))
             }
-            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
         }
+        val returnValue = functionWrapper.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+        callback.finishJarikoTrace()
+        returnValue
     }
 
     override fun eval(expression: TimeStampExpr): Value = proxyLogging(expression) {

@@ -1346,11 +1346,11 @@ open class InternalInterpreter(
         val callback = configuration.jarikoCallback
         val trace = when (statement) {
             is CallStmt -> JarikoTrace(
-                kind = JarikoTraceKind.Program,
+                kind = JarikoTraceKind.CallStmt,
                 description = eval(statement.expression).asString().value.trim()
             )
             is ExecuteSubroutine -> JarikoTrace(
-                kind = JarikoTraceKind.Subroutine,
+                kind = JarikoTraceKind.ExecuteSubroutine,
                 description = statement.subroutine.name
 
             )
