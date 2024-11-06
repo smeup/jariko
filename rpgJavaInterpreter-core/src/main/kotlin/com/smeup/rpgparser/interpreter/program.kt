@@ -128,8 +128,20 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
             if (!initialized) {
                 initialized = true
-                val caller = if (MainExecutionContext.getProgramStack().size > 1) {
-                    MainExecutionContext.getProgramStack()[MainExecutionContext.getProgramStack().size - 2]
+
+                /**
+                 * As the RPG program stack is managed outside of this method, it is up to the caller of this method
+                 * to ensure it is in the correct state, that is:
+                 * - `lastIndex` is this RpgProgram
+                 * - `lastIndex - 1` is the RpgProgram that calls this RpgProgram
+                 *
+                 * Note: If these two rules are not followed at this point, do not expect RpgPrograms to behave correctly.
+                 * that means something is wrong with `MainExecutionContext.getProgramStack()` push and pop logic.
+                 */
+                val programStack = MainExecutionContext.getProgramStack()
+                val caller = if (programStack.size > 1) {
+                    val parentProgramIndex = programStack.lastIndex - 1
+                    programStack[parentProgramIndex]
                 } else {
                     null
                 }
