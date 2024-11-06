@@ -1329,6 +1329,11 @@ open class InternalInterpreter(
                 kind = JarikoTraceKind.Program,
                 description = eval(statement.expression).asString().value.trim()
             )
+            is ExecuteSubroutine -> JarikoTrace(
+                kind = JarikoTraceKind.Subroutine,
+                description = statement.subroutine.name
+
+            )
             is CompositeStatement -> JarikoTrace(
                 kind = JarikoTraceKind.CompositeStatement,
                 description = statement.loggableEntityName

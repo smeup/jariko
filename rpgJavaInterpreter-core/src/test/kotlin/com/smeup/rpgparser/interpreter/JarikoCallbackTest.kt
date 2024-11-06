@@ -904,6 +904,22 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun traceSubroutineTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val programTraces = traces.filter { it.kind == JarikoTraceKind.Subroutine }
+
+        // 1 subroutine call per program
+        assertEquals(programTraces.size, 2)
+    }
+
+    @Test
     fun traceParsingTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
