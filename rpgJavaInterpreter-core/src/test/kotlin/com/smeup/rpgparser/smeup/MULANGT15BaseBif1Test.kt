@@ -126,7 +126,7 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
     }
 
     /**
-     * DS field declared as Array and CTDATA.
+     * DS field declared as Array and CTDATA. In this case the error is manifested as side effect of `%LOOKUP`.
      * @see #LS24004654
      */
     @Test

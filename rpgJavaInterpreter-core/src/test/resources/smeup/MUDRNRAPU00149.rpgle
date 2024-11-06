@@ -1,9 +1,11 @@
      V* ==============================================================
      V* 30/10/2024 APU001 Creation
      V* 31/10/2024 APU001 Edited PROGRAM GOAL
+     V* 06/11/2024 APU001 Edited PROGRAM GOAL
      V* ==============================================================
     O * PROGRAM GOAL
-    O * DS field declared as Array and CTDATA.
+    O * DS field declared as Array and CTDATA. In this case the error
+    O *  is manifested as side effect of `%LOOKUP`.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was
