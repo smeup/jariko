@@ -776,7 +776,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR45CallBackTest() {
         executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
-            8 to "Factor 2 and Result with different type and size."
+            18 to "Factor 2 and Result with different type and size."
         ))
     }
 
@@ -788,7 +788,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR46CallBackTest() {
         executePgmCallBackTest("ERROR46", SourceReferenceType.Program, "ERROR46", mapOf(
-            8 to "Factor 2 and Result with different type and size."
+            18 to "Factor 2 and Result with different type and size."
         ))
     }
 
