@@ -409,6 +409,8 @@ data class FieldDefinition(
         }
     }
 
+    fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
     /**
