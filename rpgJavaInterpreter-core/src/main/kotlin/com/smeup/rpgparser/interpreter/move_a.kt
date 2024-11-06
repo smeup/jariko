@@ -158,24 +158,23 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
 }
 
 /**
- * Performs type coercion on the `sourceValue` to match the `targetType` according to specific
- * conversion rules, particularly for numeric types with differing decimal precision. This function
- * handles conversions from decimal to integer and from integer to decimal based on the specified
- * `sourceType` and `targetType`.
+ * Coerces `sourceValue` to match `targetType` based on specified numeric conversion rules, especially
+ * for conversions between decimal and integer types with varying decimal precision. This function
+ * validates that the number of digits between `sourceType` and `targetType` are equal before performing
+ * the conversion.
  *
- * @param sourceValue The initial `Value` to be coerced. Expected to be a numeric type such as
- *        `DecimalValue` or `IntValue`.
- * @param targetType The `Type` representing the desired target type for the coercion. If the
- *        `targetType` is a `NumberType` with zero decimal places, the function may perform a
- *        decimal-to-integer conversion; otherwise, it may perform an integer-to-decimal conversion.
- * @param sourceType The `Type` representing the initial type of `sourceValue`, used to guide
- *        the coercion process and determine the scale of conversion required.
+ * @param sourceValue The `Value` to be coerced, generally a numeric type such as `DecimalValue` or `IntValue`.
+ * @param targetType The target `Type` for the coercion, used to guide the conversion, particularly
+ *                   regarding the number of decimal places.
+ * @param sourceType The `Type` representing the original type of `sourceValue`, assisting in determining
+ *                   the required scale and format for conversion.
  *
- * @return The `Value` resulting from the coercion, with adjustments made to decimal places as
- *         necessary to match the `targetType`.
+ * @return The resulting `Value` after coercion, transformed to align with `targetType`.
  *
- * @throws ClassCastException if `sourceValue` is not a `DecimalValue` or `IntValue`, or if
- *         `targetType` or `sourceType` are not of numeric types.
+ * @throws IllegalStateException if the total number of digits between `sourceType` and `targetType`
+ *                               do not match, indicating incompatible numeric sizes for conversion.
+ * @throws ClassCastException if `sourceValue` is not a `DecimalValue` or `IntValue`, or if `targetType`
+ *                            or `sourceType` are not of numeric types.
  */
 private fun internalCoercing(
     sourceValue: Value,
@@ -183,6 +182,11 @@ private fun internalCoercing(
     sourceType: Type
 ): Value {
     var result = sourceValue
+
+    // Number of digits between source and target must be equals.
+    if (sourceType is NumberType && targetType is NumberType && sourceType.numberOfDigits != targetType.numberOfDigits) {
+        throw IllegalStateException("Factor 2 and Result with different type and size.")
+    }
 
     // Proper conversion between a left side as decimal to right side as integer
     if (sourceValue is DecimalValue && sourceType is NumberType && targetType is NumberType && targetType.decimalDigits == 0) {
