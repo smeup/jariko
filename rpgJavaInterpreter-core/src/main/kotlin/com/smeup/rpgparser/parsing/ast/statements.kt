@@ -736,6 +736,9 @@ data class CallStmt(
         }
 
         program ?: throw callIssueException
+        if (program is RpgProgram) {
+            MainExecutionContext.getProgramStack().push(program)
+        }
 
         // Ignore exceeding params
         val targetProgramParams = program.params()
@@ -784,19 +787,14 @@ data class CallStmt(
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 if (errorIndicator == null) {
+                    if (program is RpgProgram) {
+                        MainExecutionContext.getProgramStack().pop()
+                    }
                     throw e
                 }
 
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
-
-                /**
-                 * Restore the program stack state to what it was before this call.
-                 *
-                 * Note: MainExecutionContext.getProgramStack().pop() is not enough because entries of programs that
-                 * quit with error indicators must be in the program stack until onCallPgmError is invoked.
-                 */
-                MainExecutionContext.getProgramStack().rollbackBefore(programToCall)
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
@@ -808,6 +806,9 @@ data class CallStmt(
                 currentParam.result?.let { interpreter.assign(it, value) }
             }
         }
+
+        if (program is RpgProgram)
+            MainExecutionContext.getProgramStack().pop()
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {

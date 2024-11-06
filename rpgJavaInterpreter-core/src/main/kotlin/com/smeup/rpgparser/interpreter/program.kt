@@ -128,8 +128,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             }
             if (!initialized) {
                 initialized = true
-                val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
-                    MainExecutionContext.getProgramStack().peek()
+                val caller = if (MainExecutionContext.getProgramStack().size > 1) {
+                    MainExecutionContext.getProgramStack()[MainExecutionContext.getProgramStack().size - 2]
                 } else {
                     null
                 }
@@ -149,7 +149,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
 
                 activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
             }
-            MainExecutionContext.getProgramStack().push(this)
             MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
             // set reinitialization to false because symboltable cleaning currently is handled directly
             // in internal interpreter before exit
@@ -160,7 +159,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             changedInitialValues = params().map { interpreter[it.name] }
             // here clear symbol table if needed
             interpreter.doSomethingAfterExecution()
-            MainExecutionContext.getProgramStack().pop()
         }.nanoseconds
         if (MainExecutionContext.isLoggingEnabled) {
             logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
