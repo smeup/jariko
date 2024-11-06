@@ -300,6 +300,14 @@ open class InternalInterpreter(
                             }
                         }
                     }
+                    is FieldDefinition -> {
+                        if (it.isCompileTimeArray()) {
+                            value = toArrayValue(
+                                compilationUnit.compileTimeArray(index++),
+                                (it.type as ArrayType)
+                            )
+                        }
+                    }
                     is InStatementDataDefinition -> {
                         value = if (it.parent is PlistParam) {
                             when (it.name) {
@@ -996,6 +1004,18 @@ open class InternalInterpreter(
             }
         } else {
             val coercedValue = coerce(value, dataDefinition.type)
+            /*
+             * If the source (from `value`) and target (from `dataDefinition`) are two arrays with size of source smaller than target,
+             *  copies the last missed values from target to new `coercedValue`.
+             */
+            if (value is ArrayValue && coercedValue is ArrayValue && dataDefinition.type is ArrayType) {
+                if (value.arrayLength() < dataDefinition.type.numberOfElements()) {
+                    val targetValue = (globalSymbolTable[dataDefinition] as ArrayValue)
+                    for (i in (value.arrayLength() + 1)..targetValue.arrayLength()) {
+                        coercedValue.setElement(i, targetValue.getElement(i))
+                    }
+                }
+            }
             set(dataDefinition, coercedValue)
             return coercedValue
         }
