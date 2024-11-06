@@ -484,13 +484,12 @@ private fun Dcl_dsContext.useExtName(): Boolean {
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
-
-        fun cName(s: String) =
-            if (s.contains("**CTDATA")) {
-                s.substringAfter("**CTDATA ").replace("\\s".toRegex(), "")
-            } else {
-                s.replace(s, "")
-            }
+    fun cName(s: String) =
+        if (s.trim().matches(Regex("^\\*\\*[\\s]*(CTDATA)*([\\s]+[\\S]+)\$"))) {
+            s.substringAfter("**").trim().substringAfter("CTDATA").trim()
+        } else {
+            s.replace(s, "")
+        }
 
     return CompileTimeArray(
         cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA name

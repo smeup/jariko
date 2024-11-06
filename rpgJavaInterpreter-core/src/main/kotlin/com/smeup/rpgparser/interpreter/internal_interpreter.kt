@@ -300,6 +300,14 @@ open class InternalInterpreter(
                             }
                         }
                     }
+                    is FieldDefinition -> {
+                        if (it.isCompileTimeArray()) {
+                            value = toArrayValue(
+                                compilationUnit.compileTimeArray(index++),
+                                (it.type as ArrayType)
+                            )
+                        }
+                    }
                     is InStatementDataDefinition -> {
                         value = if (it.parent is PlistParam) {
                             when (it.name) {
