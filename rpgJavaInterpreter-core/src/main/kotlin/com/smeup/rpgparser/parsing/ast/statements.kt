@@ -29,10 +29,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.resizeTo
-import com.smeup.rpgparser.utils.substringOfLength
+import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -739,6 +736,9 @@ data class CallStmt(
         }
 
         program ?: throw callIssueException
+        if (program is RpgProgram) {
+            MainExecutionContext.getProgramStack().push(program)
+        }
 
         // Ignore exceeding params
         val targetProgramParams = program.params()
@@ -787,11 +787,14 @@ data class CallStmt(
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 if (errorIndicator == null) {
+                    if (program is RpgProgram) {
+                        MainExecutionContext.getProgramStack().pop()
+                    }
                     throw e
                 }
+
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
-                MainExecutionContext.getProgramStack().pop()
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
@@ -803,6 +806,9 @@ data class CallStmt(
                 currentParam.result?.let { interpreter.assign(it, value) }
             }
         }
+
+        if (program is RpgProgram)
+            MainExecutionContext.getProgramStack().pop()
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
