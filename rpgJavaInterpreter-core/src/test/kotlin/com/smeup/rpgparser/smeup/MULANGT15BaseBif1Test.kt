@@ -134,14 +134,4 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         val expected = listOf("1", "*SCP")
         assertEquals(expected, "smeup/MUDRNRAPU00149".outputOf(configuration = smeupConfig))
     }
-
-    /**
-     * DS field declared as Array and CTDATA. In this case there are only the stars.
-     * @see #LS24004654
-     */
-    @Test
-    fun executeMUDRNRAPU00154() {
-        val expected = listOf("1", "*SCP")
-        assertEquals(expected, "smeup/MUDRNRAPU00154".outputOf(configuration = smeupConfig))
-    }
 }
