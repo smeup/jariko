@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
-import java.math.BigDecimal
 import kotlin.math.pow
 
 fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
@@ -181,19 +180,18 @@ private fun internalCoercing(
     targetType: Type,
     sourceType: Type
 ): Value {
-    var result = sourceValue
-
     // Number of digits between source and target must be equals.
     if (sourceType is NumberType && targetType is NumberType && sourceType.numberOfDigits != targetType.numberOfDigits) {
         throw IllegalStateException("Factor 2 and Result with different type and size.")
     }
 
-    // Proper conversion between a left side as decimal to right side as integer
-    if (sourceValue is DecimalValue && sourceType is NumberType && targetType is NumberType && targetType.decimalDigits == 0) {
-        result = DecimalValue(sourceValue.value * BigDecimal(10.0.pow((targetType.entireDigits - sourceType.entireDigits).toDouble())))
-    // Or integer to decimal
-    } else if (sourceValue is IntValue && targetType is NumberType && targetType.decimalDigits > 0) {
-        result = DecimalValue((sourceValue.value / 10.0.pow((targetType.decimalDigits))).toBigDecimal())
+    return when {
+        // Proper conversion between a left side as decimal to right side as integer
+        sourceValue is DecimalValue && sourceType is NumberType && targetType is NumberType && targetType.decimalDigits == 0 ->
+            DecimalValue(sourceValue.value * 10.0.pow(targetType.entireDigits - sourceType.entireDigits).toBigDecimal())
+        // Or integer to decimal
+        sourceValue is IntValue && targetType is NumberType && targetType.decimalDigits > 0 ->
+            DecimalValue((sourceValue.value / 10.0.pow(targetType.decimalDigits)).toBigDecimal())
+        else -> sourceValue
     }
-    return result
 }
