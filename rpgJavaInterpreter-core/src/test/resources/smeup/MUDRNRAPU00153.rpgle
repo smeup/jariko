@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 31/10/2024 APU001 Creation
+     V* 06/11/2024 APU001 Simplification
      V* ==============================================================
     O * PROGRAM GOAL
     O * DS field declared as Array and CTDATA. In this case there is
