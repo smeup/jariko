@@ -73,11 +73,13 @@ class JarikoCallbackTest : AbstractTest() {
         val exitedTimes = mutableMapOf("CAL04" to 0, "CAL02" to 0)
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
         executePgm(systemInterface = systemInterface, programName = "CAL04", configuration = Configuration().apply {
-            jarikoCallback.onEnterPgm = { programName: String, symbolTable: ISymbolTable ->
+            jarikoCallback.onEnterPgm = {
+                    programName: String, symbolTable: ISymbolTable ->
                 println("onEnterPgm - programName: $programName, symbolTable: $symbolTable")
                 enteredTimes[programName] = enteredTimes[programName]!! + 1
             }
-            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+            jarikoCallback.onExitPgm = {
+                    programName: String, symbolTable: ISymbolTable, _: Throwable? ->
                 println("onExitPgm - programName: $programName, symbolTable: $symbolTable")
                 exitedTimes[programName] = exitedTimes[programName]!! + 1
             }
@@ -108,12 +110,7 @@ class JarikoCallbackTest : AbstractTest() {
                         println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     }
                     val src = when (sourceReference.sourceReferenceType) {
-                        SourceReferenceType.Copy -> copyDefinitions[CopyId(
-                            member = sourceReference.sourceId.uppercase(
-                                Locale.getDefault()
-                            )
-                        )]
-
+                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId.uppercase(Locale.getDefault()))]
                         SourceReferenceType.Program -> pgm
                     }
                     require(src != null)
@@ -245,7 +242,6 @@ class JarikoCallbackTest : AbstractTest() {
             override fun findCopy(copyId: CopyId): Copy? {
                 return copyDefinitions[copyId]?.let { Copy.fromInputStream(it.byteInputStream(charset("UTF-8"))) }
             }
-
             override fun display(value: String) {
                 // println(value)
             }
@@ -259,24 +255,21 @@ class JarikoCallbackTest : AbstractTest() {
         var enteredTimes = 0
         var exitedTimes = 0
         val functionParams = mutableListOf<FunctionValue>()
-        executePgm(
-            systemInterface = systemInterface,
-            programName = "PROCEDURE1",
-            configuration = Configuration().apply {
-                jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
-                    enteredTimes++
-                    functionParams.addAll(params)
-                    Assert.assertEquals("CALL1", functionName)
-                    Assert.assertEquals(11, params[0].value.asInt().value)
-                    Assert.assertEquals(22, params[1].value.asInt().value)
-                    Assert.assertEquals(ZeroValue, params[2].value)
-                }
-                jarikoCallback.onExitFunction = { functionName: String, _: Value ->
-                    exitedTimes++
-                    Assert.assertEquals("CALL1", functionName)
-                    Assert.assertEquals(33, functionParams[2].value.asInt().value)
-                }
-            })
+        executePgm(systemInterface = systemInterface, programName = "PROCEDURE1", configuration = Configuration().apply {
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
+                enteredTimes++
+                functionParams.addAll(params)
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(11, params[0].value.asInt().value)
+                Assert.assertEquals(22, params[1].value.asInt().value)
+                Assert.assertEquals(ZeroValue, params[2].value)
+            }
+            jarikoCallback.onExitFunction = { functionName: String, _: Value ->
+                exitedTimes++
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(33, functionParams[2].value.asInt().value)
+            }
+        })
         Assert.assertEquals(enteredTimes, exitedTimes)
     }
 
@@ -286,23 +279,20 @@ class JarikoCallbackTest : AbstractTest() {
         var enteredTimes = 0
         var exitedTimes = 0
         val functionParams = mutableListOf<FunctionValue>()
-        executePgm(
-            systemInterface = systemInterface,
-            programName = "PROCEDURE2",
-            configuration = Configuration().apply {
-                jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
-                    enteredTimes++
-                    functionParams.addAll(params)
-                    Assert.assertEquals("CALL1", functionName)
-                    Assert.assertEquals(11, params[0].value.asInt().value)
-                    Assert.assertEquals(22, params[1].value.asInt().value)
-                }
-                jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
-                    exitedTimes++
-                    Assert.assertEquals("CALL1", functionName)
-                    Assert.assertEquals(33, returnValue.asInt().value)
-                }
-            })
+        executePgm(systemInterface = systemInterface, programName = "PROCEDURE2", configuration = Configuration().apply {
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
+                enteredTimes++
+                functionParams.addAll(params)
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(11, params[0].value.asInt().value)
+                Assert.assertEquals(22, params[1].value.asInt().value)
+            }
+            jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
+                exitedTimes++
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(33, returnValue.asInt().value)
+            }
+        })
         Assert.assertEquals(enteredTimes, exitedTimes)
     }
 
@@ -537,42 +527,34 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR23CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
-                9 to "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
-                14 to "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext"
-            )
-        )
+        executePgmCallBackTest("ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
+            9 to "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
+            14 to "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext"
+        ))
     }
 
     @Test
     fun executeERROR24CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
-                8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
-                9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
-            )
-        )
+        executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
+            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
+        ))
     }
 
     @Test
     fun executeERROR25CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
-                8 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
-                9 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
-            )
-        )
+        executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
+            8 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
+        ))
     }
 
     @Test
     fun executeERROR26CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
-                8 to "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
-                9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
-            )
-        )
+        executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
+            8 to "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
+        ))
     }
 
     @Test
@@ -582,13 +564,11 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR27CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-                10 to "No element of the collection was transformed to a non-null value.",
-                11 to "An operation is not implemented: IN£UDLDA                           \n" +
-                        " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
-            )
-        )
+        executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
+            10 to "No element of the collection was transformed to a non-null value.",
+            11 to "An operation is not implemented: IN£UDLDA                           \n" +
+                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
+        ))
     }
 
     @Test
@@ -598,11 +578,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR29CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
-                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-            )
-        )
+        executePgmCallBackTest("ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test
@@ -612,11 +590,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR30CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
-                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-            )
-        )
+        executePgmCallBackTest("ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test
@@ -626,11 +602,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR31CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR31", SourceReferenceType.Program, "ERROR31", mapOf(
-                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-            )
-        )
+        executePgmCallBackTest("ERROR31", SourceReferenceType.Program, "ERROR31", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test
@@ -640,11 +614,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR32CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR32", SourceReferenceType.Program, "ERROR32", mapOf(
-                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-            )
-        )
+        executePgmCallBackTest("ERROR32", SourceReferenceType.Program, "ERROR32", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test
@@ -654,11 +626,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR33CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR33", SourceReferenceType.Program, "ERROR33", mapOf(
-                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-            )
-        )
+        executePgmCallBackTest("ERROR33", SourceReferenceType.Program, "ERROR33", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test
@@ -668,11 +638,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR34CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
-                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-            )
-        )
+        executePgmCallBackTest("ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
+            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
+        ))
     }
 
     @Test
@@ -686,8 +654,7 @@ class JarikoCallbackTest : AbstractTest() {
             pgm = "ERROR35",
             sourceReferenceType = SourceReferenceType.Program,
             sourceId = "ERROR35",
-            lines = listOf(9, 10)
-        )
+            lines = listOf(9, 10))
     }
 
     @Test
@@ -760,11 +727,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR41CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
-                24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
-            )
-        )
+        executePgmCallBackTest("ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
     }
 
     @Test
@@ -774,11 +739,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR42CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR42", SourceReferenceType.Program, "ERROR42", mapOf(
-                24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
-            )
-        )
+        executePgmCallBackTest("ERROR42", SourceReferenceType.Program, "ERROR42", mapOf(
+            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
+        ))
     }
 
     @Test
@@ -788,11 +751,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR43CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR43", SourceReferenceType.Program, "ERROR43", mapOf(
-                23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
-            )
-        )
+        executePgmCallBackTest("ERROR43", SourceReferenceType.Program, "ERROR43", mapOf(
+            23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
+        ))
     }
 
     @Test
@@ -802,11 +763,9 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR44CallBackTest() {
-        executePgmCallBackTest(
-            "ERROR44", SourceReferenceType.Program, "ERROR44", mapOf(
-                8 to "Error calling program or procedure - Could not find program MISSING"
-            )
-        )
+        executePgmCallBackTest("ERROR44", SourceReferenceType.Program, "ERROR44", mapOf(
+            8 to "Error calling program or procedure - Could not find program MISSING"
+        ))
     }
 
     @Test
@@ -1045,10 +1004,8 @@ class JarikoCallbackTest : AbstractTest() {
      * to mock another kind of encoding error
      */
     @Test
-    @Ignore(
-        "This test is not working because the encoding error in ERROR28.rpgle was " +
-                "due to the fact that we will try to compile also ast with errors"
-    )
+    @Ignore("This test is not working because the encoding error in ERROR28.rpgle was " +
+            "due to the fact that we will try to compile also ast with errors")
     fun onCompilationUnitEncodingErrorTest() {
         // Flags to track if callbacks are triggered
         var enteredInOnCompilationUnitEncodingError = false
