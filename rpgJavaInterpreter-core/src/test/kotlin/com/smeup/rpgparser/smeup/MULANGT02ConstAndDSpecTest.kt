@@ -703,4 +703,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("*SCPAccesso da script             00S")
         assertEquals(expected, "smeup/MUDRNRAPU00150".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there isn't CTDATA but more space between name and stars.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00151() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00151".outputOf(configuration = smeupConfig))
+    }
 }
