@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
-import java.lang.Math.pow
 import java.math.BigDecimal
 import kotlin.math.pow
 
@@ -74,11 +73,7 @@ private fun moveaNumber(
                     IntValue.ZERO
                 }
             }
-            // Proper conversion between a left side decimal to right side integer
-            if (elementValue is DecimalValue && targetArray.elementType is NumberType && (targetArray.elementType as NumberType).decimalDigits == 0) {
-                elementValue = DecimalValue(elementValue.value * BigDecimal(10.0.pow(((targetArray.elementType as NumberType).entireDigits - (newValue.elementType as NumberType).entireDigits).toDouble())))
-            }
-            elementValue
+            internalCoercing(elementValue, targetArray.elementType, newValue.elementType)
         }
     }
     return arrayValue
@@ -160,4 +155,41 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
     } else {
         interpreterCore.eval(valueExpression)
     }
+}
+
+/**
+ * Performs type coercion on the `sourceValue` to match the `targetType` according to specific
+ * conversion rules, particularly for numeric types with differing decimal precision. This function
+ * handles conversions from decimal to integer and from integer to decimal based on the specified
+ * `sourceType` and `targetType`.
+ *
+ * @param sourceValue The initial `Value` to be coerced. Expected to be a numeric type such as
+ *        `DecimalValue` or `IntValue`.
+ * @param targetType The `Type` representing the desired target type for the coercion. If the
+ *        `targetType` is a `NumberType` with zero decimal places, the function may perform a
+ *        decimal-to-integer conversion; otherwise, it may perform an integer-to-decimal conversion.
+ * @param sourceType The `Type` representing the initial type of `sourceValue`, used to guide
+ *        the coercion process and determine the scale of conversion required.
+ *
+ * @return The `Value` resulting from the coercion, with adjustments made to decimal places as
+ *         necessary to match the `targetType`.
+ *
+ * @throws ClassCastException if `sourceValue` is not a `DecimalValue` or `IntValue`, or if
+ *         `targetType` or `sourceType` are not of numeric types.
+ */
+private fun internalCoercing(
+    sourceValue: Value,
+    targetType: Type,
+    sourceType: Type
+): Value {
+    var result = sourceValue
+
+    // Proper conversion between a left side as decimal to right side as integer
+    if (sourceValue is DecimalValue && sourceType is NumberType && targetType is NumberType && targetType.decimalDigits == 0) {
+        result = DecimalValue(sourceValue.value * BigDecimal(10.0.pow((targetType.entireDigits - sourceType.entireDigits).toDouble())))
+    // Or integer to decimal
+    } else if (sourceValue is IntValue && targetType is NumberType && targetType.decimalDigits > 0) {
+        result = DecimalValue((sourceValue.value / 10.0.pow((targetType.decimalDigits))).toBigDecimal())
+    }
+    return result
 }
