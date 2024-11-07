@@ -86,7 +86,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val trace = JarikoTrace(JarikoTraceKind.RpgProgram, this.name)
         callback.startJarikoTrace(trace)
 
-        // We need to finish the trace even if the program throws
         try {
             val expectedKeys = params().asSequence().map { it.name }.toSet()
 
@@ -136,8 +135,20 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 }
                 if (!initialized) {
                     initialized = true
-                    val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
-                        MainExecutionContext.getProgramStack().peek()
+
+                    /**
+                     * As the RPG program stack is managed outside of this method, it is up to the caller of this method
+                     * to ensure it is in the correct state, that is:
+                     * - `lastIndex` is this RpgProgram
+                     * - `lastIndex - 1` is the RpgProgram that calls this RpgProgram
+                     *
+                     * Note: If these two rules are not followed at this point, do not expect RpgPrograms to behave correctly.
+                     * that means something is wrong with `MainExecutionContext.getProgramStack()` push and pop logic.
+                     */
+                    val programStack = MainExecutionContext.getProgramStack()
+                    val caller = if (programStack.size > 1) {
+                        val parentProgramIndex = programStack.lastIndex - 1
+                        programStack[parentProgramIndex]
                     } else {
                         null
                     }
@@ -146,30 +157,35 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                         when {
                             // When there is no caller use the default activation group
                             it is CallerActivationGroup && caller == null ->
-                                NamedActivationGroup(configuration.defaultActivationGroupName)
+                                NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
 
                             else -> it
                         }
                     } ?: when (caller) {
                         // for main program, which does not have a caller, activation group is fixed by config
-                        null -> NamedActivationGroup(configuration.defaultActivationGroupName)
+                        null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
                         else -> CallerActivationGroup
                     }
 
                     activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
                 }
-                MainExecutionContext.getProgramStack().push(this)
-                configuration.jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
+                MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(
+                    name,
+                    interpreter.getGlobalSymbolTable()
+                )
                 // set reinitialization to false because symboltable cleaning currently is handled directly
                 // in internal interpreter before exit
                 // todo i don't know whether parameter reinitialization has still sense
                 interpreter.execute(this.cu, params, false, callerParams)
-                configuration.jarikoCallback.onExitPgm(name, interpreter.getGlobalSymbolTable(), null)
+                MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm(
+                    name,
+                    interpreter.getGlobalSymbolTable(),
+                    null
+                )
                 params.keys.forEach { params[it] = interpreter[it] }
                 changedInitialValues = params().map { interpreter[it.name] }
                 // here clear symbol table if needed
                 interpreter.doSomethingAfterExecution()
-                MainExecutionContext.getProgramStack().pop()
             }.nanoseconds
             if (MainExecutionContext.isLoggingEnabled) {
                 logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
