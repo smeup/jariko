@@ -26,7 +26,9 @@ enum class JarikoTraceKind {
     CompositeStatement,
     CallStmt,
     ExecuteSubroutine,
-    FunctionCall
+    FunctionCall,
+    MainExecutionContext,
+    RpgProgram
 }
 
 /**
@@ -34,7 +36,7 @@ enum class JarikoTraceKind {
  */
 data class JarikoTrace(
     val kind: JarikoTraceKind,
-    val description: String? = null
+    val description: String = ""
 )
 
 /**

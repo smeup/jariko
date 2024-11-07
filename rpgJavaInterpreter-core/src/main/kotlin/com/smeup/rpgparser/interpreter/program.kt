@@ -81,96 +81,117 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     }
 
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-        val expectedKeys = params().asSequence().map { it.name }.toSet()
+        val configuration = MainExecutionContext.getConfiguration()
+        val callback = configuration.jarikoCallback
+        val trace = JarikoTrace(JarikoTraceKind.RpgProgram, this.name)
+        callback.startJarikoTrace(trace)
 
-        // Original params passed from the caller
-        val callerParams = LinkedHashMap(params)
+        // We need to finish the trace even if the program throws
+        try {
+            val expectedKeys = params().asSequence().map { it.name }.toSet()
 
-        if (expectedKeys.size <= params.size) {
-            require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
-                "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
-            }
-        } else {
-            require(params().asSequence().map { it.name }.toSet().all { it in expectedKeys }) {
-                "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
-            }
+            // Original params passed from the caller
+            val callerParams = LinkedHashMap(params)
 
-            // Set not passed params to NullValue
-            params().forEach {
-                if (it.name !in params.keys) {
-                    params[it.name] = NullValue
+            if (expectedKeys.size <= params.size) {
+                require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
+                    "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
                 }
-            }
-        }
-        this.systemInterface = systemInterface
-        val logSource = { LogSourceData.fromProgram(name) }
-        logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
-        val changedInitialValues: List<Value>
-        val elapsed = measureNanoTime {
-            interpreter.setInterpretationContext(object : InterpretationContext {
-                private var iDataWrapUpChoice: DataWrapUpChoice? = null
-                override val currentProgramName: String
-                    get() = name
-                override fun shouldReinitialize() = false
-                override var dataWrapUpChoice: DataWrapUpChoice?
-                    get() = iDataWrapUpChoice
-                    set(value) {
-                        iDataWrapUpChoice = value
+            } else {
+                require(params().asSequence().map { it.name }.toSet().all { it in expectedKeys }) {
+                    "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
+                }
+
+                // Set not passed params to NullValue
+                params().forEach {
+                    if (it.name !in params.keys) {
+                        params[it.name] = NullValue
                     }
-            })
-
-            for (pv in params) {
-                val expectedType = params().find { it.name == pv.key }!!.type
-                val coercedValue = coerce(pv.value, expectedType)
-                require(coercedValue.assignableTo(expectedType)) {
-                    "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
                 }
             }
-            if (!initialized) {
-                initialized = true
-                val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
-                    MainExecutionContext.getProgramStack().peek()
-                } else {
-                    null
-                }
+            this.systemInterface = systemInterface
+            val logSource = { LogSourceData.fromProgram(name) }
+            logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
+            val changedInitialValues: List<Value>
+            val elapsed = measureNanoTime {
+                interpreter.setInterpretationContext(object : InterpretationContext {
+                    private var iDataWrapUpChoice: DataWrapUpChoice? = null
+                    override val currentProgramName: String
+                        get() = name
 
-                val activationGroupType = cu.activationGroupType()?.let {
-                    when {
-                        // When there is no caller use the default activation group
-                        it is CallerActivationGroup && caller == null ->
-                            NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
-                        else -> it
+                    override fun shouldReinitialize() = false
+                    override var dataWrapUpChoice: DataWrapUpChoice?
+                        get() = iDataWrapUpChoice
+                        set(value) {
+                            iDataWrapUpChoice = value
+                        }
+                })
+
+                for (pv in params) {
+                    val expectedType = params().find { it.name == pv.key }!!.type
+                    val coercedValue = coerce(pv.value, expectedType)
+                    require(coercedValue.assignableTo(expectedType)) {
+                        "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
                     }
-                } ?: when (caller) {
-                    // for main program, which does not have a caller, activation group is fixed by config
-                    null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
-                    else -> CallerActivationGroup
                 }
+                if (!initialized) {
+                    initialized = true
+                    val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
+                        MainExecutionContext.getProgramStack().peek()
+                    } else {
+                        null
+                    }
 
-                activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
+                    val activationGroupType = cu.activationGroupType()?.let {
+                        when {
+                            // When there is no caller use the default activation group
+                            it is CallerActivationGroup && caller == null ->
+                                NamedActivationGroup(configuration.defaultActivationGroupName)
+
+                            else -> it
+                        }
+                    } ?: when (caller) {
+                        // for main program, which does not have a caller, activation group is fixed by config
+                        null -> NamedActivationGroup(configuration.defaultActivationGroupName)
+                        else -> CallerActivationGroup
+                    }
+
+                    activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
+                }
+                MainExecutionContext.getProgramStack().push(this)
+                configuration.jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
+                // set reinitialization to false because symboltable cleaning currently is handled directly
+                // in internal interpreter before exit
+                // todo i don't know whether parameter reinitialization has still sense
+                interpreter.execute(this.cu, params, false, callerParams)
+                configuration.jarikoCallback.onExitPgm(name, interpreter.getGlobalSymbolTable(), null)
+                params.keys.forEach { params[it] = interpreter[it] }
+                changedInitialValues = params().map { interpreter[it.name] }
+                // here clear symbol table if needed
+                interpreter.doSomethingAfterExecution()
+                MainExecutionContext.getProgramStack().pop()
+            }.nanoseconds
+            if (MainExecutionContext.isLoggingEnabled) {
+                logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
+                logHandlers.renderLog(
+                    LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                        logSource,
+                        ProgramUsageType.Interpretation,
+                        "INTERPRETATION",
+                        elapsed
+                    )
+                )
             }
-            MainExecutionContext.getProgramStack().push(this)
-            MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
-            // set reinitialization to false because symboltable cleaning currently is handled directly
-            // in internal interpreter before exit
-            // todo i don't know whether parameter reinitialization has still sense
-            interpreter.execute(this.cu, params, false, callerParams)
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm(name, interpreter.getGlobalSymbolTable(), null)
-            params.keys.forEach { params[it] = interpreter[it] }
-            changedInitialValues = params().map { interpreter[it.name] }
-            // here clear symbol table if needed
-            interpreter.doSomethingAfterExecution()
-            MainExecutionContext.getProgramStack().pop()
-        }.nanoseconds
-        if (MainExecutionContext.isLoggingEnabled) {
-            logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
-            logHandlers.renderLog(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Interpretation, "INTERPRETATION", elapsed))
-        }
-        if (MainExecutionContext.getProgramStack().isEmpty()) {
-            interpreter.onInterpretationEnd()
-        }
+            if (MainExecutionContext.getProgramStack().isEmpty()) {
+                interpreter.onInterpretationEnd()
+            }
 
-        return changedInitialValues
+            return changedInitialValues
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            callback.finishJarikoTrace()
+        }
     }
 
     override fun equals(other: Any?) =

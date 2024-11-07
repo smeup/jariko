@@ -926,6 +926,41 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun traceMainExecutionContextTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val mainExecutionTraces = traces.filter { it.kind == JarikoTraceKind.MainExecutionContext }
+
+        // Only one main execution context
+        assertEquals(mainExecutionTraces.size, 1)
+    }
+
+    @Test
+    fun traceRpgProgramTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val rpgProgramTraces = traces.filter { it.kind == JarikoTraceKind.RpgProgram }
+
+        // TRACETST1, TRACETST2
+        assertEquals(rpgProgramTraces.size, 2)
+
+        assertEquals(rpgProgramTraces.filter { it.description == "TRACETST1" }.size, 1)
+        assertEquals(rpgProgramTraces.filter { it.description == "TRACETST2" }.size, 1)
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
