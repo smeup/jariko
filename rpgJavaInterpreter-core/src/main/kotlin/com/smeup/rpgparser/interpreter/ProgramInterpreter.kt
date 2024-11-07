@@ -37,6 +37,9 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
             MainExecutionContext.getProgramStack().push(rpgProgram)
             rpgProgram.execute(systemInterface = systemInterface, params = initialValues)
             MainExecutionContext.getProgramStack().pop()
+            if (MainExecutionContext.getProgramStack().isEmpty()) {
+                rpgProgram.intepreterCore.onInterpretationEnd()
+            }
         }
     }
 }
