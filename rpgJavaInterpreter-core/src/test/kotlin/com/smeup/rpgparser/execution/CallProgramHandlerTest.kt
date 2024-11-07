@@ -198,4 +198,27 @@ class CallProgramHandlerTest : AbstractTest() {
         println(response.toString())
         return response.toString()
     }
+
+    /**
+     * This test reproduces the 'CallProgramHandler' implementation in Kokos.
+     * The issue fixed is: Issue executing CallStmt at line nn. lateinit property activationGroup has not been initialized
+     * The assertion is: no exception is thrown
+     * */
+    @Test
+    fun testCallProgramHandlerKokosImplementation() {
+        val systemInterface: SystemInterface = JavaSystemInterface()
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
+        val configuration = Configuration()
+        val callProgramHandler = CallProgramHandler(
+            handleCall = { programName: String, _: SystemInterface, params: LinkedHashMap<String, Value> ->
+                val values = getProgram(programName, systemInterface, programFinders).singleCall(
+                    parms = params, configuration = configuration
+                )
+                require(values != null)
+                values.namedParams!!.values.toList()
+            }
+        )
+        configuration.options.callProgramHandler = callProgramHandler
+        getProgram("CALLER.rpgle", systemInterface, programFinders).singleCall(listOf(""), configuration)
+    }
 }
