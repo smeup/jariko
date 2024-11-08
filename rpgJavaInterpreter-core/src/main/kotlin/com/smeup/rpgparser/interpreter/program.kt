@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
@@ -38,9 +39,13 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
 
     private var systemInterface: SystemInterface? = null
 
+    private val configuration: Configuration by lazy {
+        MainExecutionContext.getConfiguration()
+    }
+
     private val interpreter: InternalInterpreter by lazy {
         val interpreterCore = InternalInterpreter(this.systemInterface!!)
-        MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(interpreterCore)
+        configuration.jarikoCallback.onInterpreterCreation(interpreterCore)
         interpreterCore
     }
 
@@ -81,7 +86,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     }
 
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-        val configuration = MainExecutionContext.getConfiguration()
         val callback = configuration.jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.RpgProgram, this.name)
         callback.startJarikoTrace(trace)
@@ -157,19 +161,19 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                         when {
                             // When there is no caller use the default activation group
                             it is CallerActivationGroup && caller == null ->
-                                NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                                NamedActivationGroup(configuration.defaultActivationGroupName)
 
                             else -> it
                         }
                     } ?: when (caller) {
                         // for main program, which does not have a caller, activation group is fixed by config
-                        null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                        null -> NamedActivationGroup(configuration.defaultActivationGroupName)
                         else -> CallerActivationGroup
                     }
 
                     activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
                 }
-                MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(
+                configuration.jarikoCallback.onEnterPgm(
                     name,
                     interpreter.getGlobalSymbolTable()
                 )
@@ -177,7 +181,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 // in internal interpreter before exit
                 // todo i don't know whether parameter reinitialization has still sense
                 interpreter.execute(this.cu, params, false, callerParams)
-                MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm(
+                configuration.jarikoCallback.onExitPgm(
                     name,
                     interpreter.getGlobalSymbolTable(),
                     null
