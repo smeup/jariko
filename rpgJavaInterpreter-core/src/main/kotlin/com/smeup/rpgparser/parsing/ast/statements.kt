@@ -2530,7 +2530,12 @@ data class ExecSqlStmt(
     override val loggableEntityName: String
         get() = "SQL - EXEC SQL"
 
-    override fun execute(interpreter: InterpreterCore) {}
+    override fun execute(interpreter: InterpreterCore) {
+        val dataDefinition = interpreter.getGlobalSymbolTable().dataDefinitionByName("SQLCOD")
+        if (dataDefinition != null) {
+            interpreter.getGlobalSymbolTable().set(dataDefinition, IntValue(100))
+        }
+    }
 }
 
 @Serializable
