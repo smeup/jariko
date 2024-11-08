@@ -1326,15 +1326,19 @@ open class InternalInterpreter(
         } else null
 
         val trace = openTelemetryScope(statement)
-
         sourceProducer?.let { openLoggingScope(statement, it) }
 
-        val executionTime = measureNanoTime {
-            statement.execute(this)
-        }.nanoseconds
-
-        sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
-        trace?.let { closeTelemetryScope() }
+        var executionTime = Duration.ZERO
+        try {
+            executionTime = measureNanoTime {
+                statement.execute(this)
+            }.nanoseconds
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            trace?.let { closeTelemetryScope() }
+        }
     }
 
     override fun onInterpretationEnd() {
@@ -1352,7 +1356,6 @@ open class InternalInterpreter(
             is ExecuteSubroutine -> JarikoTrace(
                 kind = JarikoTraceKind.ExecuteSubroutine,
                 description = statement.subroutine.name
-
             )
             is CompositeStatement -> JarikoTrace(
                 kind = JarikoTraceKind.CompositeStatement,
