@@ -86,7 +86,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val trace = JarikoTrace(JarikoTraceKind.RpgProgram, this.name)
         callback.startJarikoTrace(trace)
 
-        try {
+        return try {
             val expectedKeys = params().asSequence().map { it.name }.toSet()
 
             // Original params passed from the caller
@@ -198,11 +198,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                     )
                 )
             }
-            if (MainExecutionContext.getProgramStack().isEmpty()) {
-                interpreter.onInterpretationEnd()
-            }
-
-            return changedInitialValues
+            changedInitialValues
         } catch (e: Exception) {
             throw e
         } finally {
