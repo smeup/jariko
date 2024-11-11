@@ -2,8 +2,6 @@
      V* 11/11/2024 APU001 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * RPG Mock Program Example for Jariko Environment
-    O *
     O * This is a mock RPG program designed to demonstrate a simple SQL FETCH
     O * operation within the Jariko environment, which emulates AS400 behavior.
     O * The program uses embedded SQL to fetch data and display the SQL status
