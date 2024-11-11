@@ -272,7 +272,5 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
         resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
         currentCu = currentCu.parent?.let { it as CompilationUnit }
     }
-    require(resolved) {
-        "Data reference not resolved: ${this.name} at $position"
-    }
+    if (!resolved) cu.error("Data reference not resolved: ${this.name} at $position")
 }
