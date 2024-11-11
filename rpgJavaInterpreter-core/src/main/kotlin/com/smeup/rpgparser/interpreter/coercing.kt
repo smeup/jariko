@@ -250,7 +250,7 @@ fun coerce(value: Value, type: Type): Value {
                 }
                 is ArrayType -> {
                     val coercedValue = coerce(value, type.element)
-                    ConcreteArrayValue(MutableList(type.element.size) { coercedValue }, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }

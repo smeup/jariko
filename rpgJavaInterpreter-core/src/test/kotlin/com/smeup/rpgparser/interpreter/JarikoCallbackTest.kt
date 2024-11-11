@@ -961,6 +961,30 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR45CallBackTest() {
+        executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
+            18 to "Factor 2 and Result with different type and size."
+        ))
+    }
+
+    @Test
+    fun executeERROR45SourceLineTest() {
+        executeSourceLineTest("ERROR45")
+    }
+
+    @Test
+    fun executeERROR46CallBackTest() {
+        executePgmCallBackTest("ERROR46", SourceReferenceType.Program, "ERROR46", mapOf(
+            18 to "Factor 2 and Result with different type and size."
+        ))
+    }
+
+    @Test
+    fun executeERROR46SourceLineTest() {
+        executeSourceLineTest("ERROR46")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {

@@ -558,4 +558,60 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1", "1", "1", "1", "1", "1", "2", "2")
         assertEquals(expected, "smeup/MUDRNRAPU00148".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. Both as integer.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00155() {
+        val expected = listOf("2", "2", "2", "2", "2", "1", "1", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00155".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. Both as integer.
+     * Size of DS field as array is lower than standalone.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00156() {
+        val expected = listOf("2", "2", "2", "2", "2", "1", "1", "1", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00156".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. Both as integer.
+     * Size of DS field as array is greater than standalone.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00157() {
+        val expected = listOf("2", "2", "2", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00157".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. DS field array is declared as decimal;
+     *  standalone array as integer.
+     * Size of DS field as array is lower than standalone.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00158() {
+        val expected = listOf("2", "2", "2", "2", "2", "1200", "1200", "1200", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00158".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEA between a DS field declared as array and a standalone array. DS field array is declared as integer;
+     *  standalone array as decimal.
+     * Size of DS field as array is lower than standalone.
+     * @see #LS24004772
+     */
+    @Test
+    fun executeMUDRNRAPU00159() {
+        val expected = listOf("2.200", "2.200", "2.200", "2.200", "2.200", ".001", ".001", ".001", ".000", ".000")
+        assertEquals(expected, "smeup/MUDRNRAPU00159".outputOf(configuration = smeupConfig))
+    }
 }
