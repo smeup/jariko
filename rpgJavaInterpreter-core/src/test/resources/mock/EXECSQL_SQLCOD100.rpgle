@@ -18,6 +18,11 @@
       *   managed by the system.
       *
       **************************************************************************/
+     D SQL_DAT         DS
+     D  SQL_CODI                     15
+     D  SQL_COD1                     15
+     D  SQL_COD2                     15
+     D  SQL_COD3                     15
      D SQLCOD          S              5P 0 INZ(0)
      D TMP             S             10
 
@@ -31,6 +36,6 @@
 
      C     EXEC_SQL      BEGSR
      C/EXEC SQL
-     C+ FETCH FOO INTO :BAR
+     C+ FETCH C1 INTO :SQL_DAT
      C/END-EXEC
      C                   ENDSR
