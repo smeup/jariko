@@ -53,4 +53,16 @@ open class MULANGT11Codop2Test : MULANGTTest() {
         val expected = listOf("HELLO THERE")
         assertEquals(expected, "smeup/MUDRNRAPU00104".outputOf())
     }
+
+    /**
+     * This program simulates a simple SQL FETCH operation, using SQLCOD to
+     * display the SQL status before and after execution. SQLCOD is explicitly
+     * defined here for Jariko, emulating AS400 behavior. Suitable for testing
+     * basic SQL handling in a mock setup.
+     */
+    @Test
+    fun executeMUDRNRAPU00160() {
+        val expected = listOf("0", "100")
+        assertEquals(expected, "smeup/MUDRNRAPU00160".outputOf())
+    }
 }
