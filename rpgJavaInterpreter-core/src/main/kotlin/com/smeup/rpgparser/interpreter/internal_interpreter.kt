@@ -19,9 +19,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.rpgparser.execution.ErrorEvent
-import com.smeup.rpgparser.execution.ErrorEventSource
-import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -46,6 +44,7 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.system.measureNanoTime
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 object InterpreterConfiguration {
@@ -92,6 +91,8 @@ open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
+    private val configuration = MainExecutionContext.getConfiguration()
+
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
     }
@@ -244,134 +245,142 @@ open class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
-        val start = System.nanoTime()
-
+        val callback = configuration.jarikoCallback
+        val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
         val programName = interpretationContext.currentProgramName
         val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
 
-        // TODO verify if these values should be reinitialised or not
-        compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
-            status.dbFileMap.add(it)
-        }
+        callback.traceBlock(initTrace) {
+            val start = System.nanoTime()
 
-        var index = 0
-        // Assigning initial values received from outside and consider INZ clauses
-        // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
-        // circumstances is correct reinitialization
-        if (reinitialization || globalSymbolTable.isEmpty()) {
-            beforeInitialization()
-            compilationUnit.allDataDefinitions.forEach {
-                var value: Value? = null
-                when (it) {
-                    is DataDefinition -> {
-                        value = when {
-                            it.name in initialValues -> {
-                                val initialValue = initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
-                                if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
-                                    require(initialValue.assignableTo(it.type)) {
-                                        "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
+
+            // TODO verify if these values should be reinitialised or not
+            compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
+                status.dbFileMap.add(it)
+            }
+
+            var index = 0
+            // Assigning initial values received from outside and consider INZ clauses
+            // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
+            // circumstances is correct reinitialization
+            if (reinitialization || globalSymbolTable.isEmpty()) {
+                beforeInitialization()
+                compilationUnit.allDataDefinitions.forEach {
+                    var value: Value? = null
+                    when (it) {
+                        is DataDefinition -> {
+                            value = when {
+                                it.name in initialValues -> {
+                                    val initialValue = initialValues[it.name]
+                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                    if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                        require(initialValue.assignableTo(it.type)) {
+                                            "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                        }
+                                    }
+                                    initialValue
+                                }
+
+                                it.initializationValue != null -> eval(it.initializationValue)
+                                it.isCompileTimeArray() -> toArrayValue(
+                                    compilationUnit.compileTimeArray(index++),
+                                    (it.type as ArrayType)
+                                )
+
+                                else -> blankValue(it)
+                            }
+                            if (it.name !in initialValues) {
+                                blankValue(it)
+                                it.fields.forEach { field ->
+                                    if (field.initializationValue != null) {
+                                        val fieldValue = coerce(eval(field.initializationValue), field.type)
+                                        when (value) {
+                                            is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
+                                            is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                            else -> throw RuntimeException("Expected value to be a DataStructure")
+                                        }
                                     }
                                 }
-                                initialValue
                             }
-
-                            it.initializationValue != null -> eval(it.initializationValue)
-                            it.isCompileTimeArray() -> toArrayValue(
-                                compilationUnit.compileTimeArray(index++),
-                                (it.type as ArrayType)
-                            )
-
-                            else -> blankValue(it)
                         }
-                        if (it.name !in initialValues) {
-                            blankValue(it)
-                            it.fields.forEach { field ->
-                                if (field.initializationValue != null) {
-                                    val fieldValue = coerce(eval(field.initializationValue), field.type)
-                                    when (value) {
-                                        is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
-                                        is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
-                                        else -> throw RuntimeException("Expected value to be a DataStructure")
+                        is FieldDefinition -> {
+                            if (it.isCompileTimeArray()) {
+                                value = toArrayValue(
+                                    compilationUnit.compileTimeArray(index++),
+                                    (it.type as ArrayType)
+                                )
+                            }
+                        }
+                        is InStatementDataDefinition -> {
+                            value = if (it.parent is PlistParam) {
+                                when (it.name) {
+                                    in initialValues -> initialValues[it.name]
+                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
+
+                                    else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                        it.type.blank()
+                                    } else {
+                                        null
                                     }
                                 }
+                            } else {
+                                // TODO check this during the process of revision of DB access
+                                if (it.type is KListType) null else it.type.blank()
                             }
                         }
                     }
-                    is FieldDefinition -> {
-                        if (it.isCompileTimeArray()) {
-                            value = toArrayValue(
-                                compilationUnit.compileTimeArray(index++),
-                                (it.type as ArrayType)
-                            )
-                        }
+                    // Fix issue on CTDATA
+                    val ctdata = compilationUnit.compileTimeArray(it.name)
+                    if (ctdata.name == it.name) {
+                        value = toArrayValue(
+                            compilationUnit.compileTimeArray(it.name),
+                            (it.type as ArrayType)
+                        )
+                        set(it, value)
                     }
-                    is InStatementDataDefinition -> {
-                        value = if (it.parent is PlistParam) {
-                            when (it.name) {
-                                in initialValues -> initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
 
-                                else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
-                                    it.type.blank()
-                                } else {
-                                    null
+                    if (value != null) {
+                        set(it, coerce(value, it.type))
+                        if (it is DataDefinition) {
+                            try {
+                                val tmpValue = globalSymbolTable[it]
+                                if (tmpValue !is NullValue) {
+                                    it.defaultValue = tmpValue.copy()
                                 }
+                            } catch (exc: IllegalArgumentException) {
+                                it.defaultValue = null
                             }
-                        } else {
-                            // TODO check this during the process of revision of DB access
-                            if (it.type is KListType) null else it.type.blank()
                         }
+                        executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                     }
                 }
-                // Fix issue on CTDATA
-                val ctdata = compilationUnit.compileTimeArray(it.name)
-                if (ctdata.name == it.name) {
-                    value = toArrayValue(
-                        compilationUnit.compileTimeArray(it.name),
-                        (it.type as ArrayType)
-                    )
-                    set(it, value)
+            } else {
+                initialValues.forEach { iv ->
+                    val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
+                    set(def, coerce(iv.value, def.type))
                 }
+            }
 
-                if (value != null) {
-                    set(it, coerce(value, it.type))
-                    if (it is DataDefinition) {
-                        try {
-                            val tmpValue = globalSymbolTable[it]
-                            if (tmpValue !is NullValue) {
-                                it.defaultValue = tmpValue.copy()
-                            }
-                        } catch (exc: IllegalArgumentException) {
-                            it.defaultValue = null
-                        }
-                    }
-                    executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
-                }
-            }
-        } else {
-            initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
-                set(def, coerce(iv.value, def.type))
-            }
+            val initElapsed = (System.nanoTime() - start).nanoseconds
+
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
+            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
         }
 
-        val initElapsed = (System.nanoTime() - start).nanoseconds
+        val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
+        callback.traceBlock(loadTrace) {
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
+            val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
-
-        val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
-
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+        }
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -614,19 +623,16 @@ open class InternalInterpreter(
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
                 statement.position?.let { fireCopyObservingCallback(it.start.line) }
-                if (MainExecutionContext.getConfiguration().options.mustInvokeOnStatementCallback()) {
+                if (configuration.options.mustInvokeOnStatementCallback()) {
                     statement.position?.relative()?.let {
-                        MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
+                        configuration.jarikoCallback.onEnterStatement(it.first, it.second)
                     }
                 }
 
                 if (statement is MockStatement) {
-                    MainExecutionContext.getConfiguration().jarikoCallback.onMockStatement(statement)
-                    statement.execute(this)
+                    configuration.jarikoCallback.onMockStatement(statement)
                 } else {
-                    if (logsEnabled())
-                        executeWithLogging(statement)
-                    else statement.execute(this)
+                    execute(statement)
                 }
             }
         } catch (e: ControlFlowException) {
@@ -662,7 +668,7 @@ open class InternalInterpreter(
         val errorEvent =
             ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
         errorEvent.pushRuntimeErrorEvent()
-        MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
+        configuration.jarikoCallback.onError.invoke(errorEvent)
         return this
     }
 
@@ -675,7 +681,7 @@ open class InternalInterpreter(
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
         if (!MainExecutionContext.getProgramStack()
-                .empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()
+                .empty() && configuration.options.mustCreateCopyBlocks()
         ) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
@@ -683,12 +689,12 @@ open class InternalInterpreter(
                 from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
                 to = currentStatementLine,
                 onEnter = { copyBlock ->
-                    MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(
+                    configuration.jarikoCallback.onEnterCopy.invoke(
                         copyBlock.copyId
                     )
                 },
                 onExit = { copyBlock ->
-                    MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(
+                    configuration.jarikoCallback.onExitCopy.invoke(
                         copyBlock.copyId
                     )
                 }
@@ -1234,7 +1240,7 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
+                return configuration.jarikoCallback.getActivationGroup.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup
                 )?.assignedName ?: activationGroup
             }
@@ -1275,7 +1281,7 @@ open class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
+        return configuration.jarikoCallback.exitInRT.invoke(
             interpretationContext.currentProgramName
         ) ?: exitRT
     }
@@ -1311,13 +1317,55 @@ open class InternalInterpreter(
         }
     }
 
-    private inline fun executeWithLogging(statement: Statement) {
+    /**
+     * Execute a statement keeping track of its state for observability purposes
+     */
+    private inline fun execute(statement: Statement) {
         val programName = this.interpretationContext.currentProgramName
-        val sourceProducer = { LogSourceData(programName, statement.position.line()) }
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
+        val sourceProducer = if (logsEnabled()) {
+            { LogSourceData(programName, statement.position.line()) }
+        } else null
 
+        val callback = configuration.jarikoCallback
+        val trace = statement.toTracePoint()
+        sourceProducer?.let { openLoggingScope(statement, it) }
+
+        val internalExecute = {
+            val executionTime = measureNanoTime {
+                statement.execute(this)
+            }.nanoseconds
+            sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+        }
+        if (trace != null) {
+            callback.traceBlock(trace) { internalExecute() }
+        } else internalExecute()
+    }
+
+    override fun onInterpretationEnd() {
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
+        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
+    }
+
+    private fun Statement.toTracePoint(): JarikoTrace? {
+        return when (this) {
+            is CallStmt -> JarikoTrace(
+                kind = JarikoTraceKind.CallStmt,
+                description = eval(this.expression).asString().value.trim()
+            )
+            is ExecuteSubroutine -> JarikoTrace(
+                kind = JarikoTraceKind.ExecuteSubroutine,
+                description = this.subroutine.name
+            )
+            is CompositeStatement -> JarikoTrace(
+                kind = JarikoTraceKind.CompositeStatement,
+                description = this.loggableEntityName
+            )
+            else -> null
+        }
+    }
+
+    private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
         renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
-
         if (statement is CompositeStatement) {
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
         } else {
@@ -1325,13 +1373,23 @@ open class InternalInterpreter(
         }
 
         if (statement is LoopStatement) {
-            renderLogInternal { LazyLogEntry.produceLoopStart(sourceProducer, statement.loggableEntityName, statement.loopSubject) }
+            renderLogInternal {
+                LazyLogEntry.produceLoopStart(
+                    sourceProducer,
+                    statement.loggableEntityName,
+                    statement.loopSubject
+                )
+            }
         }
+    }
 
-        val executionTime = measureNanoTime {
-            statement.execute(this)
-        }.nanoseconds
-
+    private fun closeLoggingScope(
+        statement: Statement,
+        programName: String,
+        sourceProducer: LogSourceProvider,
+        executionTime: Duration
+    ) {
+        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
         loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
 
         if (statement is LoopStatement) {
@@ -1349,12 +1407,14 @@ open class InternalInterpreter(
             renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
         }
 
-        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(sourceProducer, ProgramUsageType.Statement, statement.loggableEntityName, executionTime) }
-    }
-
-    override fun onInterpretationEnd() {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
-        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
+        renderLogInternal {
+            LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                sourceProducer,
+                ProgramUsageType.Statement,
+                statement.loggableEntityName,
+                executionTime
+            )
+        }
     }
 }
 
