@@ -17,6 +17,8 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.JarikoCallback
+
 /**
  * Kind of a trace
  */
@@ -46,3 +48,14 @@ data class RpgTrace(
     val program: String,
     val description: String? = null
 )
+
+internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
+    startJarikoTrace(trace)
+    try {
+        return block()
+    } catch (e: Exception) {
+        throw e
+    } finally {
+        finishJarikoTrace()
+    }
+}

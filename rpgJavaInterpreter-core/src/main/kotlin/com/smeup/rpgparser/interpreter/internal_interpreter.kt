@@ -247,139 +247,140 @@ open class InternalInterpreter(
     ) {
         val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
-        callback.startJarikoTrace(initTrace)
-        val start = System.nanoTime()
-
         val programName = interpretationContext.currentProgramName
         val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
 
-        // TODO verify if these values should be reinitialised or not
-        compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
-            status.dbFileMap.add(it)
-        }
+        callback.traceBlock(initTrace) {
+            val start = System.nanoTime()
 
-        var index = 0
-        // Assigning initial values received from outside and consider INZ clauses
-        // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
-        // circumstances is correct reinitialization
-        if (reinitialization || globalSymbolTable.isEmpty()) {
-            beforeInitialization()
-            compilationUnit.allDataDefinitions.forEach {
-                var value: Value? = null
-                when (it) {
-                    is DataDefinition -> {
-                        value = when {
-                            it.name in initialValues -> {
-                                val initialValue = initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
-                                if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
-                                    require(initialValue.assignableTo(it.type)) {
-                                        "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
+
+            // TODO verify if these values should be reinitialised or not
+            compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
+                status.dbFileMap.add(it)
+            }
+
+            var index = 0
+            // Assigning initial values received from outside and consider INZ clauses
+            // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
+            // circumstances is correct reinitialization
+            if (reinitialization || globalSymbolTable.isEmpty()) {
+                beforeInitialization()
+                compilationUnit.allDataDefinitions.forEach {
+                    var value: Value? = null
+                    when (it) {
+                        is DataDefinition -> {
+                            value = when {
+                                it.name in initialValues -> {
+                                    val initialValue = initialValues[it.name]
+                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                    if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                        require(initialValue.assignableTo(it.type)) {
+                                            "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                        }
+                                    }
+                                    initialValue
+                                }
+
+                                it.initializationValue != null -> eval(it.initializationValue)
+                                it.isCompileTimeArray() -> toArrayValue(
+                                    compilationUnit.compileTimeArray(index++),
+                                    (it.type as ArrayType)
+                                )
+
+                                else -> blankValue(it)
+                            }
+                            if (it.name !in initialValues) {
+                                blankValue(it)
+                                it.fields.forEach { field ->
+                                    if (field.initializationValue != null) {
+                                        val fieldValue = coerce(eval(field.initializationValue), field.type)
+                                        when (value) {
+                                            is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
+                                            is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                            else -> throw RuntimeException("Expected value to be a DataStructure")
+                                        }
                                     }
                                 }
-                                initialValue
                             }
-
-                            it.initializationValue != null -> eval(it.initializationValue)
-                            it.isCompileTimeArray() -> toArrayValue(
-                                compilationUnit.compileTimeArray(index++),
-                                (it.type as ArrayType)
-                            )
-
-                            else -> blankValue(it)
                         }
-                        if (it.name !in initialValues) {
-                            blankValue(it)
-                            it.fields.forEach { field ->
-                                if (field.initializationValue != null) {
-                                    val fieldValue = coerce(eval(field.initializationValue), field.type)
-                                    when (value) {
-                                        is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
-                                        is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
-                                        else -> throw RuntimeException("Expected value to be a DataStructure")
+                        is FieldDefinition -> {
+                            if (it.isCompileTimeArray()) {
+                                value = toArrayValue(
+                                    compilationUnit.compileTimeArray(index++),
+                                    (it.type as ArrayType)
+                                )
+                            }
+                        }
+                        is InStatementDataDefinition -> {
+                            value = if (it.parent is PlistParam) {
+                                when (it.name) {
+                                    in initialValues -> initialValues[it.name]
+                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
+
+                                    else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                        it.type.blank()
+                                    } else {
+                                        null
                                     }
                                 }
+                            } else {
+                                // TODO check this during the process of revision of DB access
+                                if (it.type is KListType) null else it.type.blank()
                             }
                         }
                     }
-                    is FieldDefinition -> {
-                        if (it.isCompileTimeArray()) {
-                            value = toArrayValue(
-                                compilationUnit.compileTimeArray(index++),
-                                (it.type as ArrayType)
-                            )
-                        }
+                    // Fix issue on CTDATA
+                    val ctdata = compilationUnit.compileTimeArray(it.name)
+                    if (ctdata.name == it.name) {
+                        value = toArrayValue(
+                            compilationUnit.compileTimeArray(it.name),
+                            (it.type as ArrayType)
+                        )
+                        set(it, value)
                     }
-                    is InStatementDataDefinition -> {
-                        value = if (it.parent is PlistParam) {
-                            when (it.name) {
-                                in initialValues -> initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
 
-                                else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
-                                    it.type.blank()
-                                } else {
-                                    null
+                    if (value != null) {
+                        set(it, coerce(value, it.type))
+                        if (it is DataDefinition) {
+                            try {
+                                val tmpValue = globalSymbolTable[it]
+                                if (tmpValue !is NullValue) {
+                                    it.defaultValue = tmpValue.copy()
                                 }
+                            } catch (exc: IllegalArgumentException) {
+                                it.defaultValue = null
                             }
-                        } else {
-                            // TODO check this during the process of revision of DB access
-                            if (it.type is KListType) null else it.type.blank()
                         }
+                        executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                     }
                 }
-                // Fix issue on CTDATA
-                val ctdata = compilationUnit.compileTimeArray(it.name)
-                if (ctdata.name == it.name) {
-                    value = toArrayValue(
-                        compilationUnit.compileTimeArray(it.name),
-                        (it.type as ArrayType)
-                    )
-                    set(it, value)
+            } else {
+                initialValues.forEach { iv ->
+                    val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
+                    set(def, coerce(iv.value, def.type))
                 }
+            }
 
-                if (value != null) {
-                    set(it, coerce(value, it.type))
-                    if (it is DataDefinition) {
-                        try {
-                            val tmpValue = globalSymbolTable[it]
-                            if (tmpValue !is NullValue) {
-                                it.defaultValue = tmpValue.copy()
-                            }
-                        } catch (exc: IllegalArgumentException) {
-                            it.defaultValue = null
-                        }
-                    }
-                    executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
-                }
-            }
-        } else {
-            initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
-                set(def, coerce(iv.value, def.type))
-            }
+            val initElapsed = (System.nanoTime() - start).nanoseconds
+
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
+            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
         }
-
-        val initElapsed = (System.nanoTime() - start).nanoseconds
-
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
-        callback.finishJarikoTrace()
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
-        callback.startJarikoTrace(loadTrace)
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
+        callback.traceBlock(loadTrace) {
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
-        val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
+            val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-        renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
-        renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-        renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
-        callback.finishJarikoTrace()
+            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+        }
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -1325,20 +1326,19 @@ open class InternalInterpreter(
             { LogSourceData(programName, statement.position.line()) }
         } else null
 
-        val trace = openTelemetryScope(statement)
+        val callback = configuration.jarikoCallback
+        val trace = statement.toTracePoint()
         sourceProducer?.let { openLoggingScope(statement, it) }
 
-        var executionTime = Duration.ZERO
-        try {
-            executionTime = measureNanoTime {
+        val internalExecute = {
+            val executionTime = measureNanoTime {
                 statement.execute(this)
             }.nanoseconds
-        } catch (e: Exception) {
-            throw e
-        } finally {
             sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
-            trace?.let { closeTelemetryScope() }
         }
+        if (trace != null) {
+            callback.traceBlock(trace) { internalExecute() }
+        } else internalExecute()
     }
 
     override fun onInterpretationEnd() {
@@ -1346,33 +1346,22 @@ open class InternalInterpreter(
         loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
     }
 
-    private fun openTelemetryScope(statement: Statement): JarikoTrace? {
-        val callback = configuration.jarikoCallback
-        val trace = when (statement) {
+    private fun Statement.toTracePoint(): JarikoTrace? {
+        return when (this) {
             is CallStmt -> JarikoTrace(
                 kind = JarikoTraceKind.CallStmt,
-                description = eval(statement.expression).asString().value.trim()
+                description = eval(this.expression).asString().value.trim()
             )
             is ExecuteSubroutine -> JarikoTrace(
                 kind = JarikoTraceKind.ExecuteSubroutine,
-                description = statement.subroutine.name
+                description = this.subroutine.name
             )
             is CompositeStatement -> JarikoTrace(
                 kind = JarikoTraceKind.CompositeStatement,
-                description = statement.loggableEntityName
+                description = this.loggableEntityName
             )
             else -> null
         }
-
-        return trace?.let {
-            callback.startJarikoTrace(it)
-            it
-        }
-    }
-
-    private fun closeTelemetryScope() {
-        val callback = configuration.jarikoCallback
-        callback.finishJarikoTrace()
     }
 
     private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
