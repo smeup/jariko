@@ -287,7 +287,37 @@ data class JarikoCallback(
      * @return true if the feature flag is on, false otherwise - default implementation returns the feature flag default value
      * @see FeatureFlag.on
      * */
-    var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on }
+    var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on },
+
+    /**
+     * It is invoked whenever we start a telemetry trace.
+     * @param trace The object containing all the information about this trace.
+     */
+    var startJarikoTrace: ((trace: JarikoTrace) -> Unit) = {
+        // Defaults to a no-op
+    },
+
+    /**
+     * It is invoked whenever we finish a telemetry trace.
+     */
+    var finishJarikoTrace: (() -> Unit) = {
+        // Defaults to a no-op
+    },
+
+    /**
+     * It is invoked whenever we start a telemetry trace defined as annotation in an RPG program.
+     * @param trace The object containing all the information about this trace.
+     */
+    var startRpgTrace: ((trace: RpgTrace) -> Unit) = {
+        // Defaults to a no-op
+    },
+
+    /**
+     * It is invoked whenever we finish a telemetry trace defined as annotation in an RPG program.
+     */
+    var finishRpgTrace: (() -> Unit) = {
+        // Defaults to a no-op
+    }
 )
 
 /**

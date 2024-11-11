@@ -86,7 +86,12 @@ object MainExecutionContext {
                 )
             }
             return mainProgram.runCatching {
-                invoke(context.get())
+                val ctx = context.get()
+                val callback = ctx.configuration.jarikoCallback
+                val trace = JarikoTrace(JarikoTraceKind.MainExecutionContext)
+                callback.traceBlock(trace) {
+                    invoke(ctx)
+                }
             }.onFailure {
                 if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(false)
             }.onSuccess {
