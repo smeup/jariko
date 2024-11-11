@@ -614,4 +614,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("2.200", "2.200", "2.200", "2.200", "2.200", ".001", ".001", ".001", ".000", ".000")
         assertEquals(expected, "smeup/MUDRNRAPU00159".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * MOVEL between a DS field without initialization to an integer variable declared inline.
+     * @see #LS24004842
+     */
+    @Test
+    fun executeMUDRNRAPU00160() {
+        val expected = listOf("", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00160".outputOf(configuration = smeupConfig))
+    }
 }
