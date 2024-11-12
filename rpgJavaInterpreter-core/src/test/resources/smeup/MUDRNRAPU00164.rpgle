@@ -5,14 +5,12 @@
     O * Assignment of UnlimitedStringValue to a StringValue where
     O *  the size of first is smaller than second.
      V* ==============================================================
-     D £UIBDS          DS
-     D  £UIBME                       10
-     D  £UIBP1                         0
-     D £DECPA          S             10
+     D VARUNL          S               0
+     D VARSTD          S             10
 
-     C                   EVAL      £UIBP1='ABCDE'
-     C                   EVAL      £DECPA=£UIBP1
-     C                   MOVE      'FG'          £DECPA
-     C     £DECPA        DSPLY
+     C                   EVAL      VARUNL='ABCDE'
+     C                   EVAL      VARSTD=VARUNL
+     C                   MOVE      'FG'          VARSTD
+     C     VARSTD        DSPLY
 
      C                   SETON                                          LR

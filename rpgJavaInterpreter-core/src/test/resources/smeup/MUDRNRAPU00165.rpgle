@@ -5,14 +5,12 @@
     O * Assignment of UnlimitedStringValue to a StringValue (VARYING)
     O *  where the size of first is smaller than second.
      V* ==============================================================
-     D £UIBDS          DS
-     D  £UIBME                       10
-     D  £UIBP1                         0
-     D £DECPA          S             10    VARYING
+     D VARUNL          S               0
+     D VARSTD          S             10    VARYING
 
-     C                   EVAL      £UIBP1='ABCDE'
-     C                   EVAL      £DECPA=£UIBP1
-     C                   MOVE      'FG'          £DECPA
-     C     £DECPA        DSPLY
+     C                   EVAL      VARUNL='ABCDE'
+     C                   EVAL      VARSTD=VARUNL
+     C                   MOVE      'FG'          VARSTD
+     C     VARSTD        DSPLY
 
      C                   SETON                                          LR
