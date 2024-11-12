@@ -2550,7 +2550,7 @@ data class ExecSqlStmt(
         val sqlErmDefinition = InStatementDataDefinition(
             name = "SQLERM",
             type = CharacterType(
-                nChars = 70,
+                nChars = 70
             ),
             position = position
         )
