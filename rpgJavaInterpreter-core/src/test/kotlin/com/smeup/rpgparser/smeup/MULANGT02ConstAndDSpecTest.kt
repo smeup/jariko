@@ -743,4 +743,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("*SCPAccesso da script             00S")
         assertEquals(expected, "smeup/MUDRNRAPU00154".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * SUBST with a side effect where the factor 2 has changed type in `UnlimitedStringValue`.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00162() {
+        val expected = listOf("TAC5J18", "C5")
+        assertEquals(emptyList(), "smeup/MUDRNRAPU00162".outputOf(configuration = smeupConfig))
+    }
 }
