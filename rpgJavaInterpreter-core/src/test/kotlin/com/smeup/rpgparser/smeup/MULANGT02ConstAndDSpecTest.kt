@@ -773,4 +773,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ABCDE   FG")
         assertEquals(expected, "smeup/MUDRNRAPU00164".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue (VARYING) where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00165() {
+        val expected = listOf("ABCFG")
+        assertEquals(expected, "smeup/MUDRNRAPU00165".outputOf(configuration = smeupConfig))
+    }
 }
