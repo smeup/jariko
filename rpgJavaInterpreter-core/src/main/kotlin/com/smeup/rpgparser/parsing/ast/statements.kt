@@ -29,6 +29,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
@@ -2526,15 +2527,27 @@ data class DeallocStmt(
 @Serializable
 data class ExecSqlStmt(
     override val position: Position? = null
-) : Statement(position), MockStatement {
+) : Statement(position), StatementThatCanDefineData, MockStatement {
     override val loggableEntityName: String
         get() = "SQL - EXEC SQL"
 
     override fun execute(interpreter: InterpreterCore) {
         val dataDefinition = interpreter.getGlobalSymbolTable().dataDefinitionByName("SQLCOD")
-        if (dataDefinition != null) {
-            interpreter.getGlobalSymbolTable().set(dataDefinition, IntValue(100))
-        }
+        interpreter.getGlobalSymbolTable().set(dataDefinition!!, IntValue(100))
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val sqlCodDefinition = InStatementDataDefinition(
+            name = "SQLCOD",
+            type = NumberType(
+                entireDigits = 5,
+                decimalDigits = 0,
+                rpgType = RpgType.PACKED
+            ),
+            position = position
+        )
+
+        return listOf(sqlCodDefinition)
     }
 }
 
