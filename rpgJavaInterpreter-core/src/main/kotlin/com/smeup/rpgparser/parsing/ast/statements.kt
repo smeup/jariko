@@ -2533,9 +2533,7 @@ data class ExecSqlStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val dataDefinition = interpreter.getGlobalSymbolTable().dataDefinitionByName("SQLCOD")
-        if (dataDefinition != null) {
-            interpreter.getGlobalSymbolTable().set(dataDefinition, IntValue(100))
-        }
+        interpreter.getGlobalSymbolTable().set(dataDefinition!!, IntValue(100))
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> {
