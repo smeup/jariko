@@ -755,12 +755,22 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Assignment of UnlimitedStringValue to a StringValue where the size of first is greater than second
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is greater than second.
      * @see #LS24004854
      */
     @Test
     fun executeMUDRNRAPU00163() {
         val expected = listOf("ABC")
         assertEquals(expected, "smeup/MUDRNRAPU00163".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00164() {
+        val expected = listOf("ABCDE   FG")
+        assertEquals(expected, "smeup/MUDRNRAPU00164".outputOf(configuration = smeupConfig))
     }
 }
