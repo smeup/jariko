@@ -2547,7 +2547,15 @@ data class ExecSqlStmt(
             position = position
         )
 
-        return listOf(sqlCodDefinition)
+        val sqlErmDefinition = InStatementDataDefinition(
+            name = "SQLERM",
+            type = CharacterType(
+                nChars = 70
+            ),
+            position = position
+        )
+
+        return listOf(sqlCodDefinition, sqlErmDefinition)
     }
 }
 
