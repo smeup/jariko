@@ -22,6 +22,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
 import java.util.Date
 import kotlin.collections.HashMap
@@ -890,7 +891,6 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     }
 
     if (overlay != null) {
-        this.name
         val pos = overlay.keyword_overlay().pos
         val nameExpr = overlay.keyword_overlay().name
         val targetFieldName = nameExpr.identifier().text
@@ -904,16 +904,21 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     val hasInitValue = this.keyword().find { it.keyword_inz() != null }
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val varName = like?.variable?.name ?: this.name
+    val compileTimeLookup = { expr: Expression ->
+        InjectableCompileTimeInterpreter(
+            knownDataDefinitions = knownDataDefinitions.toList(),
+            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+        ).evaluateTypeOf(this.rContext(), expr, conf)
+    }
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
         ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
-        ?: like?.let {
-            InjectableCompileTimeInterpreter(
-                knownDataDefinitions = knownDataDefinitions.toList(),
-                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-            ).evaluateTypeOf(this.rContext(), it, conf)
-        }
+        ?: like?.let { compileTimeLookup(it) }
+        ?: kotlin.runCatching {
+            val expression = DataRefExpr(ReferenceByName(varName))
+            compileTimeLookup(expression)
+        }.getOrNull()
 
     if (hasInitValue != null) {
         initializationValue = if (hasInitValue.keyword_inz().simpleExpression() != null) {
