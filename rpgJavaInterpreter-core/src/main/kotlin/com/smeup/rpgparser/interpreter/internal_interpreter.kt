@@ -631,6 +631,7 @@ open class InternalInterpreter(
 
                 if (statement is MockStatement) {
                     configuration.jarikoCallback.onMockStatement(statement)
+                    execute(statement)
                 } else {
                     execute(statement)
                 }
