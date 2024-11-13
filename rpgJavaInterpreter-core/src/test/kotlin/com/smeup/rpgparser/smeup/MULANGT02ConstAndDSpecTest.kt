@@ -743,4 +743,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("*SCPAccesso da script             00S")
         assertEquals(expected, "smeup/MUDRNRAPU00154".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Fields in a DS based on existing definitions
+     * @see #LS24004911
+     */
+    @Test
+    fun executeMUDRNRAPU00270() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00270".outputOf(configuration = smeupConfig))
+    }
 }
