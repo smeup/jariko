@@ -386,7 +386,7 @@ open class ToAstSmokeTest : AbstractTest() {
     }
 
     /**
-     *
+     * Test the implicit definition of variables related to SQL
      */
     @Test
     fun buildAstForSQL01() {
