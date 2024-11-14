@@ -24,6 +24,7 @@ import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
+import com.smeup.rpgparser.parsing.facade.adaptInFunctionOf
 import com.smeup.rpgparser.parsing.facade.getExecutionProgramNameWithNoExtension
 import com.smeup.rpgparser.parsing.facade.getLastPoppedParsingProgram
 import com.smeup.rpgparser.utils.popIfPresent
@@ -272,5 +273,6 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
         resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
         currentCu = currentCu.parent?.let { it as CompilationUnit }
     }
-    if (!resolved) cu.error("Data reference not resolved: ${this.name} at $position")
+    val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
+    if (!resolved) cu.error("Data reference not resolved: ${this.name} at $relativePosition")
 }
