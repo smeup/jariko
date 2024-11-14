@@ -261,7 +261,7 @@ data class JarikoCallback(
      * Default implementation provides a simple println with the name of the mock statement.
      * @param mockStatement The mock statement
      */
-    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock statement: ${it.javaClass.simpleName}") },
+    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock statement ${it.javaClass.simpleName} ${if (it is Statement) "at absolute position: " + it.position + "." else "." }") },
 
     /**
      * If specified, it allows customizing the behavior of the mock statements.
