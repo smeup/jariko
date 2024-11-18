@@ -266,3 +266,10 @@ Cod ce*   Descrizione                         -
      D £Jax_ModPS      C                   CONST('PS')
       * . Temporaneo in sezione (a scomparsa)
      D £Jax_ModTS      C                   CONST('TS')
+      * Variabili
+     D £JaxVBf         S           3023    DIM(200) VARYING                     Schiera buffer var
+     D £JaxVBfI        S              4  0 INZ
+     D £JaxDSVar       DS                                                       DS Variabili
+     D £JaxVarNam                    20    INZ                                  . nome variabile
+     D £JaxVarTip                     3    INZ                                  . tipo var - dft:Sch
+     D £JaxVarVal                  3000    INZ VARYING
