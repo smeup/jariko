@@ -120,8 +120,6 @@ data class CompilationUnit(
             ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
-    fun getInStatementDataDefinition(name: String) = inStatementsDataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
-
     fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
