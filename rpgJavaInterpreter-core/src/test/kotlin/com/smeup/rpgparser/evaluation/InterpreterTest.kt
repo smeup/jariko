@@ -2549,4 +2549,19 @@ Test 6
         val expected = listOf("0", "0", "0", "1")
         assertEquals(expected, "PRSLTCALLERDUPLICATE".outputOf())
     }
+
+    @Test
+    fun missingDefinitionOnPListShouldThrowResolutionError() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     C                   CALL      'PGM'
+|     C                   PARM                    MISSING
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        assertFailsWith(AstResolutionError::class) {
+            program.singleCall(listOf())
+        }
+    }
 }

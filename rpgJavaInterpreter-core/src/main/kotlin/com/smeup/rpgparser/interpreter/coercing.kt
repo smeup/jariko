@@ -296,12 +296,7 @@ fun coerce(value: Value, type: Type): Value {
             }
         }
         is BooleanValue -> coerceBoolean(value, type)
-        is UnlimitedStringValue -> {
-            when (type) {
-                is StringType -> coerceString(value.value.asValue(), type)
-                else -> value
-            }
-        }
+        is UnlimitedStringValue -> coerceString(value.value.asValue(), type)
         else -> value
     }
 }
