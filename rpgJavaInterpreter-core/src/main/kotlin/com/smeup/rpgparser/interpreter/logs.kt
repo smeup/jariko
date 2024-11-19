@@ -26,6 +26,9 @@ import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration
@@ -378,6 +381,15 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
 
         val content = renderContent(sep)
         append(content)
+    }
+
+    fun renderScoped(): String {
+        val rendered = render("\t", withHeader = true, withScope = false)
+        val timestamp = DateTimeFormatter
+            .ofPattern("HH:mm:ss.SSS")
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.now())
+        return "$timestamp\t${entry.scope}\t$rendered"
     }
 }
 

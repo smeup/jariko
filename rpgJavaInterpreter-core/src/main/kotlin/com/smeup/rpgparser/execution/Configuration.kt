@@ -261,14 +261,28 @@ data class JarikoCallback(
      * Default implementation provides a simple println with the name of the mock statement.
      * @param mockStatement The mock statement
      */
-    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock statement ${it.javaClass.simpleName} ${if (it is Statement) "at absolute position: " + it.position + "." else "." }") },
+    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = {
+        val programName = MainExecutionContext.getExecutionProgramName()
+        val position = if (it is Statement) it.position else null
+        val provider = { LogSourceData(programName, position?.line() ?: "") }
+        val entry = LazyLogEntry.produceInformational(provider, "MOCKSTMT", it.javaClass.simpleName)
+        val rendered = entry.renderScoped()
+        System.err.println(rendered)
+    },
 
     /**
      * If specified, it allows customizing the behavior of the mock statements.
      * Default implementation provides a simple println with the name of the mock expression.
      * @param mockExpression The mock expression
      */
-    var onMockExpression: ((mockExpression: MockExpression) -> Unit) = { System.err.println("Executing mock expression: ${it.javaClass.simpleName}") },
+    var onMockExpression: ((mockExpression: MockExpression) -> Unit) = {
+        val programName = MainExecutionContext.getExecutionProgramName()
+        val position = if (it is Expression) it.position else null
+        val provider = { LogSourceData(programName, position?.line() ?: "") }
+        val entry = LazyLogEntry.produceInformational(provider, "MOCKEXPR", it.javaClass.simpleName)
+        val rendered = entry.renderScoped()
+        System.err.println(rendered)
+    },
 
     /**
      * If specified, it allows overriding the default mechanism of API validation.
