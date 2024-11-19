@@ -384,4 +384,16 @@ open class ToAstSmokeTest : AbstractTest() {
             assertNotNull(this.getDataOrFieldDefinition("FIRST_F2"), "FIRST_F1 is defined like SECOND_F1")
         }
     }
+
+    /**
+     * Test the implicit definition of variables related to SQL
+     */
+    @Test
+    fun buildAstForSQL01() {
+        assertASTCanBeProduced(exampleName = "SQL01", printTree = false).apply {
+            this.resolveAndValidate()
+            assertNotNull(this.getAnyDataDefinition("SQLCOD"), "SQLCOD is defined")
+            assertNotNull(this.getAnyDataDefinition("SQLERM"), "SQLERM is defined")
+        }
+    }
 }

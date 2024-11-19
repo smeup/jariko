@@ -745,6 +745,46 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * SUBST with a side effect where the factor 2 has changed type in `UnlimitedStringValue`.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00162() {
+        val expected = listOf("ABCDE", "CDE")
+        assertEquals(expected, "smeup/MUDRNRAPU00162".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is greater than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00163() {
+        val expected = listOf("ABC")
+        assertEquals(expected, "smeup/MUDRNRAPU00163".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00164() {
+        val expected = listOf("ABCDE   FG")
+        assertEquals(expected, "smeup/MUDRNRAPU00164".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue (VARYING) where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00165() {
+        val expected = listOf("ABCFG")
+        assertEquals(expected, "smeup/MUDRNRAPU00165".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Fields in a DS based on existing definitions
      * @see #LS24004911
      */
