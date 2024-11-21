@@ -231,13 +231,6 @@ Cod ce*   Descrizione                         -
      D £JaxMGra                      10    INZ
       * Testo completo (secondo livello)
      D £JaxMTx2        S          20000    VARYING
-      * Variabili
-     D £JaxVBf         S           3023    DIM(100) VARYING                     Schiera buffer var
-     D £JaxVBfI        S              4  0 INZ                                  Contatore variabili
-     D £JaxDSVar       DS                                                       DS Variabili
-     D £JaxVarNam                    20    INZ                                  . nome variabile
-     D £JaxVarTip                     3    INZ                                  . tipo var - dft:Sch
-     D £JaxVarVal                  3000    INZ VARYING                          . valore variabile
       * Esempi (da completare)
       * Attributi di Riga
      D £JaxRowHt       S             10    INZ                                  Altezza di riga
