@@ -165,7 +165,7 @@ open class InternalInterpreter(
 
     open operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
+            "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
 
         val programName = interpretationContext.currentProgramName
@@ -931,7 +931,7 @@ open class InternalInterpreter(
                 val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
-            globalSymbolTable[dataDefinition] = newValue
+            set(data = dataDefinition, value = newValue)
             return newValue
         } else {
             TODO("Incrementing of ${value.javaClass}")
