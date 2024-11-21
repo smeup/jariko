@@ -489,7 +489,7 @@ open class InternalInterpreter(
     private fun GotoTopLevelException.indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
 
     private fun List<Statement>.indexOfTag(tag: String) = indexOfFirst {
-        it is TagStmt && it.tag == tag
+        it is TagStmt && it.tag.lowercase() == tag.lowercase()
     }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
@@ -518,23 +518,6 @@ open class InternalInterpreter(
             while (i < statements.size) {
                 executeWithMute(statements[i++])
             }
-        } catch (e: GotoException) {
-            val containingCU = statements.firstOrNull()?.getContainingCompilationUnit()
-
-            // If tag is in top level we need to quit subroutine and rollback context to top level
-            val topLevelStatements = containingCU?.main?.stmts?.explode(true)
-            topLevelStatements?.let {
-                val topLevelIndex = e.indexOfTaggedStatement(it)
-                if (0 <= topLevelIndex && topLevelIndex < it.size)
-                    throw GotoTopLevelException(e.tag)
-            }
-
-            // Scope might have been changed in the meanwhile with an EXSR after the previous GOTO
-            val scope = MainExecutionContext.getSubroutineStack().peekOrNull()
-            performJump(
-                scope = scope,
-                goto = e
-            )
         } catch (e: InterpreterProgramStatusErrorException) {
             /**
              * Program status error not caught from MONITOR statements should end up here
@@ -565,48 +548,11 @@ open class InternalInterpreter(
         }
 
         var index = offset
-        try {
-            while (index < offsetAwareStatements.size) {
-                val offsetStatement = offsetAwareStatements[index]
-                executeWithMute(offsetStatement.data)
-                index += offsetStatement.offset + 1
-            }
-        } catch (e: GotoException) {
-            val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
-
-            // If tag is in top level we need to quit subroutine and rollback context to top level
-            val topLevelStatements = containingCU?.main?.stmts?.explode(true)
-            topLevelStatements?.let {
-                val topLevelIndex = e.indexOfTaggedStatement(it)
-                if (0 <= topLevelIndex && topLevelIndex < it.size)
-                    throw GotoTopLevelException(e.tag)
-            }
-
-            // Scope might have been changed in the meanwhile with an EXSR after the previous GOTO
-            val scope = MainExecutionContext.getSubroutineStack().peekOrNull()
-            performJump(
-                scope = scope,
-                goto = e
-            )
+        while (index < offsetAwareStatements.size) {
+            val offsetStatement = offsetAwareStatements[index]
+            executeWithMute(offsetStatement.data)
+            index += offsetStatement.offset + 1
         }
-    }
-
-    /**
-     * Perform a jump in the provided scope
-     * @param scope The subroutine scope to perform the jump into
-     * @param goto The [GotoException] that caused this jump
-     */
-    private fun performJump(scope: ReferenceByName<Subroutine>?, goto: GotoException) {
-        // In case of something wrong with the goto, we dispatch the goto to the parent flow
-
-        val scopeLevelStatements = scope?.referred?.stmts ?: throw goto
-        val unwrappedStatements = scopeLevelStatements.explode(true)
-
-        val index = goto.indexOfTaggedStatement(unwrappedStatements)
-        val isInRange = 0 <= index && index < unwrappedStatements.size
-        if (!isInRange) throw goto
-
-        executeUnwrappedAt(unwrappedStatements, index)
     }
 
     @Deprecated(message = "No longer used")
@@ -1332,9 +1278,7 @@ open class InternalInterpreter(
         sourceProducer?.let { openLoggingScope(statement, it) }
 
         val internalExecute = {
-            val executionTime = measureNanoTime {
-                statement.execute(this)
-            }.nanoseconds
+            val executionTime = measureNanoTime { executeInternalLogic(statement) }.nanoseconds
             sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
         }
         if (trace != null) {
@@ -1415,6 +1359,69 @@ open class InternalInterpreter(
                 statement.loggableEntityName,
                 executionTime
             )
+        }
+    }
+
+    /**
+     * Execute internal logic of a single statement without telemetry nor additional context.
+     */
+    private fun executeInternalLogic(statement: Statement) {
+        when (statement) {
+            is ExecuteSubroutine -> {
+                // Setup subroutine context
+                MainExecutionContext.getSubroutineStack().push(statement.subroutine)
+
+                // Execute subroutine, we deal with exceptions later
+                var throwable = kotlin.runCatching {
+                    statement.execute(this)
+                }.exceptionOrNull()
+
+                val unwrappedStatements = statement.subroutine.referred!!.stmts.explode(true)
+                val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
+
+                // Recursive deal with goto
+                var scope: ReferenceByName<Subroutine>? = statement.subroutine
+                while (throwable is GotoException && statement.subroutine == scope) {
+                    // If is a goto to the end, exit SR
+                    if (throwable.tag.equals(scope.referred!!.tag, true)) {
+                        throwable = null
+                        break
+                    }
+
+                    // If tag is in top level we need to quit subroutine and rollback context to top level
+                    val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+                    topLevelStatements?.let {
+                        val goto = throwable as GotoException
+                        val topLevelIndex = goto.indexOfTaggedStatement(it)
+                        if (0 <= topLevelIndex && topLevelIndex < it.size) {
+                            MainExecutionContext.getSubroutineStack().pop()
+                            throw GotoTopLevelException(goto.tag)
+                        }
+                    }
+
+                    // We need to know the statement unwrapped in order to jump directly into a nested tag
+                    val offset = throwable.indexOfTaggedStatement(unwrappedStatements)
+                    require(0 <= offset && offset < unwrappedStatements.size) { "Offset $offset is not valid." }
+                    throwable = kotlin.runCatching {
+                        executeUnwrappedAt(unwrappedStatements, offset)
+                    }.exceptionOrNull()
+                    scope = MainExecutionContext.getSubroutineStack().peekOrNull()
+                }
+
+                // Deal with other types of exceptions
+                throwable?.let {
+                    when (it) {
+                        is LeaveSrException -> {
+                            // Just catch it, do nothing
+                        }
+                        else -> throw it
+                    }
+                }
+
+                // Cleanup subroutine context
+                MainExecutionContext.getSubroutineStack().pop()
+            }
+            else -> statement.execute(this)
         }
     }
 }

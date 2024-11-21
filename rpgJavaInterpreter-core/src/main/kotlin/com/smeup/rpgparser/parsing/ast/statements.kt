@@ -133,18 +133,12 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
-        MainExecutionContext.getSubroutineStack().push(subroutine)
+
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
             interpreter.execute(subroutine.referred!!.stmts)
         } catch (e: LeaveSrException) {
             // Nothing to do here
-        } catch (e: GotoException) {
-            if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
-        } finally {
-            // NOTE: The next instruction should never throw. If it does, there is something wrong in how the stack is used.
-            // Investigate where and how it is used and manipulated.
-            MainExecutionContext.getSubroutineStack().pop()
         }
     }
 
@@ -1864,7 +1858,7 @@ data class GotoStmt(val tag: String, override val position: Position? = null) : 
         get() = "GOTO"
 
     override fun execute(interpreter: InterpreterCore) {
-        throw GotoException(tag)
+        throw produceGotoInCurrentScope(tag)
     }
 }
 
@@ -1888,7 +1882,7 @@ data class CabStmt(
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
             else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
-        if (comparisonResult.isVerified) throw GotoException(tag)
+        if (comparisonResult.isVerified) throw produceGotoInCurrentScope(tag)
     }
 }
 

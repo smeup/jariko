@@ -16,7 +16,11 @@
 
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
+import com.smeup.rpgparser.interpreter.ControlFlowException
+import com.smeup.rpgparser.interpreter.GotoException
+import com.smeup.rpgparser.interpreter.GotoTopLevelException
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ancestor
@@ -173,3 +177,12 @@ internal fun <T> Stack<T>.peekOrNull(): T? = if (isNotEmpty()) {
  * Get the [CompilationUnit] that contains the current [Node]
  */
 internal fun Node.getContainingCompilationUnit() = ancestor(CompilationUnit::class.java)
+
+/**
+ * Produce a scoped goto exception
+ */
+internal fun produceGotoInCurrentScope(tag: String): ControlFlowException {
+    val shouldLookupTopLevel = MainExecutionContext.getSubroutineStack().isEmpty()
+    val normalizedTag = tag.lowercase()
+    return if (shouldLookupTopLevel) GotoTopLevelException(normalizedTag) else GotoException(normalizedTag)
+}
