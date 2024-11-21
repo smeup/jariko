@@ -1111,7 +1111,6 @@ open class InternalInterpreter(
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
-                        container[target.field.referred!!]
                         container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
                     }
 
