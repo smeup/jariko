@@ -190,6 +190,10 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
         is BooleanType -> value
         is StringType -> value.asString()
         is UnlimitedStringType -> value.asUnlimitedString()
+        is ArrayType -> {
+            val coercedValue = coerce(value, type.element)
+            ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+        }
         else -> TODO("Converting BooleanValue to $type")
     }
 }

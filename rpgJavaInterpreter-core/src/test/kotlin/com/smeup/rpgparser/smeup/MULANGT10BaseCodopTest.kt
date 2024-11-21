@@ -624,4 +624,24 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("", "0")
         assertEquals(expected, "smeup/MUDRNRAPU00161".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Assignment of a boolean value (*OFF) to an array by using MOVEA.
+     * @see #LS24004909
+     */
+    @Test
+    fun executeMUDRNRAPU00166() {
+        val expected = listOf("1", "1", "1", "0", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00166".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of a boolean value (*ON) to an array by using MOVEA.
+     * @see #LS24004909
+     */
+    @Test
+    fun executeMUDRNRAPU00167() {
+        val expected = listOf("0", "0", "0", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00167".outputOf(configuration = smeupConfig))
+    }
 }
