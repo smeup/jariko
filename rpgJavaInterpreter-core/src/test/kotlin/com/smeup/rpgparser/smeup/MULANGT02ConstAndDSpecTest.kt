@@ -793,4 +793,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("241122", "1122")
         assertEquals(expected, "smeup/MUDRNRAPU00166".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00167() {
+        val expected = listOf("123.456", "23.45")
+        assertEquals(expected, "smeup/MUDRNRAPU00167".outputOf(configuration = smeupConfig))
+    }
 }
