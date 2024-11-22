@@ -9,9 +9,11 @@
     O * Before the fix, operation weren't possible.
      V* ==============================================================
      D SRC             S              6  0 INZ(241122)
+     D MSG             S             10
 
      C     SRC           DSPLY
      C                   Z-ADD     SRC           RES               4 0          #241122 cannot be assigned to RES of type NumberType
-     C     RES           DSPLY
+     C                   EVAL      MSG=%CHAR(RES)
+     C     MSG           DSPLY
 
      C                   SETON                                          LR
