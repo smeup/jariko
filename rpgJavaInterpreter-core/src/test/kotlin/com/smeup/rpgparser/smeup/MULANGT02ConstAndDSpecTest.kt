@@ -785,7 +785,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Truncation of number by using Z-ADD. The source is greater than destination. Source and destination are integer.
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are integer.
      * @see #LS24005040
      */
     @Test
@@ -796,6 +797,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     /**
      * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are decimal.
      * @see #LS24005040
      */
     @Test
