@@ -3,7 +3,7 @@
      V* ==============================================================
     O * PROGRAM GOAL
     O * Truncation of number by using Z-ADD. The source is greater
-    O *  than destination.
+    O *  than destination. Source and destination are integer.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, operation weren't possible.
