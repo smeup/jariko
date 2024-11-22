@@ -286,6 +286,21 @@ open class BaseCompileTimeInterpreter(
         return findType(rContext.getStatements(procedureName), declName, conf, false)!!
     }
 
+    /**
+     * Find type of declaration by specifically look for it in DEFINE statements.
+     */
+    open fun evaluateTypeOfDefine(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type? {
+        val statements = rContext.getStatements(procedureName)
+        val define = statements
+            .mapNotNull { it.cspec_fixed() }
+            .mapNotNull { it.cspec_fixed_standard() }
+            .mapNotNull { it.csDEFINE() }
+            .map { it.toAst(conf) }
+        val match = define.firstOrNull { it.newVarName.equals(declName, ignoreCase = true) } ?: return null
+
+        return findType(statements, match.originalName, conf)
+    }
+
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
         statements
             .forEach { it ->

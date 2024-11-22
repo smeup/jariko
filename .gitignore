@@ -10,6 +10,7 @@ bin/
 .project
 .settings/
 .idea/
+.kotlin/
 **/.DS_Store
 rpgJavaInterpreter-core/generated-src/
 rpgJavaInterpreter-core/src/main/gen/

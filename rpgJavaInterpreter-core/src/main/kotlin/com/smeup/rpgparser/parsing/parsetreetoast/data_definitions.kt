@@ -890,7 +890,6 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     }
 
     if (overlay != null) {
-        this.name
         val pos = overlay.keyword_overlay().pos
         val nameExpr = overlay.keyword_overlay().name
         val targetFieldName = nameExpr.identifier().text
@@ -904,16 +903,16 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     val hasInitValue = this.keyword().find { it.keyword_inz() != null }
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val varName = like?.variable?.name ?: this.name
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+        knownDataDefinitions = knownDataDefinitions.toList(),
+        delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+    )
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
         ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
-        ?: like?.let {
-            InjectableCompileTimeInterpreter(
-                knownDataDefinitions = knownDataDefinitions.toList(),
-                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-            ).evaluateTypeOf(this.rContext(), it, conf)
-        }
+        ?: like?.let { compileTimeInterpreter.evaluateTypeOf(this.rContext(), it, conf) }
+        ?: compileTimeInterpreter.evaluateTypeOfDefine(this.rContext(), varName, conf, null)
 
     if (hasInitValue != null) {
         initializationValue = if (hasInitValue.keyword_inz().simpleExpression() != null) {
