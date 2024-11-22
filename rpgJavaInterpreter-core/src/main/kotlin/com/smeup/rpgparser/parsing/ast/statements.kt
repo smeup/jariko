@@ -1362,7 +1362,11 @@ data class ZAddStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.eval(expression))
+        zadd(
+            value = expression,
+            target = target,
+            interpreterCore = interpreter
+        )
     }
 }
 
