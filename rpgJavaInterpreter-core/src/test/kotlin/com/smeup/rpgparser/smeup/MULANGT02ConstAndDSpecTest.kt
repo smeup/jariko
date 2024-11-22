@@ -790,9 +790,9 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #LS24005040
      */
     @Test
-    fun executeMUDRNRAPU00169() {
+    fun executeMUDRNRAPU00168() {
         val expected = listOf("241122", "1122")
-        assertEquals(expected, "smeup/MUDRNRAPU00169".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00168".outputOf(configuration = smeupConfig))
     }
 
     /**
@@ -801,9 +801,9 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #LS24005040
      */
     @Test
-    fun executeMUDRNRAPU00170() {
+    fun executeMUDRNRAPU00169() {
         val expected = listOf("123.456", "23.45")
-        assertEquals(expected, "smeup/MUDRNRAPU00170".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00169".outputOf(configuration = smeupConfig))
     }
 
     /**
@@ -812,9 +812,9 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #LS24005040
      */
     @Test
-    fun executeMUDRNRAPU00171() {
+    fun executeMUDRNRAPU00170() {
         val expected = listOf("123.456", "123")
-        assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00170".outputOf(configuration = smeupConfig))
     }
 
     /**
@@ -823,8 +823,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #LS24005040
      */
     @Test
-    fun executeMUDRNRAPU00172() {
+    fun executeMUDRNRAPU00171() {
         val expected = listOf("123456", "56.00")
-        assertEquals(expected, "smeup/MUDRNRAPU00172".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = smeupConfig))
     }
 }
