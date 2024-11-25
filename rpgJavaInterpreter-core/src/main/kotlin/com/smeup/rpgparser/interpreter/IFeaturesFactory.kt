@@ -33,7 +33,7 @@ interface IFeaturesFactory {
      * if is set to on it returns an instance of [UnlimitedStringType]
      * @param create: default creation type implementation
      * @return the instance of type created
-     * */
+     */
     fun createStringType(create: () -> StringType): Type {
         return if (FeatureFlag.UnlimitedStringTypeFlag.isOn()) {
             UnlimitedStringType
@@ -42,9 +42,16 @@ interface IFeaturesFactory {
 
     /**
      * @return true if the chain cache is enabled
-     * */
+     */
     fun isChainCacheEnabled(): Boolean {
         return FeatureFlag.ChainCacheFlag.isOn()
+    }
+
+    /**
+     * @return true if the Z-ADD legacy is enabled
+     */
+    fun isZAddLegacy(): Boolean {
+        return FeatureFlag.ZAddLegacy.isOn()
     }
 }
 
@@ -146,6 +153,12 @@ enum class FeatureFlag(val on: Boolean = false) {
      * Default on
      */
     ChainCacheFlag(on = true),
+    /**
+     * if "on" Z-ADD follow the same behaviour of AS400,
+     * by truncating number if the target is lower than source.
+     * Default off
+     */
+    ZAddLegacy (on = false),
     ;
 
     fun getPropertyName() = "jariko.features.$name"
