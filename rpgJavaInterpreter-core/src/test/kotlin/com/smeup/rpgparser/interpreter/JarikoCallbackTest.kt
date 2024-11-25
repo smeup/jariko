@@ -998,6 +998,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR48CallBackTest() {
+        executePgmCallBackTest("ERROR48", SourceReferenceType.Program, "ERROR48", mapOf(
+            7 to "241122 cannot be assigned to RES of type NumberType(entireDigits=4, decimalDigits=0, rpgType=)"
+        ))
+    }
+
+    @Test
+    fun executeERROR48SourceLineTest() {
+        executeSourceLineTest("ERROR48")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
