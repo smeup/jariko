@@ -31,7 +31,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
-import com.smeup.rpgparser.utils.indexOfTaggedStatement
 import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
