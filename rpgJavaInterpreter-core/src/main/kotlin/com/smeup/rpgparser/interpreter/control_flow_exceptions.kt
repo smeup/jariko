@@ -1,7 +1,11 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.utils.indexOfTag
 import com.smeup.rpgparser.utils.runIfNotEmpty
 import java.io.File
+import java.util.*
 
 open class ControlFlowException() : Exception() {
     override fun fillInStackTrace(): Throwable = this
@@ -20,7 +24,9 @@ class IterException : ControlFlowException()
  *
  * @param tag The tag of the destination label
  */
-class GotoTopLevelException(val tag: String) : ControlFlowException()
+class GotoTopLevelException(val tag: String) : ControlFlowException() {
+    internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+}
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : ControlFlowException()
@@ -32,8 +38,19 @@ class ReturnException(val returnValue: Value?) : ControlFlowException()
  */
 class GotoException private constructor(val tag: String) : ControlFlowException() {
     companion object {
-        operator fun invoke(tag: String): GotoException = GotoException(tag.toUpperCase())
+        operator fun invoke(tag: String): GotoException = GotoException(tag.uppercase(Locale.getDefault()))
     }
+
+    internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+}
+
+/**
+ * Produce a scoped goto exception
+ */
+internal fun produceGotoInCurrentScope(tag: String): ControlFlowException {
+    val shouldLookupTopLevel = MainExecutionContext.getSubroutineStack().isEmpty()
+    val normalizedTag = tag.lowercase()
+    return if (shouldLookupTopLevel) GotoTopLevelException(normalizedTag) else GotoException(normalizedTag)
 }
 
 class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {

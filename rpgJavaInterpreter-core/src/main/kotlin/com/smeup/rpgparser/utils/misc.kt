@@ -18,6 +18,8 @@ package com.smeup.rpgparser.utils
 
 import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.ast.TagStmt
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
@@ -173,3 +175,7 @@ internal fun <T> Stack<T>.peekOrNull(): T? = if (isNotEmpty()) {
  * Get the [CompilationUnit] that contains the current [Node]
  */
 internal fun Node.getContainingCompilationUnit() = ancestor(CompilationUnit::class.java)
+
+internal fun List<Statement>.indexOfTag(tag: String) = indexOfFirst {
+    it is TagStmt && it.tag.lowercase() == tag.lowercase()
+}
