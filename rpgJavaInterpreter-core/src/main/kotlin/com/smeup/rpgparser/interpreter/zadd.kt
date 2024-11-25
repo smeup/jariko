@@ -50,8 +50,10 @@ fun zadd(
          *    C                   Z-ADD     SRC           RES               4 2
          *    produces this result: 23.45
          * The comma isolates the truncation between entire and decimal part.
+         *
+         * IMPORTANT: This is possible ONLY when ZAddLegacy FeatureFlag is enabled.
          */
-        valueCoerced is NumberValue && target.type() is NumberType -> {
+        valueCoerced is NumberValue && target.type() is NumberType && interpreterCore.getSystemInterface().getFeaturesFactory().isZAddLegacy() -> {
             val targetEntireDigits = (target.type() as NumberType).entireDigits
             val targetDecimalDigits = (target.type() as NumberType).decimalDigits
 
