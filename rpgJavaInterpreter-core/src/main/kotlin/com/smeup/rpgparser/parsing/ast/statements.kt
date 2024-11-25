@@ -133,17 +133,60 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
-        MainExecutionContext.getSubroutineStack().push(subroutine)
+
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
-            interpreter.execute(subroutine.referred!!.stmts)
-        } catch (e: LeaveSrException) {
-            // Nothing to do here
-        } catch (e: GotoException) {
-            if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+            // Setup subroutine context
+            MainExecutionContext.getSubroutineStack().push(subroutine)
+            val body = subroutine.referred!!.stmts
+
+            // Execute subroutine, we deal with exceptions later
+            var throwable = kotlin.runCatching {
+                interpreter.execute(body)
+            }.exceptionOrNull()
+
+            val unwrappedStatements = body.explode(true)
+            val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
+
+            // Recursive deal with goto
+            while (throwable is GotoException) {
+                // If is a goto to the end, exit SR
+                if (throwable.tag.equals(subroutine.referred!!.tag, true)) {
+                    throwable = null
+                    break
+                }
+
+                // If tag is in top level we need to quit subroutine and rollback context to top level
+                val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+                topLevelStatements?.let {
+                    val goto = throwable as GotoException
+                    val topLevelIndex = goto.indexOfTaggedStatement(it)
+                    if (0 <= topLevelIndex && topLevelIndex < it.size) {
+                        throw GotoTopLevelException(goto.tag)
+                    }
+                }
+
+                // We need to know the statement unwrapped in order to jump directly into a nested tag
+                val offset = throwable.indexOfTaggedStatement(unwrappedStatements)
+                require(0 <= offset && offset < unwrappedStatements.size) { "Offset $offset is not valid." }
+                throwable = kotlin.runCatching {
+                    interpreter.executeUnwrappedAt(unwrappedStatements, offset)
+                }.exceptionOrNull()
+            }
+
+            // Deal with other types of exceptions
+            throwable?.let {
+                when (it) {
+                    is LeaveSrException -> {
+                        // Just catch it, do nothing
+                    }
+                    else -> throw it
+                }
+            }
+        } catch (e: Exception) {
+            throw e
         } finally {
-            // NOTE: The next instruction should never throw. If it does, there is something wrong in how the stack is used.
-            // Investigate where and how it is used and manipulated.
+            // Cleanup subroutine context
             MainExecutionContext.getSubroutineStack().pop()
         }
     }
@@ -1864,7 +1907,7 @@ data class GotoStmt(val tag: String, override val position: Position? = null) : 
         get() = "GOTO"
 
     override fun execute(interpreter: InterpreterCore) {
-        throw GotoException(tag)
+        throw produceGotoInCurrentScope(tag)
     }
 }
 
@@ -1888,7 +1931,7 @@ data class CabStmt(
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
             else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
-        if (comparisonResult.isVerified) throw GotoException(tag)
+        if (comparisonResult.isVerified) throw produceGotoInCurrentScope(tag)
     }
 }
 

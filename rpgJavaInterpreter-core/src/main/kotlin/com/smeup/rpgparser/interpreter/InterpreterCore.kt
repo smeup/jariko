@@ -55,6 +55,7 @@ interface InterpreterCore {
     fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)
     fun eval(expression: Expression): Value
     fun execute(statements: List<Statement>)
+    fun executeUnwrappedAt(unwrappedStatements: List<Statement>, offset: Int)
     fun dbFile(name: String, statement: Statement): EnrichedDBFile
     fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String>
     fun fillDataFrom(dbFile: EnrichedDBFile, record: Record)
