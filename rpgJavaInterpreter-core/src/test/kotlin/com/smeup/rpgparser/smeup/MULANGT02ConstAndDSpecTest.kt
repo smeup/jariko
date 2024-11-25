@@ -294,7 +294,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00206".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00206".outputOf(configuration = turnOnZAddLegacyFlagConfig)
         )
     }
 
@@ -792,5 +792,49 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00270() {
         val expected = listOf("OK", "OK")
         assertEquals(expected, "smeup/MUDRNRAPU00270".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are integer.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00168() {
+        val expected = listOf("241122", "1122")
+        assertEquals(expected, "smeup/MUDRNRAPU00168".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are decimal.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00169() {
+        val expected = listOf("123.456", "23.45")
+        assertEquals(expected, "smeup/MUDRNRAPU00169".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination. Source is decimal
+     *  and destination is integer
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00170() {
+        val expected = listOf("123.456", "123")
+        assertEquals(expected, "smeup/MUDRNRAPU00170".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination. Source is integer
+     *  and destination is decimal
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00171() {
+        val expected = listOf("123456", "56.00")
+        assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = turnOnZAddLegacyFlagConfig))
     }
 }

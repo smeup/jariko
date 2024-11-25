@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -19,7 +20,9 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.dspfparser.linesclassifier.DSPF
-import com.smeup.rpgparser.execution.*
+import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.ErrorEventSource
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -39,7 +42,6 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration
@@ -161,7 +163,7 @@ open class InternalInterpreter(
 
     open operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
+            "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
 
         val programName = interpretationContext.currentProgramName
@@ -506,6 +508,9 @@ open class InternalInterpreter(
         var i = offset
         try {
             while (i < statements.size) {
+                if (Thread.currentThread().isInterrupted) {
+                    throw InterruptedException()
+                }
                 executeWithMute(statements[i++])
             }
         } catch (e: InterpreterProgramStatusErrorException) {
@@ -862,7 +867,7 @@ open class InternalInterpreter(
                 val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
-            globalSymbolTable[dataDefinition] = newValue
+            set(data = dataDefinition, value = newValue)
             return newValue
         } else {
             TODO("Incrementing of ${value.javaClass}")

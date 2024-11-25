@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -982,6 +983,30 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR46SourceLineTest() {
         executeSourceLineTest("ERROR46")
+    }
+
+    @Test
+    fun executeERROR47CallBackTest() {
+        executePgmCallBackTest("ERROR47", SourceReferenceType.Program, "ERROR47", mapOf(
+            9 to "10 cannot be assigned to I of type NumberType(entireDigits=1, decimalDigits=0, rpgType=)"
+        ))
+    }
+
+    @Test
+    fun executeERROR47SourceLineTest() {
+        executeSourceLineTest("ERROR47")
+    }
+
+    @Test
+    fun executeERROR48CallBackTest() {
+        executePgmCallBackTest("ERROR48", SourceReferenceType.Program, "ERROR48", mapOf(
+            7 to "241122 cannot be assigned to RES of type NumberType(entireDigits=4, decimalDigits=0, rpgType=)"
+        ))
+    }
+
+    @Test
+    fun executeERROR48SourceLineTest() {
+        executeSourceLineTest("ERROR48")
     }
 
     @Test
