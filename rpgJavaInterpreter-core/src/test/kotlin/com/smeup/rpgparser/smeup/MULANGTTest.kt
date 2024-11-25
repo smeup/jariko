@@ -8,6 +8,7 @@ import com.smeup.rpgparser.execution.DspfConfig
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleDspfConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import com.smeup.rpgparser.interpreter.FeatureFlag
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
@@ -57,4 +58,31 @@ abstract class MULANGTTest : AbstractTest() {
 
     @AfterTest()
     open fun tearDown() {}
+
+    /**
+     * Configuration to enable the Z-ADD legacy behavior.
+     *
+     * When this configuration is active, the interpreter applies truncation rules consistent with
+     * AS400 behavior during Z-ADD operations. This includes truncation of integer and decimal parts
+     * based on the target's type.
+     *
+     * The feature flag `FeatureFlag.ZAddLegacy` is checked to determine if the legacy behavior should be enabled.
+     */
+    protected val turnOnZAddLegacyFlagConfig = Configuration().apply {
+        jarikoCallback.featureFlagIsOn = { featureFlag: FeatureFlag -> featureFlag == FeatureFlag.ZAddLegacy }
+    }
+
+    /**
+     * Configuration to disable the Z-ADD legacy behavior.
+     *
+     * When this configuration is active, the interpreter does not apply truncation rules during Z-ADD operations
+     * as they would occur on AS400. Instead, default behavior is followed.
+     *
+     * The feature flag `FeatureFlag.ZAddLegacy` is explicitly set to `false` if checked.
+     * Other feature flags retain their default behavior based on their `on` property.
+     */
+    protected val turnOffZAddLegacyFlagConfig = Configuration().apply {
+        jarikoCallback.featureFlagIsOn =
+            { featureFlag: FeatureFlag -> if (featureFlag == FeatureFlag.ZAddLegacy) false else featureFlag.on }
+    }
 }
