@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.utils.indexOfTag
 import com.smeup.rpgparser.utils.runIfNotEmpty
@@ -42,15 +41,6 @@ class GotoException private constructor(val tag: String) : ControlFlowException(
     }
 
     internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
-}
-
-/**
- * Produce a scoped goto exception
- */
-internal fun produceGotoInCurrentScope(tag: String): ControlFlowException {
-    val shouldLookupTopLevel = MainExecutionContext.getSubroutineStack().isEmpty()
-    val normalizedTag = tag.lowercase()
-    return if (shouldLookupTopLevel) GotoTopLevelException(normalizedTag) else GotoException(normalizedTag)
 }
 
 class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {
