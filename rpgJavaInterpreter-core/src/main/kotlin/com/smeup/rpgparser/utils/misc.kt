@@ -22,6 +22,8 @@ import com.smeup.rpgparser.interpreter.ControlFlowException
 import com.smeup.rpgparser.interpreter.GotoException
 import com.smeup.rpgparser.interpreter.GotoTopLevelException
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.ast.TagStmt
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
@@ -185,4 +187,12 @@ internal fun produceGotoInCurrentScope(tag: String): ControlFlowException {
     val shouldLookupTopLevel = MainExecutionContext.getSubroutineStack().isEmpty()
     val normalizedTag = tag.lowercase()
     return if (shouldLookupTopLevel) GotoTopLevelException(normalizedTag) else GotoException(normalizedTag)
+}
+
+internal fun GotoException.indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+
+internal fun GotoTopLevelException.indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+
+internal fun List<Statement>.indexOfTag(tag: String) = indexOfFirst {
+    it is TagStmt && it.tag.lowercase() == tag.lowercase()
 }

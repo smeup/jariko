@@ -136,9 +136,58 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
 
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
-            interpreter.execute(subroutine.referred!!.stmts)
-        } catch (e: LeaveSrException) {
-            // Nothing to do here
+            // Setup subroutine context
+            MainExecutionContext.getSubroutineStack().push(subroutine)
+            val body = subroutine.referred!!.stmts
+
+            // Execute subroutine, we deal with exceptions later
+            var throwable = kotlin.runCatching {
+                interpreter.execute(body)
+            }.exceptionOrNull()
+
+            val unwrappedStatements = body.explode(true)
+            val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
+
+            // Recursive deal with goto
+            while (throwable is GotoException) {
+                // If is a goto to the end, exit SR
+                if (throwable.tag.equals(subroutine.referred!!.tag, true)) {
+                    throwable = null
+                    break
+                }
+
+                // If tag is in top level we need to quit subroutine and rollback context to top level
+                val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+                topLevelStatements?.let {
+                    val goto = throwable as GotoException
+                    val topLevelIndex = goto.indexOfTaggedStatement(it)
+                    if (0 <= topLevelIndex && topLevelIndex < it.size) {
+                        throw GotoTopLevelException(goto.tag)
+                    }
+                }
+
+                // We need to know the statement unwrapped in order to jump directly into a nested tag
+                val offset = throwable.indexOfTaggedStatement(unwrappedStatements)
+                require(0 <= offset && offset < unwrappedStatements.size) { "Offset $offset is not valid." }
+                throwable = kotlin.runCatching {
+                    interpreter.executeUnwrappedAt(unwrappedStatements, offset)
+                }.exceptionOrNull()
+            }
+
+            // Deal with other types of exceptions
+            throwable?.let {
+                when (it) {
+                    is LeaveSrException -> {
+                        // Just catch it, do nothing
+                    }
+                    else -> throw it
+                }
+            }
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            // Cleanup subroutine context
+            MainExecutionContext.getSubroutineStack().pop()
         }
     }
 
