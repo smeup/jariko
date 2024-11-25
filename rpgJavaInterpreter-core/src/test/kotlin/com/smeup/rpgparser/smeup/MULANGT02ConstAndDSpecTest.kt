@@ -19,6 +19,9 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     @AfterTest()
     override fun tearDown() {
+        // Turning off ZAddLegacy in case some test has activated it.
+        smeupConfig = turnOnZAddLegacyFlagConfig
+
         /*
          * This causes `connection exception: connection failure: java.net.SocketException: Pipe interrotta (Write failed)`
          *  during `./gradle check`
@@ -291,6 +294,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00206() {
+        smeupConfig = turnOnZAddLegacyFlagConfig
+
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
@@ -801,6 +806,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00168() {
+        smeupConfig = turnOnZAddLegacyFlagConfig
+
         val expected = listOf("241122", "1122")
         assertEquals(expected, "smeup/MUDRNRAPU00168".outputOf(configuration = smeupConfig))
     }
@@ -812,6 +819,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00169() {
+        smeupConfig = turnOnZAddLegacyFlagConfig
+
         val expected = listOf("123.456", "23.45")
         assertEquals(expected, "smeup/MUDRNRAPU00169".outputOf(configuration = smeupConfig))
     }
@@ -823,6 +832,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00170() {
+        smeupConfig = turnOnZAddLegacyFlagConfig
+
         val expected = listOf("123.456", "123")
         assertEquals(expected, "smeup/MUDRNRAPU00170".outputOf(configuration = smeupConfig))
     }
@@ -834,6 +845,8 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00171() {
+        smeupConfig = turnOnZAddLegacyFlagConfig
+
         val expected = listOf("123456", "56.00")
         assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = smeupConfig))
     }
