@@ -222,7 +222,7 @@ class LoggingTest : AbstractTest() {
             // Files.writeString(Paths.get("c:\\temp\\errorEventsInErrorChannel.txt"), out.toString().trim())
             assertEquals(2, errorLogEntries.size)
             assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
-            assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
+            assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[1]} does not match $errorPattern")
             System.setOut(defaultOut)
             println("errorEventsInErrorChannel: ${out.toString().trim()}")
         }
@@ -310,5 +310,52 @@ class LoggingTest : AbstractTest() {
         }
         executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
         assertTrue(logInfCalled, "logInfo never called")
+    }
+
+    /**
+     * Test if mock statements are printed out in the appropriate format
+     * @see #LS24004983
+     */
+    @Test
+    fun mockStatementFormat() {
+        val defaultErr = System.err
+        val virtualErr = StringOutputStream()
+        System.setErr(PrintStream(virtualErr))
+        val systemInterface = JavaSystemInterface()
+        executePgm(programName = "MOCK01", systemInterface = systemInterface)
+        virtualErr.flush()
+        val logEntries = virtualErr.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val stmtLogEntries = logEntries.filter { it.contains("MOCKSTMT") }
+        assertEquals(3, stmtLogEntries.size)
+
+        val logFormatRegexMockStatement = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKSTMT\\tMOCK01.*")
+        assertTrue(stmtLogEntries[0].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement")
+        assertTrue(stmtLogEntries[1].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[1]} does not match $logFormatRegexMockStatement")
+        assertTrue(stmtLogEntries[2].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[2]} does not match $logFormatRegexMockStatement")
+
+        System.setErr(defaultErr)
+    }
+
+    /**
+     * Test if mock expression are printed out in the appropriate format
+     * @see #LS24004983
+     */
+    @Test
+    fun mockExpressionFormat() {
+        val defaultErr = System.err
+        val virtualErr = StringOutputStream()
+        System.setErr(PrintStream(virtualErr))
+        val systemInterface = JavaSystemInterface()
+        executePgm(programName = "MOCK01", systemInterface = systemInterface)
+        virtualErr.flush()
+        val logEntries = virtualErr.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val exprLogEntries = logEntries.filter { it.contains("MOCKEXPR") }
+        assertEquals(2, exprLogEntries.size)
+
+        val logFormatRegexMockExpr = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKEXPR\\tMOCK01.*")
+        assertTrue(exprLogEntries[0].matches(logFormatRegexMockExpr), "Error entry: ${exprLogEntries[0]} does not match $logFormatRegexMockExpr")
+        assertTrue(exprLogEntries[1].matches(logFormatRegexMockExpr), "Error entry: ${exprLogEntries[1]} does not match $logFormatRegexMockExpr")
+
+        System.setErr(defaultErr)
     }
 }
