@@ -158,7 +158,7 @@ enum class FeatureFlag(val on: Boolean = false) {
      * by truncating number if the target is lower than source.
      * Default off
      */
-    ZAddLegacy (on = false),
+    ZAddLegacy(on = false),
     ;
 
     fun getPropertyName() = "jariko.features.$name"
