@@ -50,8 +50,8 @@ interface IFeaturesFactory {
     /**
      * @return true if the Z-ADD legacy is enabled
      */
-    fun isZAddLegacy(): Boolean {
-        return FeatureFlag.ZAddLegacy.isOn()
+    fun isZAddLegacyEnabled(): Boolean {
+        return FeatureFlag.ZAddLegacyFlag.isOn()
     }
 }
 
@@ -158,7 +158,7 @@ enum class FeatureFlag(val on: Boolean = false) {
      * by truncating number if the target is lower than source.
      * Default off
      */
-    ZAddLegacy(on = false),
+    ZAddLegacyFlag(on = false),
     ;
 
     fun getPropertyName() = "jariko.features.$name"

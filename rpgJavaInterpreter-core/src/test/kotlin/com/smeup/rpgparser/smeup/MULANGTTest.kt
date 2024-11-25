@@ -69,7 +69,7 @@ abstract class MULANGTTest : AbstractTest() {
      * The feature flag `FeatureFlag.ZAddLegacy` is checked to determine if the legacy behavior should be enabled.
      */
     protected val turnOnZAddLegacyFlagConfig = Configuration().apply {
-        jarikoCallback.featureFlagIsOn = { featureFlag: FeatureFlag -> featureFlag == FeatureFlag.ZAddLegacy }
+        jarikoCallback.featureFlagIsOn = { featureFlag: FeatureFlag -> featureFlag == FeatureFlag.ZAddLegacyFlag }
     }
 
     /**
@@ -83,6 +83,6 @@ abstract class MULANGTTest : AbstractTest() {
      */
     protected val turnOffZAddLegacyFlagConfig = Configuration().apply {
         jarikoCallback.featureFlagIsOn =
-            { featureFlag: FeatureFlag -> if (featureFlag == FeatureFlag.ZAddLegacy) false else featureFlag.on }
+            { featureFlag: FeatureFlag -> if (featureFlag == FeatureFlag.ZAddLegacyFlag) false else featureFlag.on }
     }
 }
