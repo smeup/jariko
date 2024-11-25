@@ -1911,7 +1911,7 @@ data class GotoStmt(val tag: String, override val position: Position? = null) : 
         get() = "GOTO"
 
     override fun execute(interpreter: InterpreterCore) {
-        throw produceGotoInCurrentScope(tag)
+        throw GotoException(tag)
     }
 }
 
@@ -1935,7 +1935,7 @@ data class CabStmt(
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
             else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
-        if (comparisonResult.isVerified) throw produceGotoInCurrentScope(tag)
+        if (comparisonResult.isVerified) throw GotoException(tag)
     }
 }
 

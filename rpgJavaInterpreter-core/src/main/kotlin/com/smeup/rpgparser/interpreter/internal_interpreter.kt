@@ -30,6 +30,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
@@ -427,10 +428,15 @@ open class InternalInterpreter(
         val unwrappedStatement = main.stmts.explode(true)
 
         // Recursive deal with top level goto flow
-        while (throwable is GotoTopLevelException) {
+        while (throwable is GotoTopLevelException || throwable is GotoException) {
             // We need to know the statement unwrapped in order to jump directly into a nested tag
-            val offset = throwable.indexOfTaggedStatement(unwrappedStatement)
-            require(0 <= offset && offset < unwrappedStatement.size) { "Offset $offset is not valid." }
+            val (offset, tag) = when (throwable) {
+                is GotoException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
+                is GotoTopLevelException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
+                else -> Pair(-1, "")
+            }
+            if (unwrappedStatement.size <= offset || offset < 0)
+                main.error("GOTO offset $offset is not valid. Cannot find TAG '$tag'")
             throwable = kotlin.runCatching {
                 executeUnwrappedAt(unwrappedStatement, offset)
             }.exceptionOrNull()
