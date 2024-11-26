@@ -477,8 +477,10 @@ data class MoveLStmt(
 abstract class AbstractReadEqualStmt(
     @Transient open val searchArg: Expression? = null, // Factor1
     @Transient open val name: String = "", // Factor 2
+    @Transient open val hiIndicator: IndicatorKey? = null, // HI indicator
+    @Transient open val loIndicator: IndicatorKey? = null, // LO indicator
+    @Transient open val eqIndicator: IndicatorKey? = null, // EQ indicator
     @Transient override val position: Position? = null
-
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
@@ -491,6 +493,11 @@ abstract class AbstractReadEqualStmt(
             null -> read(dbFile)
             else -> read(dbFile, kList)
         }
+
+        hiIndicator?.let { interpreter.getIndicators()[it] = result.indicatorHI.asValue() }
+        loIndicator?.let { interpreter.getIndicators()[it] = result.indicatorLO.asValue() }
+        eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
+
         interpreter.fillDataFrom(dbFile, result.record)
     }
 
@@ -500,11 +507,20 @@ abstract class AbstractReadEqualStmt(
 @Serializable
 abstract class AbstractReadStmt(
     @Transient open val name: String = "", // Factor 2
+    @Transient open val hiIndicator: IndicatorKey? = null, // HI indicator
+    @Transient open val loIndicator: IndicatorKey? = null, // LO indicator
+    @Transient open val eqIndicator: IndicatorKey? = null, // EQ indicator
     @Transient override val position: Position? = null
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         val result = readOp(dbFile)
+
+        // TODO: check if HI indicator is actually ever used on READ statements
+        hiIndicator?.let { interpreter.getIndicators()[it] = result.indicatorHI.asValue() }
+        loIndicator?.let { interpreter.getIndicators()[it] = result.indicatorLO.asValue() }
+        eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
+
         interpreter.fillDataFrom(dbFile, result.record)
     }
 
@@ -554,8 +570,16 @@ abstract class AbstractSetStmt(
 data class ChainStmt(
     override val searchArg: Expression, // Factor1
     override val name: String, // Factor 2
+    override val hiIndicator: IndicatorKey?, // HI indicator
+    override val loIndicator: IndicatorKey?, // LO indicator
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg, name, position) {
+) : AbstractReadEqualStmt(
+    searchArg = searchArg,
+    name = name,
+    hiIndicator = hiIndicator,
+    loIndicator = loIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "CHAIN"
 
@@ -566,8 +590,16 @@ data class ChainStmt(
 data class ReadEqualStmt(
     override val searchArg: Expression?,
     override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position) {
+) : AbstractReadEqualStmt(
+    searchArg = searchArg,
+    name = name,
+    loIndicator = loIndicator,
+    eqIndicator = eqIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "READE"
 
@@ -584,8 +616,16 @@ data class ReadEqualStmt(
 data class ReadPreviousEqualStmt(
     override val searchArg: Expression?,
     override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position) {
+) : AbstractReadEqualStmt(
+    searchArg = searchArg,
+    name = name,
+    loIndicator = loIndicator,
+    eqIndicator = eqIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "READPE"
 
@@ -599,7 +639,17 @@ data class ReadPreviousEqualStmt(
 }
 
 @Serializable
-data class ReadStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position) {
+data class ReadStmt(
+    override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
+    override val position: Position?
+) : AbstractReadStmt(
+    name = name,
+    loIndicator = loIndicator,
+    eqIndicator = eqIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "READ"
 
@@ -607,8 +657,18 @@ data class ReadStmt(override val name: String, override val position: Position?)
 }
 
 @Serializable
-data class ReadPreviousStmt(override val name: String, override val position: Position?) :
-    AbstractReadStmt(name, position) {
+data class ReadPreviousStmt(
+    override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
+    override val position: Position?
+) :
+    AbstractReadStmt(
+        name = name,
+        loIndicator = loIndicator,
+        eqIndicator = eqIndicator,
+        position = position
+    ) {
     override val loggableEntityName: String
         get() = "READP"
 

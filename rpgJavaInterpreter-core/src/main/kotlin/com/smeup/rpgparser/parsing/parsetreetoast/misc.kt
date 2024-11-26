@@ -1335,21 +1335,29 @@ internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: ${this.text} - ${position.atLine()}")
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ChainStmt(factor1, factor2, position)
+    val hi = this.cspec_fixed_standard_parts().hi.toIndicatorKey()
+    val lo = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    return ChainStmt(factor1, factor2, hi, lo, position)
 }
 
 internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ReadStmt(factor2, position)
+
+    val loIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    val eqIndicator = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
+    return ReadStmt(factor2, loIndicator, eqIndicator, position)
 }
 
 internal fun CsREADPContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READP operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ReadPreviousStmt(factor2, position)
+
+    val loIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    val eqIndicator = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
+    return ReadPreviousStmt(factor2, loIndicator, eqIndicator, position)
 }
 
 internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
@@ -1357,7 +1365,10 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
     // TODO implement DS in result field
     val factor1 = this.factor1Context()?.content?.toAst(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ReadEqualStmt(factor1, factor2, position)
+
+    val lo = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    val eq = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
+    return ReadEqualStmt(factor1, factor2, lo, eq, position)
 }
 
 internal fun CsREADPEContext.toAst(conf: ToAstConfiguration): Statement {
@@ -1365,7 +1376,10 @@ internal fun CsREADPEContext.toAst(conf: ToAstConfiguration): Statement {
     // TODO implement DS in result field
     val factor1 = this.factor1Context()?.content?.toAst(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READPE operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ReadPreviousEqualStmt(factor1, factor2, position)
+
+    val lo = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    val eq = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
+    return ReadPreviousEqualStmt(factor1, factor2, lo, eq, position)
 }
 
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
@@ -2308,3 +2322,5 @@ private fun Map<FileDefinition, List<DataDefinition>>.processWithSpecifications(
 }
 
 private fun String.isStringLiteral(): Boolean = startsWith('\'') && endsWith('\'')
+
+private fun ResultIndicatorContext.toIndicatorKey() = text.trim().takeIf { it.isNotBlank() }?.toIndicatorKey()
