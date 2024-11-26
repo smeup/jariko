@@ -61,7 +61,9 @@ interface DbMock : AutoCloseable {
                 is NumberType -> buildString {
                     append("\"${it.fieldName}\"")
                     val defaultValue = if ((it.type as NumberType).decimal) {
-                        " DECIMAL(${(it.type as NumberType).entireDigits}, ${(it.type as NumberType).decimalDigits}) DEFAULT 0.0"
+                        val type = it.type as NumberType
+                        val totalSize = type.entireDigits + type.decimalDigits
+                        " DECIMAL($totalSize, ${type.decimalDigits}) DEFAULT 0.0"
                     } else {
                         " BIGINT DEFAULT 0"
                     }
