@@ -190,6 +190,10 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
         is BooleanType -> value
         is StringType -> value.asString()
         is UnlimitedStringType -> value.asUnlimitedString()
+        is ArrayType -> {
+            val coercedValue = coerce(value, type.element)
+            ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+        }
         else -> TODO("Converting BooleanValue to $type")
     }
 }
@@ -248,6 +252,10 @@ fun coerce(value: Value, type: Type): Value {
                         return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
                 }
+                is ArrayType -> {
+                    val coercedValue = coerce(value, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+                }
                 else -> TODO("Converting DecimalValue to $type")
             }
         }
@@ -288,6 +296,7 @@ fun coerce(value: Value, type: Type): Value {
             }
         }
         is BooleanValue -> coerceBoolean(value, type)
+        is UnlimitedStringValue -> coerceString(value.value.asValue(), type)
         else -> value
     }
 }

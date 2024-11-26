@@ -114,8 +114,12 @@ private fun List<StatementContext?>.getDataDefinition(
         }
     }
 
-    // Move the D specs with like because depending on other D specs definitions
-    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf)
+    /**
+     * Statements sorting to accommodate processing needs
+     * Step 1: Move the D specs with like because depending on other D specs definitions
+     * Step 2: Move statements marked as CONST to the start because they might be used as a dependency
+     */
+    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf).moveConstantsToStart()
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
@@ -181,6 +185,19 @@ private fun List<StatementContext>.moveLikeStatementToTheEnd(conf: ToAstConfigur
         !(it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false)
     }
     return otherStatements + likeStatements
+}
+
+private fun List<StatementContext>.moveConstantsToStart(): List<StatementContext> {
+    val constantStatements = this.filter { it.isConstant() }
+    val otherStatements = this.filter { !it.isConstant() }
+
+    return constantStatements + otherStatements
+}
+
+private fun StatementContext.isConstant() = when {
+    this.dcl_c() != null -> this.dcl_c().keyword_const() != null
+    this.dspec() != null -> this.dspec().keyword().any { keyword -> keyword.keyword_const() != null }
+    else -> false
 }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
@@ -467,13 +484,12 @@ private fun Dcl_dsContext.useExtName(): Boolean {
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
-
-        fun cName(s: String) =
-            if (s.contains("**CTDATA")) {
-                s.substringAfter("**CTDATA ").replace("\\s".toRegex(), "")
-            } else {
-                s.replace(s, "")
-            }
+    fun cName(s: String) =
+        if (s.trim().matches(Regex("^\\*\\*[\\s]*(CTDATA)*([\\s]+[\\S]+)\$"))) {
+            s.substringAfter("**").trim().substringAfter("CTDATA").trim()
+        } else {
+            s.replace(s, "")
+        }
 
     return CompileTimeArray(
         cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA name

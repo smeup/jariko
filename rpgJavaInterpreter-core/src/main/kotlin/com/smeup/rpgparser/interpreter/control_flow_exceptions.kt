@@ -1,7 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.utils.indexOfTag
 import com.smeup.rpgparser.utils.runIfNotEmpty
 import java.io.File
+import java.util.*
 
 open class ControlFlowException() : Exception() {
     override fun fillInStackTrace(): Throwable = this
@@ -11,13 +14,33 @@ class LeaveSrException : ControlFlowException()
 class LeaveException : ControlFlowException()
 class IterException : ControlFlowException()
 
+/**
+ * Exception similar to [GotoException] but thrown when we are trying to goto a TAG
+ * at top level.
+ *
+ * The distinction is needed in order to allow catching it in different places and therefore
+ * executing different logic in different execution flows.
+ *
+ * @param tag The tag of the destination label
+ */
+class GotoTopLevelException(val tag: String) : ControlFlowException() {
+    internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+}
+
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : ControlFlowException()
 class ReturnException(val returnValue: Value?) : ControlFlowException()
+
+/**
+ * Exception thrown whenever we execute a GOTO-like instruction
+ * @param tag The tag of the destination label
+ */
 class GotoException private constructor(val tag: String) : ControlFlowException() {
     companion object {
-        operator fun invoke(tag: String): GotoException = GotoException(tag.toUpperCase())
+        operator fun invoke(tag: String): GotoException = GotoException(tag.uppercase(Locale.getDefault()))
     }
+
+    internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
 }
 
 class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {

@@ -81,6 +81,8 @@ open class BaseCompileTimeInterpreter(
                 return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
                     else
                 TODO(expression.toString())
+            // TODO: Check if we need a different logic in other cases
+            is LenExpr -> evaluateElementSizeOf(rContext, expression.value, ToAstConfiguration()).asValue()
             else -> TODO(expression.toString())
         }
     }
@@ -282,6 +284,21 @@ open class BaseCompileTimeInterpreter(
         }
 
         return findType(rContext.getStatements(procedureName), declName, conf, false)!!
+    }
+
+    /**
+     * Find type of declaration by specifically look for it in DEFINE statements.
+     */
+    open fun evaluateTypeOfDefine(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type? {
+        val statements = rContext.getStatements(procedureName)
+        val define = statements
+            .mapNotNull { it.cspec_fixed() }
+            .mapNotNull { it.cspec_fixed_standard() }
+            .mapNotNull { it.csDEFINE() }
+            .map { it.toAst(conf) }
+        val match = define.firstOrNull { it.newVarName.equals(declName, ignoreCase = true) } ?: return null
+
+        return findType(statements, match.originalName, conf)
     }
 
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {

@@ -29,10 +29,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.resizeTo
-import com.smeup.rpgparser.utils.substringOfLength
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -135,13 +133,61 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
+
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
-            interpreter.execute(subroutine.referred!!.stmts)
-        } catch (e: LeaveSrException) {
-            // Nothing to do here
-        } catch (e: GotoException) {
-            if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+            // Setup subroutine context
+            MainExecutionContext.getSubroutineStack().push(subroutine)
+            val body = subroutine.referred!!.stmts
+
+            // Execute subroutine, we deal with exceptions later
+            var throwable = kotlin.runCatching {
+                interpreter.execute(body)
+            }.exceptionOrNull()
+
+            val unwrappedStatements = body.explode(true)
+            val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
+
+            // Recursive deal with goto
+            while (throwable is GotoException) {
+                // If is a goto to the end, exit SR
+                if (throwable.tag.equals(subroutine.referred!!.tag, true)) {
+                    throwable = null
+                    break
+                }
+
+                // If tag is in top level we need to quit subroutine and rollback context to top level
+                val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+                topLevelStatements?.let {
+                    val goto = throwable as GotoException
+                    val topLevelIndex = goto.indexOfTaggedStatement(it)
+                    if (0 <= topLevelIndex && topLevelIndex < it.size) {
+                        throw GotoTopLevelException(goto.tag)
+                    }
+                }
+
+                // We need to know the statement unwrapped in order to jump directly into a nested tag
+                val offset = throwable.indexOfTaggedStatement(unwrappedStatements)
+                require(0 <= offset && offset < unwrappedStatements.size) { "Offset $offset is not valid." }
+                throwable = kotlin.runCatching {
+                    interpreter.executeUnwrappedAt(unwrappedStatements, offset)
+                }.exceptionOrNull()
+            }
+
+            // Deal with other types of exceptions
+            throwable?.let {
+                when (it) {
+                    is LeaveSrException -> {
+                        // Just catch it, do nothing
+                    }
+                    else -> throw it
+                }
+            }
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            // Cleanup subroutine context
+            MainExecutionContext.getSubroutineStack().pop()
         }
     }
 
@@ -721,21 +767,21 @@ data class CallStmt(
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program: Program?
+        val callIssueException = ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
         try {
             program = interpreter.getSystemInterface().findProgram(programToCall)
             if (errorIndicator != null) {
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
             }
         } catch (e: Exception) {
-            if (errorIndicator == null) {
-                throw e
-            }
+            errorIndicator ?: throw callIssueException
             interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
             return
         }
 
-        require(program != null) {
-            "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
+        program ?: throw callIssueException
+        if (program is RpgProgram) {
+            MainExecutionContext.getProgramStack().push(program)
         }
 
         // Ignore exceeding params
@@ -785,8 +831,12 @@ data class CallStmt(
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 if (errorIndicator == null) {
+                    if (program is RpgProgram) {
+                        MainExecutionContext.getProgramStack().pop()
+                    }
                     throw e
                 }
+
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
                 null
@@ -800,6 +850,9 @@ data class CallStmt(
                 currentParam.result?.let { interpreter.assign(it, value) }
             }
         }
+
+        if (program is RpgProgram)
+            MainExecutionContext.getProgramStack().pop()
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
@@ -930,10 +983,10 @@ data class MonitorStmt(
     override fun execute(interpreter: InterpreterCore) {
         try {
             interpreter.execute(this.monitorBody)
-        } catch (_: Exception) {
-            onErrorClauses.forEach {
-                interpreter.execute(it.body)
-            }
+        } catch (e: InterpreterProgramStatusErrorException) {
+            val errorClause = onErrorClauses.firstOrNull { it.codes.any { code -> e.statusCode.matches(code) } }
+            errorClause ?: throw e
+            interpreter.execute(errorClause.body)
         }
     }
 }
@@ -1018,7 +1071,7 @@ data class IfStmt(
 }
 
 @Serializable
-data class OnErrorClause(override val body: List<Statement>, override val position: Position? = null) : Node(position),
+data class OnErrorClause(val codes: List<String>, override val body: List<Statement>, override val position: Position? = null) : Node(position),
     CompositeStatement
 
 @Serializable
@@ -1352,7 +1405,11 @@ data class ZAddStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.eval(expression))
+        zadd(
+            value = expression,
+            target = target,
+            interpreterCore = interpreter
+        )
     }
 }
 
@@ -2394,10 +2451,10 @@ data class ExfmtStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val jarikoCallback = MainExecutionContext.getConfiguration().jarikoCallback
-        val fields = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
+        val record = copyDataDefinitionsIntoRecordFields(interpreter, factor2)
         val snapshot = RuntimeInterpreterSnapshot()
-        val response = jarikoCallback.onExfmt(fields, snapshot)
-        response ?: error("RuntimeInterpreterSnapshot is not yet handled")
+        val response = jarikoCallback.onExfmt(record, snapshot)
+        response ?: error("In the current implementation onExfmt callback cannot return null")
         copyRecordFieldsIntoDataDefinitions(interpreter, response)
     }
 }
@@ -2517,11 +2574,36 @@ data class DeallocStmt(
 @Serializable
 data class ExecSqlStmt(
     override val position: Position? = null
-) : Statement(position), MockStatement {
+) : Statement(position), StatementThatCanDefineData, MockStatement {
     override val loggableEntityName: String
         get() = "SQL - EXEC SQL"
 
-    override fun execute(interpreter: InterpreterCore) {}
+    override fun execute(interpreter: InterpreterCore) {
+        val dataDefinition = interpreter.getGlobalSymbolTable().dataDefinitionByName("SQLCOD")
+        interpreter.getGlobalSymbolTable().set(dataDefinition!!, IntValue(100))
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val sqlCodDefinition = InStatementDataDefinition(
+            name = "SQLCOD",
+            type = NumberType(
+                entireDigits = 5,
+                decimalDigits = 0,
+                rpgType = RpgType.PACKED
+            ),
+            position = position
+        )
+
+        val sqlErmDefinition = InStatementDataDefinition(
+            name = "SQLERM",
+            type = CharacterType(
+                nChars = 70
+            ),
+            position = position
+        )
+
+        return listOf(sqlCodDefinition, sqlErmDefinition)
+    }
 }
 
 @Serializable

@@ -294,7 +294,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00206".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00206".outputOf(configuration = turnOnZAddLegacyFlagConfig)
         )
     }
 
@@ -651,5 +651,190 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00264() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00264".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Declaration with DIM based on a constant whose definition is not known yet
+     * @see #LS24004491
+     */
+    @Test
+    fun executeMUDRNRAPU00267() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00267".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Allows for the correct handling of composed (nested) statements during execution, ensuring that `TagStmts`
+     *  can be found even within complex structures.
+     * @see #LS24004437
+     */
+    @Test
+    fun executeMUDRNRAPU01105() {
+        val expected = listOf("FLG-FALSE", "EMPTY", "FLG-TRUE")
+        assertEquals(expected, "smeup/MUDRNRAPU01105".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Using %LEN on a definition inside a DIM
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00265() {
+        val expected = listOf(List(500) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00265".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of integer value to a DS decimal subfield
+     * @see #LS24004450
+     */
+    @Test
+    fun executeMUDRNRAPU00132() {
+        val expected = listOf("10.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00132".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case between CTDATA and its name there is more space.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00150() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00150".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there isn't CTDATA but more space between name and stars.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00151() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00151".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there is only CTDATA.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00152() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00152".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there is only the name.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00153() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00153".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there are only the stars.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00154() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00154".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * SUBST with a side effect where the factor 2 has changed type in `UnlimitedStringValue`.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00162() {
+        val expected = listOf("ABCDE", "CDE")
+        assertEquals(expected, "smeup/MUDRNRAPU00162".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is greater than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00163() {
+        val expected = listOf("ABC")
+        assertEquals(expected, "smeup/MUDRNRAPU00163".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00164() {
+        val expected = listOf("ABCDE   FG")
+        assertEquals(expected, "smeup/MUDRNRAPU00164".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue (VARYING) where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00165() {
+        val expected = listOf("ABCFG")
+        assertEquals(expected, "smeup/MUDRNRAPU00165".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Fields in a DS based on existing definitions
+     * @see #LS24004911
+     */
+    @Test
+    fun executeMUDRNRAPU00270() {
+        val expected = listOf("OK", "OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00270".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are integer.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00168() {
+        val expected = listOf("241122", "1122")
+        assertEquals(expected, "smeup/MUDRNRAPU00168".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are decimal.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00169() {
+        val expected = listOf("123.456", "23.45")
+        assertEquals(expected, "smeup/MUDRNRAPU00169".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination. Source is decimal
+     *  and destination is integer
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00170() {
+        val expected = listOf("123.456", "123")
+        assertEquals(expected, "smeup/MUDRNRAPU00170".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination. Source is integer
+     *  and destination is decimal
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00171() {
+        val expected = listOf("123456", "56.00")
+        assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = turnOnZAddLegacyFlagConfig))
     }
 }

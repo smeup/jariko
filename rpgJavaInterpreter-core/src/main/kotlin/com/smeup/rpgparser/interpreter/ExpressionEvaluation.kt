@@ -150,9 +150,7 @@ class ExpressionEvaluation(
         val decDigits = expression.decDigits.evalWith(this).asInt().value
         val valueAsString = expression.value.evalWith(this).asString().value
         val valueAsBigDecimal = valueAsString.asBigDecimal()
-        require(valueAsBigDecimal != null) {
-            "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
-        }
+        valueAsBigDecimal ?: throw ProgramStatusCode.INVALID_CHARACTERS.toThrowable("value: $valueAsString", expression.position)
 
         return@proxyLogging if (decDigits == 0L) {
             IntValue(valueAsBigDecimal.toLong())
@@ -535,9 +533,12 @@ class ExpressionEvaluation(
 
     override fun eval(expression: FunctionCall): Value = proxyLogging(expression) {
         val functionToCall = expression.function.name
-        val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
-            ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
+        callback.traceBlock(trace) {
+            val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
+                ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
+            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
             val paramsValues = expression.args.map {
                 if (it is DataRefExpr) {
                     FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
@@ -614,6 +615,9 @@ class ExpressionEvaluation(
         val v1 = expression.left.evalWith(this)
         val v2 = expression.right.evalWith(this)
         require(v1 is NumberValue && v2 is NumberValue)
+
+        if (v2.bigDecimal.isZero())
+            throw ProgramStatusCode.DIVIDE_BY_ZERO.toThrowable("v1: $v1, v2: $v2", expression.position)
 
         // Detects what kind of eval must be evaluated
         val res = if (expression.parent is EvalStmt) {
@@ -803,7 +807,11 @@ class ExpressionEvaluation(
 
     override fun eval(expression: SqrtExpr): Value = proxyLogging(expression) {
         val value = evalAsDecimal(expression.value)
-        DecimalValue(BigDecimal.valueOf(sqrt(value.toDouble())))
+        val sqrt = sqrt(value.toDouble())
+        if (sqrt.isNaN()) {
+            ProgramStatusCode.NEGATIVE_SQUARE_ROOT.toThrowable("value: $value", expression.position)
+        }
+        BigDecimal.valueOf(sqrt).asValue()
     }
 
     override fun eval(expression: AssignmentExpr) =
@@ -853,6 +861,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) {
+        MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
         val pointer = expression.value as? DataRefExpr ?: error("%REALLOC is only allowed for pointers")
         val references = interpreterStatus.getReferences(pointer)
         require(references.all { it.key.type is ArrayType }) {

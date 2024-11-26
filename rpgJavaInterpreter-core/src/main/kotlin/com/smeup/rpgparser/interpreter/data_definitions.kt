@@ -409,6 +409,8 @@ data class FieldDefinition(
         }
     }
 
+    fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
     /**
@@ -484,6 +486,11 @@ class InStatementDataDefinition(
     override fun toString(): String {
         return "InStatementDataDefinition name=$name, type=$type, position=$position"
     }
+
+    // TODO("Require investigation")
+    override fun hashCode() = name.hashCode()
+
+    override fun equals(other: Any?) = other?.let { this.name == (other as AbstractDataDefinition).name } ?: false
 }
 
 /**

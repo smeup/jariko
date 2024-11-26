@@ -224,11 +224,12 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
         else -> todo(conf = conf)
     }
 
+    val factor1Ast = this.factor1.toAstIfSymbolicConstant() ?: this.factor1.content.toAst(conf = conf)
     val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
 
     return DOWxxStmt(
         comparisonOperator = comparison,
-        factor1 = this.factor1.content.toAst(conf = conf),
+        factor1 = factor1Ast,
         factor2 = factor2Ast,
         position = toPosition(conf.considerPosition),
         body = blockContext.statement().map { it.toAst(conf) }
@@ -579,8 +580,9 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
 
 internal fun RpgParser.OnErrorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OnErrorClause {
     val body = this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+    val codes = this.csON_ERROR().onErrorCode().map { it.text.trim() }.ifEmpty { listOf("") }
     val position = toPosition(conf.considerPosition)
-    return OnErrorClause(body, position)
+    return OnErrorClause(codes, body, position)
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
