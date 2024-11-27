@@ -415,12 +415,12 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * READE with EQ Indicator
+     * READ operations with EQ Indicator
      * @see #LS24005102
      */
     @Test
     fun executeMUDRNRAPU00272() {
-        val expected = listOf("ok")
+        val expected = listOf("ok", "ok", "ok", "ok")
         C5ADFF9LDbMock().usePopulated {
             assertEquals(expected, "smeup/MUDRNRAPU00272".outputOf(configuration = smeupConfig))
         }
