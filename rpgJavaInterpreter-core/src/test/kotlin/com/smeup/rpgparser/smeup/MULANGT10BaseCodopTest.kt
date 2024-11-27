@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.smeup.dbmock.C5ADFF9LDbMock
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -411,6 +412,18 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU00271() {
         val expected = listOf("OK")
         assertEquals(expected, "smeup/MUDRNRAPU00271".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * READ operations with EQ Indicator
+     * @see #LS24005102
+     */
+    @Test
+    fun executeMUDRNRAPU00272() {
+        val expected = listOf("ok", "ok", "ok", "ok")
+        C5ADFF9LDbMock().usePopulated {
+            assertEquals(expected, "smeup/MUDRNRAPU00272".outputOf(configuration = smeupConfig))
+        }
     }
 
     /**
