@@ -1302,6 +1302,14 @@ data class DefineStmt(
         get() = "DEFINE"
 
     override fun dataDefinition(): List<InStatementDataDefinition> {
+        // FIXME: If indicator was not priorly SET (SETON or SETOFF), program should error
+        val indicatorPattern = Regex("\\*IN\\d\\d")
+        val isIndicator = originalName.trim().uppercase().matches(indicatorPattern)
+        if (isIndicator) {
+            val newDefinition = InStatementDataDefinition(newVarName, BooleanType, position)
+            return listOf(newDefinition)
+        }
+
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
