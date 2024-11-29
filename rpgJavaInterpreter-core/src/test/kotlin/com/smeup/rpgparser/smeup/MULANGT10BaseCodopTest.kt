@@ -674,4 +674,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("Sub program", "1")
         assertEquals(expected, "smeup/MUDRNRAPU00172".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program tests the behaviour of `CALL` and `PLIST` when is used the Params for both between caller and called.
+     * In accord to documentation:
+     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
+     * - when control transfers to called program, the contents of the Result field is placed in the Factor 1 field.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00173() {
+        val expected = listOf("BAR")
+        assertEquals(expected, "smeup/MUDRNRAPU00173".outputOf(configuration = smeupConfig))
+    }
 }
