@@ -1171,15 +1171,16 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val factor1Expression = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
     val factor2Expression = this.cspec_fixed_standard_parts().factor2Expression(conf)
 
-    // Initialization value valid only if there isn't a variable declaration
-    val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
-        /*
-         * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
-         * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
-         * - when control transfers to called program, the contents of the Result field is placed in
-         *    the Factor 1 field.
-         */
-        if (this.parent is CsCALLContext) factor2Expression else annidatedReferenceExpression(resultName, resultPosition)
+    /*
+     * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
+     * - when control transfers to called program, the contents of the Result field is placed in
+     *    the Factor 1 field.
+     */
+    val initializationValue = if (this.parent is CsCALLContext && factor2Expression != null) {
+        factor2Expression
+    } else if (this.parent is CsPLISTContext && factor1Expression != null) {
+        annidatedReferenceExpression(resultName, resultPosition)
     } else {
         null
     }
