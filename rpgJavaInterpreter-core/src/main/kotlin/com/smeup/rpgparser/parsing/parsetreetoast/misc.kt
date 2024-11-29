@@ -1177,9 +1177,9 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
      * - when control transfers to called program, the contents of the Result field is placed in
      *    the Factor 1 field.
      */
-    val initializationValue = if (this.parent is CsCALLContext && factor2Expression != null) {
+    val initializationValue = if (this.parent is CsCALLContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
         factor2Expression
-    } else if (this.parent is CsPLISTContext && factor1Expression != null) {
+    } else if (this.parent is CsPLISTContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
         annidatedReferenceExpression(resultName, resultPosition)
     } else {
         null
