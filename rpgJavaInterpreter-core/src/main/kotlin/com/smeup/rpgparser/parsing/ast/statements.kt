@@ -850,16 +850,16 @@ data class CallStmt(
             if (it.dataDefinition != null) {
                 // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
-                    if (!interpreter.exists(it.param.name)) {
+                    if (!interpreter.exists(it.result.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
                     } else {
                         interpreter.assign(
-                            interpreter.dataDefinitionByName(it.param.name)!!,
+                            interpreter.dataDefinitionByName(it.result.name)!!,
                             interpreter.eval(it.dataDefinition.initializationValue)
                         )
                     }
                 } else {
-                    if (!interpreter.exists(it.param.name)) {
+                    if (!interpreter.exists(it.result.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
                     }
                 }
@@ -868,12 +868,12 @@ data class CallStmt(
                 // change the value of parameter with initialization value
                 if (it.initializationValue != null) {
                     interpreter.assign(
-                        interpreter.dataDefinitionByName(it.param.name)!!,
+                        interpreter.dataDefinitionByName(it.result.name)!!,
                         interpreter.eval(it.initializationValue)
                     )
                 }
             }
-            targetProgramParams[index].name to interpreter[it.param.name]
+            targetProgramParams[index].name to interpreter[it.result.name]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
@@ -904,10 +904,10 @@ data class CallStmt(
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
                 val currentParam = this.params[index]
-                interpreter.assign(currentParam.param.referred!!, value)
+                interpreter.assign(currentParam.result.referred!!, value)
 
                 // If we also have a result field, assign to it
-                currentParam.result?.let { interpreter.assign(it, value) }
+                currentParam.factor1?.let { interpreter.assign(it, value) }
             }
         }
 
@@ -1208,8 +1208,8 @@ data class PlistStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         params.forEach {
-            if (interpreter.getGlobalSymbolTable().contains(it.param.name)) {
-                interpreter.getGlobalSymbolTable()[it.param.name]
+            if (interpreter.getGlobalSymbolTable().contains(it.result.name)) {
+                interpreter.getGlobalSymbolTable()[it.result.name]
             }
         }
     }
@@ -1224,8 +1224,9 @@ data class PlistStmt(
 
 @Serializable
 data class PlistParam(
-    val result: AssignableExpression?,
-    val param: ReferenceByName<AbstractDataDefinition>,
+    val factor1: AssignableExpression?,
+    val factor2: Expression?,
+    val result: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null,

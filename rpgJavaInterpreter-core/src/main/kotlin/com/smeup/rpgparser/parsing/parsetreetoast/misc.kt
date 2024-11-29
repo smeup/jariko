@@ -1157,11 +1157,11 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistParam {
-    var paramName = this.cspec_fixed_standard_parts().result.text
-    if (paramName.contains(".")) {
-        val parts = paramName.split(".")
+    var resultName = this.cspec_fixed_standard_parts().result.text
+    if (resultName.contains(".")) {
+        val parts = resultName.split(".")
         require(parts.isNotEmpty())
-        paramName = parts.last()
+        resultName = parts.last()
     }
     // initialization value valid only if there isn't a variable declaration
     val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
@@ -1172,14 +1172,17 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 
     val factor1Text = this.factor1.text.trim()
     val factor1Position = this.factor1.toPosition(conf.considerPosition)
-    val result = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
+
+    val factor1Expression = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
+    val factor2Expression = this.cspec_fixed_standard_parts().factor2Expression(conf)
 
     val position = toPosition(conf.considerPosition)
     return PlistParam(
-        result,
-        ReferenceByName(paramName),
+        factor1Expression,
+        factor2Expression,
+        ReferenceByName(resultName),
         this.cspec_fixed_standard_parts().toDataDefinition(
-            paramName,
+            resultName,
             position,
             conf
         ),
