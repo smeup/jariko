@@ -663,4 +663,15 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("0", "0", "0", "1", "1", "1")
         assertEquals(expected, "smeup/MUDRNRAPU00167".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program tests the moving of value from Factor 2 to Result. This operation is performed at the end of execution of
+     *  program called. In this case, MUDRNRAPU00172_P turn on indicator 35. Later, `DO` block ends its execution.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00172() {
+        val expected = listOf("Sub program", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00172".outputOf(configuration = smeupConfig))
+    }
 }
