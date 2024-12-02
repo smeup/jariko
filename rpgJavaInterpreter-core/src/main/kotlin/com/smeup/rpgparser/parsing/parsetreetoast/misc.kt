@@ -1173,9 +1173,9 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 
     /*
      * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
-     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
+     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field. So. is considered Factor 2 value;
      * - when control transfers to called program, the contents of the Result field is placed in
-     *    the Factor 1 field.
+     *    the Factor 1 field. So, is considered Result Value.
      */
     val initializationValue = if (this.parent is CsCALLContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
         factor2Expression

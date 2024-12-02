@@ -138,9 +138,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
 
                 /*
                  * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
-                 * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
-                 * - when control transfers to called program, the contents of the Result field is placed in
-                 *    the Factor 1 field.
+                 *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
+                 *  the Factor 1 field.
                  */
                 for (param in callerParams) {
                     val calledParamFactor1Expr = this.cu.entryPlist?.params
@@ -202,7 +201,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 )
                 params.keys.forEach { params[it] = interpreter[it] }
 
-                // If the Factor 2 is declared, replaces the Result with the value of Factor 2.
+                /* In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+                 *  at the end, if the Factor 2 is declared, replaces the Result with the value of Factor 2.
+                 */
                 changedInitialValues = params().map { param -> this.cu.entryPlist?.params
                     ?.firstOrNull { plistParamCu -> plistParamCu.result.name.equals(param.name, true) }
                     .let { it?.factor2?.let { factor2 -> interpreter.eval(factor2) } } ?: interpreter[param.name] }
