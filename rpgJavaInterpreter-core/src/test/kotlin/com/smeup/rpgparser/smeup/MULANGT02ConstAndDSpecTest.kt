@@ -795,6 +795,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * DEFINE with indicator as original name
+     * @see #LS24005143
+     */
+    @Test
+    fun executeMUDRNRAPU00273() {
+        val expected = listOf("1", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00273".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Truncation of number by using Z-ADD. The source is greater than destination.
      * Source and destination are integer.
      * @see #LS24005040
