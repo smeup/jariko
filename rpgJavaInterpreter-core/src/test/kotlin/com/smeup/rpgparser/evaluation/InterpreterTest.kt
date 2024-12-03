@@ -1424,6 +1424,12 @@ Test 6
     }
 
     @Test
+    fun executeGOTOTST14() {
+        val expected = listOf("1", "2")
+        assertEquals(expected, outputOf("GOTOTST14"))
+    }
+
+    @Test
     fun executeGotoENDSR() {
         assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
     }
