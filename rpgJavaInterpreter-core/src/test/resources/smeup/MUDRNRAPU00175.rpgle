@@ -32,7 +32,7 @@
       * If indicator 35 is turned on, the cycle is interrupted.
      C   35              LEAVE
       *
-      * . else, assign the indicator value to array/
+      * . else, assign the indicator value to array.
      C                   EVAL      XXARRAY($X)=££35
       *
      C                   ENDDO
