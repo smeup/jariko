@@ -283,6 +283,27 @@ open class InternalInterpreter(
                                     }
                                     initialValue
                                 }
+                                /*
+                                 * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+                                 *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
+                                 *  the Factor 1 field.
+                                 * TODO: IS NECESSARY A REFACTORING!!!
+                                 */
+                                compilationUnit.entryPlist?.params
+                                    ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+                                    ?.any { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(it.name, true) } == true -> {
+
+                                    val resultName = compilationUnit.entryPlist?.params
+                                        ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+                                        ?.firstOrNull { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(it.name, true) }
+                                        ?.result?.name
+
+                                    if (resultName == null || initialValues[resultName] is NullValue) {
+                                        blankValue(it)
+                                    } else {
+                                        initialValues[resultName]
+                                    }
+                                }
 
                                 it.initializationValue != null -> eval(it.initializationValue)
                                 it.isCompileTimeArray() -> toArrayValue(

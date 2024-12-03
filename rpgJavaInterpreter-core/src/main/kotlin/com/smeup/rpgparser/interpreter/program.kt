@@ -136,20 +136,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                     }
                 }
 
-                /*
-                 * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
-                 *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
-                 *  the Factor 1 field.
-                 */
-                for (param in callerParams) {
-                    val calledParamFactor1Expr = this.cu.entryPlist?.params
-                        ?.firstOrNull { plistParamCu -> plistParamCu.result.name.equals(param.key, true) }
-                        .let { it?.factor1 }
-                    if (calledParamFactor1Expr != null && calledParamFactor1Expr is DataRefExpr) {
-                        calledParamFactor1Expr.variable.referred?.let { interpreter.getGlobalSymbolTable().set(it, param.value) }
-                    }
-                }
-
                 if (!initialized) {
                     initialized = true
 
