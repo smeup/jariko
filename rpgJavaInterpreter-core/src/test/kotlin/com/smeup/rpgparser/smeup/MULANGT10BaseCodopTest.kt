@@ -713,4 +713,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("HELLO")
         assertEquals(expected, "smeup/MUDRNRAPU00175".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program is more complex. Tests the assignment of value between waterfall calls and by using `EVAL`.
+     * Each subprogram is called max 101 times (last is Jariko error), thanks `DO` statement; this main program calls
+     * `MUDRNRAPU00176_P1` which calls recursively `MUDRNRAPU00176_P2`.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00176() {
+        val expected = listOf("HELLO")
+        assertEquals(expected, "smeup/MUDRNRAPU00176".outputOf(configuration = smeupConfig))
+    }
 }
