@@ -1484,7 +1484,14 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
-    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2
+    // factor2 is formed by TEXT:B
+    // where "TEXT" is the content to be substringed
+    val expression = this.cspec_fixed_standard_parts().factor2.factorContent(0).toAst(conf)
+    // and  "B" is the start position to substring, if not specified it returns null
+    val positionExpression = if (factor2.factorContent().size > 1) {
+        factor2.factorContent(1).toAst(conf)
+    } else null
 
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
@@ -1500,7 +1507,7 @@ internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
     return CheckrStmt(
         factor1,
         expression,
-        startPosition ?: 1,
+        positionExpression,
         wrongCharExpression,
         dataDefinition,
         position
