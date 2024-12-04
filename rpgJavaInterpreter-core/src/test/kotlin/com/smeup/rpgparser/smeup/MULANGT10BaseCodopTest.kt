@@ -663,4 +663,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("0", "0", "0", "1", "1", "1")
         assertEquals(expected, "smeup/MUDRNRAPU00167".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * SELECT statement containing only a OTHER clause
+     * @see #LS24005232
+     */
+    @Test
+    fun executeMUDRNRAPU00274() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00274".outputOf(configuration = smeupConfig))
+    }
 }
