@@ -128,3 +128,8 @@ already execute their child on their own. Increasing the index by one instead of
 
 Eventually each `CompositeStatement` calls the base `execute(statements: List<Statement>)` method, therefore this method has to be
 imagined like a middleware to keep the context of `GOTO` calls sane and consistent called only when a `GOTO` exception is caught.
+
+## Next steps
+
+This implementation is very complex and has many nuances that are very hard to understand. 
+It would be ideal to further refactor it to make it simpler maybe by making it function like an assembly `JMP` call.
