@@ -287,8 +287,7 @@ internal fun RpgParser.ForstatementContext.toAst(conf: ToAstConfiguration = ToAs
 
 internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectStmt {
     val whenClauses = this.whenstatement().map { it.toAst(conf) }
-    // Unfortunately the other clause ends up being part of the when clause so we should
-    // unfold it
+    // Unfortunately the other clause might end up being part of the when clause so we should unfold it
     // TODO change this in the grammar
     val statementsOfLastWhen = if (this.whenstatement().isEmpty())
         emptyList()
@@ -307,9 +306,11 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
     val result = beginselect().csSELECT().cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
     val dataDefinition = beginselect().csSELECT().cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    // If other statement didn't get caught in the last when statement it can be still present as a standalone statement
+    val otherClause = other ?: this.otherstatement()?.toAst(conf)
     return SelectStmt(
         cases = whenClauses,
-        other = other,
+        other = otherClause,
         dataDefinition = dataDefinition,
         position = toPosition(conf.considerPosition)
     )
@@ -394,6 +395,12 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
             position
         )
     }
+}
+
+internal fun OtherstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
+    val body = statement().map { it.toAst(conf) }
+    val position = toPosition(conf.considerPosition)
+    return SelectOtherClause(body, position)
 }
 
 internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
