@@ -663,4 +663,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("0", "0", "0", "1", "1", "1")
         assertEquals(expected, "smeup/MUDRNRAPU00167".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * CHECKR with indexed expression based on a Data Reference
+     * @see #LS24005243
+     */
+    @Test
+    fun executeMUDRNRAPU00275() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00275".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
 }
