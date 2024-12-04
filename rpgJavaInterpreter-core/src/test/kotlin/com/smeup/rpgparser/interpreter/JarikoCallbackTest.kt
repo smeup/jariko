@@ -1010,6 +1010,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR49CallBackTest() {
+        executePgmCallBackTest("ERROR49", SourceReferenceType.Program, "ERROR49", mapOf(
+            6 to "Data reference *IN10 not resolved"
+        ))
+    }
+
+    @Test
+    fun executeERROR49SourceLineTest() {
+        executeSourceLineTest("ERROR49")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {

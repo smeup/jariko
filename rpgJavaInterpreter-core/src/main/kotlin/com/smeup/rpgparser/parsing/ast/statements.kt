@@ -1306,6 +1306,21 @@ data class DefineStmt(
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
+        val indicatorPattern = Regex("\\*IN\\d\\d")
+        val normalizedOriginalName = originalName.trim().uppercase()
+        val isIndicator = normalizedOriginalName.matches(indicatorPattern)
+        if (isIndicator) {
+            val indicatorKey = normalizedOriginalName.removePrefix("*IN").toIndicatorKey()
+            val setStatements = containingCU.main.stmts.explode(true).filterIsInstance<SetStmt>()
+            val definedIndicators = setStatements.map { it.indicators }.flatten().filterIsInstance<IndicatorExpr>()
+            val isIndicatorDefined = definedIndicators.any { it.index == indicatorKey }
+
+            if (!isIndicatorDefined) throw Error("Data reference $originalName not resolved")
+
+            val newDefinition = InStatementDataDefinition(newVarName, BooleanType, position)
+            return listOf(newDefinition)
+        }
+
         // Search standalone 'D spec' or InStatement definition
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
             ?: containingCU.getInStatementDataDefinitions().find { it.name == originalName }
