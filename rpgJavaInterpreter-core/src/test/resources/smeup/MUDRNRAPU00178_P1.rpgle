@@ -2,7 +2,7 @@
      V* 05/12/2024 APU001 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * This program is used by 'MUDRNRAPU00177' for its purpose.
+    O * This program is used by 'MUDRNRAPU00178' for its purpose.
      V* ==============================================================
      D PARM1           S              3    INZ('AUX')
      D RESULT          S              3
