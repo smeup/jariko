@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.ast.UnwrappedStatementData
 import com.smeup.rpgparser.utils.indexOfTag
 import com.smeup.rpgparser.utils.runIfNotEmpty
 import java.io.File
@@ -24,7 +24,7 @@ class IterException : ControlFlowException()
  * @param tag The tag of the destination label
  */
 class GotoTopLevelException(val tag: String) : ControlFlowException() {
-    internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+    internal fun indexOfTaggedStatement(statements: List<UnwrappedStatementData>) = statements.indexOfTag(tag)
 }
 
 // Useful to interrupt infinite cycles in tests
@@ -40,7 +40,7 @@ class GotoException private constructor(val tag: String) : ControlFlowException(
         operator fun invoke(tag: String): GotoException = GotoException(tag.uppercase(Locale.getDefault()))
     }
 
-    internal fun indexOfTaggedStatement(statements: List<Statement>) = statements.indexOfTag(tag)
+    internal fun indexOfTaggedStatement(statements: List<UnwrappedStatementData>) = statements.indexOfTag(tag)
 }
 
 class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {
