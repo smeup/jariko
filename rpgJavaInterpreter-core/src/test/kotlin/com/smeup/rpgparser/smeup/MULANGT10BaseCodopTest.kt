@@ -665,6 +665,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * SELECT statement containing only a OTHER clause
+     * @see #LS24005232
+     */
+    @Test
+    fun executeMUDRNRAPU00274() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00274".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * This program tests the moving of value from Factor 2 to Result. This operation is performed at the end of execution of
      *  program called. In this case, MUDRNRAPU00172_P turn on indicator 35. Later, `DO` block ends its execution.
      * @see #LS24005158
