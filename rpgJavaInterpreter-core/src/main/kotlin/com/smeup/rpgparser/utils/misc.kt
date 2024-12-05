@@ -179,3 +179,7 @@ internal fun Node.getContainingCompilationUnit() = ancestor(CompilationUnit::cla
 internal fun List<Statement>.indexOfTag(tag: String) = indexOfFirst {
     it is TagStmt && it.tag.lowercase() == tag.lowercase()
 }
+
+internal inline fun <T, R> Iterable<T>.mapNotNullOrError(transform: (T) -> R?): List<R> {
+    return this.mapNotNull { kotlin.runCatching { transform(it) }.getOrNull() }
+}
