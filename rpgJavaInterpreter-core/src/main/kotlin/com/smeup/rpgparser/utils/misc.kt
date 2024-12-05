@@ -18,7 +18,6 @@ package com.smeup.rpgparser.utils
 
 import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.ast.TagStmt
 import com.smeup.rpgparser.parsing.ast.UnwrappedStatementData
 import com.strumenta.kolasu.model.Node
