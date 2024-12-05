@@ -735,4 +735,20 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("HELLO")
         assertEquals(expected, "smeup/MUDRNRAPU00176".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program call a sub program by using pre-initialized variables as factors and result. The called program
+     *  doesn't make any assignment.
+     * This tests the full behaviour between a CALLER and CALLED, where:
+     * - caller (at the beginning) move Factor 2 to Result;
+     * - called (at the beginning) move Result to Factor 1;
+     * - called (at the end) move Factor 2 to Result;
+     * - caller (at the end) move Result to Factor 1.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00177() {
+        val expected = listOf("CALLED", "BAR", "", "BAR", "CALLER", "", "BAR", "")
+        assertEquals(expected, "smeup/MUDRNRAPU00177".outputOf(configuration = smeupConfig))
+    }
 }
