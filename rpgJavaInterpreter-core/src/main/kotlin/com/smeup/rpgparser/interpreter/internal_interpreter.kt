@@ -477,7 +477,7 @@ open class InternalInterpreter(
             execute(main.stmts)
         }.exceptionOrNull()
 
-        val unwrappedStatement = main.stmts.explode(true)
+        val unwrappedStatement = main.stmts.unwrap()
 
         // Recursive deal with top level goto flow
         while (throwable is GotoTopLevelException || throwable is GotoException) {
@@ -585,26 +585,12 @@ open class InternalInterpreter(
      * @param unwrappedStatements The unwrapped list of statements. It is up to the caller to ensure statements are unwrapped.
      * @param offset Offset to start the execution from.
      */
-    override fun executeUnwrappedAt(unwrappedStatements: List<Statement>, offset: Int) {
-        /**
-         * As we execute composite statements recursively, trying to sequentially execute
-         * the unwrapped statement list would result in executing every statement multiple times.
-         *
-         * The following instruction associates to each statement the offset to add in order to find
-         * the real next statement to execute in the list.
-         */
-        val offsetAwareStatements = unwrappedStatements.map {
-            WithOffset(
-                data = it,
-                offset = if (it is CompositeStatement) it.body.size else 0
-            )
-        }
-
+    override fun executeUnwrappedAt(unwrappedStatements: List<UnwrappedStatementData>, offset: Int) {
         var index = offset
-        while (index < offsetAwareStatements.size) {
-            val offsetStatement = offsetAwareStatements[index]
-            executeWithMute(offsetStatement.data)
-            index += offsetStatement.offset + 1
+        while (index < unwrappedStatements.size) {
+            val data = unwrappedStatements[index]
+            executeWithMute(data.statement)
+            index += data.nextOperationOffset + 1
         }
     }
 
