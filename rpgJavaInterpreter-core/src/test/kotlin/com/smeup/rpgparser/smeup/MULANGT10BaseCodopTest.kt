@@ -673,4 +673,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00274".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Unary expression with '+'
+     * @see #LS24005278
+     */
+    @Test
+    fun executeMUDRNRAPU00278() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/MUDRNRAPU00278".outputOf(configuration = smeupConfig))
+    }
 }
