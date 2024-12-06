@@ -109,7 +109,6 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: EqualityExpr): Value = proxyLogging(expression) {
-        val left = when (expression.right) {
         val left = when (expression.left) {
             /* In this case there is a comparison from *HIVAL and a generic Value. Is important to take the right "HIVAL" based of right side. */
             is HiValExpr -> expression.right.type().hiValue()
