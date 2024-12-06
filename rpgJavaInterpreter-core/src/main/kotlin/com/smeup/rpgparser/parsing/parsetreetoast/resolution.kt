@@ -257,8 +257,8 @@ private fun CompilationUnit.resolve() {
     }
 
     this.specificProcess(PlistParam::class.java) { pp ->
-        if (!pp.param.resolved) {
-            pp.param.tryToResolveRecursively(position = pp.position, cu = this)
+        if (!pp.result.resolved) {
+            pp.result.tryToResolveRecursively(position = pp.position, cu = this)
         }
     }
 
