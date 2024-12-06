@@ -25,6 +25,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
 import com.smeup.rpgparser.parsing.ast.encodeToString
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.parsetreetoast.AstHandlingPhase
 import com.smeup.rpgparser.parsing.parsetreetoast.getAstCreationErrors
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
@@ -257,18 +258,19 @@ fun doCompilationAtRuntime(
         "This method can be used just for runtime compilations"
     }
     println("Compiling inputstream to outputstream... ")
-    var cu: CompilationUnit?
+    val cu: CompilationUnit?
     cu = RpgParserFacade().apply {
         this.muteSupport = muteSupport!!
     }.parseAndProduceAst(src)
-    out?.let { out ->
-        if (getAstCreationErrors().isNotEmpty()) {
+    out?.let { stream ->
+        val astConfiguration = MainExecutionContext.getConfiguration().options.toAstConfiguration
+        if (getAstCreationErrors().isNotEmpty() && !astConfiguration.afterPhaseErrorContinue(AstHandlingPhase.Resolution)) {
             throw getAstCreationErrors().first()
         }
         runCatching {
             when (format) {
-                Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
-                Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
+                Format.BIN -> stream.use { it.write(cu.encodeToByteArray()) }
+                Format.JSON -> stream.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
                 else -> error("$format not handled")
             }
         }.onFailure { error ->
