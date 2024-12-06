@@ -62,8 +62,11 @@ internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = T
         todo(conf = conf)
     }
 
-    return when {
-        this.children[0].text.equals("-") && this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf), toPosition(conf.considerPosition))
+    val sign = this.sign()
+    val expression = this.expression()
+    return when (sign.text) {
+        "-" -> NegationExpr(expression.toAst(conf), toPosition(conf.considerPosition))
+        "+" -> expression.toAst(conf)
         else -> todo(conf = conf)
     }
 }
