@@ -806,7 +806,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     /**
      * Define a field of a DS defined with a DIM based on a d-spec constant
-     * @see TODO
+     * @see #LS24005268
      */
     @Test
     fun executeMUDRNRAPU00277() {
