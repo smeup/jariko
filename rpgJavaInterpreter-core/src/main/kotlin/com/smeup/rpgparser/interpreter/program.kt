@@ -64,10 +64,10 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
         return plistParams?.params?.map {
-            val type = cu.getAnyDataDefinition(it.param.name) {
-                "Cannot resolve PARAM: ${it.param.name} in *ENTRY PLIST of the program: $name"
+            val type = cu.getAnyDataDefinition(it.result.name) {
+                "Cannot resolve RESULT: ${it.result.name} in *ENTRY PLIST of the program: $name"
             }.type
-            ProgramParam(it.param.name, type)
+            ProgramParam(it.result.name, type)
         }
             ?: emptyList()
     }
@@ -135,6 +135,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                         "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
                     }
                 }
+
                 if (!initialized) {
                     initialized = true
 
@@ -185,7 +186,14 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                     null
                 )
                 params.keys.forEach { params[it] = interpreter[it] }
-                changedInitialValues = params().map { interpreter[it.name] }
+
+                /* In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+                 *  at the end, if the Factor 2 is declared, replaces the Result with the value of Factor 2.
+                 */
+                changedInitialValues = params().map { param -> this.cu.entryPlist?.params
+                    ?.firstOrNull { plistParamCu -> plistParamCu.result.name.equals(param.name, true) }
+                    .let { it?.factor2?.let { factor2 -> interpreter.eval(factor2) } } ?: interpreter[param.name] }
+
                 // here clear symbol table if needed
                 interpreter.doSomethingAfterExecution()
             }.nanoseconds
