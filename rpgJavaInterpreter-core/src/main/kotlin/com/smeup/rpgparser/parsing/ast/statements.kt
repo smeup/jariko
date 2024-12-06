@@ -111,6 +111,50 @@ interface CompositeStatement {
     val body: List<Statement>
 }
 
+data class UnwrappedStatementData(
+    var statement: Statement,
+    var nextOperationOffset: Int,
+    var parent: UnwrappedStatementData?
+)
+
+interface CustomStatementUnwrap {
+    fun unwrap(parent: UnwrappedStatementData? = null): List<UnwrappedStatementData>
+}
+
+/**
+ * Unwrap statements while keeping their structural data
+ * @see [InterpreterCore.executeUnwrappedAt]
+ */
+fun List<Statement>.unwrap(parent: UnwrappedStatementData? = null): List<UnwrappedStatementData> {
+    val result = mutableListOf<UnwrappedStatementData>()
+    forEach {
+        when (it) {
+            is CustomStatementUnwrap -> {
+                val unwrapped = it.unwrap(parent)
+                result.addAll(unwrapped)
+            }
+            is CompositeStatement -> {
+                val current = UnwrappedStatementData(it, it.body.size, parent)
+                val body = it.body.unwrap(current)
+
+                /**
+                 * body might contain CompositeStatements recursively
+                 * we need to update the offset with the actual body length after unwrapping
+                 */
+                current.nextOperationOffset = body.size
+
+                result.add(current)
+                result.addAll(body)
+            }
+            else -> {
+                val unwrapped = UnwrappedStatementData(it, 0, parent)
+                result.add(unwrapped)
+            }
+        }
+    }
+    return result
+}
+
 fun List<Statement>.explode(preserveCompositeStatement: Boolean = false): List<Statement> {
     val result = mutableListOf<Statement>()
     forEach {
@@ -145,8 +189,8 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
                 interpreter.execute(body)
             }.exceptionOrNull()
 
-            val unwrappedStatements = body.explode(true)
-            val containingCU = unwrappedStatements.firstOrNull()?.getContainingCompilationUnit()
+            val unwrappedStatements = body.unwrap()
+            val containingCU = unwrappedStatements.firstOrNull()?.statement?.getContainingCompilationUnit()
 
             // Recursive deal with goto
             while (throwable is GotoException) {
@@ -157,7 +201,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
                 }
 
                 // If tag is in top level we need to quit subroutine and rollback context to top level
-                val topLevelStatements = containingCU?.main?.stmts?.explode(true)
+                val topLevelStatements = containingCU?.main?.stmts?.unwrap()
                 topLevelStatements?.let {
                     val goto = throwable as GotoException
                     val topLevelIndex = goto.indexOfTaggedStatement(it)
@@ -212,7 +256,7 @@ data class SelectStmt(
     var other: SelectOtherClause? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData, CustomStatementUnwrap {
     override val loggableEntityName: String
         get() = "SELECT"
 
@@ -265,6 +309,47 @@ data class SelectStmt(
             if (other?.body != null) result.addAll(other!!.body.explode(preserveCompositeStatement = true))
             return result
         }
+
+    override fun unwrap(parent: UnwrappedStatementData?): List<UnwrappedStatementData> {
+        val switchStmt = UnwrappedStatementData(this, this.body.size, parent)
+        val casesBodies = this.cases.map { it.body.unwrap(switchStmt) }
+        val otherBody = this.other?.body?.unwrap(switchStmt) ?: emptyList()
+
+        /**
+         * Unwrapped order is like following:
+         * - SELECT statement
+         * - 1 or more WHEN cases body instructions
+         * - optional OTHER with body instructions
+         * - next operation
+         */
+        val totalCasesStatementsCount = casesBodies.sumOf { it.size }
+        val nextOperationAt = totalCasesStatementsCount + otherBody.size
+        switchStmt.nextOperationOffset = nextOperationAt
+
+        /**
+         * Each branch last instruction must point to the end of the SWITCH statement
+         * after unwrapping we need to update the offset of each 'last' statement
+         */
+
+        // Update last pointer in when bodies
+        var alreadyProcessedCasesStatements = 0
+        for (case in casesBodies) {
+            val offsetOfLastStatement = alreadyProcessedCasesStatements + case.size
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            if (case.isNotEmpty()) {
+                case.last().nextOperationOffset = lastStatementMustRedirectTo
+            }
+            alreadyProcessedCasesStatements += case.size
+        }
+
+        // Update last pointer in else body
+        if (otherBody.isNotEmpty()) {
+            val lastStatementMustRedirectTo = nextOperationAt - totalCasesStatementsCount
+            otherBody.last().nextOperationOffset = lastStatementMustRedirectTo
+        }
+
+        return listOf(switchStmt) + casesBodies.flatten() + otherBody
+    }
 }
 
 @Serializable
@@ -851,16 +936,16 @@ data class CallStmt(
             if (it.dataDefinition != null) {
                 // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
-                    if (!interpreter.exists(it.param.name)) {
+                    if (!interpreter.exists(it.result.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
                     } else {
                         interpreter.assign(
-                            interpreter.dataDefinitionByName(it.param.name)!!,
+                            interpreter.dataDefinitionByName(it.result.name)!!,
                             interpreter.eval(it.dataDefinition.initializationValue)
                         )
                     }
                 } else {
-                    if (!interpreter.exists(it.param.name)) {
+                    if (!interpreter.exists(it.result.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
                     }
                 }
@@ -869,12 +954,12 @@ data class CallStmt(
                 // change the value of parameter with initialization value
                 if (it.initializationValue != null) {
                     interpreter.assign(
-                        interpreter.dataDefinitionByName(it.param.name)!!,
+                        interpreter.dataDefinitionByName(it.result.name)!!,
                         interpreter.eval(it.initializationValue)
                     )
                 }
             }
-            targetProgramParams[index].name to interpreter[it.param.name]
+            targetProgramParams[index].name to interpreter[it.result.name]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
@@ -905,10 +990,10 @@ data class CallStmt(
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
                 val currentParam = this.params[index]
-                interpreter.assign(currentParam.param.referred!!, value)
+                interpreter.assign(currentParam.result.referred!!, value)
 
                 // If we also have a result field, assign to it
-                currentParam.result?.let { interpreter.assign(it, value) }
+                currentParam.factor1?.let { interpreter.assign(it, value) }
             }
         }
 
@@ -1060,7 +1145,7 @@ data class IfStmt(
     val elseIfClauses: List<ElseIfClause> = emptyList(),
     val elseClause: ElseClause? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, CustomStatementUnwrap {
     override val loggableEntityName: String
         get() = "IF"
 
@@ -1121,6 +1206,57 @@ data class IfStmt(
                 interpreter.execute(elseClause.body)
             }
         }
+    }
+
+    override fun unwrap(parent: UnwrappedStatementData?): List<UnwrappedStatementData> {
+        val ifStmt = UnwrappedStatementData(this, this.body.size, parent)
+        val thenBody = this.thenBody.unwrap(ifStmt)
+        val elseIfBodies = this.elseIfClauses.map { it.body.unwrap(ifStmt) }
+        val elseBody = this.elseClause?.body?.unwrap(ifStmt) ?: emptyList()
+
+        /**
+         * Unwrapped order is like following:
+         * - IF statement
+         * - THEN body instructions
+         * - 0 or more ELSE IF with body instructions
+         * - optional ELSE with body instructions
+         * - next operation
+         */
+        val totalElseIfStatementsCount = elseIfBodies.sumOf { it.size }
+        val nextOperationAt = thenBody.size + totalElseIfStatementsCount + elseBody.size
+        ifStmt.nextOperationOffset = nextOperationAt
+
+        /**
+         * Each branch last instruction must point to the end of the IF statement
+         * after unwrapping we need to update the offset of each 'last' statement
+         */
+
+        // Update last pointer in then body
+        if (thenBody.isNotEmpty()) {
+            val offsetOfLastStatement = thenBody.size
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            thenBody.last().nextOperationOffset = lastStatementMustRedirectTo
+        }
+
+        // Update last pointer in else if bodies
+        var alreadyProcessedElifStatements = 0
+        for (elif in elseIfBodies) {
+            val offsetOfLastStatement = alreadyProcessedElifStatements + elif.size
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            if (elif.isNotEmpty()) {
+                elif.last().nextOperationOffset = lastStatementMustRedirectTo
+            }
+            alreadyProcessedElifStatements += elif.size
+        }
+
+        // Update last pointer in else body
+        if (elseBody.isNotEmpty()) {
+            val offsetOfLastStatement = thenBody.size + totalElseIfStatementsCount
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            elseBody.last().nextOperationOffset = lastStatementMustRedirectTo
+        }
+
+        return listOf(ifStmt) + thenBody + elseIfBodies.flatten() + elseBody
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
@@ -1209,8 +1345,8 @@ data class PlistStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         params.forEach {
-            if (interpreter.getGlobalSymbolTable().contains(it.param.name)) {
-                interpreter.getGlobalSymbolTable()[it.param.name]
+            if (interpreter.getGlobalSymbolTable().contains(it.result.name)) {
+                interpreter.getGlobalSymbolTable()[it.result.name]
             }
         }
     }
@@ -1225,8 +1361,9 @@ data class PlistStmt(
 
 @Serializable
 data class PlistParam(
-    val result: AssignableExpression?,
-    val param: ReferenceByName<AbstractDataDefinition>,
+    val factor1: AssignableExpression?,
+    val factor2: Expression?,
+    val result: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null,

@@ -283,6 +283,19 @@ open class InternalInterpreter(
                                     }
                                     initialValue
                                 }
+                                /*
+                                 * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+                                 *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
+                                 *  the Factor 1 field.
+                                 */
+                                it.isInPlist(compilationUnit) -> {
+                                    val resultName = it.getResultNameByFactor1(compilationUnit)
+                                    if (resultName == null || initialValues[resultName] is NullValue) {
+                                        blankValue(it)
+                                    } else {
+                                        initialValues[resultName]
+                                    }
+                                }
 
                                 it.initializationValue != null -> eval(it.initializationValue)
                                 it.isCompileTimeArray() -> toArrayValue(
@@ -384,6 +397,45 @@ open class InternalInterpreter(
         }
     }
 
+    /**
+     * Retrieves the result name associated with the current `AbstractDataDefinition` instance
+     * from the parameter list (PList) of the specified `CompilationUnit`.
+     *
+     * This function searches the PList for the first parameter where `factor1` is of type `DataRefExpr`
+     * and its variable name matches the name of the current `AbstractDataDefinition` (case-insensitively).
+     * If such a parameter is found, its associated result name is returned.
+     *
+     * @param compilationUnit the compilation unit whose entry PList is to be checked
+     * @return the result name associated with the matching parameter, or `null` if no match is found
+     */
+    private fun AbstractDataDefinition.getResultNameByFactor1(compilationUnit: CompilationUnit): String? {
+        val resultName = compilationUnit.entryPlist?.params
+            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+            ?.firstOrNull { plistParamFiltered ->
+                (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
+                    this.name,
+                    true
+                )
+            }
+            ?.result?.name
+        return resultName
+    }
+
+    /**
+     * Checks if the current `AbstractDataDefinition` instance is present in the parameter list (PList)
+     * of the specified `CompilationUnit`.
+     *
+     * This function evaluates whether the `AbstractDataDefinition` matches any parameter in the PList
+     * by comparing their names (case-insensitively). Parameters in the PList are filtered to include
+     * only those with a `factor1` of type `DataRefExpr`.
+     *
+     * @param compilationUnit the compilation unit whose entry PList is to be checked
+     * @return `true` if the `AbstractDataDefinition` is present in the PList, otherwise `false`
+     */
+    private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) = compilationUnit.entryPlist?.params
+            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+            ?.any { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(this.name, true) } == true
+
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
         // It is not clear why the compileTimeRecordsPerLine on the array type is null
         // probably it is an error during the ast processing.
@@ -425,7 +477,7 @@ open class InternalInterpreter(
             execute(main.stmts)
         }.exceptionOrNull()
 
-        val unwrappedStatement = main.stmts.explode(true)
+        val unwrappedStatement = main.stmts.unwrap()
 
         // Recursive deal with top level goto flow
         while (throwable is GotoTopLevelException || throwable is GotoException) {
@@ -533,26 +585,12 @@ open class InternalInterpreter(
      * @param unwrappedStatements The unwrapped list of statements. It is up to the caller to ensure statements are unwrapped.
      * @param offset Offset to start the execution from.
      */
-    override fun executeUnwrappedAt(unwrappedStatements: List<Statement>, offset: Int) {
-        /**
-         * As we execute composite statements recursively, trying to sequentially execute
-         * the unwrapped statement list would result in executing every statement multiple times.
-         *
-         * The following instruction associates to each statement the offset to add in order to find
-         * the real next statement to execute in the list.
-         */
-        val offsetAwareStatements = unwrappedStatements.map {
-            WithOffset(
-                data = it,
-                offset = if (it is CompositeStatement) it.body.size else 0
-            )
-        }
-
+    override fun executeUnwrappedAt(unwrappedStatements: List<UnwrappedStatementData>, offset: Int) {
         var index = offset
-        while (index < offsetAwareStatements.size) {
-            val offsetStatement = offsetAwareStatements[index]
-            executeWithMute(offsetStatement.data)
-            index += offsetStatement.offset + 1
+        while (index < unwrappedStatements.size) {
+            val data = unwrappedStatements[index]
+            executeWithMute(data.statement)
+            index += data.nextOperationOffset + 1
         }
     }
 

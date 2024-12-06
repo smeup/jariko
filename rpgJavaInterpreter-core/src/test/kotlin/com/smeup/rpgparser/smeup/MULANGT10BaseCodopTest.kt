@@ -683,4 +683,111 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00275".outputOf(configuration = turnOnZAddLegacyFlagConfig))
     }
+
+    /**
+     * This program tests the moving of value from Factor 2 to Result. This operation is performed at the end of execution of
+     *  program called. In this case, MUDRNRAPU00172_P turn on indicator 35. Later, `DO` block ends its execution.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00172() {
+        val expected = listOf("Sub program", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU00172".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program tests the behaviour of `CALL` and `PLIST` when is used the Params for both between caller and called.
+     * In accord to documentation:
+     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
+     * - when control transfers to called program, the contents of the Result field is placed in the Factor 1 field.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00173() {
+        val expected = listOf("BAR")
+        assertEquals(expected, "smeup/MUDRNRAPU00173".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program tests the behaviour of `CALL` and `PLIST` when is used the Params for both between caller and called.
+     * Also, the called program change the result (`RES`) to another value.
+     * In accord to documentation:
+     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field;
+     * - when control transfers to called program, the contents of the Result field is placed in the Factor 1 field.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00174() {
+        val expected = listOf("BAR")
+        assertEquals(expected, "smeup/MUDRNRAPU00174".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program is more complex. Tests the assignment of value between waterfall calls and by parameters. Each subprogram is
+     *  called max 101 times (last is Jariko error), thanks `DO` statement; this main program calls `MUDRNRAPU00175_P1` which
+     *  calls recursively `MUDRNRAPU00175_P2`.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00175() {
+        val expected = listOf("HELLO")
+        assertEquals(expected, "smeup/MUDRNRAPU00175".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program is more complex. Tests the assignment of value between waterfall calls and by using `EVAL`.
+     * Each subprogram is called max 101 times (last is Jariko error), thanks `DO` statement; this main program calls
+     * `MUDRNRAPU00176_P1` which calls recursively `MUDRNRAPU00176_P2`.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00176() {
+        val expected = listOf("HELLO")
+        assertEquals(expected, "smeup/MUDRNRAPU00176".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program call a sub program by using pre-initialized variables as factors and result. The called program
+     *  doesn't make any assignment.
+     * This tests the full behaviour between a CALLER and CALLED, where:
+     * - caller (at the beginning) move Factor 2 to Result;
+     * - called (at the beginning) move Result to Factor 1;
+     * - called (at the end) move Factor 2 to Result;
+     * - caller (at the end) move Result to Factor 1.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00177() {
+        val expected = listOf("CALLED", "BAR", "", "BAR", "CALLER", "", "BAR", "")
+        assertEquals(expected, "smeup/MUDRNRAPU00177".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program call a sub program by using pre-initialized variables as factors and result. The called program
+     *  doesn't make any assignment.
+     * This tests the full behaviour between a CALLER and CALLED, where:
+     * - caller (at the beginning) move Factor 2 to Result;
+     * - called (at the beginning) move Result to Factor 1;
+     * - caller (at the end) move Result to Factor 1.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00178() {
+        val expected = listOf("CALLED", "BAR", "BAR", "CALLER", "BAR", "BAR", "BAR")
+        assertEquals(expected, "smeup/MUDRNRAPU00178".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program call a sub program by using pre-initialized variables as factors and result. The called program
+     *  doesn't make any assignment.
+     * This tests the full behaviour between a CALLER and CALLED, where:
+     * - called (at the beginning) move Result to Factor 1;
+     * - caller (at the end) move Result to Factor 1.
+     * @see #LS24005158
+     */
+    @Test
+    fun executeMUDRNRAPU00179() {
+        val expected = listOf("CALLED", "BAZ", "BAZ", "CALLER", "BAZ", "BAZ")
+        assertEquals(expected, "smeup/MUDRNRAPU00179".outputOf(configuration = smeupConfig))
+    }
 }
