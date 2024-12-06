@@ -675,6 +675,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * CHECKR with indexed expression based on a Data Reference
+     * @see #LS24005243
+     */
+    @Test
+    fun executeMUDRNRAPU00275() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00275".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
      * This program tests the moving of value from Factor 2 to Result. This operation is performed at the end of execution of
      *  program called. In this case, MUDRNRAPU00172_P turn on indicator 35. Later, `DO` block ends its execution.
      * @see #LS24005158
