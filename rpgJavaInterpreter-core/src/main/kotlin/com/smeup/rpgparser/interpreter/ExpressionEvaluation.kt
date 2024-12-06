@@ -109,18 +109,32 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: EqualityExpr): Value = proxyLogging(expression) {
-        val left = when (expression.left) {
-            /* In this case there is a comparison from *HIVAL and a generic Value. Is important to take the right "HIVAL" based of right side. */
-            is HiValExpr -> expression.right.type().hiValue()
-            // TODO: To provide, in the future, other cases by using special keyword.
-            else -> expression.left.evalWith(this)
+        /**
+         * Evaluates and retrieves a `Value` based on the provided expressions.
+         *
+         * This function handles special cases, such as comparisons involving `*HIVAL`.
+         * When one of the expressions is `*HIVAL`, the appropriate high value is determined
+         * based on the type of the other expression. For all other cases, the first expression
+         * is evaluated using the current context.
+         *
+         * Either `expression1` or `expression2` can represent the left or right side of the evaluation,
+         * making their roles interchangeable in this context.
+         *
+         * @param expression1 one of the expressions to evaluate
+         * @param expression2 the other expression, used to determine the appropriate `*HIVAL` value when applicable
+         * @return the evaluated `Value` based on the expressions
+         */
+        fun getValue(expression1: Expression, expression2: Expression): Value {
+            return when (expression1) {
+                /* In this case there is a comparison from *HIVAL and a generic Value. Is important to take the right "HIVAL" based the other side. */
+                is HiValExpr -> expression2.type().hiValue()
+                // TODO: To provide, in the future, other cases by using special keyword.
+                else -> expression1.evalWith(this)
+            }
         }
-        val right = when (expression.right) {
-            /* In this case there is a comparison from *HIVAL and a generic Value. Is important to take the right "HIVAL" based of left side. */
-            is HiValExpr -> expression.left.type().hiValue()
-            // TODO: To provide, in the future, other cases by using special keyword.
-            else -> expression.right.evalWith(this)
-        }
+
+        val left = getValue(expression1 = expression.left, expression2 = expression.right)
+        val right = getValue(expression1 = expression.right, expression2 = expression.left)
         areEquals(left, right).asValue()
     }
 
