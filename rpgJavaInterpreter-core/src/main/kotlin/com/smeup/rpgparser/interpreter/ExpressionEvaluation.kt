@@ -110,7 +110,12 @@ class ExpressionEvaluation(
 
     override fun eval(expression: EqualityExpr): Value = proxyLogging(expression) {
         val left = expression.left.evalWith(this)
-        val right = expression.right.evalWith(this)
+        val right = when (expression.right) {
+            /* In this case there is a comparison from *HIVAL and a generic Value. Is important to take the right "HIVAL" based of left side. */
+            is HiValExpr -> expression.left.type().hiValue()
+            // TODO: To provide, in the future, other cases by using special keyword.
+            else -> expression.right.evalWith(this)
+        }
         areEquals(left, right).asValue()
     }
 
