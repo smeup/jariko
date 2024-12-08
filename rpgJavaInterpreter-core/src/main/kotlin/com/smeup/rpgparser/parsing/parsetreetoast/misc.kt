@@ -26,6 +26,7 @@ import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
+import com.smeup.rpgparser.utils.mapNotNullOrError
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -117,9 +118,19 @@ private fun List<StatementContext?>.getDataDefinition(
     /**
      * Statements sorting to accommodate processing needs
      * Step 1: Move the D specs with like because depending on other D specs definitions
-     * Step 2: Move statements marked as CONST to the start because they might be used as a dependency
+     * Step 2: Split statements marked as CONST from the rest
      */
-    val sortedStatements = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf).moveConstantsToStart()
+    val (constants, sortedStatements) = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf).splitConstants()
+
+    // Define constants
+    val constantProviders = constants.getValidDataDefinitionHolders(
+        conf = conf,
+        knownDataDefinitions = knownDataDefinitions,
+        fileDefinitions = fileDefinitions,
+        parentDataDefinitions = parentDataDefinitions,
+        procedureName = procedureName
+    )
+    dataDefinitionProviders.addAll(constantProviders)
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
@@ -133,34 +144,40 @@ private fun List<StatementContext?>.getDataDefinition(
     dataDefinitionProviders.addAll(firstPassProviders)
 
     // Second pass, everything, I mean everything
-    val secondPassProviders = sortedStatements.mapNotNull {
-        kotlin.runCatching {
-            when {
-                it.dspec() != null -> {
-                    it.dspec()
-                        .toAst(
-                            conf = conf,
-                            knownDataDefinitions = knownDataDefinitions.values.toList(),
-                            parentDataDefinitions = parentDataDefinitions,
-                            fileDefinitions = fileDefinitions,
-                            procedureName = procedureName
-                        )
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-
-                it.dcl_c() != null -> {
-                    it.dcl_c()
-                        .toAst(conf)
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-
-                else -> null
-            }
-        }.getOrNull()
-    }
+    val secondPassProviders = sortedStatements.getValidDataDefinitionHolders(
+        conf = conf,
+        knownDataDefinitions = knownDataDefinitions,
+        fileDefinitions = fileDefinitions,
+        parentDataDefinitions = parentDataDefinitions,
+        procedureName = procedureName
+    )
     dataDefinitionProviders.addAll(secondPassProviders)
 
     return Pair(dataDefinitionProviders, knownDataDefinitions)
+}
+
+private fun List<StatementContext>.getValidDataDefinitionHolders(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: KnownDataDefinitionInstance,
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
+    parentDataDefinitions: List<DataDefinition>? = null,
+    procedureName: String? = null
+): List<DataDefinitionHolder> {
+    return this.mapNotNullOrError {
+        when {
+            it.dspec() != null -> {
+                it.dspec().toAst(
+                    conf = conf,
+                    knownDataDefinitions = knownDataDefinitions.values.toList(),
+                    parentDataDefinitions = parentDataDefinitions,
+                    fileDefinitions = fileDefinitions,
+                    procedureName = procedureName
+                ).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+            }
+            it.dcl_c() != null -> it.dcl_c().toAst(conf).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+            else -> null
+        }
+    }
 }
 
 private fun RContext.getDataDefinitions(
@@ -187,16 +204,16 @@ private fun List<StatementContext>.moveLikeStatementToTheEnd(conf: ToAstConfigur
     return otherStatements + likeStatements
 }
 
-private fun List<StatementContext>.moveConstantsToStart(): List<StatementContext> {
+private fun List<StatementContext>.splitConstants(): Pair<List<StatementContext>, List<StatementContext>> {
     val constantStatements = this.filter { it.isConstant() }
     val otherStatements = this.filter { !it.isConstant() }
 
-    return constantStatements + otherStatements
+    return Pair(constantStatements, otherStatements)
 }
 
 private fun StatementContext.isConstant() = when {
     this.dcl_c() != null -> this.dcl_c().keyword_const() != null
-    this.dspec() != null -> this.dspec().keyword().any { keyword -> keyword.keyword_const() != null }
+    this.dspec() != null -> this.dspec().keyword().any { keyword -> keyword.keyword_const() != null } || this.dspec().dspecConstant() != null
     else -> false
 }
 
@@ -621,7 +638,7 @@ private fun StatementContext.toDataDefinitionProvider(
                             knownDataDefinitions = knownDataDefinitions.values,
                             parentDataDefinitions = parentDataDefinitions,
                             fileDefinitions = fileDefinitions
-                        )?.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        ).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
                     null
