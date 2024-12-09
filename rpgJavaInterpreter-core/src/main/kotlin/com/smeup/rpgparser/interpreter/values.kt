@@ -807,6 +807,13 @@ object HiValValue : Value {
     override fun asString(): StringValue {
         TODO("Not yet implemented")
     }
+
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is StringValue -> other.hiValue() == other
+            else -> false
+        }
+    }
 }
 
 object LowValValue : Value {
