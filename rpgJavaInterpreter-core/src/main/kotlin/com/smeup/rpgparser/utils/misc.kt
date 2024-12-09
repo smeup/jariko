@@ -179,3 +179,7 @@ internal fun Node.getContainingCompilationUnit() = ancestor(CompilationUnit::cla
 internal fun List<UnwrappedStatementData>.indexOfTag(tag: String) = indexOfFirst {
     it.statement is TagStmt && (it.statement as TagStmt).tag.lowercase() == tag.lowercase()
 }
+
+internal inline fun <T, R> Iterable<T>.mapNotNullOrError(transform: (T) -> R?): List<R> {
+    return this.mapNotNull { kotlin.runCatching { transform(it) }.getOrNull() }
+}
