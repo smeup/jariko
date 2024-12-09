@@ -331,6 +331,13 @@ fun Type.hiValue(): Value {
     }
 }
 
+fun Value.hiValue(): Value {
+    return when (this) {
+        is StringValue -> StringValue(hiValueString(this.value.length))
+        else -> TODO("Converting HiValValue to $this")
+    }
+}
+
 private fun computeHiValue(type: NumberType): Value {
     // Packed and Zone
     if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
