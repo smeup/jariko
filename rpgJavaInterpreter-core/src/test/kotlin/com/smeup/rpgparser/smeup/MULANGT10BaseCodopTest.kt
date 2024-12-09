@@ -810,4 +810,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("TRUE", "END")
         assertEquals(expected, "smeup/MUDRNRAPU00181".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Assign a new value to a DS preserving the original DS size.
+     * @see #LS24005305
+     */
+    @Test
+    fun executeMUDRNRAPU00182() {
+        val expected = listOf("      ", "FOO", "BAR", "BARX")
+        assertEquals(expected, "smeup/MUDRNRAPU00182".outputOf(configuration = smeupConfig))
+    }
 }
