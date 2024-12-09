@@ -790,4 +790,24 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("CALLED", "BAZ", "BAZ", "CALLER", "BAZ", "BAZ")
         assertEquals(expected, "smeup/MUDRNRAPU00179".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * IF comparison by using *HIVAL, right side.
+     * @see #LS24005305
+     */
+    @Test
+    fun executeMUDRNRAPU00180() {
+        val expected = listOf("TRUE", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00180".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * IF comparison by using *HIVAL, left side.
+     * @see #LS24005305
+     */
+    @Test
+    fun executeMUDRNRAPU00181() {
+        val expected = listOf("TRUE", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00181".outputOf(configuration = smeupConfig))
+    }
 }
