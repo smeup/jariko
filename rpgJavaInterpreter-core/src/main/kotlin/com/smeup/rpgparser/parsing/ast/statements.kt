@@ -817,9 +817,9 @@ data class SetgtStmt(
 
 @Serializable
 data class CheckStmt(
-    val comparatorString: Expression, // Factor1
-    val baseString: Expression,
-    val start: Int = 1,
+    var comparatorString: Expression, // Factor1
+    var baseString: Expression,
+    var startPosition: Expression?,
     val wrongCharPosition: AssignableExpression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -828,9 +828,10 @@ data class CheckStmt(
         get() = "CHECK"
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
-            baseString = baseString.padEnd(this.baseString.size())
+            baseString = baseString.padEnd((this.baseString as DataRefExpr).size())
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
@@ -854,9 +855,9 @@ data class CheckStmt(
 
 @Serializable
 data class CheckrStmt(
-    val comparatorString: Expression, // Factor1
-    val baseString: Expression,
-    val start: Int = 1,
+    var comparatorString: Expression, // Factor1
+    var baseString: Expression,
+    var startPosition: Expression?,
     val wrongCharPosition: AssignableExpression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -865,9 +866,10 @@ data class CheckrStmt(
         get() = "CHECKR"
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
-            baseString = baseString.padEnd(this.baseString.size())
+            baseString = baseString.padEnd((this.baseString as DataRefExpr).size())
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
@@ -2351,10 +2353,10 @@ data class LookupStmt(
 
 @Serializable
 data class ScanStmt(
-    val left: Expression,
-    val leftLength: Int?,
-    val right: Expression,
-    val startPosition: Expression?,
+    var left: Expression,
+    var leftLengthExpression: Expression?,
+    var right: Expression,
+    var startPosition: Expression?,
     val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2364,6 +2366,7 @@ data class ScanStmt(
         get() = "SCAN"
 
     override fun execute(interpreter: InterpreterCore) {
+        val leftLength = leftLengthExpression?.let { interpreter.eval(it).asString().value.toInt() }
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
 
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
@@ -2589,10 +2592,10 @@ data class CloseStmt(
  */
 @Serializable
 data class XlateStmt(
-    val from: Expression,
-    val to: Expression,
-    val string: Expression,
-    val startPos: Int,
+    var from: Expression,
+    var to: Expression,
+    var string: Expression,
+    var startPosition: Expression?,
     val target: AssignableExpression,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2604,7 +2607,7 @@ data class XlateStmt(
     override fun execute(interpreter: InterpreterCore) {
         val originalChars = interpreter.eval(from).asString().value
         val newChars = interpreter.eval(to).asString().value
-        val start = startPos
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         val s = interpreter.eval(string).asString().value
         val pair = s.divideAtIndex(start - 1)
         var right = pair.second

@@ -2582,6 +2582,12 @@ Test 6
     }
 
     @Test
+    fun executeFUNCALLMUTABILITY() {
+        val expected = listOf("ok")
+        assertEquals(expected, "FUNCALLMUTABILITY".outputOf())
+    }
+
+    @Test
     fun missingDefinitionOnPListShouldThrowResolutionError() {
         val systemInterface = JavaSystemInterface()
 
