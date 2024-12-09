@@ -685,6 +685,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * Unary expression with '+'
+     * @see #LS24005278
+     */
+    @Test
+    fun executeMUDRNRAPU00278() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/MUDRNRAPU00278".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * This program tests the moving of value from Factor 2 to Result. This operation is performed at the end of execution of
      *  program called. In this case, MUDRNRAPU00172_P turn on indicator 35. Later, `DO` block ends its execution.
      * @see #LS24005158
