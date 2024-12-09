@@ -1464,7 +1464,7 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
-    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+    val (expression, startExpression) = this.cspec_fixed_standard_parts().factor2.toPositionalExpression(conf)
 
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
@@ -1480,7 +1480,7 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     return CheckStmt(
         factor1,
         expression,
-        startPosition ?: 1,
+        startExpression,
         wrongCharExpression,
         dataDefinition,
         position
@@ -1518,7 +1518,7 @@ private fun FactorContext.toPositionalExpression(conf: ToAstConfiguration): Pair
     // factor is formed by TEXT:B
     // where "TEXT" is the content to be referenced positionally
     val expression = this.factorContent(0).toAst(conf)
-    val positionExpression = if (this.factorContent().isNotEmpty()) {
+    val positionExpression = if (this.factorContent().size > 1) {
         this.factorContent(1).toAst(conf)
     } else null
 

@@ -817,9 +817,9 @@ data class SetgtStmt(
 
 @Serializable
 data class CheckStmt(
-    val comparatorString: Expression, // Factor1
-    val baseString: Expression,
-    val start: Int = 1,
+    var comparatorString: Expression, // Factor1
+    var baseString: Expression,
+    var startPosition: Expression?,
     val wrongCharPosition: AssignableExpression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -828,9 +828,10 @@ data class CheckStmt(
         get() = "CHECK"
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
-            baseString = baseString.padEnd(this.baseString.size())
+            baseString = baseString.padEnd((this.baseString as DataRefExpr).size())
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
