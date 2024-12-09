@@ -2353,10 +2353,10 @@ data class LookupStmt(
 
 @Serializable
 data class ScanStmt(
-    val left: Expression,
-    val leftLength: Int?,
-    val right: Expression,
-    val startPosition: Expression?,
+    var left: Expression,
+    var leftLengthExpression: Expression?,
+    var right: Expression,
+    var startPosition: Expression?,
     val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2366,6 +2366,7 @@ data class ScanStmt(
         get() = "SCAN"
 
     override fun execute(interpreter: InterpreterCore) {
+        val leftLength = leftLengthExpression?.let { interpreter.eval(it).asString().value.toInt() }
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
 
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
@@ -2591,10 +2592,10 @@ data class CloseStmt(
  */
 @Serializable
 data class XlateStmt(
-    val from: Expression,
-    val to: Expression,
-    val string: Expression,
-    val startPos: Int,
+    var from: Expression,
+    var to: Expression,
+    var string: Expression,
+    var startPosition: Expression?,
     val target: AssignableExpression,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2606,7 +2607,7 @@ data class XlateStmt(
     override fun execute(interpreter: InterpreterCore) {
         val originalChars = interpreter.eval(from).asString().value
         val newChars = interpreter.eval(to).asString().value
-        val start = startPos
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         val s = interpreter.eval(string).asString().value
         val pair = s.divideAtIndex(start - 1)
         var right = pair.second
