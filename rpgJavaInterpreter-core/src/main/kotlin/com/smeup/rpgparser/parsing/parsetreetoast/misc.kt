@@ -1447,13 +1447,7 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
     val target = if (result.text.isNotBlank()) result.toAst(conf) else null
 
-    val baseExpression = factor2.factorContent(0).toAst(conf)
-    val positionExpression =
-        if (factor2.factorContent().size > 1) {
-            factor2.factorContent(1).toAst(conf)
-        } else {
-            null
-        }
+    val (baseExpression, positionExpression) = factor2.toPositionalExpression(conf)
 
     return ScanStmt(
         left = compareExpression,
@@ -1497,13 +1491,7 @@ internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
     val factor2 = this.cspec_fixed_standard_parts().factor2
-    // factor2 is formed by TEXT:B
-    // where "TEXT" is the content to be substringed
-    val expression = this.cspec_fixed_standard_parts().factor2.factorContent(0).toAst(conf)
-    // and  "B" is the start position to substring, if not specified it returns null
-    val positionExpression = if (factor2.factorContent().size > 1) {
-        factor2.factorContent(1).toAst(conf)
-    } else null
+    val (expression, positionExpression) = factor2.toPositionalExpression(conf)
 
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
@@ -1524,6 +1512,17 @@ internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
         dataDefinition,
         position
     )
+}
+
+private fun FactorContext.toPositionalExpression(conf: ToAstConfiguration): Pair<Expression, Expression?> {
+    // factor is formed by TEXT:B
+    // where "TEXT" is the content to be referenced positionally
+    val expression = this.factorContent(0).toAst(conf)
+    val positionExpression = if (this.factorContent().isNotEmpty()) {
+        this.factorContent(1).toAst(conf)
+    } else null
+
+    return expression to positionExpression
 }
 
 private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
@@ -2035,17 +2034,7 @@ internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     // Left expression contain length
     val length = leftExpr(conf)
 
-    // factor2 is formed by TEXT:B
-    // where "TEXT" is the content to be substringed
-    val stringExpression = this.cspec_fixed_standard_parts().factor2.factorContent(0).toAst(conf)
-    // and  "B" is the start position to substring, if not specified it returns null
-    val positionExpression =
-        if (this.cspec_fixed_standard_parts().factor2.factorContent().size > 1) {
-            this.cspec_fixed_standard_parts().factor2.factorContent(1).toAst(conf)
-        } else {
-            null
-        }
-
+    val (stringExpression, positionExpression) = this.cspec_fixed_standard_parts().factor2.toPositionalExpression(conf)
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
 
