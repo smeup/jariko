@@ -1174,29 +1174,41 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistParam {
-    var paramName = this.cspec_fixed_standard_parts().result.text
-    if (paramName.contains(".")) {
-        val parts = paramName.split(".")
+    var resultName = this.cspec_fixed_standard_parts().result.text
+    if (resultName.contains(".")) {
+        val parts = resultName.split(".")
         require(parts.isNotEmpty())
-        paramName = parts.last()
+        resultName = parts.last()
     }
-    // initialization value valid only if there isn't a variable declaration
-    val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
-        this.cspec_fixed_standard_parts().factor2Expression(conf)
+    val resultPosition = this.cspec_fixed_standard_parts().result.toPosition()
+
+    val factor1Text = this.factor1.text.trim()
+    val factor1Position = this.factor1.toPosition(conf.considerPosition)
+
+    val factor1Expression = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
+    val factor2Expression = this.cspec_fixed_standard_parts().factor2Expression(conf)
+
+    /*
+     * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+     * - when `CALL` is processed, the content of Factor 2 is placed in the Result field. So. is considered Factor 2 value;
+     * - when control transfers to called program, the contents of the Result field is placed in
+     *    the Factor 1 field. So, is considered Result Value.
+     */
+    val initializationValue = if (this.parent is CsCALLContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
+        factor2Expression
+    } else if (this.parent is CsPLISTContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
+        annidatedReferenceExpression(resultName, resultPosition)
     } else {
         null
     }
 
-    val factor1Text = this.factor1.text.trim()
-    val factor1Position = this.factor1.toPosition(conf.considerPosition)
-    val result = if (factor1Text.isNotEmpty()) annidatedReferenceExpression(factor1Text, factor1Position) else null
-
     val position = toPosition(conf.considerPosition)
     return PlistParam(
-        result,
-        ReferenceByName(paramName),
+        factor1Expression,
+        factor2Expression,
+        ReferenceByName(resultName),
         this.cspec_fixed_standard_parts().toDataDefinition(
-            paramName,
+            resultName,
             position,
             conf
         ),

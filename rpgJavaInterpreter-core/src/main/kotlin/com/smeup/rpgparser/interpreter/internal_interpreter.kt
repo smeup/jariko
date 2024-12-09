@@ -283,6 +283,19 @@ open class InternalInterpreter(
                                     }
                                     initialValue
                                 }
+                                /*
+                                 * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
+                                 *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
+                                 *  the Factor 1 field.
+                                 */
+                                it.isInPlist(compilationUnit) -> {
+                                    val resultName = it.getResultNameByFactor1(compilationUnit)
+                                    if (resultName == null || initialValues[resultName] is NullValue) {
+                                        blankValue(it)
+                                    } else {
+                                        initialValues[resultName]
+                                    }
+                                }
 
                                 it.initializationValue != null -> eval(it.initializationValue)
                                 it.isCompileTimeArray() -> toArrayValue(
@@ -383,6 +396,45 @@ open class InternalInterpreter(
             renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
         }
     }
+
+    /**
+     * Retrieves the result name associated with the current `AbstractDataDefinition` instance
+     * from the parameter list (PList) of the specified `CompilationUnit`.
+     *
+     * This function searches the PList for the first parameter where `factor1` is of type `DataRefExpr`
+     * and its variable name matches the name of the current `AbstractDataDefinition` (case-insensitively).
+     * If such a parameter is found, its associated result name is returned.
+     *
+     * @param compilationUnit the compilation unit whose entry PList is to be checked
+     * @return the result name associated with the matching parameter, or `null` if no match is found
+     */
+    private fun AbstractDataDefinition.getResultNameByFactor1(compilationUnit: CompilationUnit): String? {
+        val resultName = compilationUnit.entryPlist?.params
+            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+            ?.firstOrNull { plistParamFiltered ->
+                (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
+                    this.name,
+                    true
+                )
+            }
+            ?.result?.name
+        return resultName
+    }
+
+    /**
+     * Checks if the current `AbstractDataDefinition` instance is present in the parameter list (PList)
+     * of the specified `CompilationUnit`.
+     *
+     * This function evaluates whether the `AbstractDataDefinition` matches any parameter in the PList
+     * by comparing their names (case-insensitively). Parameters in the PList are filtered to include
+     * only those with a `factor1` of type `DataRefExpr`.
+     *
+     * @param compilationUnit the compilation unit whose entry PList is to be checked
+     * @return `true` if the `AbstractDataDefinition` is present in the PList, otherwise `false`
+     */
+    private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) = compilationUnit.entryPlist?.params
+            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+            ?.any { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(this.name, true) } == true
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
         // It is not clear why the compileTimeRecordsPerLine on the array type is null
