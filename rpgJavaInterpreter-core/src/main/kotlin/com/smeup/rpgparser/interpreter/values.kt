@@ -117,10 +117,9 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (other is StringValue) {
-            this.value == other.value
-        } else {
-            false
+        return when (other) {
+            is StringValue -> this.value == other.value
+            else -> false
         }
     }
 
