@@ -331,6 +331,13 @@ fun Type.hiValue(): Value {
     }
 }
 
+fun Value.hiValue(): Value {
+    return when (this) {
+        is StringValue -> StringValue(hiValueString(this.value.length))
+        else -> TODO("Converting HiValValue to $this")
+    }
+}
+
 private fun computeHiValue(type: NumberType): Value {
     // Packed and Zone
     if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
@@ -372,16 +379,6 @@ private fun computeHiValue(type: NumberType): Value {
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
 
-private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type))
-
-private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type))
-
-// TODO
-fun lowValueString(type: StringType) = " ".repeat(type.size)
-
-// TODO
-fun hiValueString(type: StringType) = "\uFFFF".repeat(type.size)
-
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
     if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType.isNullOrBlank()) {
@@ -414,3 +411,13 @@ private fun computeLowValue(type: NumberType): Value {
     }
     TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
+
+private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type.size))
+
+private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type.size))
+
+// TODO
+private fun hiValueString(size: Int) = "\uFFFF".repeat(size)
+
+// TODO
+private fun lowValueString(size: Int) = " ".repeat(size)
