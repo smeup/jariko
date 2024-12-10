@@ -805,6 +805,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Define a field of a DS defined with a DIM based on a d-spec constant
+     * @see #LS24005268
+     */
+    @Test
+    fun executeMUDRNRAPU00277() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00277".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Truncation of number by using Z-ADD. The source is greater than destination.
      * Source and destination are integer.
      * @see #LS24005040

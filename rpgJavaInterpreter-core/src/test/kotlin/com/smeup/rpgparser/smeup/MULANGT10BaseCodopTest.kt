@@ -675,6 +675,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * CHECKR with indexed expression based on a Data Reference
+     * @see #LS24005243
+     */
+    @Test
+    fun executeMUDRNRAPU00275() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00275".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
      * Unary expression with '+'
      * @see #LS24005278
      */
@@ -809,6 +819,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU00181() {
         val expected = listOf("TRUE", "END")
         assertEquals(expected, "smeup/MUDRNRAPU00181".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assign a new value to a DS preserving the original DS size.
+     * @see #LS24005314
+     */
+    @Test
+    fun executeMUDRNRAPU00182() {
+        val expected = listOf("", "FOO", "BAR", "BARX")
+        assertEquals(expected, "smeup/MUDRNRAPU00182".outputOf(configuration = smeupConfig))
     }
 
     /**
