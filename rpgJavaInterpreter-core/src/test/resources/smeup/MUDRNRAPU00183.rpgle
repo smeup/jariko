@@ -8,14 +8,14 @@
     O * JARIKO ANOMALY
     O * The expression is not evaluated when it's true.
      V* ==============================================================
-     D$$AZIE           S              2    DIM(100) INZ('FF')
+     D ARR01           S              2    DIM(10) INZ('FF')
 
-     C                   IF        *HIVAL<>$$AZIE(1)
+     C                   IF        *HIVAL<>ARR01(1)
      C     'TRUE'        DSPLY
      C                   ENDIF
      C     'END'         DSPLY
 
-     C                   IF        $$AZIE(1)<>*HIVAL
+     C                   IF        ARR01(1)<>*HIVAL
      C     'TRUE'        DSPLY
      C                   ENDIF
      C     'END'         DSPLY
