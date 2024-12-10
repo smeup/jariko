@@ -21,6 +21,7 @@ import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.preprocess
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
 import org.junit.Test
@@ -224,7 +225,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.dumpSourceOnExecutionError = true
+        configuration.options.dumpSourceOnExecutionError = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
@@ -254,7 +255,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.dumpSourceOnExecutionError = true
+        configuration.options.dumpSourceOnExecutionError = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
@@ -291,7 +292,7 @@ class MiscTest {
             println("Redirecting stderr")
             System.setErr(ps)
             configuration.options = Options()
-            configuration.options!!.dumpSourceOnExecutionError = true
+            configuration.options.dumpSourceOnExecutionError = true
             kotlin.runCatching {
                 getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
             }.onFailure {
@@ -332,10 +333,10 @@ class MiscTest {
         val expectedLines = listOf(9, 10)
         val dir = File("src/test/resources")
         File(dir, "ERROR35.rpgle").inputStream().use { src ->
-            var errorLines = mutableListOf<Int>()
+            val errorLines = mutableListOf<Int>()
             val configuration = Configuration().apply {
                 jarikoCallback.onError = { errorEvent ->
-                    errorEvent?.sourceReference?.relativeLine?.let {
+                    errorEvent.sourceReference?.relativeLine?.let {
                         errorLines.add(it)
                     }
                 }
@@ -352,6 +353,30 @@ class MiscTest {
                 fail("ERROR35 cannot be compiled")
             }
             assertEquals(expected = expectedLines.sorted(), actual = errorLines.sorted())
+        }
+    }
+
+    @Test
+    fun pgmWithErrorCouldBeSerialized() {
+        // Based on afterPhaseErrorContinue also pgm will be serialized
+
+        val configuration = Configuration().apply {
+            // I ignore every error
+            options.toAstConfiguration.afterPhaseErrorContinue = { _ -> true }
+        }
+        javaClass.getResource("/ERROR21.rpgle").also { resource ->
+            require(resource != null) { "Resource not found: /ERROR21.rpgle" }
+            val path = File(resource.path).parentFile
+            val programFinders = listOf(DirRpgProgramFinder(path), DirRpgProgramFinder(path))
+            resource.openStream().use { inputStream ->
+                compile(
+                    src = inputStream,
+                    out = ByteArrayOutputStream(),
+                    format = Format.BIN,
+                    programFinders = programFinders,
+                    configuration = configuration
+                )
+            }
         }
     }
 }
