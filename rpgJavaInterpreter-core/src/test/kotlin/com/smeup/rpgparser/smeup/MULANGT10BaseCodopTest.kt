@@ -813,7 +813,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
 
     /**
      * Assign a new value to a DS preserving the original DS size.
-     * @see #LS24005305
+     * @see #LS24005314
      */
     @Test
     fun executeMUDRNRAPU00182() {
