@@ -211,7 +211,7 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
-            is HiValValue -> if (this == this.hiValue()) 0 else -1
+            is HiValValue -> if (this == this.hiValue()) EQUAL else SMALLER
             is BlanksValue -> if (this.isBlank()) EQUAL else SMALLER
             is BooleanValue -> if (this.value.isInt() && this.value.toInt() == other.value.toInt()) EQUAL else GREATER
             else -> super.compareTo(other)
@@ -804,8 +804,8 @@ object HiValValue : Value {
 
     override operator fun compareTo(other: Value): Int {
         return when (other) {
-            is StringValue -> if (other.hiValue() == other) 0 else 1
-            else -> if (other is HiValValue) 0 else 1
+            is StringValue -> if (other.hiValue() == other) EQUAL else GREATER
+            else -> if (other is HiValValue) EQUAL else GREATER   // TODO: Is much generic. Provide atomic cases.
         }
     }
 
