@@ -805,7 +805,8 @@ object HiValValue : Value {
     override operator fun compareTo(other: Value): Int {
         return when (other) {
             is StringValue -> if (other.hiValue() == other) EQUAL else GREATER
-            else -> if (other is HiValValue) EQUAL else GREATER   // TODO: Is much generic. Provide atomic cases.
+            // TODO: Is much generic. Provide atomic cases.
+            else -> if (other is HiValValue) EQUAL else GREATER
         }
     }
 
