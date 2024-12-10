@@ -1464,17 +1464,11 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
     val target = if (result.text.isNotBlank()) result.toAst(conf) else null
 
-    val baseExpression = factor2.factorContent(0).toAst(conf)
-    val positionExpression =
-        if (factor2.factorContent().size > 1) {
-            factor2.factorContent(1).toAst(conf)
-        } else {
-            null
-        }
+    val (baseExpression, positionExpression) = factor2.toIndexedExpression(conf)
 
     return ScanStmt(
         left = compareExpression,
-        leftLength = compareLength,
+        leftLengthExpression = compareLength,
         right = baseExpression,
         startPosition = positionExpression,
         target = target,
@@ -1487,7 +1481,7 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
-    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+    val (expression, startExpression) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
 
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
@@ -1503,7 +1497,7 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     return CheckStmt(
         factor1,
         expression,
-        startPosition ?: 1,
+        startExpression,
         wrongCharExpression,
         dataDefinition,
         position
@@ -1513,7 +1507,8 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
-    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2
+    val (expression, positionExpression) = factor2.toIndexedExpression(conf)
 
     val result = this.cspec_fixed_standard_parts().result
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
@@ -1529,11 +1524,22 @@ internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
     return CheckrStmt(
         factor1,
         expression,
-        startPosition ?: 1,
+        positionExpression,
         wrongCharExpression,
         dataDefinition,
         position
     )
+}
+
+private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Expression, Expression?> {
+    // factor is formed by TEXT:B
+    // where "TEXT" is the content to be referenced positionally
+    val expression = this.factorContent(0).toAst(conf)
+    val positionExpression = if (this.factorContent().size > 1) {
+        this.factorContent(1).toAst(conf)
+    } else null
+
+    return expression to positionExpression
 }
 
 private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
@@ -1552,29 +1558,6 @@ private fun String.toDoubleExpression(position: Position?, index: Int): Expressi
         DataRefExpr(ReferenceByName(reference), position)
     }
     return ret
-}
-
-private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Expression, Int?> =
-    if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
-
-private fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
-    val quoteAwareSplitPattern = Regex(""":(?=([^']*'[^']*')*[^']*$)""")
-    val baseStringTokens = this.split(quoteAwareSplitPattern)
-
-    val startPosition =
-        when (baseStringTokens.size) {
-            !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression at line ${position?.line()}: $this")
-            2 -> baseStringTokens[1].toInt()
-            else -> null
-        }
-    val reference = baseStringTokens[0]
-    return when {
-        reference.isStringLiteral() -> StringLiteral(reference.trim('\''), position)
-        reference.contains('(') && reference.endsWith(")") -> {
-            annidatedReferenceExpression(this, position)
-        }
-        else -> DataRefExpr(ReferenceByName(reference), position)
-    } to startPosition
 }
 
 internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveAStmt {
@@ -2045,17 +2028,7 @@ internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     // Left expression contain length
     val length = leftExpr(conf)
 
-    // factor2 is formed by TEXT:B
-    // where "TEXT" is the content to be substringed
-    val stringExpression = this.cspec_fixed_standard_parts().factor2.factorContent(0).toAst(conf)
-    // and  "B" is the start position to substring, if not specified it returns null
-    val positionExpression =
-        if (this.cspec_fixed_standard_parts().factor2.factorContent().size > 1) {
-            this.cspec_fixed_standard_parts().factor2.factorContent(1).toAst(conf)
-        } else {
-            null
-        }
-
+    val (stringExpression, positionExpression) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
 
@@ -2100,8 +2073,8 @@ internal fun CsXLATEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         from = from,
         to = to,
         string = string,
-        startPos = startPosition ?: 1,
-        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        startPosition = startPosition,
+        target = this.cspec_fixed_standard_parts().result.toAst(conf),
         rightIndicators = rightIndicators,
         dataDefinition = dataDefinition,
         position = position

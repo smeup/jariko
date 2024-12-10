@@ -675,6 +675,16 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
+     * CHECKR with indexed expression based on a Data Reference
+     * @see #LS24005243
+     */
+    @Test
+    fun executeMUDRNRAPU00275() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00275".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
      * Unary expression with '+'
      * @see #LS24005278
      */
