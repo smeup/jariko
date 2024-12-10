@@ -11,7 +11,7 @@
     O * The expression is not evaluated when it's true.
      V* ==============================================================
      D ARR01           S              2    DIM(10) INZ('FF')
-     D ARR02           S              2    DIM(10) INZ('FF')
+     D ARR02           S              2    DIM(10) INZ(*HIVAL)
 
      C                   IF        *HIVAL>=ARR01(1)
      C     'TRUE'        DSPLY
