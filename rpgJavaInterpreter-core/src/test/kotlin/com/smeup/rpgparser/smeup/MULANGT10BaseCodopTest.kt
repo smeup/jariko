@@ -875,4 +875,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("END", "END", "TRUE", "END", "TRUE", "END")
         assertEquals(expected, "smeup/MUDRNRAPU00187".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Comparison between:
+     * - *HIVAL as Standalone of 2 chars,
+     * - *HIVAL as Standalone of 4 chars,
+     * by using "equal" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00188() {
+        val expected = listOf("END")
+        assertEquals(expected, "smeup/MUDRNRAPU00188".outputOf(configuration = smeupConfig))
+    }
 }
