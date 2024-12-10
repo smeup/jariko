@@ -1146,7 +1146,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     knownDataDefinitions: Collection<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>?,
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
-): DataDefinition? {
+): DataDefinition {
     // Using `LIKEDS`
     if (this.keyword().any { it.keyword_likeds() != null }) {
         val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)
