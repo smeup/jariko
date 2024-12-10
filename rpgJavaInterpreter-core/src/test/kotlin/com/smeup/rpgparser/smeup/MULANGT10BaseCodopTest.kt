@@ -812,7 +812,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Comparison between *HIVAL, at left side, and String by using "not equal" operator.
+     * Comparison between *HIVAL and String by using "not equal" operator.
      * @see #LS24005329
      */
     @Test
