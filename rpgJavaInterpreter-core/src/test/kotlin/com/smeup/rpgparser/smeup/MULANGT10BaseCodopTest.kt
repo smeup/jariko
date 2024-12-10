@@ -841,7 +841,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * Comparison between:
      * - *HIVAL and String,
      * - *HIVAL and *HIVAL
-     * by using "greater/equals" operator.
+     * by using "greater/equal" operator.
      * @see #LS24005329
      */
     @Test
@@ -851,12 +851,15 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Comparison between *HIVAL and String by using "lower" operator for `*HIVAL`.
+     * Comparison between:
+     * - *HIVAL and String,
+     * - *HIVAL and *HIVAL
+     * by using "lower" operator.
      * @see #LS24005329
      */
     @Test
     fun executeMUDRNRAPU00186() {
-        val expected = listOf("END", "END")
+        val expected = listOf("END", "END", "END", "END")
         assertEquals(expected, "smeup/MUDRNRAPU00186".outputOf(configuration = smeupConfig))
     }
 
