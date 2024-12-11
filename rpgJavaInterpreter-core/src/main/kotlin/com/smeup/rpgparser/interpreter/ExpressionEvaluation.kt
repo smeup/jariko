@@ -261,7 +261,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LookupExpr): Value = proxyLogging(expression) {
-        val result = lookup(
+        lookup(
             array = expression.array.evalWith(this) as ArrayValue,
             arrayType = expression.array.type() as ArrayType,
             searchedValue = expression.searchedValued.evalWith(this),
@@ -269,11 +269,6 @@ class ExpressionEvaluation(
             length = expression.length?.evalWith(this)?.asInt(),
             operator = ComparisonOperator.EQ
         )
-
-        // %LOOKUP is relevant for %FOUND
-        interpreterStatus.lastFound = result != IntValue.ZERO
-
-        result
     }
 
     override fun eval(expression: LookupGtExpr): Value = proxyLogging(expression) {

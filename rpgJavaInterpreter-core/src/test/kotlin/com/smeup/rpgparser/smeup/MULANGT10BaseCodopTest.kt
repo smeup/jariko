@@ -847,7 +847,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00280() {
-        val expected = listOf("1", "0", "1", "0")
+        val expected = listOf("1", "0")
         assertEquals(expected, "smeup/MUDRNRAPU00280".outputOf(configuration = smeupConfig))
     }
 }

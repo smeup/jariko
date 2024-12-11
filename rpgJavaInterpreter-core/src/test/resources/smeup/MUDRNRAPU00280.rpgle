@@ -19,13 +19,5 @@
      C     'FOO'         LOOKUP    ARY                                    26
      C                   EVAL      FND=%FOUND
      C     FND           DSPLY
-     C* Lookup expression found
-     C                   EVAL      RESULT=%LOOKUP('ABC':ARY)
-     C                   EVAL      FND=%FOUND
-     C     FND           DSPLY
-     C* Lookup expression not found
-     C                   EVAL      RESULT=%LOOKUP('FOO':ARY)
-     C                   EVAL      FND=%FOUND
-     C     FND           DSPLY
 
      C                   SETON                                        RT
