@@ -2369,6 +2369,9 @@ data class ScanStmt(
         val leftLength = leftLengthExpression?.let { interpreter.eval(it).asString().value.toInt() }
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
 
+        // SCAN is relevant for %FOUND calls
+        interpreter.getStatus().lastFound = false
+
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
         val searchInto = interpreter.eval(right).asString().value.substring(start - 1)
         val occurrences = mutableListOf<Value>()
@@ -2391,6 +2394,9 @@ data class ScanStmt(
                     interpreter.assign(it, occurrences[0])
                 }
             }
+
+            // Update found status
+            interpreter.getStatus().lastFound = true
         }
     }
 
