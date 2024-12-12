@@ -3,7 +3,9 @@
 
      D                 DS
       * Error:
-      * java.lang.NullPointerException: Cannot invoke "com.smeup.rpgparser.RpgParser$Ds_nameContext.getText()"
-      * because the return value of "com.smeup.rpgparser.RpgParser$DspecContext.ds_name()" is null
+      * java.lang.NullPointerException
+      *	at com.smeup.rpgparser.interpreter.BaseCompileTimeInterpreter.evaluateNumberOfElementsOf(compile_time_interpreter.kt:122)
+      *	at com.smeup.rpgparser.interpreter.InjectableCompileTimeInterpreter.evaluateNumberOfElementsOf(compile_time_interpreter.kt:49)
+      * ...
      D £JAXSW2                      100    DIM(%elem(£JAXSWK))
      D  £JAXSW2Key                   10    OVERLAY(£JAXSW2:01)
