@@ -830,4 +830,82 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("", "FOO", "BAR", "BARX")
         assertEquals(expected, "smeup/MUDRNRAPU00182".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Comparison between:
+     * - *HIVAL and String,
+     * - *HIVAL and *HIVAL
+     * by using "not equal" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00183() {
+        val expected = listOf("TRUE", "END", "TRUE", "END", "END", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00183".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comparison between:
+     * - *HIVAL and String,
+     * - *HIVAL and *HIVAL
+     * by using "greater" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00184() {
+        val expected = listOf("TRUE", "END", "TRUE", "END", "END", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00184".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comparison between:
+     * - *HIVAL and String,
+     * - *HIVAL and *HIVAL
+     * by using "greater/equal" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00185() {
+        val expected = listOf("TRUE", "END", "TRUE", "END", "TRUE", "END", "TRUE", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00185".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comparison between:
+     * - *HIVAL and String,
+     * - *HIVAL and *HIVAL
+     * by using "lower" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00186() {
+        val expected = listOf("END", "END", "END", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00186".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comparison between:
+     * - *HIVAL and String,
+     * - *HIVAL and *HIVAL
+     * by using "lower/equal" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00187() {
+        val expected = listOf("END", "END", "TRUE", "END", "TRUE", "END")
+        assertEquals(expected, "smeup/MUDRNRAPU00187".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Comparison between:
+     * - *HIVAL as Standalone of 2 chars,
+     * - *HIVAL as Standalone of 4 chars,
+     * by using "equal" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU00188() {
+        val expected = listOf("END")
+        assertEquals(expected, "smeup/MUDRNRAPU00188".outputOf(configuration = smeupConfig))
+    }
 }
