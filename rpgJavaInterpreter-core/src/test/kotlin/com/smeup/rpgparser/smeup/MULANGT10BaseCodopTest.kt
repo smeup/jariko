@@ -908,4 +908,24 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("END")
         assertEquals(expected, "smeup/MUDRNRAPU00188".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * SCAN followed by %FOUND
+     * @see #LS24005347
+     */
+    @Test
+    fun executeMUDRNRAPU00279() {
+        val expected = listOf("3", "FOUND", "0", "NOT FOUND")
+        assertEquals(expected, "smeup/MUDRNRAPU00279".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * LOOKUP followed by %FOUND
+     * @see #LS24005347
+     */
+    @Test
+    fun executeMUDRNRAPU00280() {
+        val expected = listOf("1", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00280".outputOf(configuration = smeupConfig))
+    }
 }

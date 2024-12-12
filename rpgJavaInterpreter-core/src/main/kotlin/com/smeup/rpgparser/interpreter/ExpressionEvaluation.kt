@@ -961,7 +961,7 @@ class ExpressionEvaluation(
         start: IntValue?,
         length: IntValue?,
         operator: ComparisonOperator
-    ): Value {
+    ): IntValue {
         val arrayLength = arrayType.numberOfElements()
         val isSequenced = arrayType.ascend != null
 

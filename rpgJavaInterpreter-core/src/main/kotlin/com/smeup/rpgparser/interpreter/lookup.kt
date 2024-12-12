@@ -115,6 +115,9 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
     arraySearchingParameters.indexVar?.let {
         interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
     }
+
+    // Lookup is relevant for %FOUND
+    interpreterCore.getStatus().lastFound = searchResult !is NotFound
 }
 
 class FoundIndexes(var hi: Int, var lo: Int, var eq: Int) {
