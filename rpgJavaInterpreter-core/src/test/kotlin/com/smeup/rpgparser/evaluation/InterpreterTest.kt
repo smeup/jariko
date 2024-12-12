@@ -2619,4 +2619,10 @@ Test 6
         jarikoKillerThread.start()
         jarikoExecutorThread.join()
     }
+
+    @Test
+    fun executeNULLPTR01() {
+        // Test that the program does not throw a NullPointerException
+        "NULLPTR01".outputOf()
+    }
 }
