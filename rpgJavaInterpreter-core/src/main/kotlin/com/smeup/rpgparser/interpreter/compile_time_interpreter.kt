@@ -16,7 +16,6 @@
 
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
@@ -32,10 +31,10 @@ import com.strumenta.kolasu.model.tryToResolve
  * It should consider only statically evaluable elements.
  */
 interface CompileTimeInterpreter {
-    fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value
-    fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String? = null): Int
-    fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String? = null): Type
-    fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int
+    fun evaluate(rContext: RContext, expression: Expression): Value
+    fun evaluateElementSizeOf(rContext: RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String? = null): Int
+    fun evaluateTypeOf(rContext: RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String? = null): Type
+    fun evaluateNumberOfElementsOf(rContext: RContext, declName: String): Int
 }
 
 object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter(emptyList())
@@ -45,15 +44,15 @@ class InjectableCompileTimeInterpreter(
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
 ) : BaseCompileTimeInterpreter(knownDataDefinitions, fileDefinitions, delegatedCompileTimeInterpreter) {
-    override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
+    override fun evaluateNumberOfElementsOf(rContext: RContext, declName: String): Int {
         return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
     }
 
-    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Int {
+    override fun evaluateElementSizeOf(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Int {
         return mockedDecls[declName]?.elementSize() ?: super.evaluateElementSizeOf(rContext, declName, conf, procedureName)
     }
 
-    override fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type {
+    override fun evaluateTypeOf(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type {
         return mockedDecls[declName] ?: super.evaluateTypeOf(rContext, declName, conf, procedureName)
     }
 
@@ -72,7 +71,7 @@ open class BaseCompileTimeInterpreter(
     private val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
 ) : CompileTimeInterpreter {
 
-    override fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value {
+    override fun evaluate(rContext: RContext, expression: Expression): Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
@@ -87,7 +86,7 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    private fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, expression: Expression): Int {
+    private fun evaluateNumberOfElementsOf(rContext: RContext, expression: Expression): Int {
         return when (expression) {
             is DataRefExpr -> {
                 try {
@@ -104,7 +103,7 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
+    override fun evaluateNumberOfElementsOf(rContext: RContext, declName: String): Int {
         val conf = MainExecutionContext.getConfiguration().options.toAstConfiguration
         knownDataDefinitions.forEach {
             if (it.name == declName) {
@@ -119,7 +118,7 @@ open class BaseCompileTimeInterpreter(
                 .forEach {
                     when {
                         it.dspec() != null -> {
-                            val name = it.dspec().ds_name().text
+                            val name = it.dspec().ds_name()?.text
                             if (name == declName) {
                                 return it.dspec().toAst(
                                     conf = conf,
@@ -146,7 +145,7 @@ open class BaseCompileTimeInterpreter(
         throw NotFoundAtCompileTimeException(declName)
     }
 
-    open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Int {
+    open fun evaluateElementSizeOf(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Int {
         knownDataDefinitions.forEach {
             if (it.name.equals(declName, ignoreCase = true)) {
                 return it.elementSize()
@@ -158,7 +157,7 @@ open class BaseCompileTimeInterpreter(
         return findSize(rContext.getStatements(procedureName), declName, conf, false)!!
     }
 
-    private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
+    private fun findSize(statements: List<StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
         statements.forEach {
             kotlin.runCatching {
                 when {
@@ -226,7 +225,7 @@ open class BaseCompileTimeInterpreter(
             throw NotFoundAtCompileTimeException(declName)
     }
 
-    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Int {
+    override fun evaluateElementSizeOf(rContext: RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Int {
         return try {
             evaluateTypeOf(rContext, expression, conf, procedureName).elementSize()
         } catch (e: RuntimeException) {
@@ -238,7 +237,7 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    override fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Type {
+    override fun evaluateTypeOf(rContext: RContext, expression: Expression, conf: ToAstConfiguration, procedureName: String?): Type {
         return when (expression) {
             is DataRefExpr -> {
                 try {
@@ -272,7 +271,7 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    open fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type {
+    open fun evaluateTypeOf(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type {
         knownDataDefinitions.forEach {
             if (it.name.equals(declName, ignoreCase = true)) {
                 return it.type
@@ -286,7 +285,22 @@ open class BaseCompileTimeInterpreter(
         return findType(rContext.getStatements(procedureName), declName, conf, false)!!
     }
 
-    private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
+    /**
+     * Find type of declaration by specifically look for it in DEFINE statements.
+     */
+    open fun evaluateTypeOfDefine(rContext: RContext, declName: String, conf: ToAstConfiguration, procedureName: String?): Type? {
+        val statements = rContext.getStatements(procedureName)
+        val define = statements
+            .mapNotNull { it.cspec_fixed() }
+            .mapNotNull { it.cspec_fixed_standard() }
+            .mapNotNull { it.csDEFINE() }
+            .map { it.toAst(conf) }
+        val match = define.firstOrNull { it.newVarName.equals(declName, ignoreCase = true) } ?: return null
+
+        return findType(statements, match.originalName, conf)
+    }
+
+    private fun findType(statements: List<StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
         statements
             .forEach { it ->
                 kotlin.runCatching {
@@ -305,7 +319,7 @@ open class BaseCompileTimeInterpreter(
                                     knownDataDefinitions = knownDataDefinitions,
                                     fileDefinitions = fileDefinitions,
                                     parentDataDefinitions = emptyList()
-                                )?.type
+                                ).type
                             } else {
                                 it.dcl_ds().parm_fixed().find {
                                     it.ds_name().text.equals(declName, ignoreCase = true)
@@ -356,8 +370,8 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    private fun RpgParser.BlockContext.findType(declName: String, conf: ToAstConfiguration): Type? {
-        return this.findAllDescendants(type = RpgParser.StatementContext::class, includingMe = false).let { descendants ->
+    private fun BlockContext.findType(declName: String, conf: ToAstConfiguration): Type? {
+        return this.findAllDescendants(type = StatementContext::class, includingMe = false).let { descendants ->
             findType(descendants, declName, conf)
         }
     }
@@ -382,14 +396,14 @@ open class BaseCompileTimeInterpreter(
         }
     }
 
-    private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type? {
+    private fun Parm_fixedContext.findType(conf: ToAstConfiguration): Type {
         return this.toAst(conf, emptyList()).type
     }
 
-    private fun RpgParser.RContext.getStatements(procedureName: String?): List<StatementContext> {
+    private fun RContext.getStatements(procedureName: String?): List<StatementContext> {
         val statements: MutableList<StatementContext> = mutableListOf()
         if (procedureName != null) {
-            val procedureContext: RpgParser.ProcedureContext? = this.procedure().firstOrNull { it.beginProcedure().psBegin().ps_name().text.equals(procedureName, ignoreCase = true) }
+            val procedureContext: ProcedureContext? = this.procedure().firstOrNull { it.beginProcedure().psBegin().ps_name().text.equals(procedureName, ignoreCase = true) }
             if (procedureContext != null) {
                 statements.addAll(
                     procedureContext.subprocedurestatement().mapNotNull { it.subroutine() }.flatMap { it.statement() } +

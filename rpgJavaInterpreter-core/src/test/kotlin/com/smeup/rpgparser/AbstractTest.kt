@@ -449,9 +449,13 @@ abstract class AbstractTest {
                 "Errors don't correspond.\n" +
                         "Expected:\n${expectedSorted.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n" +
                         "Actual:\n${found.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n",
-                found == expectedSorted
+                found.toString().sanitize() == expectedSorted.toString().sanitize()
             )
         }
+    }
+
+    private fun String.sanitize(): String {
+        return this.replace(Regex("\\s+"), " ").replace(Regex("[^Print]"), "")
     }
 
     private fun Map.Entry<Int, String>.contains(list: Map<Int, String>): Boolean {

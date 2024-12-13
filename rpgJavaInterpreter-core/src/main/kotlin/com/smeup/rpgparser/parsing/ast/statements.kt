@@ -29,10 +29,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.resizeTo
-import com.smeup.rpgparser.utils.substringOfLength
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -113,6 +111,50 @@ interface CompositeStatement {
     val body: List<Statement>
 }
 
+data class UnwrappedStatementData(
+    var statement: Statement,
+    var nextOperationOffset: Int,
+    var parent: UnwrappedStatementData?
+)
+
+interface CustomStatementUnwrap {
+    fun unwrap(parent: UnwrappedStatementData? = null): List<UnwrappedStatementData>
+}
+
+/**
+ * Unwrap statements while keeping their structural data
+ * @see [InterpreterCore.executeUnwrappedAt]
+ */
+fun List<Statement>.unwrap(parent: UnwrappedStatementData? = null): List<UnwrappedStatementData> {
+    val result = mutableListOf<UnwrappedStatementData>()
+    forEach {
+        when (it) {
+            is CustomStatementUnwrap -> {
+                val unwrapped = it.unwrap(parent)
+                result.addAll(unwrapped)
+            }
+            is CompositeStatement -> {
+                val current = UnwrappedStatementData(it, it.body.size, parent)
+                val body = it.body.unwrap(current)
+
+                /**
+                 * body might contain CompositeStatements recursively
+                 * we need to update the offset with the actual body length after unwrapping
+                 */
+                current.nextOperationOffset = body.size
+
+                result.add(current)
+                result.addAll(body)
+            }
+            else -> {
+                val unwrapped = UnwrappedStatementData(it, 0, parent)
+                result.add(unwrapped)
+            }
+        }
+    }
+    return result
+}
+
 fun List<Statement>.explode(preserveCompositeStatement: Boolean = false): List<Statement> {
     val result = mutableListOf<Statement>()
     forEach {
@@ -135,17 +177,60 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         val programName = interpreter.getInterpretationContext().currentProgramName
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
-        MainExecutionContext.getSubroutineStack().push(subroutine)
+
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
         try {
-            interpreter.execute(subroutine.referred!!.stmts)
-        } catch (e: LeaveSrException) {
-            // Nothing to do here
-        } catch (e: GotoException) {
-            if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+            // Setup subroutine context
+            MainExecutionContext.getSubroutineStack().push(subroutine)
+            val body = subroutine.referred!!.stmts
+
+            // Execute subroutine, we deal with exceptions later
+            var throwable = kotlin.runCatching {
+                interpreter.execute(body)
+            }.exceptionOrNull()
+
+            val unwrappedStatements = body.unwrap()
+            val containingCU = unwrappedStatements.firstOrNull()?.statement?.getContainingCompilationUnit()
+
+            // Recursive deal with goto
+            while (throwable is GotoException) {
+                // If is a goto to the end, exit SR
+                if (throwable.tag.equals(subroutine.referred!!.tag, true)) {
+                    throwable = null
+                    break
+                }
+
+                // If tag is in top level we need to quit subroutine and rollback context to top level
+                val topLevelStatements = containingCU?.main?.stmts?.unwrap()
+                topLevelStatements?.let {
+                    val goto = throwable as GotoException
+                    val topLevelIndex = goto.indexOfTaggedStatement(it)
+                    if (0 <= topLevelIndex && topLevelIndex < it.size) {
+                        throw GotoTopLevelException(goto.tag)
+                    }
+                }
+
+                // We need to know the statement unwrapped in order to jump directly into a nested tag
+                val offset = throwable.indexOfTaggedStatement(unwrappedStatements)
+                require(0 <= offset && offset < unwrappedStatements.size) { "Offset $offset is not valid." }
+                throwable = kotlin.runCatching {
+                    interpreter.executeUnwrappedAt(unwrappedStatements, offset)
+                }.exceptionOrNull()
+            }
+
+            // Deal with other types of exceptions
+            throwable?.let {
+                when (it) {
+                    is LeaveSrException -> {
+                        // Just catch it, do nothing
+                    }
+                    else -> throw it
+                }
+            }
+        } catch (e: Exception) {
+            throw e
         } finally {
-            // NOTE: The next instruction should never throw. If it does, there is something wrong in how the stack is used.
-            // Investigate where and how it is used and manipulated.
+            // Cleanup subroutine context
             MainExecutionContext.getSubroutineStack().pop()
         }
     }
@@ -171,7 +256,7 @@ data class SelectStmt(
     var other: SelectOtherClause? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData, CustomStatementUnwrap {
     override val loggableEntityName: String
         get() = "SELECT"
 
@@ -224,6 +309,47 @@ data class SelectStmt(
             if (other?.body != null) result.addAll(other!!.body.explode(preserveCompositeStatement = true))
             return result
         }
+
+    override fun unwrap(parent: UnwrappedStatementData?): List<UnwrappedStatementData> {
+        val switchStmt = UnwrappedStatementData(this, this.body.size, parent)
+        val casesBodies = this.cases.map { it.body.unwrap(switchStmt) }
+        val otherBody = this.other?.body?.unwrap(switchStmt) ?: emptyList()
+
+        /**
+         * Unwrapped order is like following:
+         * - SELECT statement
+         * - 1 or more WHEN cases body instructions
+         * - optional OTHER with body instructions
+         * - next operation
+         */
+        val totalCasesStatementsCount = casesBodies.sumOf { it.size }
+        val nextOperationAt = totalCasesStatementsCount + otherBody.size
+        switchStmt.nextOperationOffset = nextOperationAt
+
+        /**
+         * Each branch last instruction must point to the end of the SWITCH statement
+         * after unwrapping we need to update the offset of each 'last' statement
+         */
+
+        // Update last pointer in when bodies
+        var alreadyProcessedCasesStatements = 0
+        for (case in casesBodies) {
+            val offsetOfLastStatement = alreadyProcessedCasesStatements + case.size
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            if (case.isNotEmpty()) {
+                case.last().nextOperationOffset = lastStatementMustRedirectTo
+            }
+            alreadyProcessedCasesStatements += case.size
+        }
+
+        // Update last pointer in else body
+        if (otherBody.isNotEmpty()) {
+            val lastStatementMustRedirectTo = nextOperationAt - totalCasesStatementsCount
+            otherBody.last().nextOperationOffset = lastStatementMustRedirectTo
+        }
+
+        return listOf(switchStmt) + casesBodies.flatten() + otherBody
+    }
 }
 
 @Serializable
@@ -436,8 +562,10 @@ data class MoveLStmt(
 abstract class AbstractReadEqualStmt(
     @Transient open val searchArg: Expression? = null, // Factor1
     @Transient open val name: String = "", // Factor 2
+    @Transient open val hiIndicator: IndicatorKey? = null, // HI indicator
+    @Transient open val loIndicator: IndicatorKey? = null, // LO indicator
+    @Transient open val eqIndicator: IndicatorKey? = null, // EQ indicator
     @Transient override val position: Position? = null
-
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
@@ -450,6 +578,11 @@ abstract class AbstractReadEqualStmt(
             null -> read(dbFile)
             else -> read(dbFile, kList)
         }
+
+        hiIndicator?.let { interpreter.getIndicators()[it] = result.indicatorHI.asValue() }
+        loIndicator?.let { interpreter.getIndicators()[it] = result.indicatorLO.asValue() }
+        eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
+
         interpreter.fillDataFrom(dbFile, result.record)
     }
 
@@ -459,11 +592,20 @@ abstract class AbstractReadEqualStmt(
 @Serializable
 abstract class AbstractReadStmt(
     @Transient open val name: String = "", // Factor 2
+    @Transient open val hiIndicator: IndicatorKey? = null, // HI indicator
+    @Transient open val loIndicator: IndicatorKey? = null, // LO indicator
+    @Transient open val eqIndicator: IndicatorKey? = null, // EQ indicator
     @Transient override val position: Position? = null
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         val result = readOp(dbFile)
+
+        // TODO: check if HI indicator is actually ever used on READ statements
+        hiIndicator?.let { interpreter.getIndicators()[it] = result.indicatorHI.asValue() }
+        loIndicator?.let { interpreter.getIndicators()[it] = result.indicatorLO.asValue() }
+        eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
+
         interpreter.fillDataFrom(dbFile, result.record)
     }
 
@@ -513,8 +655,16 @@ abstract class AbstractSetStmt(
 data class ChainStmt(
     override val searchArg: Expression, // Factor1
     override val name: String, // Factor 2
+    override val hiIndicator: IndicatorKey?, // HI indicator
+    override val loIndicator: IndicatorKey?, // LO indicator
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg, name, position) {
+) : AbstractReadEqualStmt(
+    searchArg = searchArg,
+    name = name,
+    hiIndicator = hiIndicator,
+    loIndicator = loIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "CHAIN"
 
@@ -525,8 +675,16 @@ data class ChainStmt(
 data class ReadEqualStmt(
     override val searchArg: Expression?,
     override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position) {
+) : AbstractReadEqualStmt(
+    searchArg = searchArg,
+    name = name,
+    loIndicator = loIndicator,
+    eqIndicator = eqIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "READE"
 
@@ -543,8 +701,16 @@ data class ReadEqualStmt(
 data class ReadPreviousEqualStmt(
     override val searchArg: Expression?,
     override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
     override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position) {
+) : AbstractReadEqualStmt(
+    searchArg = searchArg,
+    name = name,
+    loIndicator = loIndicator,
+    eqIndicator = eqIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "READPE"
 
@@ -558,7 +724,17 @@ data class ReadPreviousEqualStmt(
 }
 
 @Serializable
-data class ReadStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position) {
+data class ReadStmt(
+    override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
+    override val position: Position?
+) : AbstractReadStmt(
+    name = name,
+    loIndicator = loIndicator,
+    eqIndicator = eqIndicator,
+    position = position
+) {
     override val loggableEntityName: String
         get() = "READ"
 
@@ -566,8 +742,18 @@ data class ReadStmt(override val name: String, override val position: Position?)
 }
 
 @Serializable
-data class ReadPreviousStmt(override val name: String, override val position: Position?) :
-    AbstractReadStmt(name, position) {
+data class ReadPreviousStmt(
+    override val name: String,
+    override val loIndicator: IndicatorKey?, // LO indicator
+    override val eqIndicator: IndicatorKey?, // EQ indicator
+    override val position: Position?
+) :
+    AbstractReadStmt(
+        name = name,
+        loIndicator = loIndicator,
+        eqIndicator = eqIndicator,
+        position = position
+    ) {
     override val loggableEntityName: String
         get() = "READP"
 
@@ -631,9 +817,9 @@ data class SetgtStmt(
 
 @Serializable
 data class CheckStmt(
-    val comparatorString: Expression, // Factor1
-    val baseString: Expression,
-    val start: Int = 1,
+    var comparatorString: Expression, // Factor1
+    var baseString: Expression,
+    var startPosition: Expression?,
     val wrongCharPosition: AssignableExpression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -642,9 +828,10 @@ data class CheckStmt(
         get() = "CHECK"
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
-            baseString = baseString.padEnd(this.baseString.size())
+            baseString = baseString.padEnd((this.baseString as DataRefExpr).size())
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
@@ -668,9 +855,9 @@ data class CheckStmt(
 
 @Serializable
 data class CheckrStmt(
-    val comparatorString: Expression, // Factor1
-    val baseString: Expression,
-    val start: Int = 1,
+    var comparatorString: Expression, // Factor1
+    var baseString: Expression,
+    var startPosition: Expression?,
     val wrongCharPosition: AssignableExpression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -679,9 +866,10 @@ data class CheckrStmt(
         get() = "CHECKR"
 
     override fun execute(interpreter: InterpreterCore) {
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         var baseString = interpreter.eval(this.baseString).asString().value
         if (this.baseString is DataRefExpr) {
-            baseString = baseString.padEnd(this.baseString.size())
+            baseString = baseString.padEnd((this.baseString as DataRefExpr).size())
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
@@ -739,6 +927,9 @@ data class CallStmt(
         }
 
         program ?: throw callIssueException
+        if (program is RpgProgram) {
+            MainExecutionContext.getProgramStack().push(program)
+        }
 
         // Ignore exceeding params
         val targetProgramParams = program.params()
@@ -746,16 +937,16 @@ data class CallStmt(
             if (it.dataDefinition != null) {
                 // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
-                    if (!interpreter.exists(it.param.name)) {
+                    if (!interpreter.exists(it.result.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
                     } else {
                         interpreter.assign(
-                            interpreter.dataDefinitionByName(it.param.name)!!,
+                            interpreter.dataDefinitionByName(it.result.name)!!,
                             interpreter.eval(it.dataDefinition.initializationValue)
                         )
                     }
                 } else {
-                    if (!interpreter.exists(it.param.name)) {
+                    if (!interpreter.exists(it.result.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
                     }
                 }
@@ -764,12 +955,12 @@ data class CallStmt(
                 // change the value of parameter with initialization value
                 if (it.initializationValue != null) {
                     interpreter.assign(
-                        interpreter.dataDefinitionByName(it.param.name)!!,
+                        interpreter.dataDefinitionByName(it.result.name)!!,
                         interpreter.eval(it.initializationValue)
                     )
                 }
             }
-            targetProgramParams[index].name to interpreter[it.param.name]
+            targetProgramParams[index].name to interpreter[it.result.name]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
@@ -787,22 +978,28 @@ data class CallStmt(
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 if (errorIndicator == null) {
+                    if (program is RpgProgram) {
+                        MainExecutionContext.getProgramStack().pop()
+                    }
                     throw e
                 }
+
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
-                MainExecutionContext.getProgramStack().pop()
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             if (this.params.size > index) {
                 val currentParam = this.params[index]
-                interpreter.assign(currentParam.param.referred!!, value)
+                interpreter.assign(currentParam.result.referred!!, value)
 
                 // If we also have a result field, assign to it
-                currentParam.result?.let { interpreter.assign(it, value) }
+                currentParam.factor1?.let { interpreter.assign(it, value) }
             }
         }
+
+        if (program is RpgProgram)
+            MainExecutionContext.getProgramStack().pop()
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
@@ -949,7 +1146,7 @@ data class IfStmt(
     val elseIfClauses: List<ElseIfClause> = emptyList(),
     val elseClause: ElseClause? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, CustomStatementUnwrap {
     override val loggableEntityName: String
         get() = "IF"
 
@@ -1010,6 +1207,57 @@ data class IfStmt(
                 interpreter.execute(elseClause.body)
             }
         }
+    }
+
+    override fun unwrap(parent: UnwrappedStatementData?): List<UnwrappedStatementData> {
+        val ifStmt = UnwrappedStatementData(this, this.body.size, parent)
+        val thenBody = this.thenBody.unwrap(ifStmt)
+        val elseIfBodies = this.elseIfClauses.map { it.body.unwrap(ifStmt) }
+        val elseBody = this.elseClause?.body?.unwrap(ifStmt) ?: emptyList()
+
+        /**
+         * Unwrapped order is like following:
+         * - IF statement
+         * - THEN body instructions
+         * - 0 or more ELSE IF with body instructions
+         * - optional ELSE with body instructions
+         * - next operation
+         */
+        val totalElseIfStatementsCount = elseIfBodies.sumOf { it.size }
+        val nextOperationAt = thenBody.size + totalElseIfStatementsCount + elseBody.size
+        ifStmt.nextOperationOffset = nextOperationAt
+
+        /**
+         * Each branch last instruction must point to the end of the IF statement
+         * after unwrapping we need to update the offset of each 'last' statement
+         */
+
+        // Update last pointer in then body
+        if (thenBody.isNotEmpty()) {
+            val offsetOfLastStatement = thenBody.size
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            thenBody.last().nextOperationOffset = lastStatementMustRedirectTo
+        }
+
+        // Update last pointer in else if bodies
+        var alreadyProcessedElifStatements = 0
+        for (elif in elseIfBodies) {
+            val offsetOfLastStatement = alreadyProcessedElifStatements + elif.size
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            if (elif.isNotEmpty()) {
+                elif.last().nextOperationOffset = lastStatementMustRedirectTo
+            }
+            alreadyProcessedElifStatements += elif.size
+        }
+
+        // Update last pointer in else body
+        if (elseBody.isNotEmpty()) {
+            val offsetOfLastStatement = thenBody.size + totalElseIfStatementsCount
+            val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
+            elseBody.last().nextOperationOffset = lastStatementMustRedirectTo
+        }
+
+        return listOf(ifStmt) + thenBody + elseIfBodies.flatten() + elseBody
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
@@ -1098,8 +1346,8 @@ data class PlistStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         params.forEach {
-            if (interpreter.getGlobalSymbolTable().contains(it.param.name)) {
-                interpreter.getGlobalSymbolTable()[it.param.name]
+            if (interpreter.getGlobalSymbolTable().contains(it.result.name)) {
+                interpreter.getGlobalSymbolTable()[it.result.name]
             }
         }
     }
@@ -1114,8 +1362,9 @@ data class PlistStmt(
 
 @Serializable
 data class PlistParam(
-    val result: AssignableExpression?,
-    val param: ReferenceByName<AbstractDataDefinition>,
+    val factor1: AssignableExpression?,
+    val factor2: Expression?,
+    val result: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null,
@@ -1194,6 +1443,21 @@ data class DefineStmt(
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
+
+        val indicatorPattern = Regex("\\*IN\\d\\d")
+        val normalizedOriginalName = originalName.trim().uppercase()
+        val isIndicator = normalizedOriginalName.matches(indicatorPattern)
+        if (isIndicator) {
+            val indicatorKey = normalizedOriginalName.removePrefix("*IN").toIndicatorKey()
+            val setStatements = containingCU.main.stmts.explode(true).filterIsInstance<SetStmt>()
+            val definedIndicators = setStatements.map { it.indicators }.flatten().filterIsInstance<IndicatorExpr>()
+            val isIndicatorDefined = definedIndicators.any { it.index == indicatorKey }
+
+            if (!isIndicatorDefined) throw Error("Data reference $originalName not resolved")
+
+            val newDefinition = InStatementDataDefinition(newVarName, BooleanType, position)
+            return listOf(newDefinition)
+        }
 
         // Search standalone 'D spec' or InStatement definition
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
@@ -1355,7 +1619,11 @@ data class ZAddStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.eval(expression))
+        zadd(
+            value = expression,
+            target = target,
+            interpreterCore = interpreter
+        )
     }
 }
 
@@ -2085,10 +2353,10 @@ data class LookupStmt(
 
 @Serializable
 data class ScanStmt(
-    val left: Expression,
-    val leftLength: Int?,
-    val right: Expression,
-    val startPosition: Expression?,
+    var left: Expression,
+    var leftLengthExpression: Expression?,
+    var right: Expression,
+    var startPosition: Expression?,
     val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2098,7 +2366,11 @@ data class ScanStmt(
         get() = "SCAN"
 
     override fun execute(interpreter: InterpreterCore) {
+        val leftLength = leftLengthExpression?.let { interpreter.eval(it).asString().value.toInt() }
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
+
+        // SCAN is relevant for %FOUND calls
+        interpreter.getStatus().lastFound = false
 
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
         val searchInto = interpreter.eval(right).asString().value.substring(start - 1)
@@ -2122,6 +2394,9 @@ data class ScanStmt(
                     interpreter.assign(it, occurrences[0])
                 }
             }
+
+            // Update found status
+            interpreter.getStatus().lastFound = true
         }
     }
 
@@ -2323,10 +2598,10 @@ data class CloseStmt(
  */
 @Serializable
 data class XlateStmt(
-    val from: Expression,
-    val to: Expression,
-    val string: Expression,
-    val startPos: Int,
+    var from: Expression,
+    var to: Expression,
+    var string: Expression,
+    var startPosition: Expression?,
     val target: AssignableExpression,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -2338,7 +2613,7 @@ data class XlateStmt(
     override fun execute(interpreter: InterpreterCore) {
         val originalChars = interpreter.eval(from).asString().value
         val newChars = interpreter.eval(to).asString().value
-        val start = startPos
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
         val s = interpreter.eval(string).asString().value
         val pair = s.divideAtIndex(start - 1)
         var right = pair.second
@@ -2520,11 +2795,36 @@ data class DeallocStmt(
 @Serializable
 data class ExecSqlStmt(
     override val position: Position? = null
-) : Statement(position), MockStatement {
+) : Statement(position), StatementThatCanDefineData, MockStatement {
     override val loggableEntityName: String
         get() = "SQL - EXEC SQL"
 
-    override fun execute(interpreter: InterpreterCore) {}
+    override fun execute(interpreter: InterpreterCore) {
+        val dataDefinition = interpreter.getGlobalSymbolTable().dataDefinitionByName("SQLCOD")
+        interpreter.getGlobalSymbolTable().set(dataDefinition!!, IntValue(100))
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val sqlCodDefinition = InStatementDataDefinition(
+            name = "SQLCOD",
+            type = NumberType(
+                entireDigits = 5,
+                decimalDigits = 0,
+                rpgType = RpgType.PACKED
+            ),
+            position = position
+        )
+
+        val sqlErmDefinition = InStatementDataDefinition(
+            name = "SQLERM",
+            type = CharacterType(
+                nChars = 70
+            ),
+            position = position
+        )
+
+        return listOf(sqlCodDefinition, sqlErmDefinition)
+    }
 }
 
 @Serializable

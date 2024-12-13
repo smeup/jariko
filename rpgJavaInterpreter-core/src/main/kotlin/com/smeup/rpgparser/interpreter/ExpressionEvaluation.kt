@@ -533,9 +533,12 @@ class ExpressionEvaluation(
 
     override fun eval(expression: FunctionCall): Value = proxyLogging(expression) {
         val functionToCall = expression.function.name
-        val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
-            ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
+        callback.traceBlock(trace) {
+            val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
+                ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
+            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
             val paramsValues = expression.args.map {
                 if (it is DataRefExpr) {
                     FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
@@ -858,6 +861,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) {
+        MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
         val pointer = expression.value as? DataRefExpr ?: error("%REALLOC is only allowed for pointers")
         val references = interpreterStatus.getReferences(pointer)
         require(references.all { it.key.type is ArrayType }) {
@@ -957,7 +961,7 @@ class ExpressionEvaluation(
         start: IntValue?,
         length: IntValue?,
         operator: ComparisonOperator
-    ): Value {
+    ): IntValue {
         val arrayLength = arrayType.numberOfElements()
         val isSequenced = arrayType.ascend != null
 

@@ -162,6 +162,7 @@ Creating features factory: com.smeup.rpgparser.interpreter.StandardFeaturesFacto
 Feature flags status:
  - jariko.features.UnlimitedStringTypeFlag: off
  - jariko.features.ChainCacheFlag: on
+ - jariko.features.ZAddLegacyFlag: off
 ------------------------------------------------------------------------------------
 ```
 
@@ -169,8 +170,9 @@ This it means that jariko is using the default `IFeaturesFactory` implementation
 but more relevant is the following part of the console message where it is displayed a list of available feature
 flags and their status.  
 What you see it means that currently jariko provides two features flag named:
-- `jariko.features.UnlimitedStringTypeFlag` and its status is `off`
-- `jariko.features.ChainCacheFlag` and its status is `on`.
+- `jariko.features.UnlimitedStringTypeFlag` and its status is `off`;
+- `jariko.features.ChainCacheFlag` and its status is `on`;
+- `jariko.features.ZAddLegacyFlag` and its status is `off`.
 
 **how to switch on a feature flag at runtime**  
 Before to call jariko as library it is necessary to set the system property like this:
@@ -196,12 +198,26 @@ val systemInterface = JavaSystemInterface(turnOnChainCacheFlagConfig)
 
 **available feature flags and description**
 
-| feature flag                              | description                                                                                       | default |
-|-------------------------------------------|---------------------------------------------------------------------------------------------------| ------- |
-| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types | `off`   |
-| `jariko.features.ChainCacheFlag`          | when `on` you ask jariko to use cache in the chain operations                                     | `on`    |
+| feature flag                              | description                                                                                                | default |
+|-------------------------------------------|------------------------------------------------------------------------------------------------------------|---------|
+| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types          | `off`   |
+| `jariko.features.ChainCacheFlag`          | when `on` you ask jariko to use cache in the chain operations                                              | `on`    |
+| `jariko.features.ZAddLegacyFlag`          | when `on` you ask jariko to use legacy behaviour for `Z-ADD`. See the section below for more information.  | `off`   |
 
-
+### Z-ADD Legacy 
+On AS400 there is a truncation for the entire and decimal part based of source and target declarations.
+For example:
+```rpgle
+    D SRC             S              6  0 INZ(241122)
+    C                   Z-ADD     SRC           RES               4 0
+```
+produces this result: `1122`.
+```rpgle
+   D SRC             S              6  3 INZ(123.456)
+   C                   Z-ADD     SRC           RES               4 2
+```
+produces this result: `23.45`.
+So, the comma isolates the truncation between entire and decimal part.
 
 ## Creating a jar with all dependencies to run some examples
 

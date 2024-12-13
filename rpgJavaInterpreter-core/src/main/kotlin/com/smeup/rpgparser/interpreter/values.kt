@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -116,10 +117,10 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (other is StringValue) {
-            this.value == other.value
-        } else {
-            false
+        return when (other) {
+            is StringValue -> this.value == other.value
+            is HiValValue -> this == this.hiValue()
+            else -> false
         }
     }
 
@@ -210,6 +211,7 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
+            is HiValValue -> if (this == this.hiValue()) EQUAL else SMALLER
             is BlanksValue -> if (this.isBlank()) EQUAL else SMALLER
             is BooleanValue -> if (this.value.isInt() && this.value.toInt() == other.value.toInt()) EQUAL else GREATER
             else -> super.compareTo(other)
@@ -248,7 +250,9 @@ data class IntValue(val value: Long) : NumberValue() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         return when (expectedType) {
-            is NumberType -> true
+            is NumberType -> {
+                expectedType.entireDigits >= bigDecimal.precision()
+            }
             is ArrayType -> {
                 expectedType.element is NumberType
             } else -> {
@@ -798,11 +802,23 @@ object HiValValue : Value {
 
     override fun copy(): HiValValue = this
 
-    override operator fun compareTo(other: Value): Int =
-        if (other is HiValValue) 0 else 1
+    override operator fun compareTo(other: Value): Int {
+        return when (other) {
+            is StringValue -> if (other.hiValue() == other) EQUAL else GREATER
+            // TODO: Is much generic. Provide atomic cases.
+            else -> if (other is HiValValue) EQUAL else GREATER
+        }
+    }
 
     override fun asString(): StringValue {
         TODO("Not yet implemented")
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is StringValue -> other.hiValue() == other
+            else -> false
+        }
     }
 }
 

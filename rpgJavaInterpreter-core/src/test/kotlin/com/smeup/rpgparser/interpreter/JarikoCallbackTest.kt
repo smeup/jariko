@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -384,7 +385,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR08CallBackTest() {
         // Errors in block statements
-        executePgmCallBackTest("ERROR08", SourceReferenceType.Program, "ERROR08", listOf(7, 8, 9, 14, 15, 16, 21, 22))
+        executePgmCallBackTest("ERROR08", SourceReferenceType.Program, "ERROR08", listOf(7, 8, 8, 9, 9, 14, 15, 15, 16, 16, 21, 22, 22))
     }
 
     @Test
@@ -771,6 +772,253 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR44SourceLineTest() {
         executeSourceLineTest("ERROR44")
+    }
+
+    @Test
+    fun traceEmittedTest() {
+        val startTraces = mutableListOf<JarikoTrace>()
+        var finishCount = 0
+
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                startTraces.add(trace)
+            }
+            jarikoCallback.finishJarikoTrace = {
+                finishCount += 1
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+
+        assert(startTraces.isNotEmpty())
+        assert(finishCount > 0)
+    }
+
+    @Test
+    fun traceOpenedAlsoClosedTest() {
+        val startTraces = mutableListOf<JarikoTrace>()
+        var finishCount = 0
+
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                startTraces.add(trace)
+            }
+            jarikoCallback.finishJarikoTrace = {
+                finishCount += 1
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(startTraces.size, finishCount)
+    }
+
+    @Test
+    fun traceSymtblTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val symtblTraces = traces.filter { it.kind == JarikoTraceKind.SymbolTable }
+
+        // (INIT + LOAD) * (n.called programs + n.called procedures = 4)
+        assertEquals(symtblTraces.size, 8)
+
+        assertEquals(symtblTraces.filter { it.description == "INIT" }.size, 4)
+        assertEquals(symtblTraces.filter { it.description == "LOAD" }.size, 4)
+    }
+
+    @Test
+    fun traceCompositeStatementTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val compositeTraces = traces.filter { it.kind == JarikoTraceKind.CompositeStatement }
+
+        // 2 for each called program
+        assertEquals(compositeTraces.size, 4)
+
+        assertEquals(compositeTraces.filter { it.description == "IF" }.size, 4)
+    }
+
+    @Test
+    fun traceProgramTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val programTraces = traces.filter { it.kind == JarikoTraceKind.CallStmt }
+
+        // Only one call
+        assertEquals(programTraces.size, 1)
+
+        assertEquals(programTraces.filter { it.description == "TRACETST2" }.size, 1)
+    }
+
+    @Test
+    fun traceSubroutineTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val programTraces = traces.filter { it.kind == JarikoTraceKind.ExecuteSubroutine }
+
+        // 1 subroutine call per program
+        assertEquals(programTraces.size, 2)
+
+        assertEquals(programTraces.filter { it.description == "SR" }.size, 2)
+    }
+
+    @Test
+    fun traceParsingTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val parsingTraces = traces.filter { it.kind == JarikoTraceKind.Parsing }
+
+        // (RPGLOAD + LEXER + PARSER + RCONTEXT + CHKPTREE + AST) * (n.called programs = 2)
+        assertEquals(parsingTraces.size, 12)
+
+        assertEquals(parsingTraces.filter { it.description == "RPGLOAD" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "LEXER" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "PARSER" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "RCONTEXT" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "CHKPTREE" }.size, 2)
+        assertEquals(parsingTraces.filter { it.description == "AST" }.size, 2)
+    }
+
+    @Test
+    fun traceFunctionCallTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val functionCallTraces = traces.filter { it.kind == JarikoTraceKind.FunctionCall }
+
+        // Two in the root program
+        assertEquals(functionCallTraces.size, 2)
+
+        assertEquals(functionCallTraces.filter { it.description == "CALL1" }.size, 2)
+    }
+
+    @Test
+    fun traceMainExecutionContextTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val mainExecutionTraces = traces.filter { it.kind == JarikoTraceKind.MainExecutionContext }
+
+        // Only one main execution context
+        assertEquals(mainExecutionTraces.size, 1)
+    }
+
+    @Test
+    fun traceRpgProgramTest() {
+        val traces = mutableListOf<JarikoTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace ->
+                traces.add(trace)
+            }
+        }
+        executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
+        val rpgProgramTraces = traces.filter { it.kind == JarikoTraceKind.RpgProgram }
+
+        // TRACETST1, TRACETST2
+        assertEquals(rpgProgramTraces.size, 2)
+
+        assertEquals(rpgProgramTraces.filter { it.description == "TRACETST1" }.size, 1)
+        assertEquals(rpgProgramTraces.filter { it.description == "TRACETST2" }.size, 1)
+    }
+
+    @Test
+    fun executeERROR45CallBackTest() {
+        executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
+            18 to "Factor 2 and Result with different type and size."
+        ))
+    }
+
+    @Test
+    fun executeERROR45SourceLineTest() {
+        executeSourceLineTest("ERROR45")
+    }
+
+    @Test
+    fun executeERROR46CallBackTest() {
+        executePgmCallBackTest("ERROR46", SourceReferenceType.Program, "ERROR46", mapOf(
+            18 to "Factor 2 and Result with different type and size."
+        ))
+    }
+
+    @Test
+    fun executeERROR46SourceLineTest() {
+        executeSourceLineTest("ERROR46")
+    }
+
+    @Test
+    fun executeERROR47CallBackTest() {
+        executePgmCallBackTest("ERROR47", SourceReferenceType.Program, "ERROR47", mapOf(
+            9 to "10 cannot be assigned to I of type NumberType(entireDigits=1, decimalDigits=0, rpgType=)"
+        ))
+    }
+
+    @Test
+    fun executeERROR47SourceLineTest() {
+        executeSourceLineTest("ERROR47")
+    }
+
+    @Test
+    fun executeERROR48CallBackTest() {
+        executePgmCallBackTest("ERROR48", SourceReferenceType.Program, "ERROR48", mapOf(
+            7 to "241122 cannot be assigned to RES of type NumberType(entireDigits=4, decimalDigits=0, rpgType=)"
+        ))
+    }
+
+    @Test
+    fun executeERROR48SourceLineTest() {
+        executeSourceLineTest("ERROR48")
+    }
+
+    @Test
+    fun executeERROR49CallBackTest() {
+        executePgmCallBackTest("ERROR49", SourceReferenceType.Program, "ERROR49", mapOf(
+            6 to "Data reference *IN10 not resolved"
+        ))
+    }
+
+    @Test
+    fun executeERROR49SourceLineTest() {
+        executeSourceLineTest("ERROR49")
     }
 
     @Test

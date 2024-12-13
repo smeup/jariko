@@ -396,9 +396,14 @@ onError:
 selectstatement:
     (beginselect endselect) |
 	(beginselect
-	whenstatement+
-	other?
+	whenstatement*
+	otherstatement?
 	endselect)
+;
+
+otherstatement:
+    other
+    statement*
 ;
 
 other:

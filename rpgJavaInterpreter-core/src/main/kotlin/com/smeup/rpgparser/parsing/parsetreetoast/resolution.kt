@@ -24,6 +24,7 @@ import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
+import com.smeup.rpgparser.parsing.facade.adaptInFunctionOf
 import com.smeup.rpgparser.parsing.facade.getExecutionProgramNameWithNoExtension
 import com.smeup.rpgparser.parsing.facade.getLastPoppedParsingProgram
 import com.smeup.rpgparser.utils.popIfPresent
@@ -256,8 +257,8 @@ private fun CompilationUnit.resolve() {
     }
 
     this.specificProcess(PlistParam::class.java) { pp ->
-        if (!pp.param.resolved) {
-            pp.param.tryToResolveRecursively(position = pp.position, cu = this)
+        if (!pp.result.resolved) {
+            pp.result.tryToResolveRecursively(position = pp.position, cu = this)
         }
     }
 
@@ -272,7 +273,6 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
         resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
         currentCu = currentCu.parent?.let { it as CompilationUnit }
     }
-    require(resolved) {
-        "Data reference not resolved: ${this.name} at $position"
-    }
+    val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
+    if (!resolved) cu.error("Data reference not resolved: ${this.name} at $relativePosition")
 }

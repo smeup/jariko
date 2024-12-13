@@ -639,7 +639,8 @@ data class FieldInfo(
     var explicitElementType: Type? = null,
     val initializationValue: Expression? = null,
     val descend: Boolean = false,
-    val position: Position?
+    val position: Position?,
+    val compileTimeRecordsPerLine: Int? = null
 ) {
 
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
@@ -672,7 +673,7 @@ data class FieldInfo(
         return if (arraySizeDeclared == null) {
             elementType
         } else {
-            ArrayType(elementType, arraySizeDeclared!!)
+            ArrayType(elementType, arraySizeDeclared!!, compileTimeRecordsPerLine)
         }
     }
 
@@ -871,8 +872,24 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     // Set the SORTA order
     val descend = this.keyword().find { it.keyword_descend() != null } != null
 
+    // Set the CTDATA flag
+    val compileTimeArray = this.keyword().find { it.keyword_ctdata() != null } != null
+
+    // Set the PERRCD flag
+    val elementsPerLineExpression = this.keyword().find { it.keyword_perrcd() != null }.let { it?.keyword_perrcd()?.simpleExpression()?.toAst(conf) }
+
+    // Calculating compile time records per line
+    var compileTimeRecordsPerLine: Int? = null
+    if (compileTimeArray) {
+        if (elementsPerLineExpression != null) {
+            compileTimeRecordsPerLine = conf.compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression).asInt().value.toInt()
+        } else {
+            compileTimeRecordsPerLine = 1
+        }
+        require(compileTimeRecordsPerLine > 0)
+    }
+
     if (overlay != null) {
-        this.name
         val pos = overlay.keyword_overlay().pos
         val nameExpr = overlay.keyword_overlay().name
         val targetFieldName = nameExpr.identifier().text
@@ -886,16 +903,16 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     val hasInitValue = this.keyword().find { it.keyword_inz() != null }
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val varName = like?.variable?.name ?: this.name
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+        knownDataDefinitions = knownDataDefinitions.toList(),
+        delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+    )
     val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
         ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
         ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
         ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
-        ?: like?.let {
-            InjectableCompileTimeInterpreter(
-                knownDataDefinitions = knownDataDefinitions.toList(),
-                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-            ).evaluateTypeOf(this.rContext(), it, conf)
-        }
+        ?: like?.let { compileTimeInterpreter.evaluateTypeOf(this.rContext(), it, conf) }
+        ?: compileTimeInterpreter.evaluateTypeOfDefine(this.rContext(), varName, conf, null)
 
     if (hasInitValue != null) {
         initializationValue = if (hasInitValue.keyword_inz().simpleExpression() != null) {
@@ -922,7 +939,9 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
             arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
             descend = descend,
-            position = this.toPosition(conf.considerPosition))
+            position = this.toPosition(conf.considerPosition),
+            compileTimeRecordsPerLine = compileTimeRecordsPerLine
+    )
 }
 
 fun RpgParser.Dcl_dsContext.declaredSize(): Int? {
@@ -1127,7 +1146,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     knownDataDefinitions: Collection<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>?,
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
-): DataDefinition? {
+): DataDefinition {
     // Using `LIKEDS`
     if (this.keyword().any { it.keyword_likeds() != null }) {
         val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)

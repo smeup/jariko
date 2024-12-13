@@ -124,4 +124,14 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
         val expected = listOf("10000", "10000", "10000", "10000")
         assertEquals(expected, "smeup/MUDRNRAPU00253".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case the error is manifested as side effect of `%LOOKUP`.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00149() {
+        val expected = listOf("1", "*SCP")
+        assertEquals(expected, "smeup/MUDRNRAPU00149".outputOf(configuration = smeupConfig))
+    }
 }

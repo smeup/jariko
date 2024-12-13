@@ -170,7 +170,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.isBlank()) {
                 type.blank()
             } else {
-                DataStructValue(value.value)
+                DataStructValue(value.value.padEnd(type.elementSize))
             }
         }
         is CharacterType -> {
@@ -190,6 +190,10 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
         is BooleanType -> value
         is StringType -> value.asString()
         is UnlimitedStringType -> value.asUnlimitedString()
+        is ArrayType -> {
+            val coercedValue = coerce(value, type.element)
+            ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+        }
         else -> TODO("Converting BooleanValue to $type")
     }
 }
@@ -250,7 +254,7 @@ fun coerce(value: Value, type: Type): Value {
                 }
                 is ArrayType -> {
                     val coercedValue = coerce(value, type.element)
-                    ConcreteArrayValue(MutableList(type.element.size) { coercedValue }, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }
@@ -292,6 +296,7 @@ fun coerce(value: Value, type: Type): Value {
             }
         }
         is BooleanValue -> coerceBoolean(value, type)
+        is UnlimitedStringValue -> coerceString(value.value.asValue(), type)
         else -> value
     }
 }
@@ -322,6 +327,13 @@ fun Type.hiValue(): Value {
         }
         is BooleanType -> BooleanValue.TRUE
         is RecordFormatType -> BlanksValue
+        else -> TODO("Converting HiValValue to $this")
+    }
+}
+
+fun Value.hiValue(): Value {
+    return when (this) {
+        is StringValue -> StringValue(hiValueString(this.value.length))
         else -> TODO("Converting HiValValue to $this")
     }
 }
@@ -367,16 +379,6 @@ private fun computeHiValue(type: NumberType): Value {
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
 
-private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type))
-
-private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type))
-
-// TODO
-fun lowValueString(type: StringType) = " ".repeat(type.size)
-
-// TODO
-fun hiValueString(type: StringType) = "\uFFFF".repeat(type.size)
-
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
     if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType.isNullOrBlank()) {
@@ -409,3 +411,13 @@ private fun computeLowValue(type: NumberType): Value {
     }
     TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
+
+private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type.size))
+
+private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type.size))
+
+// TODO
+private fun hiValueString(size: Int) = "\uFFFF".repeat(size)
+
+// TODO
+private fun lowValueString(size: Int) = " ".repeat(size)

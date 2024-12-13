@@ -22,7 +22,7 @@
      D £TESTDS         DS
      D  £TESTPA                      10
 
-      * Call of a program that throws an error and setting the error indicator
+      * Call of a program that throws an error and sets the error indicator
      C                   CALL        'ERRORPGM'                         35
 
       * If call failed but the error indicator was set

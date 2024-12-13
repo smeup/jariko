@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.evaluation
@@ -1399,6 +1400,36 @@ Test 6
     }
 
     @Test
+    fun executeGOTOTST10() {
+        val expected = listOf("ok", "ok")
+        assertEquals(expected, outputOf("GOTOTST10"))
+    }
+
+    @Test
+    fun executeGOTOTST11() {
+        val expected = listOf("ok")
+        assertEquals(expected, outputOf("GOTOTST11"))
+    }
+
+    @Test
+    fun executeGOTOTST12() {
+        val expected = listOf("ok")
+        assertEquals(expected, outputOf("GOTOTST12"))
+    }
+
+    @Test
+    fun executeGOTOTST13() {
+        val expected = listOf("ok")
+        assertEquals(expected, outputOf("GOTOTST13"))
+    }
+
+    @Test
+    fun executeGOTOTST14() {
+        val expected = listOf("1", "2")
+        assertEquals(expected, outputOf("GOTOTST14"))
+    }
+
+    @Test
     fun executeGotoENDSR() {
         assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
     }
@@ -2548,5 +2579,50 @@ Test 6
     fun executePRSLTCALLERDUPLICATE() {
         val expected = listOf("0", "0", "0", "1")
         assertEquals(expected, "PRSLTCALLERDUPLICATE".outputOf())
+    }
+
+    @Test
+    fun executeFUNCALLMUTABILITY() {
+        val expected = listOf("ok")
+        assertEquals(expected, "FUNCALLMUTABILITY".outputOf())
+    }
+
+    @Test
+    fun missingDefinitionOnPListShouldThrowResolutionError() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     C                   CALL      'PGM'
+|     C                   PARM                    MISSING
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        assertFailsWith(AstResolutionError::class) {
+            program.singleCall(listOf())
+        }
+    }
+
+    @Test
+    fun executeBIG_DO_LOOP() {
+        val jarikoExecutorThread = Thread {
+            val error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
+            require(error is RuntimeException)
+        }
+        val jarikoKillerThread = Thread {
+            println("Waiting 2 seconds before killing jariko")
+            Thread.sleep(2000)
+            println("Killing jariko")
+            jarikoExecutorThread.interrupt()
+            println(jarikoExecutorThread.state)
+        }
+        jarikoExecutorThread.start()
+        jarikoKillerThread.start()
+        jarikoExecutorThread.join()
+    }
+
+    @Test
+    fun executeNULLPTR01() {
+        // Test that the program does not throw a NullPointerException
+        "NULLPTR01".outputOf()
     }
 }

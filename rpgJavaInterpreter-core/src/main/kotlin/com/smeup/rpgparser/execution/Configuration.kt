@@ -261,14 +261,28 @@ data class JarikoCallback(
      * Default implementation provides a simple println with the name of the mock statement.
      * @param mockStatement The mock statement
      */
-    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = { System.err.println("Executing mock statement: ${it.javaClass.simpleName}") },
+    var onMockStatement: ((mockStatement: MockStatement) -> Unit) = {
+        val programName = MainExecutionContext.getExecutionProgramName()
+        val position = if (it is Statement) it.position else null
+        val provider = { LogSourceData(programName, position?.line() ?: "") }
+        val entry = LazyLogEntry.produceInformational(provider, "MOCKSTMT", it.javaClass.simpleName)
+        val rendered = entry.renderScoped()
+        System.err.println(rendered)
+    },
 
     /**
      * If specified, it allows customizing the behavior of the mock statements.
      * Default implementation provides a simple println with the name of the mock expression.
      * @param mockExpression The mock expression
      */
-    var onMockExpression: ((mockExpression: MockExpression) -> Unit) = { System.err.println("Executing mock expression: ${it.javaClass.simpleName}") },
+    var onMockExpression: ((mockExpression: MockExpression) -> Unit) = {
+        val programName = MainExecutionContext.getExecutionProgramName()
+        val position = if (it is Expression) it.position else null
+        val provider = { LogSourceData(programName, position?.line() ?: "") }
+        val entry = LazyLogEntry.produceInformational(provider, "MOCKEXPR", it.javaClass.simpleName)
+        val rendered = entry.renderScoped()
+        System.err.println(rendered)
+    },
 
     /**
      * If specified, it allows overriding the default mechanism of API validation.
@@ -287,7 +301,37 @@ data class JarikoCallback(
      * @return true if the feature flag is on, false otherwise - default implementation returns the feature flag default value
      * @see FeatureFlag.on
      * */
-    var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on }
+    var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on },
+
+    /**
+     * It is invoked whenever we start a telemetry trace.
+     * @param trace The object containing all the information about this trace.
+     */
+    var startJarikoTrace: ((trace: JarikoTrace) -> Unit) = {
+        // Defaults to a no-op
+    },
+
+    /**
+     * It is invoked whenever we finish a telemetry trace.
+     */
+    var finishJarikoTrace: (() -> Unit) = {
+        // Defaults to a no-op
+    },
+
+    /**
+     * It is invoked whenever we start a telemetry trace defined as annotation in an RPG program.
+     * @param trace The object containing all the information about this trace.
+     */
+    var startRpgTrace: ((trace: RpgTrace) -> Unit) = {
+        // Defaults to a no-op
+    },
+
+    /**
+     * It is invoked whenever we finish a telemetry trace defined as annotation in an RPG program.
+     */
+    var finishRpgTrace: (() -> Unit) = {
+        // Defaults to a no-op
+    }
 )
 
 /**
