@@ -5,14 +5,13 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -1098,7 +1097,10 @@ fun Type.blank(): Value {
  * StringValue wrapper
  */
 @Serializable
-data class DataStructValue(var value: String, private val optionalExternalLen: Int? = null) : Value {
+data class DataStructValue(@Contextual val value: StringBuilder, private val optionalExternalLen: Int? = null) : Value {
+
+    constructor(value: String) : this(StringBuilder(value))
+
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
     val len by lazy { optionalExternalLen ?: value.length }
@@ -1115,7 +1117,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         }
     }
 
-    override fun copy() = DataStructValue(value).apply {
+    override fun copy() = DataStructValue(value.toString()).apply {
         unlimitedStringField.forEach { entry ->
             this.unlimitedStringField[entry.key] = entry.value.copy()
         }
@@ -1192,7 +1194,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         // changed to >= a small value fits in a bigger one
         require(endOffset - startOffset >= substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         substringValue.pad(endOffset - startOffset)
-        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+        value.replace(startOffset, endOffset, substringValue.value)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -1257,7 +1259,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         return "DataStructureValue[${value.length}]($value)"
     }
 
-    override fun asString() = StringValue(this.value)
+    override fun asString() = StringValue(this.value.toString())
 
     // Use this method when need to compare to StringValue
     fun asStringValue(): String {
@@ -1273,6 +1275,29 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
     fun isBlank(): Boolean {
         return this.value.isBlank()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        // StringBuilder seems not implementing equals
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DataStructValue
+
+        if (optionalExternalLen != other.optionalExternalLen) return false
+        if (len != other.len) return false
+        if (value.toString() != (value.toString())) return false
+        if (unlimitedStringField != other.unlimitedStringField) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = optionalExternalLen ?: 0
+        result = 31 * result + len
+        result = 31 * result + value.hashCode()
+        result = 31 * result + unlimitedStringField.hashCode()
+        return result
     }
 }
 
