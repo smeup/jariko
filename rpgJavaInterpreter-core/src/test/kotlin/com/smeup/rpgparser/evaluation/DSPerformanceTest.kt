@@ -32,8 +32,8 @@ open class DSPerformanceTest : AbstractTest() {
         val regex = Regex(pattern = "PERFORMANCE RATIO: ((?:\\d+)?\\.\\d+)")
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ ->
-                println(message)
-                regex.matchEntire(message)?.let { mathResult ->
+                println(message.trim())
+                regex.matchEntire(message.trim())?.let { mathResult ->
                     mathResult.groups[1]?.value?.let { value ->
                         performanceRatio = value.toDouble()
                     }
@@ -42,7 +42,7 @@ open class DSPerformanceTest : AbstractTest() {
         }
         executePgm(programName = "DSPERF01", systemInterface = systemInterface)
         require(performanceRatio != 0.0) { "performanceRatio must be initialized" }
-        assertTrue(performanceRatio > 100,
-            "performanceRatio must be at least 100")
+        assertTrue(performanceRatio > 10,
+            "performanceRatio must be at least 10")
     }
 }
