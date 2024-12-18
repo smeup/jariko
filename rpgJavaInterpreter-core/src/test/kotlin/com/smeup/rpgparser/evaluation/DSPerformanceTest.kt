@@ -18,10 +18,15 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.time.Duration
+import java.util.*
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
 open class DSPerformanceTest : AbstractTest() {
 
@@ -44,5 +49,25 @@ open class DSPerformanceTest : AbstractTest() {
         require(performanceRatio != 0.0) { "performanceRatio must be initialized" }
         assertTrue(performanceRatio > 10,
             "performanceRatio must be at least 10")
+    }
+
+    @Test
+    @Category(PerformanceTest::class)
+    fun executeDSPERF02() {
+        lateinit var start: Date
+        lateinit var end: Date
+        val configuration = Configuration().apply {
+            jarikoCallback.onEnterPgm = { _, _ ->
+                start = Date()
+            }
+            jarikoCallback.onExitPgm = { _, _, _ ->
+                end = Date()
+            }
+        }
+        "DSPERF02".outputOf(configuration = configuration)
+        val duration = Duration.between(start.toInstant(), end.toInstant()).toMillis().milliseconds
+        println(duration)
+        // Currently the assertion is really empirical
+        assertTrue(duration.toLong(DurationUnit.MILLISECONDS) < 1000, "Duration must be less than 1 second")
     }
 }
