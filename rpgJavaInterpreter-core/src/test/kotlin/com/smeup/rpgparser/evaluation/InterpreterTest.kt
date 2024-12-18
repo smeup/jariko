@@ -5,14 +5,13 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.smeup.rpgparser.evaluation
@@ -31,10 +30,12 @@ import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 open class InterpreterTest : AbstractTest() {
 
@@ -2624,5 +2625,21 @@ Test 6
     fun executeNULLPTR01() {
         // Test that the program does not throw a NullPointerException
         "NULLPTR01".outputOf()
+    }
+
+    @Test
+    fun executeCLEARDS01() {
+        lateinit var start: Date
+        lateinit var end: Date
+        val configuration = Configuration().apply {
+            jarikoCallback.onEnterPgm = { _, _ ->
+                start = Date()
+            }
+            jarikoCallback.onExitPgm = { _, _, _ ->
+                end = Date()
+            }
+        }
+        "CLEARDS01".outputOf(configuration = configuration)
+        println(Duration.between(start.toInstant(), end.toInstant()).toMillis().milliseconds)
     }
 }
