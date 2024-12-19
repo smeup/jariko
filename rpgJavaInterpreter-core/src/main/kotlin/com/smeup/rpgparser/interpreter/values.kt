@@ -1100,6 +1100,7 @@ fun Type.blank(): Value {
 data class DataStructValue(@Contextual val value: StringBuilder, private val optionalExternalLen: Int? = null) : Value {
 
     constructor(value: String) : this(StringBuilder(value))
+    constructor(value: String, len: Int) : this(StringBuilder(value), len)
 
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
