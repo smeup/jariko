@@ -32,10 +32,10 @@ fun Value.stringRepresentation(format: String? = null): String {
         is NumberValue -> render()
         is ArrayValue -> "[${elements().joinToString(", ") { it.render() }}]"
         is TimeStampValue -> timestampFormatting(format)
-        is DataStructValue -> value.trimEnd()
+        is DataStructValue -> value.toString().trimEnd()
         is ZeroValue -> STRING_REPRESENTATION
         is AllValue -> charsToRepeat
-        is OccurableDataStructValue -> value().value.trimEnd()
+        is OccurableDataStructValue -> value().value.toString().trimEnd()
         is UnlimitedStringValue -> value.trimEnd()
         else -> TODO("Unable to render value $this (${this.javaClass.canonicalName})")
     }

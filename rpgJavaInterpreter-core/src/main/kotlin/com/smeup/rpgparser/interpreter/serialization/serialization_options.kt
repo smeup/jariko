@@ -21,6 +21,7 @@ import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
+import com.smeup.rpgparser.serialization.StringBuilderSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
@@ -32,6 +33,7 @@ import kotlinx.serialization.modules.subclass
 private val module = SerializersModule {
     contextual(BigDecimalSerializer)
     contextual(LocalDateTimeSerializer)
+    contextual(StringBuilderSerializer)
     polymorphic(Value::class) {
         subclass(IntValue::class)
         subclass(DecimalValue::class)
