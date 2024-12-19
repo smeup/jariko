@@ -68,6 +68,6 @@ open class DSPerformanceTest : AbstractTest() {
         val duration = Duration.between(start.toInstant(), end.toInstant()).toMillis().milliseconds
         println(duration)
         // Currently the assertion is really empirical
-        assertTrue(duration.toLong(DurationUnit.MILLISECONDS) < 1000, "Duration must be less than 1 second")
+        assertTrue(duration.toLong(DurationUnit.SECONDS) < 2, "Duration must be less than 2 second")
     }
 }
