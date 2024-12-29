@@ -25,10 +25,13 @@ class IndexedStringBuilder(value: String, private val chunkSize: Int) {
         require(end > start) { "End index must be greater than start index." }
         require(replacingString.length == end - start) { "Replacing string length must match the length of the substring being replaced." }
 
+        val firstChunkIndex = start / chunkSize
+        val lastChunkIndex = (end / chunkSize).let { if (it >= chunks.size) it - 1 else it }
+        val subChunks = chunks.subList(firstChunkIndex, lastChunkIndex + 1)
         var remaining = replacingString
-        var currentIndex = 0
+        var currentIndex = firstChunkIndex * chunkSize
 
-        for (chunk in chunks) {
+        for (chunk in subChunks) {
             val chunkStart = currentIndex
             val chunkEnd = currentIndex + chunk.length
             if (chunkEnd > end) {
