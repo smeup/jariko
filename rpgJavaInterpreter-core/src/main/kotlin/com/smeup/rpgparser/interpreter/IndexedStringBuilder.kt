@@ -31,7 +31,9 @@ class IndexedStringBuilder(value: String, private val chunkSize: Int) {
         for (chunk in chunks) {
             val chunkStart = currentIndex
             val chunkEnd = currentIndex + chunk.length
-
+            if (chunkEnd > end) {
+                break
+            }
             if (start < chunkEnd && end > chunkStart) {
                 val relativeStart = maxOf(0, start - chunkStart)
                 val relativeEnd = minOf(chunk.length, end - chunkStart)
