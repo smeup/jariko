@@ -4,7 +4,17 @@ import java.math.RoundingMode
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
-private fun stringBuilderVsDataStructStringValue(
+/**
+ * Measures and compares the performance of different string builders.
+ *
+ * @param printHeader Whether to print the header for the output.
+ * @param debugInformation Whether to include debug information in the output.
+ * @param stringSize The size of the string to be used in the test.
+ * @param fields The number of fields to divide the string into.
+ * @param iterations The number of iterations to run the test.
+ * @throws IllegalArgumentException if stringSize is less than fields or if stringSize is not a multiple of fields.
+ */
+private fun stringBuilderVsDataStructStringBuilder(
     printHeader: Boolean = false,
     debugInformation: Boolean = false,
     stringSize: Int,
@@ -24,6 +34,8 @@ private fun stringBuilderVsDataStructStringValue(
     print("$stringSize, $fields${if (debugInformation) ", $chunksSize" else ""}")
 
     val replacingString = "b".repeat(stringSize / fields)
+
+    // Measure the duration for StringBuilder
     val sbDuration = measureTime {
         val sb = StringBuilder("a".repeat(stringSize))
         for (i in 0 until iterations) {
@@ -36,8 +48,9 @@ private fun stringBuilderVsDataStructStringValue(
         }
     }
 
+    // Measure the duration for IndexedBuilderBuilder
     val indexedSbDuration = measureTime {
-        val indexedSb = IndexedStringBuilder("a".repeat(stringSize), chunksSize)
+        val indexedSb = IndexedBuilderBuilder("a".repeat(stringSize), chunksSize)
         for (i in 0 until iterations) {
             val replacingChars = stringSize / fields
             for (j in 0 until fields) {
@@ -48,14 +61,15 @@ private fun stringBuilderVsDataStructStringValue(
         }
     }
 
+    // Measure the duration for DataStructValueBuilder
     val dataStructStringValueDuration = measureTime {
-        val dataStructStringValue = DataStructStringValue.create("a".repeat(stringSize), fields)
+        val dataStructValueBuilder = DataStructValueBuilder.create("a".repeat(stringSize), fields)
         for (i in 0 until iterations) {
             val replacingChars = stringSize / fields
             for (j in 0 until fields) {
                 val start: Int = j * replacingChars
                 val end: Int = start + replacingChars
-                dataStructStringValue.replace(start, end, replacingString)
+                dataStructValueBuilder.replace(start, end, replacingString)
             }
         }
     }
@@ -65,10 +79,16 @@ private fun stringBuilderVsDataStructStringValue(
     println(", $ratioSbIndexed, $ratioSbDataStructStringValue${if (debugInformation) ", ${sbDuration.plus(indexedSbDuration).toLong(DurationUnit.MILLISECONDS)}" else ""}")
 }
 
+/**
+ * Creates a dataset for performance comparison by generating various string sizes and field combinations,
+ * and then measures the performance of different string builders.
+ */
 private fun createPerformanceComparisonDataset() {
     val stringSizeTests = mutableListOf<Int>()
     val startStringSizeValue = 1000
     var value = startStringSizeValue
+
+    // Generate string sizes in the pattern: 1000, 2000, ..., 9000, 10000, 20000, ..., 90000, 100000
     while (value <= 100_000) {
         for (i in 1..9) {
             stringSizeTests.add(value * i)
@@ -76,12 +96,16 @@ private fun createPerformanceComparisonDataset() {
         value *= 10
     }
 
+    // Iterate over each generated string size
     for (stringSize in stringSizeTests) {
+        // Test with different numbers of fields
         for (fields in listOf(1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)) {
+            // Skip invalid combinations where stringSize is less than fields or not a multiple of fields
             if (stringSize < fields || ((stringSize % fields) != 0)) {
                 break
             }
-            stringBuilderVsDataStructStringValue(
+            // Measure and compare the performance of different string builders
+            stringBuilderVsDataStructStringBuilder(
                 printHeader = stringSize == startStringSizeValue && fields == 1,
                 stringSize = stringSize,
                 fields = fields,

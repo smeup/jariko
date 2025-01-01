@@ -3,7 +3,7 @@ package com.smeup.rpgparser.interpreter
 /**
  * Interface representing a value of a data structure string.
  */
-internal interface DataStructStringValue {
+internal interface DataStructValueBuilder {
 
     /**
      * Replaces a substring within the data structure string.
@@ -26,22 +26,29 @@ internal interface DataStructStringValue {
     companion object {
 
         /**
-         * Creates an instance of DataStructStringValue based on the given value and fields.
+         * Creates an instance of DataStructValueBuilder based on the given value and fields.
          *
          * @param value The initial value of the data structure string.
          * @param fields The number of fields to divide the string into.
-         * @return An instance of DataStructStringValue. The algorithm to create the instance is chosen based on the value and fields.
+         * @return An instance of DataStructValueBuilder. The algorithm to create the instance is chosen based on the value and fields.
          */
-        fun create(value: String, fields: Int): DataStructStringValue {
+        fun create(value: String, fields: Int): DataStructValueBuilder {
             val stringSize = value.length
 
             return if (useIndexedStringBuilder(stringSize = stringSize, fields = fields)) {
-                IndexedStringBuilder(value = value, chunksSize = stringSize / fields)
+                IndexedBuilderBuilder(value = value, chunksSize = stringSize / fields)
             } else {
-                NotIndexedStringBuilder(value)
+                StringBuilderWrapper(value)
             }
         }
 
+        /**
+         * Determines whether to use IndexedStringBuilder based on the string size and number of fields.
+         *
+         * @param stringSize The size of the string.
+         * @param fields The number of fields to divide the string into.
+         * @return True if IndexedStringBuilder should be used, false otherwise.
+         */
         private fun useIndexedStringBuilder(stringSize: Int, fields: Int): Boolean {
             if (stringSize >= 9000) return true
             if (stringSize >= 2000 && fields >= 5) return true
@@ -50,18 +57,42 @@ internal interface DataStructStringValue {
     }
 }
 
-internal class NotIndexedStringBuilder(value: String) : DataStructStringValue {
+/**
+ * A wrapper class for StringBuilder that implements the DataStructValueBuilder interface.
+ *
+ * @param value The initial value of the string builder.
+ */
+internal class StringBuilderWrapper(value: String) : DataStructValueBuilder {
 
     private val sb = StringBuilder(value)
 
+    /**
+     * Replaces a substring within the string builder.
+     *
+     * @param start The start index of the substring to replace.
+     * @param end The end index of the substring to replace.
+     * @param replacingString The string to replace the substring with.
+     */
     override fun replace(start: Int, end: Int, replacingString: String) {
         sb.replace(start, end, replacingString)
     }
 
+    /**
+     * Returns a substring from the string builder.
+     *
+     * @param start The start index of the substring.
+     * @param end The end index of the substring.
+     * @return The substring from start to end.
+     */
     override fun substring(start: Int, end: Int): String {
         return sb.substring(start, end)
     }
 
+    /**
+     * Returns the string representation of the string builder.
+     *
+     * @return The string representation of the string builder.
+     */
     override fun toString(): String {
         return sb.toString()
     }
@@ -75,7 +106,7 @@ internal class NotIndexedStringBuilder(value: String) : DataStructStringValue {
  * @param value The initial value of the string builder
  * @param chunksSize The size of the chunks
  */
-internal class IndexedStringBuilder(value: String, private val chunksSize: Int) : DataStructStringValue {
+internal class IndexedBuilderBuilder(value: String, private val chunksSize: Int) : DataStructValueBuilder {
 
     // The string is divided into chunks of a fixed size
     private val chunks: List<StringBuilder> = List((value.length + chunksSize - 1) / chunksSize) { index ->
