@@ -6,13 +6,13 @@ package com.smeup.rpgparser.interpreter
  * When replacing a substring, only the affected chunks are modified.
  * This is useful when the string is very large and only a small part of it is modified.
  * @param value The initial value of the string builder
- * @param chunkSize The size of the chunks
+ * @param chunksSize The size of the chunks
  */
-class IndexedStringBuilder(value: String, private val chunkSize: Int) {
+class IndexedStringBuilder(value: String, private val chunksSize: Int) {
 
     // The string is divided into chunks of a fixed size
-    private val chunks: List<StringBuilder> = List((value.length + chunkSize - 1) / chunkSize) { index ->
-        StringBuilder(value.substring(index * chunkSize, minOf((index + 1) * chunkSize, value.length)))
+    private val chunks: List<StringBuilder> = List((value.length + chunksSize - 1) / chunksSize) { index ->
+        StringBuilder(value.substring(index * chunksSize, minOf((index + 1) * chunksSize, value.length)))
     }
 
     /***
@@ -25,11 +25,11 @@ class IndexedStringBuilder(value: String, private val chunkSize: Int) {
         require(end > start) { "End index must be greater than start index." }
         require(replacingString.length == end - start) { "Replacing string length must match the length of the substring being replaced." }
 
-        val firstChunkIndex = start / chunkSize
-        val lastChunkIndex = (end / chunkSize).let { if (it >= chunks.size) it - 1 else it }
+        val firstChunkIndex = start / chunksSize
+        val lastChunkIndex = (end / chunksSize).let { if (it >= chunks.size) it - 1 else it }
         val subChunks = chunks.subList(firstChunkIndex, lastChunkIndex + 1)
         var remaining = replacingString
-        var currentIndex = firstChunkIndex * chunkSize
+        var currentIndex = firstChunkIndex * chunksSize
 
         for (chunk in subChunks) {
             val chunkStart = currentIndex
