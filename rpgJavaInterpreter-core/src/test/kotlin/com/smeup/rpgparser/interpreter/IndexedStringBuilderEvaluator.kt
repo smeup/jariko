@@ -63,7 +63,9 @@ private fun stringBuilderVsDataStructStringValue(
     println(", $ratio${if (debugInformation) ", ${sbDuration.plus(indexedSbDuration).toLong(DurationUnit.MILLISECONDS)}" else ""}")
 }
 
-private fun createPerformanceComparisonDataset(chunksSize: (stringSize: Int, fields: Int) -> Int = { stringSize, fields -> stringSize / fields }) {
+private fun createPerformanceComparisonDataset(
+    chunksSize: (stringSize: Int, fields: Int) -> Int = { stringSize, fields -> stringSize / fields }
+) {
     for (stringSize in listOf(10, 100, 500, 1000, 2_000, 5_000, 10_000, 50_000, 100_000, 1_000_000, 10_000_000)) {
         for (fields in listOf(1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)) {
             if (stringSize < fields || ((stringSize % fields) != 0)) {
@@ -74,7 +76,7 @@ private fun createPerformanceComparisonDataset(chunksSize: (stringSize: Int, fie
                 stringSize = stringSize,
                 fields = fields,
                 chunksSize = chunksSize(stringSize, fields),
-                iterations = if (stringSize*fields < 100_000) 1_000_000 else if (stringSize*fields < 1_000_000) 100_000 else 100,
+                iterations = if (stringSize * fields < 100_000) 1_000_000 else if (stringSize * fields < 1_000_000) 100_000 else 100,
                 stringBuilderDone = { },
                 indexedStringBuilderDone = { }
             )
