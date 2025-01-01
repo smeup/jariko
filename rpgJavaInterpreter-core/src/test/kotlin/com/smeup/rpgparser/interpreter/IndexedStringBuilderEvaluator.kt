@@ -10,6 +10,7 @@ private fun compareStringBuilderAndIndexedStringBuilderPerformance(
     debugInformation: Boolean = false,
     stringSize: Int,
     fields: Int,
+    chunksSize: Int,
     iterations: Int,
     stringBuilderDone: (duration: Duration) -> Unit,
     indexedStringBuilderDone: (duration: Duration) -> Unit
@@ -21,7 +22,7 @@ private fun compareStringBuilderAndIndexedStringBuilderPerformance(
         println("stringSize, ${if (debugInformation) "fields, " else "" }chunksSize, ratio${if (debugInformation) ", duration(ms)" else "" }")
     }
 
-    print("$stringSize, ${if (debugInformation) "$fields, " else ""}${stringSize / fields}")
+    print("$stringSize, ${if (debugInformation) "$fields, " else ""}$chunksSize")
 
     val replacingString = "b".repeat(stringSize / fields)
     val sbDuration = measureTime {
@@ -38,7 +39,7 @@ private fun compareStringBuilderAndIndexedStringBuilderPerformance(
     stringBuilderDone(sbDuration)
 
     val indexedSbDuration = measureTime {
-        val indexedSb = IndexedStringBuilder("a".repeat(stringSize), stringSize / fields)
+        val indexedSb = IndexedStringBuilder("a".repeat(stringSize), chunksSize)
         for (i in 0 until iterations) {
             val replacingChars = stringSize / fields
             for (j in 0 until fields) {
@@ -56,7 +57,7 @@ private fun compareStringBuilderAndIndexedStringBuilderPerformance(
     println(", $ratio${if (debugInformation) ", ${sbDuration.plus(indexedSbDuration).toLong(DurationUnit.MILLISECONDS)}" else ""}")
 }
 
-private fun createPerformanceComparisonDataset() {
+private fun createPerformanceComparisonDataset(chunksSize: (stringSize: Int, fields: Int) -> Int = { stringSize, fields -> stringSize / fields }) {
     for (stringSize in listOf(10, 100, 500, 1000, 2_000, 5_000, 10_000, 50_000, 100_000, 1_000_000, 10_000_000)) {
         for (fields in listOf(1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)) {
             if (stringSize < fields || ((stringSize % fields) != 0)) {
@@ -66,6 +67,7 @@ private fun createPerformanceComparisonDataset() {
                 printHeader = stringSize == 10 && fields == 1,
                 stringSize = stringSize,
                 fields = fields,
+                chunksSize = chunksSize(stringSize, fields),
                 iterations = if (stringSize*fields < 100_000) 1_000_000 else if (stringSize*fields < 1_000_000) 100_000 else 100,
                 stringBuilderDone = { },
                 indexedStringBuilderDone = { }
