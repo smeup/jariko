@@ -28,14 +28,14 @@ internal interface DataStructStringValue {
     companion object {
 
         /**
-         * Creates an instance of DataStructStringValue based on the given value and elements.
+         * Creates an instance of DataStructStringValue based on the given value and fields.
          *
          * @param value The initial value of the data structure string.
-         * @param elements The number of elements to divide the string into.
-         * @return An instance of DataStructStringValue. The algorithm to create the instance is chosen based on the value and elements.
+         * @param fields The number of fields to divide the string into.
+         * @return An instance of DataStructStringValue. The algorithm to create the instance is chosen based on the value and fields.
          */
-        fun create(value: String, elements: Int): DataStructStringValue {
-            val chunksSize = value.length / elements
+        fun create(value: String, fields: Int): DataStructStringValue {
+            val chunksSize = value.length / fields
             return if (chunksSize <= value.length.toDouble().pow(0.698) / 5102.41) {
                 IndexedStringBuilder(value, chunksSize)
             } else {
