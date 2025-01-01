@@ -1,7 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import kotlin.math.pow
-
 /**
  * Interface representing a value of a data structure string.
  */
@@ -35,12 +33,19 @@ internal interface DataStructStringValue {
          * @return An instance of DataStructStringValue. The algorithm to create the instance is chosen based on the value and fields.
          */
         fun create(value: String, fields: Int): DataStructStringValue {
-            val chunksSize = value.length / fields
-            return if (chunksSize <= value.length.toDouble().pow(0.698) / 5102.41) {
-                IndexedStringBuilder(value, chunksSize)
+            val stringSize = value.length
+
+            return if (useIndexedStringBuilder(stringSize = stringSize, fields = fields)) {
+                IndexedStringBuilder(value = value, chunksSize = stringSize / fields)
             } else {
                 NotIndexedStringBuilder(value)
             }
+        }
+
+        private fun useIndexedStringBuilder(stringSize: Int, fields: Int): Boolean {
+            if (stringSize >= 9000) return true
+            if (stringSize >= 2000 && fields >= 5) return true
+            return false
         }
     }
 }
