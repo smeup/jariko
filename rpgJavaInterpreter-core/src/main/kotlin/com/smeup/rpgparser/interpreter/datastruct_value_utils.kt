@@ -1,5 +1,11 @@
 package com.smeup.rpgparser.interpreter
 
+internal interface DataStructStringValue {
+
+    fun replace(start: Int, end: Int, replacingString: String)
+    fun substring(start: Int, end: Int): String
+}
+
 /**
  * Creates a string builder that allows to replace substrings in a more efficient way.
  * The string is divided into chunks of a fixed size.
@@ -8,7 +14,7 @@ package com.smeup.rpgparser.interpreter
  * @param value The initial value of the string builder
  * @param chunksSize The size of the chunks
  */
-class IndexedStringBuilder(value: String, private val chunksSize: Int) {
+internal class IndexedStringBuilder(value: String, private val chunksSize: Int) : DataStructStringValue {
 
     // The string is divided into chunks of a fixed size
     private val chunks: List<StringBuilder> = List((value.length + chunksSize - 1) / chunksSize) { index ->
@@ -21,7 +27,7 @@ class IndexedStringBuilder(value: String, private val chunksSize: Int) {
      * @param start The start index of the substring to replace
      * @param end The end index of the substring to replace
      */
-    fun replace(start: Int, end: Int, replacingString: String) {
+    override fun replace(start: Int, end: Int, replacingString: String) {
         require(end > start) { "End index must be greater than start index." }
         require(replacingString.length == end - start) { "Replacing string length must match the length of the substring being replaced." }
 
@@ -58,7 +64,7 @@ class IndexedStringBuilder(value: String, private val chunksSize: Int) {
      * @param end The end index of the substring
      * @return The substring from start to end
      */
-    fun substring(start: Int, end: Int): String {
+    override fun substring(start: Int, end: Int): String {
         require(end >= start) { "End index must be greater than or equal to start index." }
 
         if (start == end) return ""
