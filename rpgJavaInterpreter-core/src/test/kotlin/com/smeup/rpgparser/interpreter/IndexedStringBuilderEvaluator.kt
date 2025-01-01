@@ -50,7 +50,7 @@ private fun stringBuilderVsDataStructStringBuilder(
 
     // Measure the duration for IndexedBuilderBuilder
     val indexedSbDuration = measureTime {
-        val indexedSb = IndexedBuilderBuilder("a".repeat(stringSize), chunksSize)
+        val indexedSb = IndexedStringBuilder("a".repeat(stringSize), chunksSize)
         for (i in 0 until iterations) {
             val replacingChars = stringSize / fields
             for (j in 0 until fields) {

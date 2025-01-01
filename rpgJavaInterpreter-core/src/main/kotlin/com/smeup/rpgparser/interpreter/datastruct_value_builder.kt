@@ -36,7 +36,7 @@ internal interface DataStructValueBuilder {
             val stringSize = value.length
 
             return if (useIndexedStringBuilder(stringSize = stringSize, fields = fields)) {
-                IndexedBuilderBuilder(value = value, chunksSize = stringSize / fields)
+                IndexedStringBuilder(value = value, chunksSize = stringSize / fields)
             } else {
                 StringBuilderWrapper(value)
             }
@@ -106,7 +106,7 @@ internal class StringBuilderWrapper(value: String) : DataStructValueBuilder {
  * @param value The initial value of the string builder
  * @param chunksSize The size of the chunks
  */
-internal class IndexedBuilderBuilder(value: String, private val chunksSize: Int) : DataStructValueBuilder {
+internal class IndexedStringBuilder(value: String, private val chunksSize: Int) : DataStructValueBuilder {
 
     // The string is divided into chunks of a fixed size
     private val chunks: List<StringBuilder> = List((value.length + chunksSize - 1) / chunksSize) { index ->
