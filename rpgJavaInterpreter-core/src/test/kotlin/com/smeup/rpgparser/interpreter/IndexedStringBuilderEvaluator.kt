@@ -5,13 +5,19 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
-private fun compareStringBuilderAndIndexedStringBuilderPerformance(
+private fun stringBuilderVsDataStructStringValue(
     printHeader: Boolean = false,
     debugInformation: Boolean = false,
     stringSize: Int,
     fields: Int,
     chunksSize: Int,
     iterations: Int,
+    dataStructStringValue: (value: String, chunksSize: Int) -> DataStructStringValue = { value, chunksSizeParam ->
+        IndexedStringBuilder(
+            value,
+            chunksSizeParam
+        )
+    },
     stringBuilderDone: (duration: Duration) -> Unit,
     indexedStringBuilderDone: (duration: Duration) -> Unit
 ) {
@@ -39,7 +45,7 @@ private fun compareStringBuilderAndIndexedStringBuilderPerformance(
     stringBuilderDone(sbDuration)
 
     val indexedSbDuration = measureTime {
-        val indexedSb = IndexedStringBuilder("a".repeat(stringSize), chunksSize)
+        val indexedSb = dataStructStringValue("a".repeat(stringSize), chunksSize)
         for (i in 0 until iterations) {
             val replacingChars = stringSize / fields
             for (j in 0 until fields) {
@@ -63,7 +69,7 @@ private fun createPerformanceComparisonDataset(chunksSize: (stringSize: Int, fie
             if (stringSize < fields || ((stringSize % fields) != 0)) {
                 break
             }
-            compareStringBuilderAndIndexedStringBuilderPerformance(
+            stringBuilderVsDataStructStringValue(
                 printHeader = stringSize == 10 && fields == 1,
                 stringSize = stringSize,
                 fields = fields,
