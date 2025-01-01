@@ -28,6 +28,15 @@ class IndexedStringBuilderTest {
     }
 
     @Test
+    fun replaceWithinSubChunkFirst() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        builder.replace(0, 1, "1")
+        assertEquals("1elloWorld", builder.toString())
+        builder.replace(1, 2, "1")
+        assertEquals("11lloWorld", builder.toString())
+    }
+
+    @Test
     fun replaceAllChunks() {
         val builder = IndexedStringBuilder("HelloWorld", 5)
         builder.replace(0, 10, "1234567890")
