@@ -1,9 +1,65 @@
 package com.smeup.rpgparser.interpreter
 
+import kotlin.math.pow
+
+/**
+ * Interface representing a value of a data structure string.
+ */
 internal interface DataStructStringValue {
 
+    /**
+     * Replaces a substring within the data structure string.
+     *
+     * @param start The start index of the substring to replace.
+     * @param end The end index of the substring to replace.
+     * @param replacingString The string to replace the substring with.
+     */
     fun replace(start: Int, end: Int, replacingString: String)
+
+    /**
+     * Returns a substring from the data structure string.
+     *
+     * @param start The start index of the substring.
+     * @param end The end index of the substring.
+     * @return The substring from start to end.
+     */
     fun substring(start: Int, end: Int): String
+
+    companion object {
+
+        /**
+         * Creates an instance of DataStructStringValue based on the given value and elements.
+         *
+         * @param value The initial value of the data structure string.
+         * @param elements The number of elements to divide the string into.
+         * @return An instance of DataStructStringValue. The algorithm to create the instance is chosen based on the value and elements.
+         */
+        fun create(value: String, elements: Int): DataStructStringValue {
+            val chunksSize = value.length / elements
+            return if (chunksSize <= value.length.toDouble().pow(0.698) / 5102.41) {
+                IndexedStringBuilder(value, chunksSize)
+            } else {
+                NotIndexedStringBuilder(value)
+            }
+        }
+    }
+}
+
+internal class NotIndexedStringBuilder(value: String) : DataStructStringValue {
+
+    private val sb = StringBuilder(value)
+
+    override fun replace(start: Int, end: Int, replacingString: String) {
+        sb.replace(start, end, replacingString)
+    }
+
+    override fun substring(start: Int, end: Int): String {
+        return sb.substring(start, end)
+    }
+
+    override fun toString(): String {
+        return sb.toString()
+    }
 }
 
 /**
