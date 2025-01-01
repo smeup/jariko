@@ -125,9 +125,13 @@ internal class IndexedStringBuilder(value: String, private val chunksSize: Int) 
 
         if (start == end) return ""
 
+        val firstChunkIndex = start / chunksSize
+        val lastChunkIndex = (end / chunksSize).let { if (it >= chunks.size) it - 1 else it }
+        val subChunks = chunks.subList(firstChunkIndex, lastChunkIndex + 1)
+
         val result = StringBuilder()
         var currentIndex = 0
-        for (chunk in chunks) {
+        for (chunk in subChunks) {
             val chunkStart = currentIndex
             val chunkEnd = currentIndex + chunk.length
 
