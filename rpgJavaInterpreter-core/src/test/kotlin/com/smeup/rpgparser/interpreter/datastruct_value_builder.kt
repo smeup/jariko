@@ -1,5 +1,23 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.ast.json
 import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.measureTime
@@ -228,5 +246,148 @@ class IndexedStringBuilderTest {
         val builder = IndexedStringBuilder("HelloWorld", 5)
         val result = builder.substring(5, 5)
         assertEquals("", result)
+    }
+
+    @Test
+    fun forEachExecutesActionOnEachCharacter() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        val result = StringBuilder()
+        builder.forEach { result.append(it) }
+        assertEquals("HelloWorld", result.toString())
+    }
+
+    @Test
+    fun forEachExecutesActionOnEmptyString() {
+        val builder = IndexedStringBuilder("", 5)
+        val result = StringBuilder()
+        builder.forEach { result.append(it) }
+        assertEquals("", result.toString())
+    }
+
+    @Test
+    fun forEachExecutesActionOnSingleCharacter() {
+        val builder = IndexedStringBuilder("A", 5)
+        val result = StringBuilder()
+        builder.forEach { result.append(it) }
+        assertEquals("A", result.toString())
+    }
+
+    @Test
+    fun forEachExecutesActionOnWhitespaceCharacters() {
+        val builder = IndexedStringBuilder(" \t\n", 5)
+        val result = StringBuilder()
+        builder.forEach { result.append(it) }
+        assertEquals(" \t\n", result.toString())
+    }
+
+    @Test
+    fun isBlankReturnsTrueForEmptyString() {
+        val builder = IndexedStringBuilder("", 5)
+        assertTrue(builder.isBlank())
+    }
+
+    @Test
+    fun isBlankReturnsTrueForWhitespaceString() {
+        val builder = IndexedStringBuilder(" \t\n", 5)
+        assertTrue(builder.isBlank())
+    }
+
+    @Test
+    fun isBlankReturnsFalseForNonEmptyString() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        assertFalse(builder.isBlank())
+    }
+
+    @Test
+    fun isBlankReturnsFalseForMixedString() {
+        val builder = IndexedStringBuilder(" \t\nHello", 5)
+        assertFalse(builder.isBlank())
+    }
+
+    @Test
+    fun chunkedSplitsStringIntoEqualChunks() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        val result = builder.chunked(2)
+        assertEquals(listOf("He", "ll", "oW", "or", "ld"), result)
+    }
+
+    @Test
+    fun chunkedSplitsStringWithRemainingCharacters() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        val result = builder.chunked(3)
+        assertEquals(listOf("Hel", "loW", "orl", "d"), result)
+    }
+
+    @Test
+    fun chunkedSplitsEmptyString() {
+        val builder = IndexedStringBuilder("", 5)
+        val result = builder.chunked(3)
+        assertEquals(emptyList<String>(), result)
+    }
+
+    @Test
+    fun chunkedSplitsStringWithSingleCharacterChunks() {
+        val builder = IndexedStringBuilder("Hello", 5)
+        val result = builder.chunked(1)
+        assertEquals(listOf("H", "e", "l", "l", "o"), result)
+    }
+
+    @Test
+    fun chunkedSplitsStringWithChunkSizeGreaterThanStringLength() {
+        val builder = IndexedStringBuilder("Hello", 5)
+        val result = builder.chunked(10)
+        assertEquals(listOf("Hello"), result)
+    }
+
+    @Test
+    fun replaceAllReplacesEntireStringWithSameLength() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        builder.replaceAll("1234567890")
+        assertEquals("1234567890", builder.toString())
+    }
+
+    @Test
+    fun replaceAllReplacesStringWithDifferentChunks() {
+        val builder = IndexedStringBuilder("HelloWorldHelloWorld", 5)
+        builder.replaceAll("12345123451234512345")
+        assertEquals("12345123451234512345", builder.toString())
+    }
+
+    @Test
+    fun replaceAllThrowsExceptionWhenValueIsShorter() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        assertFailsWith<IllegalArgumentException> {
+            builder.replaceAll("12345")
+        }
+    }
+
+    @Test
+    fun replaceAllThrowsExceptionWhenValueIsLonger() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        assertFailsWith<IllegalArgumentException> {
+            builder.replaceAll("12345678901")
+        }
+    }
+
+    @Test
+    fun replaceAllWithEmptyStringThrowsException() {
+        val builder = IndexedStringBuilder("HelloWorld", 5)
+        assertFailsWith<IllegalArgumentException> {
+            builder.replaceAll("")
+        }
+    }
+
+    @Test
+    fun serializationWhenValueIsStringBuilderWrapper() {
+        val dataStruct = DataStructValue(value = StringBuilderWrapper("HelloWorld"))
+        val serialized = json.encodeToString(DataStructValue.serializer(), dataStruct)
+        assertEquals(dataStruct, json.decodeFromString(DataStructValue.serializer(), serialized))
+    }
+
+    @Test
+    fun serializationWhenValueIsIndexedStringBuilder() {
+        val dataStruct = DataStructValue(value = IndexedStringBuilder("HelloWorld", 5))
+        val serialized = json.encodeToString(DataStructValue.serializer(), dataStruct)
+        assertEquals(dataStruct, json.decodeFromString(DataStructValue.serializer(), serialized))
     }
 }

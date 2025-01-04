@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -74,7 +75,7 @@ fun sortA(value: Value, arrayType: ArrayType) {
             val resultList = elementsLeft + sortedElementsToSort + elementsRight
 
             // return value
-            value.container.value.clear().append(resultList.joinToString(""))
+            value.container.value.replaceAll(resultList.joinToString(""))
         }
     }
 }
