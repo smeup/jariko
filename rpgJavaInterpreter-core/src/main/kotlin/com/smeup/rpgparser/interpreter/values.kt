@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -592,7 +593,6 @@ data class DateValue(val value: Long, val format: DateFormat) : Value {
         return when (format) {
             DateFormat.JUL -> format("yyDDD").asDecimal()
             DateFormat.ISO -> format("yyyyMMdd").asDecimal()
-            else -> TODO()
         }
     }
 }
@@ -1097,10 +1097,13 @@ fun Type.blank(): Value {
  * StringValue wrapper
  */
 @Serializable
-data class DataStructValue(@Contextual val value: StringBuilder, private val optionalExternalLen: Int? = null) : Value {
+data class DataStructValue(@Contextual val value: DataStructValueBuilder, private val optionalExternalLen: Int? = null) : Value {
 
-    constructor(value: String) : this(StringBuilder(value))
-    constructor(value: String, len: Int) : this(StringBuilder(value), len)
+    constructor(value: String) : this(StringBuilderWrapper(value = value))
+    constructor(value: String, len: Int) : this(StringBuilderWrapper(value = value), len)
+    constructor(value: String, type: DataStructureType) : this(DataStructValueBuilder.create(value = value, fields = type.fields.size)) {
+        throw UnsupportedOperationException("Not yet implemented")
+    }
 
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
