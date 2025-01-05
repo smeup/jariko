@@ -247,7 +247,7 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
         val subChunks = chunks.subList(firstChunkIndex, lastChunkIndex + 1)
 
         val result = StringBuilder()
-        var currentIndex = 0
+        var currentIndex = firstChunkIndex * chunksSize
         for (chunk in subChunks) {
             val chunkStart = currentIndex
             val chunkEnd = currentIndex + chunk.length

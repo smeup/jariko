@@ -220,10 +220,24 @@ class IndexedStringBuilderTest {
     }
 
     @Test
-    fun substringWithinSingleChunk() {
+    fun substringWithinSingleChunkStart() {
         val builder = IndexedStringBuilder("HelloWorld", 5)
         val result = builder.substring(0, 5)
         assertEquals("Hello", result)
+    }
+
+    @Test
+    fun substringWithinSingleChunkMiddle() {
+        val builder = IndexedStringBuilder("HelloWorld", 2)
+        val result = builder.substring(2, 4)
+        assertEquals("ll", result)
+    }
+
+    @Test
+    fun substringWithinSingleChunkEnd() {
+        val builder = IndexedStringBuilder("HelloWorld", 4)
+        val result = builder.substring(5, 10)
+        assertEquals("World", result)
     }
 
     @Test
