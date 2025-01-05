@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.smeup.rpgparser.interpreter
@@ -1050,7 +1049,8 @@ fun String.asIsoDate(): Date {
 }
 
 fun createBlankFor(dataDefinition: DataDefinition): Value {
-    val ds = DataStructValue.blank(dataDefinition.type.size)
+    require(dataDefinition.type is DataStructureType) { "DataDefinition should be a DataStructureType" }
+    val ds = DataStructValue.blank(dataStructureType = dataDefinition.type as DataStructureType)
     dataDefinition.fields.forEach {
         if (it.type is NumberType && (dataDefinition.inz || it.initializationValue != null)) ds.set(it, it.type.toRPGValue())
     }
@@ -1093,6 +1093,7 @@ fun Type.blank(): Value {
     }
 }
 
+private fun List<FieldType>.totalFields() = this.sumOf { if (it.type is ArrayType) it.type.nElements else 1 }
 /**
  * StringValue wrapper
  */
@@ -1101,9 +1102,7 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
 
     constructor(value: String) : this(StringBuilderWrapper(value = value))
     constructor(value: String, len: Int) : this(StringBuilderWrapper(value = value), len)
-    constructor(value: String, type: DataStructureType) : this(DataStructValueBuilder.create(value = value, fields = type.fields.size)) {
-        throw UnsupportedOperationException("Not yet implemented")
-    }
+    constructor(value: String, type: DataStructureType) : this(DataStructValueBuilder.create(value = value, fields = type.fields.totalFields()))
 
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
@@ -1212,6 +1211,7 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
 
     companion object {
         fun blank(length: Int) = DataStructValue(" ".repeat(length))
+        fun blank(dataStructureType: DataStructureType) = DataStructValue(value = " ".repeat(dataStructureType.size), type = dataStructureType)
 
         /**
          * Create a new instance of DataStructValue
