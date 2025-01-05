@@ -12,13 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.smeup.rpgparser.interpreter
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Interface representing a value of a data structure string.
@@ -123,7 +123,7 @@ sealed interface DataStructValueBuilder {
 @Serializable
 class StringBuilderWrapper(private val value: String) : DataStructValueBuilder {
 
-    @Contextual
+    @Transient
     private val sb = StringBuilder(value)
 
     override val length = sb.length

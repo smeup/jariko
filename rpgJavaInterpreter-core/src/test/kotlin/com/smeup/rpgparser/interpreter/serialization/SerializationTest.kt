@@ -95,6 +95,20 @@ class SerializationTest {
     }
 
     @Test
+    fun `DataStructValue with IndexedStringBuilder can be serialized to Json`() {
+        val rawStringValue = " Hello world 123 "
+        val dsValue = DataStructValue(value = IndexedStringBuilder(rawStringValue, 2))
+        checkValueSerialization(dsValue, true)
+    }
+
+    @Test
+    fun `DataStructValue with StringBuilderWrapper can be serialized to Json`() {
+        val rawStringValue = " Hello world 123 "
+        val dsValue = DataStructValue(value = StringBuilderWrapper(rawStringValue))
+        checkValueSerialization(dsValue, true)
+    }
+
+    @Test
     fun `a map with Values can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
@@ -110,7 +124,7 @@ class SerializationTest {
             )
         val dsValue = DataStructValue(" test 11233 ")
 
-        val originalMap = mapOf<String, Value>(
+        val originalMap = mapOf(
             "one" to decimalValue,
             "two" to intValue,
             "three" to stringValue,
