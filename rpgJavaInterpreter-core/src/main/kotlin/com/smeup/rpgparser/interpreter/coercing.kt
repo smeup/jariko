@@ -308,7 +308,7 @@ fun Type.lowValue(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
         is DataStructureType -> {
             val fields = this.fields.associateWith { field -> field.type.lowValue() }
-            DataStructValue.fromFields(fields)
+            DataStructValue.fromFields(fields = fields, type = this)
         }
         is BooleanType -> BooleanValue.FALSE
         is RecordFormatType -> BlanksValue
@@ -323,7 +323,7 @@ fun Type.hiValue(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
         is DataStructureType -> {
             val fields = this.fields.associateWith { field -> field.type.hiValue() }
-            DataStructValue.fromFields(fields)
+            DataStructValue.fromFields(fields = fields, type = this)
         }
         is BooleanType -> BooleanValue.TRUE
         is RecordFormatType -> BlanksValue
