@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import java.math.RoundingMode
@@ -61,22 +77,8 @@ private fun stringBuilderVsDataStructStringBuilder(
         }
     }
 
-    // Measure the duration for DataStructValueBuilder
-    val dataStructStringValueDuration = measureTime {
-        val dataStructValueBuilder = DataStructValueBuilder.create("a".repeat(stringSize), fields)
-        for (i in 0 until iterations) {
-            val replacingChars = stringSize / fields
-            for (j in 0 until fields) {
-                val start: Int = j * replacingChars
-                val end: Int = start + replacingChars
-                dataStructValueBuilder.replace(start, end, replacingString)
-            }
-        }
-    }
-
     val ratioSbIndexed = sbDuration.div(indexedSbDuration).toBigDecimal().setScale(2, RoundingMode.HALF_DOWN).toDouble()
-    val ratioSbDataStructStringValue = sbDuration.div(dataStructStringValueDuration).toBigDecimal().setScale(2, RoundingMode.HALF_DOWN).toDouble()
-    println(", $ratioSbIndexed, $ratioSbDataStructStringValue${if (debugInformation) ", ${sbDuration.plus(indexedSbDuration).toLong(DurationUnit.MILLISECONDS)}" else ""}")
+    println(", $ratioSbIndexed${if (debugInformation) ", ${sbDuration.plus(indexedSbDuration).toLong(DurationUnit.MILLISECONDS)}" else ""}")
 }
 
 /**
