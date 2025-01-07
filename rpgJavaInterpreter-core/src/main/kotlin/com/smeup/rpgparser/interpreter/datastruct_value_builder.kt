@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -84,34 +85,15 @@ sealed interface DataStructValueBuilder {
     companion object {
 
         /**
-         * Creates an instance of DataStructValueBuilder based on the given value and fields.
-         *
+         * Creates an instance of DataStructValueBuilder.
+         * This method delegates the creation of the instance to the `JarikoCallback.createDataStructValueBuilder` method.
          * @param value The initial value of the data structure string.
-         * @param fields The number of fields to divide the string into.
-         * @return An instance of DataStructValueBuilder. The algorithm to create the instance is chosen based on the value and fields.
+         * @param type The type of the data structure.
+         * @return An instance of DataStructValueBuilder.
+         * @see com.smeup.rpgparser.execution.JarikoCallback.createDataStructValueBuilder
          */
-        fun create(value: String, fields: Int): DataStructValueBuilder {
-            val stringSize = value.length
-
-            return if (useIndexedStringBuilder(stringSize = stringSize, fields = fields)) {
-                IndexedStringBuilder(value = value, chunksSize = stringSize / fields)
-            } else {
-                StringBuilderWrapper(value)
-            }
-        }
-
-        /**
-         * Determines whether to use IndexedStringBuilder based on the string size and number of fields.
-         *
-         * @param stringSize The size of the string.
-         * @param fields The number of fields to divide the string into.
-         * @return True if IndexedStringBuilder should be used, false otherwise.
-         */
-        private fun useIndexedStringBuilder(stringSize: Int, fields: Int): Boolean {
-            if (stringSize >= 9000) return true
-            if (stringSize >= 2000 && fields >= 5) return true
-            return false
-        }
+        fun create(value: String, type: DataStructureType) = MainExecutionContext.getConfiguration()
+            .jarikoCallback.createDataStructValueBuilder(value, type)
     }
 }
 
@@ -289,4 +271,22 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
     override fun toString(): String {
         return chunks.joinToString(separator = "") { it.toString() }
     }
+}
+
+/**
+ * Checks if the data structure type contains only array fields.
+ *
+ * @return `true` if all fields in the data structure type are arrays, `false` otherwise.
+ */
+internal fun DataStructureType.containsOnlyArrays(): Boolean {
+    return fields.all { it.type is ArrayType }
+}
+
+/**
+ * Counts the number of fields in the data structure type.
+ *
+ * @return The total number of fields, including elements of array fields.
+ */
+internal fun DataStructureType.totalFields(): Int {
+    return fields.sumOf { if (it.type is ArrayType) it.type.nElements else 1 }
 }

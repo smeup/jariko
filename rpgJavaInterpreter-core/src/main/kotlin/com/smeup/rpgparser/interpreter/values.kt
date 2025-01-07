@@ -1093,7 +1093,6 @@ fun Type.blank(): Value {
     }
 }
 
-private fun List<FieldType>.totalFields() = this.sumOf { if (it.type is ArrayType) it.type.nElements else 1 }
 /**
  * StringValue wrapper
  */
@@ -1124,7 +1123,7 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
      * @param value the value of the data structure
      * @param type the type of the data structure
      */
-    constructor(value: String, type: DataStructureType) : this(DataStructValueBuilder.create(value = value, fields = type.fields.totalFields()))
+    constructor(value: String, type: DataStructureType) : this(DataStructValueBuilder.create(value = value, type = type))
 
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133

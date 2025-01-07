@@ -41,17 +41,38 @@ class DataStructValueBuilderTest {
     }
 
     @Test
-    fun inCaseOfLittleDSUseStringBuilderWrapper() {
-        val littleDS = listOf(10, 20, 20, 4, 5)
-        val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(littleDS.sum()), fields = littleDS.size)
-        assertIs<StringBuilderWrapper>(dataStructValueBuilder)
+    fun dataStructureUsesStringBuilderWrapper() {
+        val fields = List(10) { FieldType(name = "name$it", type = StringType(10, false)) }
+        val type = DataStructureType(fields, fields.sumOf { it.type.size })
+        val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(type.size), type = type)
+        assertIs<StringBuilderWrapper>(
+            value = dataStructValueBuilder,
+            message = "Data structure with total fields less than 100 uses StringBuilderWrapper"
+        )
     }
 
     @Test
-    fun inCaseOfBigDSUseIndexedStringBuilder() {
-        val bigDS = listOf(1000, 2000, 3000, 4000, 5000)
-        val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(bigDS.sum()), fields = bigDS.size)
-        assertIs<IndexedStringBuilder>(dataStructValueBuilder)
+    fun arrayDataStructureUsesStringBuilderWrapper() {
+        val arrayType = ArrayType(StringType(10, false), 99)
+        val fields = List(1) { FieldType(name = "name$it", type = arrayType) }
+        val type = DataStructureType(fields, fields.sumOf { it.type.size })
+        val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(type.size), type = type)
+        assertIs<StringBuilderWrapper>(
+            value = dataStructValueBuilder,
+            message = "Array data structure with total fields less than 100 uses StringBuilderWrapper"
+        )
+    }
+
+    @Test
+    fun arrayDataStructureUsesIndexedStringBuilder() {
+        val arrayType = ArrayType(StringType(10, false), 100)
+        val fields = List(1) { FieldType(name = "name$it", type = arrayType) }
+        val type = DataStructureType(fields, fields.sumOf { it.type.size })
+        val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(type.size), type = type)
+        assertIs<IndexedStringBuilder>(
+            value = dataStructValueBuilder,
+            message = "Array data structure with total fields equals or greater than 100 uses IndexedStringBuilder"
+        )
     }
 
     @Test
