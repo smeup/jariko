@@ -47,15 +47,13 @@ class ExpressionEvaluation(
     private inline fun proxyLogging(expression: Expression, action: () -> Value): Value {
         if (!MainExecutionContext.isLoggingEnabled) return action()
 
-        val programName = MainExecutionContext.getExecutionProgramName()
-
         val start = System.nanoTime()
         val value = action()
         val elapsed = (System.nanoTime() - start).nanoseconds
 
         MainExecutionContext.log(
             LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData(programName, expression.startLine()) },
+                { LogSourceData(MainExecutionContext.getExecutionProgramName(), expression.startLine()) },
                 ProgramUsageType.Expression,
                 expression.loggableEntityName,
                 elapsed
