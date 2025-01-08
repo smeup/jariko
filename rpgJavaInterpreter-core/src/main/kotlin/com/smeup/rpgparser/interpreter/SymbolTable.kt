@@ -50,10 +50,9 @@ class SymbolTable : ISymbolTable {
 
         val elapsed = System.nanoTime() - start
         if (MainExecutionContext.isLoggingEnabled) {
-            val programName = MainExecutionContext.getExecutionProgramName()
             MainExecutionContext.log(
                 LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                    { LogSourceData.fromProgram(programName) },
+                    { LogSourceData.fromProgram(MainExecutionContext.getExecutionProgramName()) },
                     ProgramUsageType.SymbolTable,
                     SymbolTableAction.SET.name,
                     elapsed.nanoseconds
@@ -80,7 +79,7 @@ class SymbolTable : ISymbolTable {
                 throw IllegalStateException("We do not yet handle an array container")
             } else if (data.declaredArrayInLine != null) {
                 ProjectedArrayValue.forData(containerValue as DataStructValue, data).container.set(data, value.forType(data.type))
-                return ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+                return ProjectedArrayValue.forData(containerValue, data)
             } else {
                 // Should be always a DataStructValue
                 when (containerValue) {
@@ -141,10 +140,9 @@ class SymbolTable : ISymbolTable {
         val value = getInternal(data)
         val elapsed = System.nanoTime() - start
 
-        val programName = MainExecutionContext.getExecutionProgramName()
         MainExecutionContext.log(
             LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData.fromProgram(programName) },
+                { LogSourceData.fromProgram(MainExecutionContext.getExecutionProgramName()) },
                 ProgramUsageType.SymbolTable,
                 SymbolTableAction.GET.name,
                 elapsed.nanoseconds
@@ -159,10 +157,9 @@ class SymbolTable : ISymbolTable {
         val value = getInternal(dataName)
         val elapsed = System.nanoTime() - start
 
-        val programName = MainExecutionContext.getExecutionProgramName()
         MainExecutionContext.log(
             LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData.fromProgram(programName) },
+                { LogSourceData.fromProgram(MainExecutionContext.getExecutionProgramName()) },
                 ProgramUsageType.SymbolTable,
                 SymbolTableAction.GET.name,
                 elapsed.nanoseconds
