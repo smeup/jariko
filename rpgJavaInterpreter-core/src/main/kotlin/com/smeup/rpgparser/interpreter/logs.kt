@@ -30,9 +30,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.system.measureNanoTime
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.DurationUnit
 
 /**
@@ -146,21 +144,6 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
         }
 
         /**
-         * Create a new LazyLogEntry for the EvalLogHandler
-         * @see EvalLogHandler
-         */
-        fun produceEval(
-            source: LogSourceProvider,
-            expression: Expression,
-            value: Value
-        ): LazyLogEntry {
-            val entry = LogEntry(source, EvalLogHandler.SCOPE)
-            return produceMessage(
-                entry, "Evaluating ${expression.type()} = $value -- Line: ${expression.position.line()}"
-            )
-        }
-
-        /**
          * Create a new LazyLogEntry for Mutes
          * @see MuteAnnotation
          */
@@ -236,24 +219,12 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
          * @see LogChannel
          */
         fun producePerformanceAndUpdateAnalytics(source: LogSourceProvider, type: ProgramUsageType, entity: String, elapsed: Duration): LazyLogEntry {
-            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
-
-            val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
-            val programName = MainExecutionContext.getExecutionProgramName()
-            loggingContext?.recordUsage(programName, type, entity, elapsed)
-
-            return LazyLogEntry(entry) {
+            return LazyLogEntry(LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)) {
+                val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
+                val programName = MainExecutionContext.getExecutionProgramName()
+                loggingContext?.recordUsage(programName, type, entity, elapsed)
                 elapsed.inWholeMicroseconds.toString()
             }
-        }
-
-        /**
-         * Create a new LazyLogEntry for the ANALYTICS channel
-         * @see LogChannel
-         */
-        fun produceAnalytics(source: LogSourceProvider, action: String, message: String): LazyLogEntry {
-            val entry = LogEntry(source, LogChannel.ANALYTICS.getPropertyName(), action)
-            return produceMessage(entry, message)
         }
 
         /**
@@ -468,10 +439,6 @@ class ListLogHandler : InterpreterLogHandler {
         _logs.add(renderer.entry)
     }
 
-    // Immutable view of the internal mutable list
-    val logs: List<LogEntry>
-        get() = _logs
-
     fun getExecutedSubroutines() = _logs.asSequence().filter { it.scope == "SUBROUTINE START" }.toList()
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.action }
 //    fun getEvaluatedExpressions() = _logs.filterIsInstance<ExpressionEvaluationLogEntry>()
@@ -498,7 +465,8 @@ class ListLogHandler : InterpreterLogHandler {
 }
 
 fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
-    val time = measureNanoTime {
+// TODO: Does it make sense to measure the time spent in logging since that the access to program name is not always affordable?
+//    val time = measureNanoTime {
         this.forEach {
             try {
                 if (it.accepts(renderer.entry))
@@ -508,10 +476,10 @@ fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {
                 t.printStackTrace()
             }
         }
-    }.nanoseconds
-
-    val programName = MainExecutionContext.getExecutionProgramName()
-    MainExecutionContext.getAnalyticsLoggingContext()?.recordUsage(programName, ProgramUsageType.LogRendering, "", time)
+//    }.nanoseconds
+//
+//    val programName = MainExecutionContext.getExecutionProgramName()
+//    MainExecutionContext.getAnalyticsLoggingContext()?.recordUsage(programName, ProgramUsageType.LogRendering, "", time)
 }
 
 fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()
