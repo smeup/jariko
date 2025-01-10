@@ -769,45 +769,41 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
 fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     val buffer = IntArray(value.length)
     for (i in value.indices) {
-        buffer[i] = value[i].toInt()
+        buffer[i] = value[i].code
     }
 
-    var sign = ""
-    var number = ""
-    var nibble = ((buffer[buffer.size - 1]) and 0x0F)
+    val sign = StringBuilder()
+    val number = StringBuilder()
+    var nibble = (buffer[buffer.size - 1] and 0x0F)
     if (nibble == 0x0B || nibble == 0x0D) {
-        sign = "-"
+        sign.append("-")
     }
 
     var offset = 0
     while (offset < (buffer.size - 1)) {
         nibble = (buffer[offset] and 0xFF).ushr(4)
-        number += Character.toString((nibble or 0x30).toChar())
+        number.append((nibble or 0x30).toChar())
         nibble = buffer[offset] and 0x0F or 0x30
-        number += Character.toString((nibble or 0x30).toChar())
+        number.append((nibble or 0x30).toChar())
 
         offset++
     }
 
-    // read last digit
+// read last digit
     nibble = (buffer[offset] and 0xFF).ushr(4)
     if (nibble <= 9) {
-        number += Character.toString((nibble or 0x30).toChar())
+        number.append((nibble or 0x30).toChar())
     }
-    // adjust the scale
-    if (scale > 0 && number != "0") {
+// adjust the scale
+    if (scale > 0 && number.toString() != "0") {
         val len = number.length
-        number = buildString {
-            append(number.substring(0, len - scale))
-            append(".")
-            append(number.substring(len - scale, len))
-        }
+        number.insert(len - scale, ".")
     }
-    number = sign + number
+    number.insert(0, sign)
     return try {
         value.toBigDecimal()
     } catch (e: Exception) {
-        number.toBigDecimal()
+        number.toString().toBigDecimal()
     }
 }
 
