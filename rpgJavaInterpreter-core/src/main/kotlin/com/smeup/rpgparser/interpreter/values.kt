@@ -239,9 +239,7 @@ data class UnlimitedStringValue(var value: String) : AbstractStringValue {
 
     override fun getWrappedString() = value
 
-    override fun render(): String {
-        return value
-    }
+    override fun render(): String = value
 }
 
 @Serializable
