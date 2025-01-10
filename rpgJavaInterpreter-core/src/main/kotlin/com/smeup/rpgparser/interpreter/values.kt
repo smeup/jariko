@@ -238,6 +238,10 @@ data class UnlimitedStringValue(var value: String) : AbstractStringValue {
     override fun copy() = UnlimitedStringValue(value)
 
     override fun getWrappedString() = value
+
+    override fun render(): String {
+        return value
+    }
 }
 
 @Serializable
