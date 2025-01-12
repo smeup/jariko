@@ -29,7 +29,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.math.BigDecimal
-import java.util.*
 
 @Serializable
 abstract class AbstractDataDefinition(
@@ -113,7 +112,7 @@ enum class ParamOption(val keyword: String) {
 
     companion object {
         fun getByKeyword(keyword: String): ParamOption {
-            return entries.first {
+            return ParamOption.values().first {
                 it.keyword == keyword
             }
         }
@@ -144,7 +143,7 @@ enum class FileType(val keyword: String?) {
     companion object {
         // see https://www.ibm.com/docs/sl/i/7.3?topic=statement-position-17-file-type
         fun getByKeyword(keyword: String): FileType {
-            return entries.firstOrNull() {
+            return FileType.values().firstOrNull() {
                 it.keyword == keyword
             } ?: DB
         }
@@ -167,7 +166,7 @@ data class FileDefinition private constructor(
 
     var internalFormatName: String? = null
         set(value) {
-            field = value?.uppercase(Locale.getDefault())
+            field = value?.toUpperCase()
         }
 
     private var fieldNameToDataDefinitionName = mutableMapOf<String, String>()
@@ -506,7 +505,7 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
 
         buffer[0] = (lsb and 0x0000FFFF).toByte()
 
-        return buffer[0].toInt().toChar().toString()
+        return buffer[0].toChar().toString()
     }
 
     if (size == 2) {
@@ -514,7 +513,7 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
         buffer[0] = ((lsb shr 8) and 0x000000FF).toByte()
         buffer[1] = (lsb and 0x000000FF).toByte()
 
-        return buffer[1].toInt().toChar().toString() + buffer[0].toInt().toChar().toString()
+        return buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
     if (size == 4) {
 
@@ -523,8 +522,7 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
         buffer[2] = ((lsb shr 8) and 0x0000FFFF).toByte()
         buffer[3] = (lsb and 0x0000FFFF).toByte()
 
-        return buffer[3].toInt().toChar().toString() + buffer[2].toInt().toChar().toString() + buffer[1].toInt()
-            .toChar().toString() + buffer[0].toInt().toChar().toString()
+        return buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
     if (size == 8) {
         val llsb = inValue.toLong()
@@ -537,10 +535,8 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
         buffer[6] = ((llsb shr 8) and 0x0000FFFF).toByte()
         buffer[7] = (llsb and 0x0000FFFF).toByte()
 
-        return buffer[7].toInt().toChar().toString() + buffer[6].toInt().toChar().toString() + buffer[5].toInt()
-            .toChar().toString() + buffer[4].toInt().toChar().toString() +
-            buffer[3].toInt().toChar().toString() + buffer[2].toInt().toChar().toString() + buffer[1].toInt().toChar().toString() + buffer[0].toInt()
-            .toChar().toString()
+        return buffer[7].toChar().toString() + buffer[6].toChar().toString() + buffer[5].toChar().toString() + buffer[4].toChar().toString() +
+            buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
     TODO("encode binary for $size not implemented")
 }
@@ -556,39 +552,39 @@ fun encodeUnsigned(inValue: BigDecimal, size: Int): String {
 fun decodeBinary(value: String, size: Int): BigDecimal {
     if (size == 1) {
         var number: Long = 0x0000000
-        if (value[0].code and 0x0010 != 0) {
+        if (value[0].toInt() and 0x0010 != 0) {
             number = 0x00000000
         }
-        number += (value[0].code and 0x00FF)
+        number += (value[0].toInt() and 0x00FF)
         return BigDecimal(number.toInt().toString())
     }
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].code and 0x8000 != 0) {
+        if (value[1].toInt() and 0x8000 != 0) {
             number = 0xFFFF0000
         }
-        number += (value[0].code and 0x00FF) + ((value[1].code and 0x00FF) shl 8)
+        number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
         return BigDecimal(number.toInt().toString())
     }
 
     if (size == 4) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24)
+        val number = (value[0].toLong() and 0x00FF) +
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
     }
     if (size == 8) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24) +
-            ((value[4].code.toLong() and 0x00FF) shl 32) +
-            ((value[5].code.toLong() and 0x00FF) shl 40) +
-            ((value[6].code.toLong() and 0x00FF) shl 48) +
-            ((value[7].code.toLong() and 0x00FF) shl 56)
+        val number = (value[0].toLong() and 0x00FF) +
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24) +
+            ((value[4].toLong() and 0x00FF) shl 32) +
+            ((value[5].toLong() and 0x00FF) shl 40) +
+            ((value[6].toLong() and 0x00FF) shl 48) +
+            ((value[7].toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toInt().toString())
     }
@@ -598,35 +594,35 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
 fun decodeInteger(value: String, size: Int): BigDecimal {
     if (size == 1) {
         var number = 0x0000000
-        number += (value[0].code.toByte())
+        number += (value[0].toByte())
         return BigDecimal(number.toString())
     }
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].code and 0x8000 != 0) {
+        if (value[1].toInt() and 0x8000 != 0) {
             number = 0xFFFF0000
         }
-        number += (value[0].code and 0x00FF) + ((value[1].code and 0x00FF) shl 8)
+        number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
         return BigDecimal(number.toInt().toString())
     }
     if (size == 4) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24)
+        val number = (value[0].toLong() and 0x00FF) +
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
     }
     if (size == 8) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24) +
-            ((value[4].code.toLong() and 0x00FF) shl 32) +
-            ((value[5].code.toLong() and 0x00FF) shl 40) +
-            ((value[6].code.toLong() and 0x00FF) shl 48) +
-            ((value[7].code.toLong() and 0x00FF) shl 56)
+        val number = (value[0].toLong() and 0x00FF) +
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24) +
+            ((value[4].toLong() and 0x00FF) shl 32) +
+            ((value[5].toLong() and 0x00FF) shl 40) +
+            ((value[6].toLong() and 0x00FF) shl 48) +
+            ((value[7].toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toString())
     }
@@ -637,40 +633,40 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
 
     if (size == 1) {
         var number: Long = 0x0000000
-        if (value[0].code and 0x0010 != 0) {
+        if (value[0].toInt() and 0x0010 != 0) {
             number = 0x00000000
         }
-        number += (value[0].code and 0x00FF)
+        number += (value[0].toInt() and 0x00FF)
         return BigDecimal(number.toInt().toString())
     }
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].code and 0x1000 != 0) {
+        if (value[1].toInt() and 0x1000 != 0) {
             number = 0xFFFF0000
         }
-        number += (value[0].code and 0x00FF) + ((value[1].code and 0x00FF) shl 8)
+        number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
         // make sure you count onlu 16 bits
         number = number and 0x0000FFFF
         return BigDecimal(number.toString())
     }
     if (size == 4) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24)
+        val number = (value[0].toLong() and 0x00FF) +
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toString())
     }
     if (size == 8) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24) +
-            ((value[4].code.toLong() and 0x00FF) shl 32) +
-            ((value[5].code.toLong() and 0x00FF) shl 40) +
-            ((value[6].code.toLong() and 0x00FF) shl 48) +
-            ((value[7].code.toLong() and 0x00FF) shl 56)
+        val number = (value[0].toLong() and 0x00FF) +
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24) +
+            ((value[4].toLong() and 0x00FF) shl 32) +
+            ((value[5].toLong() and 0x00FF) shl 40) +
+            ((value[6].toLong() and 0x00FF) shl 48) +
+            ((value[7].toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toInt().toString())
     }
@@ -689,7 +685,7 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     val sign = inValue.signum()
 
     inChars.forEachIndexed { index, char ->
-        val digit = char.code
+        val digit = char.toInt()
         buffer[index] = digit
     }
     if (sign < 0) {
@@ -712,11 +708,11 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         when {
             it.isDigit() -> builder.append(it)
             else -> {
-                if (it.code == 0) {
+                if (it.toInt() == 0) {
                     builder.append('0')
                 } else {
                     builder.insert(0, '-')
-                    builder.append((it.code - 0x0049 + 0x0030).toChar())
+                    builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
                 }
             }
         }
@@ -745,8 +741,8 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
 
     // place all the digits except last one
     while (inPosition < inChars.size - 1) {
-        firstNibble = ((inChars[inPosition++].code) and 0x000F) shl 4
-        secondNibble = (inChars[inPosition++].code) and 0x000F
+        firstNibble = ((inChars[inPosition++].toInt()) and 0x000F) shl 4
+        secondNibble = (inChars[inPosition++].toInt()) and 0x000F
         buffer[offset++] = (firstNibble + secondNibble)
     }
 
@@ -754,7 +750,7 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     firstNibble = if (inPosition == inChars.size) {
         0x00F0
     } else {
-        (inChars[inChars.size - 1].code) and 0x000F shl 4
+        (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
     }
     if (sign != -1) {
         buffer[offset] = (firstNibble + 0x000F)
@@ -771,42 +767,42 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
+    val buffer = IntArray(value.length)
+    for (i in value.indices) {
+        buffer[i] = value[i].code
+    }
+
+    val sign = StringBuilder()
+    val number = StringBuilder()
+    var nibble = (buffer[buffer.size - 1] and 0x0F)
+    if (nibble == 0x0B || nibble == 0x0D) {
+        sign.append("-")
+    }
+
+    var offset = 0
+    while (offset < (buffer.size - 1)) {
+        nibble = (buffer[offset] and 0xFF).ushr(4)
+        number.append((nibble or 0x30).toChar())
+        nibble = buffer[offset] and 0x0F or 0x30
+        number.append((nibble or 0x30).toChar())
+
+        offset++
+    }
+
+// read last digit
+    nibble = (buffer[offset] and 0xFF).ushr(4)
+    if (nibble <= 9) {
+        number.append((nibble or 0x30).toChar())
+    }
+// adjust the scale
+    if (scale > 0 && number.toString() != "0") {
+        val len = number.length
+        number.insert(len - scale, ".")
+    }
+    number.insert(0, sign)
     return try {
         value.toBigDecimal()
     } catch (e: Exception) {
-        val buffer = IntArray(value.length)
-        for (i in value.indices) {
-            buffer[i] = value[i].code
-        }
-
-        val sign = StringBuilder()
-        val number = StringBuilder()
-        var nibble = (buffer[buffer.size - 1] and 0x0F)
-        if (nibble == 0x0B || nibble == 0x0D) {
-            sign.append("-")
-        }
-
-        var offset = 0
-        while (offset < (buffer.size - 1)) {
-            nibble = (buffer[offset] and 0xFF).ushr(4)
-            number.append((nibble or 0x30).toChar())
-            nibble = buffer[offset] and 0x0F or 0x30
-            number.append((nibble or 0x30).toChar())
-
-            offset++
-        }
-
-// read last digit
-        nibble = (buffer[offset] and 0xFF).ushr(4)
-        if (nibble <= 9) {
-            number.append((nibble or 0x30).toChar())
-        }
-// adjust the scale
-        if (scale > 0 && number.toString() != "0") {
-            val len = number.length
-            number.insert(len - scale, ".")
-        }
-        number.insert(0, sign)
         number.toString().toBigDecimal()
     }
 }
