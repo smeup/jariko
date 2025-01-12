@@ -19,6 +19,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.interpreter.StringBuilderWrapper
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -66,8 +67,41 @@ open class DSPerformanceTest : AbstractTest() {
         }
         "DSPERF02".outputOf(configuration = configuration)
         val duration = Duration.between(start.toInstant(), end.toInstant()).toMillis().milliseconds
-        println(duration)
+        println("executeDSPERF02 with default useIndexedStringBuilder: $duration ms")
         // Currently the assertion is really empirical
         assertTrue(duration.toLong(DurationUnit.SECONDS) < 2, "Duration must be less than 2 second")
+    }
+
+    @Test
+    @Category(PerformanceTest::class)
+    fun executeDSPERF02CompareIndexedStringBuilderVsStringBuilder() {
+        var useIndexedStringBuilder = false
+        val start = mutableMapOf<Boolean, Date>()
+        val end = mutableMapOf<Boolean, Date>()
+        val createDataStructValueBuilderDefaultImpl = Configuration().jarikoCallback.createDataStructValueBuilder
+        val configuration = Configuration().apply {
+            jarikoCallback.onEnterPgm = { _, _ ->
+                start[useIndexedStringBuilder] = Date()
+            }
+            jarikoCallback.onExitPgm = { _, _, _ ->
+                end[useIndexedStringBuilder] = Date()
+            }
+            jarikoCallback.createDataStructValueBuilder = { value, type ->
+                if (useIndexedStringBuilder) {
+                    createDataStructValueBuilderDefaultImpl(value, type)
+                } else {
+                    StringBuilderWrapper(value)
+                }
+            }
+        }
+        "DSPERF02".outputOf(configuration = configuration)
+        val durationNotUseIndexedStringBuilder = Duration.between(start[false]!!.toInstant(), end[false]!!.toInstant()).toMillis().milliseconds
+        println("executeDSPERF02 with useIndexedStringBuilder=false: $durationNotUseIndexedStringBuilder ms")
+        useIndexedStringBuilder = true
+        "DSPERF02".outputOf(configuration = configuration)
+        val durationUseIndexedStringBuilder = Duration.between(start[true]!!.toInstant(), end[true]!!.toInstant()).toMillis().milliseconds
+        println("executeDSPERF02 with useIndexedStringBuilder=true: $durationUseIndexedStringBuilder ms")
+        assertTrue(durationNotUseIndexedStringBuilder / durationUseIndexedStringBuilder >= 10,
+            "Duration with useIndexedStringBuilder=false must be at least 10 times greater than duration with useIndexedStringBuilder=true")
     }
 }

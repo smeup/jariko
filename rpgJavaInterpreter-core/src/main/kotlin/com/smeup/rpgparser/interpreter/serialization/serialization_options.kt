@@ -34,6 +34,10 @@ private val module = SerializersModule {
     contextual(BigDecimalSerializer)
     contextual(LocalDateTimeSerializer)
     contextual(StringBuilderSerializer)
+    polymorphic(DataStructValueBuilder::class) {
+        subclass(StringBuilderWrapper::class)
+        subclass(IndexedStringBuilder::class)
+    }
     polymorphic(Value::class) {
         subclass(IntValue::class)
         subclass(DecimalValue::class)

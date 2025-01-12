@@ -594,7 +594,6 @@ data class DateValue(val value: Long, val format: DateFormat) : Value {
         return when (format) {
             DateFormat.JUL -> format("yyDDD").asDecimal()
             DateFormat.ISO -> format("yyyyMMdd").asDecimal()
-            else -> TODO()
         }
     }
 }
@@ -1052,7 +1051,8 @@ fun String.asIsoDate(): Date {
 }
 
 fun createBlankFor(dataDefinition: DataDefinition): Value {
-    val ds = DataStructValue.blank(dataDefinition.type.size)
+    require(dataDefinition.type is DataStructureType) { "DataDefinition should be a DataStructureType" }
+    val ds = DataStructValue.blank(type = dataDefinition.type as DataStructureType)
     dataDefinition.fields.forEach {
         if (it.type is NumberType && (dataDefinition.inz || it.initializationValue != null)) ds.set(it, it.type.toRPGValue())
     }
@@ -1071,8 +1071,8 @@ fun Type.blank(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
             this.element.blank()
         }
-        is DataStructureType -> DataStructValue.blank(this.size)
-        is OccurableDataStructureType -> OccurableDataStructValue.blank(this.size, this.occurs)
+        is DataStructureType -> DataStructValue.blank(this)
+        is OccurableDataStructureType -> OccurableDataStructValue.blank(occurs = this.occurs, type = this.dataStructureType)
         is StringType -> {
             if (!this.varying) {
                 StringValue.blank(this.size)
@@ -1099,10 +1099,33 @@ fun Type.blank(): Value {
  * StringValue wrapper
  */
 @Serializable
-data class DataStructValue(@Contextual val value: StringBuilder, private val optionalExternalLen: Int? = null) : Value {
+data class DataStructValue(@Contextual val value: DataStructValueBuilder, private val optionalExternalLen: Int? = null) : Value {
 
-    constructor(value: String) : this(StringBuilder(value))
-    constructor(value: String, len: Int) : this(StringBuilder(value), len)
+    /**
+     * Constructor for a DataStructValue. This constructor does not implement any kind of optimization.
+     * In general, it is recommended to use the other constructors.
+     * Use `DataStructValue(value: String, type: DataStructureType)` instead.
+     * @param value the value of the data structure
+     */
+    constructor(value: String) : this(StringBuilderWrapper(value = value))
+
+    /**
+     * Constructor for a DataStructValue. This constructor does not implement any kind of optimization.
+     * In general, it is recommended to use the other constructors.
+     * Use `DataStructValue(value: String, type: DataStructureType)` instead.
+     * @param value the value of the data structure
+     * @param len the length of the data structure
+     */
+    constructor(value: String, len: Int) : this(StringBuilderWrapper(value = value), len)
+
+    /**
+     * Constructor for a DataStructValue.
+     * Under the hood, this constructor creates a DataStructValueBuilder with the given value and the total fields of the type.
+     * This allows to use the better implementation of the DataStructValueBuilder based on the type.
+     * @param value the value of the data structure
+     * @param type the type of the data structure
+     */
+    constructor(value: String, type: DataStructureType) : this(DataStructValueBuilder.create(value = value, type = type))
 
     // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
@@ -1210,7 +1233,25 @@ data class DataStructValue(@Contextual val value: StringBuilder, private val opt
     }
 
     companion object {
+
+        /**
+         * Creates a blank `DataStructValue` with the specified length.
+         * This function creates an instance of DataStructValue with no kind of optimization.
+         * In general, it is recommended to use the function `blank(dataStructureType: DataStructureType)` instead.
+         * @param length the length of the blank `DataStructValue`
+         * @return a `DataStructValue` filled with spaces of the given length
+         * @see blank(dataStructureType: DataStructureType)
+         */
         fun blank(length: Int) = DataStructValue(" ".repeat(length))
+
+        /**
+         * Creates a blank `DataStructValue` with the specified `DataStructureType`.
+         * It is the better choice to create a blank `DataStructValue` because the knowledge of the type allows
+         * to use the better implementation of the `DataStructValueBuilder`.
+         * @param type the `DataStructureType` of the blank `DataStructValue`
+         * @return a `DataStructValue` filled with spaces
+         */
+        fun blank(type: DataStructureType) = DataStructValue(value = " ".repeat(type.size), type = type)
 
         /**
          * Create a new instance of DataStructValue
@@ -1220,7 +1261,7 @@ data class DataStructValue(@Contextual val value: StringBuilder, private val opt
          * */
         fun createInstance(compilationUnit: CompilationUnit, dataStructName: String, values: Map<String, Value>): DataStructValue {
             val dataStructureDefinition = compilationUnit.getDataDefinition(dataStructName)
-            val newInstance = blank(dataStructureDefinition.type.size)
+            val newInstance = blank(dataStructureDefinition.type as DataStructureType)
             values.forEach {
                 newInstance.set(
                     field = dataStructureDefinition.getFieldByName(it.key),
@@ -1230,9 +1271,8 @@ data class DataStructValue(@Contextual val value: StringBuilder, private val opt
             return newInstance
         }
 
-        internal fun fromFields(fields: Map<FieldType, Value>): DataStructValue {
-            val size = fields.entries.fold(0) { acc, entry -> acc + entry.key.type.size }
-            val newInstance = blank(size)
+        internal fun fromFields(fields: Map<FieldType, Value>, type: DataStructureType): DataStructValue {
+            val newInstance = blank(type = type)
             val fieldDefinitions = fields.map { it.key }.toFieldDefinitions()
             fields.onEachIndexed { index, entry -> newInstance.set(fieldDefinitions[index], entry.value) }
             return newInstance
@@ -1384,13 +1424,13 @@ data class OccurableDataStructValue(val occurs: Int) : Value {
     companion object {
         /**
          * Create a blank instance of DS
-         * @param length The DS length (AKA DS element size)
          * @param occurs The occurrences number
+         * @param type The data structure type
          * */
-        fun blank(length: Int, occurs: Int): OccurableDataStructValue {
+        fun blank(occurs: Int, type: DataStructureType): OccurableDataStructValue {
             return OccurableDataStructValue(occurs).apply {
                 for (index in 1..occurs) {
-                    values[index] = DataStructValue.blank(length)
+                    values[index] = DataStructValue.blank(type)
                 }
             }
         }

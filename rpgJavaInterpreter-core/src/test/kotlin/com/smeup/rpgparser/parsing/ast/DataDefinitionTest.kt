@@ -16,17 +16,16 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.assertDataDefinitionIsPresent
-import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import org.junit.experimental.categories.Category
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.measureTime
 import org.junit.Test as test
 
 open class DataDefinitionTest : AbstractTest() {
@@ -355,5 +354,20 @@ open class DataDefinitionTest : AbstractTest() {
                 StringValue("3L"),
                 StringValue("4L"),
                 StringValue("5L")), StringType(2)) as ArrayValue, logValue)
+    }
+}
+
+class DataDefinitionPerformanceTest : AbstractTest() {
+
+    @Test(timeout = 10_000)
+    @Category(PerformanceTest::class)
+    fun decodeFromDS() {
+        measureTime {
+            for (i in 1..100_000_000) {
+                decodeFromDS(value = "123456789.15", digits = 20, scale = 2)
+            }
+        }.also {
+            println("decodeFromDS: $it")
+        }
     }
 }
