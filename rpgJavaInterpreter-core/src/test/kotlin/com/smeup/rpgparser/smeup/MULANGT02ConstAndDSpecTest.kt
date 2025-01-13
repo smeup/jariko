@@ -857,4 +857,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("123456", "56.00")
         assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = turnOnZAddLegacyFlagConfig))
     }
+
+    /**
+     * Writing on a field of DS which use `EXTNAME` of a file, writes to file too.
+     * @see #LS25000142
+     */
+    @Test
+    fun executeMUDRNRAPU00189() {
+        MULANGTLDbMock().usePopulated {
+            val expected = listOf("IBMI", "", "IBMI", "MULANGT00", "", "", "IBMI", "MULANGT00")
+            assertEquals(expected, "smeup/MUDRNRAPU00189".outputOf(configuration = smeupConfig))
+        }
+    }
 }
