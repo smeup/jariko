@@ -859,7 +859,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Writing to a field of DS without specify the DS. There are two DS with same fields.
+     * Reading from a field of DS with dot notation. This DS have the same fields of another.
      * @see #LS25000142
      */
     @Test
