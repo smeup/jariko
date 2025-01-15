@@ -860,7 +860,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
-     * Writing on a field of DS which use `EXTNAME` of a file, writes to file too.
+     * Writing on a field of DS which use `EXTNAME` of a file.
      * @see #LS25000142
      */
     @Test

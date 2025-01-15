@@ -3,8 +3,7 @@
      V* 13/01/2025 BENMAR Improvements
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Writing on a field of DS which use `EXTNAME` of a file,
-    O *  writes to file too.
+    O * Writing on a field of DS which use `EXTNAME` of a file.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Program called doesn't have new value.
