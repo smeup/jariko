@@ -857,4 +857,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("123456", "56.00")
         assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = turnOnZAddLegacyFlagConfig))
     }
+
+    /**
+     * Writing to a field of DS without specify the DS. There are two DS with same fields.
+     * @see #LS25000142
+     */
+    @Test
+    fun executeMUDRNRAPU00190() {
+        val expected = listOf("IBMI", "", "IBMI")
+        assertEquals(expected, "smeup/MUDRNRAPU00190".outputOf(configuration = smeupConfig))
+    }
 }
