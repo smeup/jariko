@@ -16,7 +16,8 @@ interface DbMock : AutoCloseable {
         """.trimIndent()
 
     fun dropTable(): String = "DROP TABLE IF EXISTS ${metadata.tableName}"
-    fun populateTable(): String = buildDefaultPopulationQuery()
+
+    fun populateTable(values: List<Map<String, Any>>): String = if (values.isEmpty()) buildDefaultPopulationQuery() else buildPopulationQuery(values)
 
     fun createConnectionConfig(): ConnectionConfig = ConnectionConfig(
         fileName = "*",
@@ -44,8 +45,17 @@ interface DbMock : AutoCloseable {
         )
     }
 
+    fun <R> usePopulated(
+        predicate: (DbMock) -> R,
+        values: List<Map<String, Any>>
+    ) = this.use {
+        val queries = listOf(it.createTable(), it.populateTable(values))
+        execute(queries)
+        predicate(it)
+    }
+
     fun <R> usePopulated(predicate: (DbMock) -> R) = this.use {
-        val queries = listOf(it.createTable(), it.populateTable())
+        val queries = listOf(it.createTable(), it.populateTable(emptyList()))
         execute(queries)
         predicate(it)
     }
@@ -81,6 +91,17 @@ interface DbMock : AutoCloseable {
         val names = metadata.fields.joinToString { "\"${it.fieldName}\"" }
         val values = metadata.fields.joinToString { it.type.getDefault() }
 
+        return madeInsertStatement(names, values)
+    }
+
+    private fun buildPopulationQuery(mockedValues: List<Map<String, Any>>): String {
+        val names = metadata.fields.joinToString { "\"${it.fieldName}\"" }
+        val values = mockedValues.getFromValues(metadata.fields)
+
+        return madeInsertStatement(names, values)
+    }
+
+    private fun madeInsertStatement(names: String, values: String): String {
         return """
             INSERT INTO ${metadata.tableName}($names) 
             VALUES ($values)
@@ -91,5 +112,42 @@ interface DbMock : AutoCloseable {
         is StringType -> "'${" ".repeat(this.length)}'"
         is NumberType -> if (this.integer) "1" else "1.0"
         else -> TODO("Implement default value for type ${this.javaClass.simpleName}") // Add more defaults
+    }
+
+    /**
+     * Constructs a string representation of values from a list of maps, formatted as tuples of database fields.
+     *
+     * This function iterates over a list of maps, where each map represents a row of data with field names as keys.
+     * For each map, it constructs a tuple string by matching the fields from the provided list of `DbField` objects.
+     * If the value for a field is non-null and the field type is `StringType`, the value is wrapped in single quotes.
+     * Otherwise, the field's default value is used.
+     *
+     * The resulting string is a comma-separated list of tuples, suitable for use in SQL insert statements.
+     *
+     * @param values a list of `DbField` objects representing the database fields to extract values for
+     * @return a string representing the formatted values, each row enclosed in parentheses and separated by commas
+     */
+    private fun List<Map<String, Any>>.getFromValues(values: List<DbField>): String {
+        var result = ""
+        this.forEachIndexed { index, value ->
+            result += "("
+            result += values
+                .map { field ->
+                    var valueSearched = value.get(field.fieldName)
+                    if (valueSearched != null && field.type is StringType) {
+                        valueSearched = "'$valueSearched'"
+                        valueSearched
+                    } else {
+                        field.type.getDefault()
+                    }
+                }
+                .joinToString(", ")
+            result += ")"
+
+            if (index < this.size - 1) {
+                result += ", "
+            }
+        }
+        return result
     }
 }
