@@ -872,4 +872,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             listOf(mapOf("MLSYST" to "IBMI", "MLPROG" to "MULANGT00"))
         )
     }
+
+    /**
+     * Writing to a field of DS without specify the DS. There are two DS with same fields.
+     * @see #LS25000142
+     */
+    @Test
+    fun executeMUDRNRAPU00190() {
+        val expected = listOf("IBMI", "", "IBMI")
+        assertEquals(expected, "smeup/MUDRNRAPU00190".outputOf(configuration = smeupConfig))
+    }
 }
