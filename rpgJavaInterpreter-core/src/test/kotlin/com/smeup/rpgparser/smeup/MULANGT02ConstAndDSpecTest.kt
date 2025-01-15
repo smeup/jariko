@@ -2,6 +2,7 @@ package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -864,9 +865,11 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00189() {
-        MULANGTLDbMock().usePopulated {
-            val expected = listOf("IBMI", "", "IBMI", "MULANGT00", "", "", "IBMI", "MULANGT00")
-            assertEquals(expected, "smeup/MUDRNRAPU00189".outputOf(configuration = smeupConfig))
-        }
+        MULANGTLDbMock().usePopulated({
+                val expected = listOf("IBMI", "", "IBMI", "MULANGT00", "", "", "IBMI", "MULANGT00")
+                assertEquals(expected, "smeup/MUDRNRAPU00189".outputOf(configuration = smeupConfig))
+            },
+            listOf(mapOf("MLSYST" to "IBMI", "MLPROG" to "MULANGT00"))
+        )
     }
 }
