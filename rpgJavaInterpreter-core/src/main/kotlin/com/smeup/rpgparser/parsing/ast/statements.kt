@@ -960,7 +960,14 @@ data class CallStmt(
                     )
                 }
             }
-            targetProgramParams[index].name to interpreter[it.result.name]
+
+            if (it.result.name.split(".").size > 2) {
+                throw NotImplementedError("Is not implemented a DS access with more of one dot, like ${it.result.name}.")
+            }
+            val resultName = if (it.result.name.contains("."))
+                it.result.name.substring(it.result.name.indexOf(".") + 1)
+            else it.result.name
+            targetProgramParams[index].name to interpreter[resultName]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =

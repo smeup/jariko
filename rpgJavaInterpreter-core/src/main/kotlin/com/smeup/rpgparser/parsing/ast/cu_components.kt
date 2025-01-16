@@ -21,6 +21,7 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.AbstractDataStructureType
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
 import com.strumenta.kolasu.model.*
@@ -90,8 +91,12 @@ data class CompilationUnit(
         get() {
             if (_allDataDefinitions.isEmpty()) {
                 _allDataDefinitions.addAll(dataDefinitions)
-                // Adds DS sub-fields
-                dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
+                // Adds unqualified DS sub-fields
+                dataDefinitions.forEach { dataDefinition ->
+                    if (dataDefinition.type is AbstractDataStructureType && !(dataDefinition.type as AbstractDataStructureType).isQualified) {
+                        dataDefinition.fields.let { _allDataDefinitions.addAll(it) }
+                    }
+                }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 _allDataDefinitions = _allDataDefinitions.removeDuplicatedDataDefinition().toMutableList()
             }
