@@ -2,7 +2,6 @@ package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest

@@ -586,7 +586,11 @@ internal fun RpgParser.Dcl_dsContext.type(
     val elementSize = explicitSize
             ?: calculatedElementSize
             ?: throw CannotRetrieveDataStructureElementSizeException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
-    val dataStructureType = DataStructureType(fields = fieldTypes, elementSize = size ?: elementSize)
+    val dataStructureType = DataStructureType(
+        fields = fieldTypes,
+        elementSize = size ?: elementSize,
+        isQualified = keywords.any { it.keyword_qualified() != null }
+    )
     val baseType = occurs?.let {
         OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
     } ?: dataStructureType
@@ -1150,9 +1154,23 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     // Using `LIKEDS`
     if (this.keyword().any { it.keyword_likeds() != null }) {
         val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)
+
+        val type = if (referredDs.type is DataStructureType) {
+            /*
+             * Found referred, type of new DS must be like the other DS but object references have to be new.
+             * This avoids any change from source to new, or from new to source.
+             */
+            (referredDs.type as DataStructureType).copy(
+                fields = (referredDs.type as DataStructureType).fields.map { field -> field.copy() },
+                isQualified = true
+            )
+        } else {
+            referredDs.type
+        }
+
         val dataDefinition = DataDefinition(
             this.name,
-            referredDs.type,
+            type,
             referredDs.fields,
             position = this.toPosition(true)
         )

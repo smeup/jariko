@@ -28,6 +28,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.strumenta.kolasu.model.collectByType
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 open class RpgParserOverlayTest12 : AbstractTest() {
@@ -44,7 +45,9 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         val uibds = cu.dataDefinitions.find { it.name == "£UIBDS" }!!
         assertEquals(36, f1.fields.size)
         assertEquals(36, uibds.fields.size)
-        assertEquals(uibds.type, f1.type)
+        assertEquals((uibds.type as DataStructureType).fields, (f1.type as DataStructureType).fields)
+        assertEquals((uibds.type as DataStructureType).elementSize, (f1.type as DataStructureType).elementSize)
+        assertNotEquals((uibds.type as DataStructureType).isQualified, (f1.type as DataStructureType).isQualified)
     }
 
     @Test
