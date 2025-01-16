@@ -111,7 +111,7 @@ object KListType : Type() {
  * @property isQualified a boolean property that indicates if the data structure is qualified
  */
 @Serializable
-sealed class QualifiedDataStructureType() : Type() {
+sealed class AbstractDataStructureType() : Type() {
     abstract val isQualified: Boolean
 }
 
@@ -120,7 +120,7 @@ data class DataStructureType(
     var fields: List<FieldType>,
     val elementSize: Int,
     override val isQualified: Boolean = false
-) : QualifiedDataStructureType() {
+) : AbstractDataStructureType() {
     override val size: Int
         get() = elementSize
 }
@@ -135,7 +135,7 @@ data class OccurableDataStructureType(
     val dataStructureType: DataStructureType,
     val occurs: Int,
     override val isQualified: Boolean = false
-) : QualifiedDataStructureType() {
+) : AbstractDataStructureType() {
     override val size: Int
         get() = dataStructureType.size
 }
