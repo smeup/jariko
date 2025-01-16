@@ -96,18 +96,8 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
     runNode {
         this.specificProcess(DataRefExpr::class.java) { dre ->
             if (!dre.variable.resolved) {
-                /*
-                 * TODO: On RPGLE is possible to have nested field with an access like this: ds.field.subfield.
-                 *  Consider to refactor this logic when is necessary to add subfield capability.
-                 */
                 if (dre.variable.name.contains('.')) {
-                    val dsName = dre.variable.name.substring(0, dre.variable.name.indexOf("."))
-                    val dsFieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
-
-                    val resField = cu.allDataDefinitions
-                        .find { dataDefinition -> dataDefinition.name.equals(dsName, true) }
-                        .let { ds -> (ds as DataDefinition).fields.find { field -> field.name == dsFieldName } }
-                    dre.variable.referred = resField
+                    dre.variable.referred = dre.variable.getReferredFromDsAccess(cu)
                 } else {
                     var currentCu: CompilationUnit? = cu
                     var resolved = false
@@ -267,20 +257,10 @@ private fun CompilationUnit.resolve() {
     this.allDataDefinitions
 }
 
-// try to resolve a Data reference through recursive search in parent compilation unit
+// Try to resolve a Data reference through recursive search in parent Compilation Unit.
 private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(position: Position? = null, cu: CompilationUnit) {
-    /*
-     * TODO: On RPGLE is possible to have nested field with an access like this: ds.field.subfield.
-     *  Consider to refactor this logic when is necessary to add subfield capability.
-     */
     if (this.name.contains(".")) {
-        val dsName = this.name.substring(0, this.name.indexOf("."))
-        val dsFieldName = this.name.substring(this.name.indexOf(".") + 1)
-
-        val resField = cu.allDataDefinitions
-            .find { dataDefinition -> dataDefinition.name.equals(dsName, true) }
-            .let { ds -> (ds as DataDefinition).fields.find { field -> field.name == dsFieldName } }
-        this.referred = resField
+        this.referred = getReferredFromDsAccess(cu)
     } else {
         var currentCu: CompilationUnit? = cu
         var resolved = false
@@ -291,4 +271,25 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
         val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
         if (!resolved) cu.error("Data reference not resolved: ${this.name} at $relativePosition")
     }
+}
+
+/**
+ * Retrieves the `AbstractDataDefinition` referenced by a nested field access within a data structure.
+ *
+ * This function parses a nested field access pattern (e.g., `ds.field.subfield`) from the current
+ * `ReferenceByName`, extracting the data structure name and field name. It then searches
+ * through the `CompilationUnit` to find the corresponding `AbstractDataDefinition`.
+ *
+ * @param cu the `CompilationUnit` containing all data definitions
+ * @return the `AbstractDataDefinition` corresponding to the nested field access, or `null` if not found
+ *
+ * @todo Refactor this logic to handle deeper nested fields (e.g., `ds.field.subfield`) as needed in RPGLE.
+ */
+private fun ReferenceByName<AbstractDataDefinition>.getReferredFromDsAccess(cu: CompilationUnit): AbstractDataDefinition? {
+    val dsName = this.name.substring(0, this.name.indexOf("."))
+    val dsFieldName = this.name.substring(this.name.indexOf(".") + 1)
+
+    return cu.allDataDefinitions
+        .find { dataDefinition -> dataDefinition.name.equals(dsName, true) }
+        .let { ds -> (ds as DataDefinition).fields.find { field -> field.name == dsFieldName } }
 }
