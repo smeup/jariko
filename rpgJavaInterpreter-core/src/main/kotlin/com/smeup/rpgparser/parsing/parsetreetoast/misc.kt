@@ -1062,21 +1062,9 @@ private fun annidatedReferenceExpression(
         return IndicatorExpr(index.toIndicatorKey(), position)
     }
 
-    var expr: Expression
-    if (text.contains(".")) {
-            val parts = text.split(".")
-            require(parts.isNotEmpty())
-            val varName = if (parts.size == 1) {
-                parts[0]
-            } else {
-                parts.last()
-            }
-            expr = DataRefExpr(ReferenceByName(varName), position)
-    } else {
-        expr = text.indexOf("(").let {
-            val varName = if (it == -1) text else text.substring(0, it)
-            DataRefExpr(ReferenceByName(varName), position)
-        }
+    var expr: Expression = text.indexOf("(").let {
+        val varName = if (it == -1) text else text.substring(0, it)
+        DataRefExpr(ReferenceByName(varName), position)
     }
 
     if (text.contains("(")) {
@@ -1175,11 +1163,6 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistParam {
     var resultName = this.cspec_fixed_standard_parts().result.text
-    if (resultName.contains(".")) {
-        val parts = resultName.split(".")
-        require(parts.isNotEmpty())
-        resultName = parts.last()
-    }
     val resultPosition = this.cspec_fixed_standard_parts().result.toPosition()
 
     val factor1Text = this.factor1.text.trim()

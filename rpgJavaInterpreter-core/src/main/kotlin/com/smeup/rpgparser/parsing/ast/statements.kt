@@ -960,7 +960,14 @@ data class CallStmt(
                     )
                 }
             }
-            targetProgramParams[index].name to interpreter[it.result.name]
+            /*
+             * TODO: On RPGLE is possible to have nested field with an access like this: ds.field.subfield.
+             *  Consider to refactor this logic when is necessary to add subfield capability.
+             */
+            val resultName = if (it.result.name.contains("."))
+                it.result.name.substring(it.result.name.indexOf(".") + 1)
+            else it.result.name
+            targetProgramParams[index].name to interpreter[resultName]
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
