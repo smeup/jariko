@@ -103,7 +103,7 @@ object KListType : Type() {
  * which may or may not be qualified. Subclasses of this sealed class must provide an
  * implementation of the `isQualified` property to indicate whether the data structure is qualified.
  *
- * On 16 January 2025, a data structure is qualified when has:
+ * For now, a data structure is qualified when has:
  * - `QUALIFIED` keyword;
  * - `LIKEDS` keyword, even if the parent data structure is not qualified
  *    See https://www.ibm.com/docs/en/i/7.4?topic=keywords-likedsdata-structure-name.
