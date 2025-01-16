@@ -283,9 +283,12 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
  * @param cu the `CompilationUnit` containing all data definitions
  * @return the `AbstractDataDefinition` corresponding to the nested field access, or `null` if not found
  *
- * @todo Refactor this logic to handle deeper nested fields (e.g., `ds.field.subfield`) as needed in RPGLE.
  */
 private fun ReferenceByName<AbstractDataDefinition>.getReferredFromDsAccess(cu: CompilationUnit): AbstractDataDefinition? {
+    if (this.name.split(".").size > 2) {
+        throw NotImplementedError("Is not implemented a DS access with more of one dot, like ${this.name}.")
+    }
+
     val dsName = this.name.substring(0, this.name.indexOf("."))
     val dsFieldName = this.name.substring(this.name.indexOf(".") + 1)
 
