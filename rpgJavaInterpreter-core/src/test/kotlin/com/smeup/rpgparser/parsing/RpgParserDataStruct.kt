@@ -348,7 +348,7 @@ open class RpgParserDataStruct : AbstractTest() {
                 actualDSTypes[stat.dcl_ds().name] = this.type(this.declaredSize(), fieldsList)
             }
         }
-        assertEquals(expectedDSTypes, actualDSTypes)
+        assertEquals(expectedDSTypes as Map<String, Type>, actualDSTypes)
     }
 
     @Test
