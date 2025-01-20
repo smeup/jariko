@@ -20,7 +20,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.DSFieldInitKeywordType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.parsing.parsetreetoast.toDataDefinitions
 import org.junit.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
