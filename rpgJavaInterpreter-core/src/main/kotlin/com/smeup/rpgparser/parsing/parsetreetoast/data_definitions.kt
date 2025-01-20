@@ -1304,8 +1304,9 @@ internal fun RpgParser.Dcl_dsContext.getExtnameFields(
             val prefixIsNull = keywordPrefix == null && it.key.prefix == null
             val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
             val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+            val isForExtname = it.key.justExtName
 
-            nameMatches && (prefixIsNull || prefixMatches)
+            nameMatches && (prefixIsNull || prefixMatches) && isForExtname
         }.values.flatten()
 
     if (fileDataDefinitions.isEmpty()) return emptyList()

@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.Scope
 import com.smeup.rpgparser.interpreter.Visibility
@@ -394,6 +395,24 @@ open class ToAstSmokeTest : AbstractTest() {
             this.resolveAndValidate()
             assertNotNull(this.getAnyDataDefinition("SQLCOD"), "SQLCOD is defined")
             assertNotNull(this.getAnyDataDefinition("SQLERM"), "SQLERM is defined")
+        }
+    }
+
+    /**
+     * Test the declaration of a DS which uses `EXTNAME` to a file already declared as `F` specification.
+     * The purpose of this test is to ensure about the right number of fields to avoid duplications.
+     */
+    @Test
+    fun buildAstForEXTNAMEDS01() {
+        assertASTCanBeProduced(exampleName = "EXTNAMEDS01", printTree = false).apply {
+            this.resolveAndValidate()
+
+            val dataStructure: DataDefinition = this.getAnyDataDefinition("DS_ST01") as DataDefinition
+
+            assertEquals(dataStructure.fields.size, 4, "Number of fields is correct.")
+            assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_KEY") }, "ST01_KEY is defined under DS_ST01")
+            assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_COL1") }, "ST01_COL1 is defined under DS_ST01")
+            assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_COL2") }, "ST01_COL2 is defined under DS_ST01")
         }
     }
 }
