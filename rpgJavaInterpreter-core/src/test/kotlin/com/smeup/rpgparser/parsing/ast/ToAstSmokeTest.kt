@@ -17,7 +17,10 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.DataStructureType
+import com.smeup.rpgparser.interpreter.Scope
+import com.smeup.rpgparser.interpreter.Visibility
 import com.smeup.rpgparser.parsing.parsetreetoast.DSFieldInitKeywordType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Ignore
