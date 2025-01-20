@@ -407,7 +407,7 @@ open class ToAstSmokeTest : AbstractTest() {
 
             val dataStructure: DataDefinition = this.getAnyDataDefinition("DS_ST01") as DataDefinition
 
-            assertEquals(dataStructure.fields.size, 4)
+            assertEquals(dataStructure.fields.size, 4, "Number of fields is correct.")
             assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_KEY") }, "ST01_KEY is defined under DS_ST01")
             assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_COL1") }, "ST01_COL1 is defined under DS_ST01")
             assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_COL2") }, "ST01_COL2 is defined under DS_ST01")
