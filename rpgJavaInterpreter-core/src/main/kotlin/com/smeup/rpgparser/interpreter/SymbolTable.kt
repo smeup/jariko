@@ -36,7 +36,19 @@ class SymbolTable : ISymbolTable {
         if (MainExecutionContext.isLoggingEnabled) getWithLogging(dataName) else getInternal(dataName)
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
-        return names[dataName.uppercase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
+        /*
+         * In order, try to resolve a Data Definition, by its name and by finding it:
+         * 1. in root because might be a Data Definition;
+         * 2. in DS declared as not `QUALIFIED` because might be a Field Definition with access without dot notation.
+         * 3. in parent Symbol Table.
+         */
+        return names[dataName.uppercase()]
+            ?: names
+                .filter { name -> name.value.type is DataStructureType && !(name.value.type as AbstractDataStructureType).isQualified }
+                .map { it.value }
+                .flatMap { dataStructure -> (dataStructure as DataDefinition).fields }
+                .firstOrNull { field -> field.name.equals(dataName, ignoreCase = true) }
+            ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
