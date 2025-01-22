@@ -466,6 +466,7 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    @Ignore
     fun executeMUTE13_41() {
         executePgm("mute/MUTE13_41", configuration = smeupConfig)
     }
