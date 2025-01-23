@@ -867,4 +867,25 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("IBMI", "", "IBMI")
         assertEquals(expected, "smeup/MUDRNRAPU00190".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program declares and uses variables and fields as Packed for a simple math operation.
+     * @see #LS25000341
+     */
+    @Test
+    fun executeMUDRNRAPU00191() {
+        val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
+        assertEquals(expected, "smeup/MUDRNRAPU00191".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program declares and uses variables and fields as Standalone for a simple math operation,
+     *  like `MUDRNRAPU00191` test.
+     * @see #LS25000341
+     */
+    @Test
+    fun executeMUDRNRAPU00192() {
+        val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
+        assertEquals(expected, "smeup/MUDRNRAPU00192".outputOf(configuration = smeupConfig))
+    }
 }
