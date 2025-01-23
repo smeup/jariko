@@ -44,7 +44,12 @@ class SymbolTable : ISymbolTable {
          */
         return names[dataName.uppercase()]
             ?: names
-                .filter { name -> name.value.type is DataStructureType && !(name.value.type as AbstractDataStructureType).isQualified }
+                .asSequence()
+                .filter { name ->
+                    name.value.type is DataStructureType &&
+                    !(name.value.type as AbstractDataStructureType).isQualified &&
+                    name.value is DataDefinition
+                }
                 .map { it.value }
                 .flatMap { dataStructure -> (dataStructure as DataDefinition).fields }
                 .firstOrNull { field -> field.name.equals(dataName, ignoreCase = true) }
