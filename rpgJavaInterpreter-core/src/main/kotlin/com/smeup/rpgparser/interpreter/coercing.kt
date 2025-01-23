@@ -135,7 +135,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                     else -> {
                         if (!value.isBlank()) {
-                            val intValue = decodeFromPacked(value.value.trim(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
+                            val intValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
                             IntValue(intValue.longValueExact())
                         } else {
                             IntValue(0)
@@ -150,7 +150,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(decimalValue)
                         }
                         else -> {
-                            val decimalValue = decodeFromPacked(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            val decimalValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
                             DecimalValue(decimalValue)
                         }
                     }
