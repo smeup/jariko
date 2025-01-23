@@ -364,7 +364,7 @@ class DataDefinitionPerformanceTest : AbstractTest() {
     fun decodeFromDS() {
         measureTime {
             for (i in 1..100_000_000) {
-                decodeFromDS(value = "123456789.15", digits = 20, scale = 2)
+                decodeFromPacked(value = "123456789.15", digits = 20, scale = 2)
             }
         }.also {
             println("decodeFromDS: $it")

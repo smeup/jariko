@@ -262,13 +262,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             if (this.rpgType == RpgType.PACKED.rpgType || this.rpgType == "") {
                 return if (this.decimal) {
                     // Transform the numeric to an encoded string
-                    val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, this.decimalDigits)
+                    val encoded = encodeToPacked(value.asDecimal().value, this.entireDigits, this.decimalDigits)
                     // adjust the size to fit the target field
                     val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 } else {
                     // Transform the numeric to an encoded string
-                    val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, 0)
+                    val encoded = encodeToPacked(value.asDecimal().value, this.entireDigits, 0)
                     // adjust the size to fit the target field
                     val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
@@ -730,7 +730,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
 /**
  * Encoding/Decoding a numeric value for a data structure
  */
-fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
+fun encodeToPacked(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
     val buffer = IntArray(inChars.size / 2 + 1)
@@ -770,7 +770,7 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     return s
 }
 
-fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
+fun decodeFromPacked(value: String, digits: Int, scale: Int): BigDecimal {
     return try {
         value.toBigDecimal()
     } catch (e: Exception) {
