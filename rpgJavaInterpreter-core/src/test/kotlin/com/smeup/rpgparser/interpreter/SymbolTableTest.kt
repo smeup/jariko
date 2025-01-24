@@ -8,7 +8,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 /**
- * The purpose of this test suite is to validate the behaviour around Symbol Table, directly or not.
+ * The purpose of this test suite is to validate the behaviour around Symbol Table.
  * The resources about this suite starts with `ST` (Symbol Table), followed by any string which describes the purpose.
  * Could be a Data Struct (DS), Standalone (S), File (F) or Inline (I) with an operation on this.
  */
@@ -55,6 +55,16 @@ class SymbolTableTest : AbstractTest() {
         )
     }
 
+    /**
+     * Creates a symbol table for the current `CompilationUnit`, mapping each `DataDefinition` to its corresponding `Value`.
+     *
+     * The symbol table (`ISymbolTable`) acts as a container for `DataDefinition`-to-`Value` mappings.
+     * For each `DataDefinition` in the `CompilationUnit`, this function generates a pair consisting of:
+     * - The `DataDefinition` as the key.
+     * - The associated `Value`, which is either the default value of the `DataDefinition` or a blank value based on its type.
+     *
+     * @return an `ISymbolTable` containing mappings of all `DataDefinition` objects in the `CompilationUnit`
+     */
     private fun CompilationUnit.createSymbolTable(): ISymbolTable {
         val symbolTable: ISymbolTable = SymbolTable()
         for (pair in this.dataDefinitions.map { dataDefinition -> makePairDataDefinitionValue(dataDefinition) }) {
@@ -64,6 +74,18 @@ class SymbolTableTest : AbstractTest() {
         return symbolTable
     }
 
+    /**
+     * Creates a key-value pair for a `DataDefinition` and its associated `Value`.
+     *
+     * This function takes a `DataDefinition` and generates a pair consisting of:
+     * - The `DataDefinition` itself as the key.
+     * - The associated `Value`, which is determined as follows:
+     *   - If the `DataDefinition` has a `defaultValue`, that is used.
+     *   - Otherwise, a blank value is generated based on the `DataDefinition`'s type.
+     *
+     * @param dataDefinition the `DataDefinition` for which the key-value pair is created
+     * @return a `Pair` where the key is the `DataDefinition` and the value is the associated `Value`
+     */
     private fun makePairDataDefinitionValue(dataDefinition: DataDefinition): Pair<DataDefinition, Value> {
         return Pair(
             dataDefinition,
