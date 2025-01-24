@@ -6,6 +6,7 @@ import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.execution.ConnectionConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import com.smeup.rpgparser.interpreter.dbmock.ST01DbMock
 import junit.framework.TestCase.assertEquals
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -63,5 +64,20 @@ class SymbolTableTest : AbstractTest() {
     fun executeSTDSUNQUALIFIED1() {
         val expected = listOf("FOO")
         assertEquals(expected, "symboltable/STDSUNQUALIFIED1".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * In this test we have a Data Structure declared as not `QUALIFIED` by using `EXTNAME` keyword and
+     *  a File to the same declared for DS `EXTNAME`. In this case the File fields are removed from parent
+     *  of Symbol Table. Like for `CHAIN` of this test, every field must be resolved in DS.
+     */
+    @Test
+    fun executeSTDSCHAIN1() {
+        ST01DbMock().usePopulated({
+            val expected = listOf("1", "FOO", "BAR")
+            assertEquals(expected, "symboltable/STDSCHAIN1".outputOf(configuration = smeupConfig))
+        },
+            listOf(mapOf("ST01_KEY" to "1", "ST01_COL1" to "FOO", "ST01_COL2" to "BAR"))
+        )
     }
 }
