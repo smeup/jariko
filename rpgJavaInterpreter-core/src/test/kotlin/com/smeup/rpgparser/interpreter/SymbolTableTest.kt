@@ -15,7 +15,7 @@ import kotlin.test.assertNull
 class SymbolTableTest : AbstractTest() {
     /**
      * In this test we have a Data Structure declared as not `QUALIFIED` by using `EXTNAME` keyword and
-     *  a File to the same resource declared for DS `EXTNAME`. In this case the File fields are removed from parent.
+     *  a File to the same resource declared for DS `EXTNAME`. In this case the File fields are removed from root.
      * The purpose of test is to check if DS field is resolved without dot notation and refers to DS, and not to File.
      */
     @Test
@@ -37,8 +37,8 @@ class SymbolTableTest : AbstractTest() {
 
     /**
      * In this test we have a Data Structure declared as not `QUALIFIED` and a File.
-     * In this case the File fields are present on parent.
-     * The purpose of test is to check File field resolution in right place, that is in parent.
+     * In this case the File fields are present in root.
+     * The purpose of test is to check File field resolution in right place, that is in root.
      */
     @Test
     fun executeST_F_WITH_DS_UNQUALIFIED2() {
