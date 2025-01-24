@@ -1,0 +1,11 @@
+{"name": "ST01",
+  "tableName": "ST01T",
+  "recordFormat": "ST01RF",
+  "fields": [
+    { "fieldName": "ST01_KEY",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "ST01_COL1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "ST01_COL2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  ], "accessFields": [ "ST01_KEY" ]}
