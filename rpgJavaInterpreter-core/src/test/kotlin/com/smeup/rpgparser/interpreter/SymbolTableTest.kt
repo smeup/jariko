@@ -33,7 +33,7 @@ class SymbolTableTest : AbstractTest() {
         val path = javaClass.getResource("/symboltable/metadata")!!.path
         val connectionConfigs = listOf(
             ConnectionConfig(
-               fileName = "*",
+                fileName = "*",
                 url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
                 user = "SA",
                 password = "",
