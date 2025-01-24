@@ -12,17 +12,6 @@ import kotlin.test.assertNull
  * Could be a Data Struct (DS), Standalone (S), File (F) or Inline (I) with an operation on this.
  */
 class SymbolTableTest : AbstractTest() {
-//    /**
-//     * In this test we have a Data Structure declared as not `QUALIFIED` by using `EXTNAME` keyword.
-//     * When I use a set (by `EVAL`) for a field without dot notation, the parent DS must be find in parent
-//     *  of Symbol Table.
-//     */
-//    @Test
-//    fun executeSTDSUNQUALIFIED1() {
-//        val expected = listOf("FOO")
-//        assertEquals(expected, "symboltable/STDSUNQUALIFIED1".outputOf(configuration = smeupConfig))
-//    }
-
     /**
      * In this test we have a Data Structure declared as not `QUALIFIED` by using `EXTNAME` keyword and
      *  a File to the same resource declared for DS `EXTNAME`. In this case the File fields are removed from parent.
@@ -47,20 +36,6 @@ class SymbolTableTest : AbstractTest() {
             }
         )
     }
-
-//    /**
-//     * In this test we have a Fil and all fields are placed on parent.
-//     * So, the resolution must be in this place.
-//     */
-//    @Test
-//    fun executeSTFCHAIN1() {
-//        ST01DbMock().usePopulated({
-//            val expected = listOf("1", "FOO", "BAR")
-//            assertEquals(expected, "symboltable/STFCHAIN1".outputOf(configuration = smeupConfig))
-//        },
-//            listOf(mapOf("ST01_KEY" to "1", "ST01_COL1" to "FOO", "ST01_COL2" to "BAR"))
-//        )
-//    }
 
     private fun makePairDataDefinitionValue(dataDefinition: DataDefinition): Pair<DataDefinition, Value> {
         return Pair(
