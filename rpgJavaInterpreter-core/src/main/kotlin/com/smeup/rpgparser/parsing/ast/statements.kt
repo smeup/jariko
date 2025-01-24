@@ -1481,7 +1481,10 @@ data class DefineStmt(
         }
 
         if (originalDataDefinition != null) {
-            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
+            val newType = if (originalDataDefinition.type is DataStructureType) {
+                StringType.createInstance(originalDataDefinition.elementSize())
+            } else originalDataDefinition.type
+            return listOf(InStatementDataDefinition(newVarName, newType, position))
         } else {
             if (!this.enterInStack()) {
                 // This check is necessary to avoid infinite recursion
