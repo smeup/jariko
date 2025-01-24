@@ -6,7 +6,9 @@ import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.execution.ConnectionConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import junit.framework.TestCase.assertEquals
 import kotlin.test.BeforeTest
+import kotlin.test.Test
 
 /**
  * The purpose of this test suite is to validate the behaviour around Symbol Table, directly or not.
@@ -50,5 +52,16 @@ class SymbolTableTest : AbstractTest() {
                 )
             }),
             metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+    }
+
+    /**
+     * In this test we have a Data Structure declared as not `QUALIFIED` by using `EXTNAME` keyword.
+     * When I use a set (by `EVAL`) for a field without dot notation, the parent DS must be find in parent
+     *  of Symbol Table.
+     */
+    @Test
+    fun executeSTDSUNQUALIFIED1() {
+        val expected = listOf("FOO")
+        assertEquals(expected, "symboltable/STDSUNQUALIFIED1".outputOf(configuration = smeupConfig))
     }
 }
