@@ -56,6 +56,25 @@ class SymbolTableTest : AbstractTest() {
     }
 
     /**
+     * In this test we have only File declaration. The fields are placed on root.
+     * The purpose of test is to check File field resolution.
+     */
+    @Test
+    fun executeST_F_WITHOUT_DS1() {
+        assertASTCanBeProduced(
+            exampleName = "symboltable/ST_F_WITHOUT_DS1",
+            afterAstCreation = { ast ->
+                val symbolTable: ISymbolTable = ast.createSymbolTable()
+
+                val field = symbolTable.dataDefinitionByName("ST01_KEY")
+
+                assertIs<DataDefinition>(field, "ST01_KEY is a DataDefinition.")
+                assertNull(field.parent, "ST01_KEY hasn't parent.")
+            }
+        )
+    }
+
+    /**
      * Creates a symbol table for the current `CompilationUnit`, mapping each `DataDefinition` to its corresponding `Value`.
      *
      * The symbol table (`ISymbolTable`) acts as a container for `DataDefinition`-to-`Value` mappings.
