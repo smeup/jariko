@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -22,10 +23,7 @@ class SymbolTableTest : AbstractTest() {
         assertASTCanBeProduced(
             exampleName = "symboltable/ST_F_WITH_DS_UNQUALIFIED1",
             afterAstCreation = { ast ->
-                val symbolTable: ISymbolTable = SymbolTable()
-                for (pair in ast.dataDefinitions.map { dataDefinition -> makePairDataDefinitionValue(dataDefinition) }) {
-                    symbolTable[pair.first] = pair.second
-                }
+                val symbolTable: ISymbolTable = ast.createSymbolTable()
 
                 val field = symbolTable.dataDefinitionByName("ST01_KEY")
 
@@ -35,6 +33,35 @@ class SymbolTableTest : AbstractTest() {
                 assertNull((field.parent as DataDefinition).parent, "DS1 hasn't parent.")
             }
         )
+    }
+
+    /**
+     * In this test we have a Data Structure declared as not `QUALIFIED` and a File.
+     * In this case the File fields are present on parent.
+     * The purpose of test is to check File field resolution in right place, that is in parent.
+     */
+    @Test
+    fun executeST_F_WITH_DS_UNQUALIFIED2() {
+        assertASTCanBeProduced(
+            exampleName = "symboltable/ST_F_WITH_DS_UNQUALIFIED2",
+            afterAstCreation = { ast ->
+                val symbolTable: ISymbolTable = ast.createSymbolTable()
+
+                val field = symbolTable.dataDefinitionByName("ST01_KEY")
+
+                assertIs<DataDefinition>(field, "ST01_KEY is a DataDefinition.")
+                assertNull(field.parent, "ST01_KEY hasn't parent.")
+            }
+        )
+    }
+
+    private fun CompilationUnit.createSymbolTable(): ISymbolTable {
+        val symbolTable: ISymbolTable = SymbolTable()
+        for (pair in this.dataDefinitions.map { dataDefinition -> makePairDataDefinitionValue(dataDefinition) }) {
+            symbolTable[pair.first] = pair.second
+        }
+
+        return symbolTable
     }
 
     private fun makePairDataDefinitionValue(dataDefinition: DataDefinition): Pair<DataDefinition, Value> {
