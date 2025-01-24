@@ -1,9 +1,11 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
 import kotlin.test.*
@@ -900,5 +902,25 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         assertIs<DataStructureType>(mlDataDefinition?.type)
         assertIs<StringType>(ds0002DataDefinition?.type)
         assertEquals(mlDataDefinition?.elementSize(), ds0002DataDefinition?.elementSize())
+    }
+
+    /**
+     * Definitions with *LIKE DEFINE referencing a DS must be defined as strings with the same size as the DS
+     * @see #LS25000333
+     */
+    @Test
+    fun executeMUDRNRAPU00282() {
+        var aDefinition: AbstractDataDefinition? = null
+        var bDefinition: AbstractDataDefinition? = null
+
+        assertASTCanBeProduced("smeup/MUDRNRAPU00282", afterAstCreation = {
+            it.resolveAndValidate() // Needed to solve InStatementDataDefinitions
+            aDefinition = it.allDataDefinitions.firstOrNull { def -> def.name.equals("\$A", ignoreCase = true) }
+            bDefinition = it.allDataDefinitions.firstOrNull { def -> def.name.equals("\$B", ignoreCase = true) }
+        })
+
+        assertIs<DataStructureType>(aDefinition?.type)
+        assertIs<StringType>(bDefinition?.type)
+        assertEquals(aDefinition?.elementSize(), bDefinition?.elementSize())
     }
 }
