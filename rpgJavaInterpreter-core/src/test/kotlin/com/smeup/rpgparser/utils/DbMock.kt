@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.smeup.dbmock
+package com.smeup.rpgparser.utils
 
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
