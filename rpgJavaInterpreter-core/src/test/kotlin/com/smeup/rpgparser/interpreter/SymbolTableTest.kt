@@ -80,4 +80,18 @@ class SymbolTableTest : AbstractTest() {
             listOf(mapOf("ST01_KEY" to "1", "ST01_COL1" to "FOO", "ST01_COL2" to "BAR"))
         )
     }
+
+    /**
+     * In this test we have a Fil and all fields are placed on parent.
+     * So, the resolution must be in this place.
+     */
+    @Test
+    fun executeSTFCHAIN1() {
+        ST01DbMock().usePopulated({
+            val expected = listOf("1", "FOO", "BAR")
+            assertEquals(expected, "symboltable/STFCHAIN1".outputOf(configuration = smeupConfig))
+        },
+            listOf(mapOf("ST01_KEY" to "1", "ST01_COL1" to "FOO", "ST01_COL2" to "BAR"))
+        )
+    }
 }
