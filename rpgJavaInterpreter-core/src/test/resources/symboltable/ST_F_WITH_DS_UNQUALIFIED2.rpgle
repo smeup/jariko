@@ -4,7 +4,7 @@
     O * PROGRAM GOAL
     O * In this test we have a Data Structure declared as
     O *  not `QUALIFIED` and a File.
-    O * In this case the File fields are present on parent.
+    O * In this case the File fields are present in root.
     O * The purpose of test is to check File field resolution.
      V* ==============================================================
      FST01      IF   E           K DISK
