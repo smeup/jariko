@@ -1,11 +1,12 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.DataStructureType
+import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     @BeforeTest
@@ -427,7 +428,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00227() {
-        val expected = listOf("9991\uFFFF\uFFFF99999")
+        val expected = listOf("\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF")
         assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
     }
 
@@ -880,5 +881,24 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00190() {
         val expected = listOf("IBMI", "", "IBMI")
         assertEquals(expected, "smeup/MUDRNRAPU00190".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Definitions with LIKE referencing a DS must be defined as strings with the same size as the DS
+     * @see #LS25000333
+     */
+    @Test
+    fun executeMUDRNRAPU00281() {
+        var mlDataDefinition: DataDefinition? = null
+        var ds0002DataDefinition: DataDefinition? = null
+
+        assertASTCanBeProduced("smeup/MUDRNRAPU00281", afterAstCreation = {
+            mlDataDefinition = it.getDataDefinition("ML")
+            ds0002DataDefinition = it.getDataDefinition("DS0002")
+        })
+
+        assertIs<DataStructureType>(mlDataDefinition?.type)
+        assertIs<StringType>(ds0002DataDefinition?.type)
+        assertEquals(mlDataDefinition?.elementSize(), ds0002DataDefinition?.elementSize())
     }
 }
