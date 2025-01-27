@@ -201,13 +201,13 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00101() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("HELLO THERE")
             assertEquals(
                 expected = expected,
                 "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
             )
-        }
+        })
     }
 
     /**
@@ -269,10 +269,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     @Test
     fun executeMUDRNRAPU00202() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("ok")
             assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
-        }
+        })
     }
 
     /**
