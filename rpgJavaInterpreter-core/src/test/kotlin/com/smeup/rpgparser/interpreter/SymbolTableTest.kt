@@ -36,7 +36,7 @@ class SymbolTableTest : AbstractTest() {
      * @see ISymbolTable
      */
     @Test(timeout = 3_000)
-//    @Category(PerformanceTest::class)
+    @Category(PerformanceTest::class)
     fun executeST_F_WITH_DS_UNQUALIFIED1_PERFORMANCE() {
         assertASTCanBeProduced(
             exampleName = "symboltable/ST_PERFORMANCE_ACCESS01",
