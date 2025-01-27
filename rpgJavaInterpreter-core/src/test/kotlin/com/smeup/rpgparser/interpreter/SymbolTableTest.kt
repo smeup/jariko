@@ -32,9 +32,9 @@ class SymbolTableTest : AbstractTest() {
      * @throws TimeoutException if the test does not complete within 6 seconds
      * @see ISymbolTable
      */
-    @Test(timeout = 6_000)
+    @Test(timeout = 3_000)
     @Category(PerformanceTest::class)
-    fun executeST_F_WITH_DS_UNQUALIFIED1() {
+    fun executeST_F_WITH_DS_UNQUALIFIED1_PERFORMANCE() {
         measureTime {
             assertASTCanBeProduced(
                 exampleName = "symboltable/ST_PERFORMANCE_ACCESS01",
