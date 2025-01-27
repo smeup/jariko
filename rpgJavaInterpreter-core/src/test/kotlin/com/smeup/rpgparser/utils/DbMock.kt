@@ -46,18 +46,18 @@ interface DbMock : AutoCloseable {
     }
 
     fun <R> usePopulated(
-        predicate: (DbMock) -> R,
+        testExecution: (DbMock) -> R,
         values: List<Map<String, Any>>
     ) = this.use {
         val queries = listOf(it.createTable(), it.populateTable(values))
         execute(queries)
-        predicate(it)
+        testExecution(it)
     }
 
-    fun <R> usePopulated(predicate: (DbMock) -> R) = this.use {
+    fun <R> usePopulated(testExecution: (DbMock) -> R) = this.use {
         val queries = listOf(it.createTable(), it.populateTable(emptyList()))
         execute(queries)
-        predicate(it)
+        testExecution(it)
     }
 
     override fun close() {
