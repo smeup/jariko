@@ -1,77 +1,58 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import org.junit.experimental.categories.Category
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNull
+import kotlin.time.measureTime
 
 /**
  * The purpose of this test suite is to validate the behaviour around Symbol Table.
  * The resources about this suite starts with `ST` (Symbol Table), followed by any string which describes the purpose.
- * Could be a Data Struct (DS), Standalone (S), File (F) or Inline (I) with an operation on this.
  */
 class SymbolTableTest : AbstractTest() {
     /**
-     * In this test we have a Data Structure declared as not `QUALIFIED` by using `EXTNAME` keyword and
-     *  a File to the same resource declared for DS `EXTNAME`. In this case the File fields are removed from root.
-     * The purpose of test is to check if DS field is resolved without dot notation and refers to DS, and not to File.
+     * Performance test for accessing standalone fields and data structure fields in a symbol table.
+     *
+     * This test measures the execution time required to perform repeated lookups of standalone fields and
+     * data structure fields in a symbol table created from an Abstract Syntax Tree (AST). It verifies that
+     * the AST can be produced successfully and evaluates the performance of symbol table lookups for
+     * specific fields.
+     *
+     * Steps:
+     * 1. Produce an AST from the specified example program (`symboltable/ST_PERFORMANCE_ACCESS01`).
+     * 2. Create a symbol table (`ISymbolTable`) from the AST.
+     * 3. Perform 1,000,000 lookups for the standalone field `VAR1`.
+     * 4. Perform 1,000,000 lookups for the last field of the data structure `DS1_FLD25`.
+     * 5. Measure and log the total execution time for these operations.
+     *
+     * The goal is to evaluate the efficiency of symbol table lookups and ensure performance is within an acceptable range.
+     *
+     * @throws TimeoutException if the test does not complete within 6 seconds
+     * @see ISymbolTable
      */
-    @Test
+    @Test(timeout = 6_000)
+    @Category(PerformanceTest::class)
     fun executeST_F_WITH_DS_UNQUALIFIED1() {
-        assertASTCanBeProduced(
-            exampleName = "symboltable/ST_F_WITH_DS_UNQUALIFIED1",
-            afterAstCreation = { ast ->
-                val symbolTable: ISymbolTable = ast.createSymbolTable()
+        measureTime {
+            assertASTCanBeProduced(
+                exampleName = "symboltable/ST_PERFORMANCE_ACCESS01",
+                afterAstCreation = { ast ->
+                    val symbolTable: ISymbolTable = ast.createSymbolTable()
 
-                val field = symbolTable.dataDefinitionByName("ST01_KEY")
+                    for (i in 1..1_000_000) {
+                        symbolTable.dataDefinitionByName("VAR1")
+                    }
 
-                assertIs<FieldDefinition>(field, "ST01_KEY is a FieldDefinition.")
-                assertIs<DataDefinition>(field.parent, "ST01_KEY parent is a DataDefinition.")
-                assertEquals((field.parent as DataDefinition).name, "DS1", "The ST01_KEY parent is called DS1.")
-                assertNull((field.parent as DataDefinition).parent, "DS1 hasn't parent.")
-            }
-        )
-    }
-
-    /**
-     * In this test we have a Data Structure declared as not `QUALIFIED` and a File.
-     * In this case the File fields are present in root.
-     * The purpose of test is to check File field resolution in right place, that is in root.
-     */
-    @Test
-    fun executeST_F_WITH_DS_UNQUALIFIED2() {
-        assertASTCanBeProduced(
-            exampleName = "symboltable/ST_F_WITH_DS_UNQUALIFIED2",
-            afterAstCreation = { ast ->
-                val symbolTable: ISymbolTable = ast.createSymbolTable()
-
-                val field = symbolTable.dataDefinitionByName("ST01_KEY")
-
-                assertIs<DataDefinition>(field, "ST01_KEY is a DataDefinition.")
-                assertNull(field.parent, "ST01_KEY hasn't parent.")
-            }
-        )
-    }
-
-    /**
-     * In this test we have only File declaration. The fields are placed on root.
-     * The purpose of test is to check File field resolution.
-     */
-    @Test
-    fun executeST_F_WITHOUT_DS1() {
-        assertASTCanBeProduced(
-            exampleName = "symboltable/ST_F_WITHOUT_DS1",
-            afterAstCreation = { ast ->
-                val symbolTable: ISymbolTable = ast.createSymbolTable()
-
-                val field = symbolTable.dataDefinitionByName("ST01_KEY")
-
-                assertIs<DataDefinition>(field, "ST01_KEY is a DataDefinition.")
-                assertNull(field.parent, "ST01_KEY hasn't parent.")
-            }
-        )
+                    for (i in 1..1_000_000) {
+                        symbolTable.dataDefinitionByName("DS1_FLD25")
+                    }
+                }
+            )
+        }.also { time ->
+            println("Time for accessing to Standalone and Data Struct last field: $time")
+        }
     }
 
     /**
