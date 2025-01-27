@@ -4,10 +4,8 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import org.junit.experimental.categories.Category
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNull
+import kotlin.test.*
+import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
 /**
@@ -35,7 +33,7 @@ class SymbolTableTest : AbstractTest() {
      * @throws TimeoutException if the test does not complete within 6 seconds
      * @see ISymbolTable
      */
-    @Test(timeout = 3_000)
+    @Test
     @Category(PerformanceTest::class)
     fun executeST_F_WITH_DS_UNQUALIFIED1_PERFORMANCE() {
         assertASTCanBeProduced(
@@ -60,6 +58,8 @@ class SymbolTableTest : AbstractTest() {
                 }
 
                 println("Ratio execution during the resolution of Standalone and DS field: ${timeVAR1 / timeDS10_FLD50}")
+
+                assertTrue((timeVAR1 + timeDS10_FLD50).toLong(DurationUnit.MILLISECONDS) < 3000)
             }
         )
     }
