@@ -5,6 +5,9 @@ import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import org.junit.experimental.categories.Category
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.time.measureTime
 
 /**
@@ -53,6 +56,54 @@ class SymbolTableTest : AbstractTest() {
         }.also { time ->
             println("Time for accessing to Standalone and Data Struct last field: $time")
         }
+    }
+
+    /**
+     * Test for validating symbol table lookups of standalone fields and data structure fields.
+     *
+     * This test verifies the correctness of symbol table entries for:
+     * 1. A standalone field (`VAR1`).
+     * 2. Fields within a data structure (`DS1_FLD25` and `DS1_FLD26`).
+     *
+     * Steps:
+     * 1. Produce an Abstract Syntax Tree (AST) from the example program `symboltable/ST_PERFORMANCE_ACCESS01`.
+     * 2. Create a symbol table (`ISymbolTable`) from the AST.
+     * 3. Perform lookups for:
+     *    - `VAR1`: A standalone field expected to be found as a `DataDefinition`.
+     *    - `DS1_FLD25`: A field in the data structure `DS1`, expected to be found as a `FieldDefinition`.
+     *    - `DS1_FLD26`: Another field, expected not to exist in the symbol table (returns `null`).
+     * 4. Assert the types and properties of the retrieved definitions:
+     *    - Verify `VAR1` is a `DataDefinition`.
+     *    - Verify `DS1_FLD25` is a `FieldDefinition` and belongs to the parent data structure `DS1`.
+     *    - Verify `DS1_FLD26` is not found in the symbol table (`null`).
+     *
+     * Assertions:
+     * - The type and parent relationships of the retrieved definitions are validated.
+     * - The name of the parent data structure for `DS1_FLD25` is confirmed as `DS1`.
+     * - It is asserted that `DS1_FLD26` does not exist in the symbol table.
+     *
+     * @see ISymbolTable
+     * @see DataDefinition
+     * @see FieldDefinition
+     */
+    @Test
+    fun executeST_F_WITH_DS_UNQUALIFIED1() {
+        assertASTCanBeProduced(
+            exampleName = "symboltable/ST_PERFORMANCE_ACCESS01",
+            afterAstCreation = { ast ->
+                val symbolTable: ISymbolTable = ast.createSymbolTable()
+
+                val dataDefinition = symbolTable.dataDefinitionByName("VAR1")
+                val fieldDefinition1 = symbolTable.dataDefinitionByName("DS1_FLD25")
+                val fieldDefinition2 = symbolTable.dataDefinitionByName("DS1_FLD26")
+
+                assertIs<DataDefinition>(dataDefinition)
+                assertIs<FieldDefinition>(fieldDefinition1)
+                assertIs<DataDefinition>(fieldDefinition1.parent)
+                assertEquals("DS1", (fieldDefinition1.parent as DataDefinition).name, "DS1_FLD25 is field DS1.")
+                assertNull(fieldDefinition2, "DS1_FLD26 field not found.")
+            }
+        )
     }
 
     /**
