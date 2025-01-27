@@ -39,5 +39,30 @@
      D  DS1_FLD23                    50
      D  DS1_FLD24                    50
      D  DS1_FLD25                    50
+     D  DS1_FLD26                    50
+     D  DS1_FLD27                    50
+     D  DS1_FLD28                    50
+     D  DS1_FLD29                    50
+     D  DS1_FLD30                    50
+     D  DS1_FLD31                    50
+     D  DS1_FLD32                    50
+     D  DS1_FLD33                    50
+     D  DS1_FLD34                    50
+     D  DS1_FLD35                    50
+     D  DS1_FLD36                    50
+     D  DS1_FLD37                    50
+     D  DS1_FLD38                    50
+     D  DS1_FLD39                    50
+     D  DS1_FLD40                    50
+     D  DS1_FLD41                    50
+     D  DS1_FLD42                    50
+     D  DS1_FLD43                    50
+     D  DS1_FLD44                    50
+     D  DS1_FLD45                    50
+     D  DS1_FLD46                    50
+     D  DS1_FLD47                    50
+     D  DS1_FLD48                    50
+     D  DS1_FLD49                    50
+     D  DS1_FLD50                    50
 
      C                   SETON                                          LR
