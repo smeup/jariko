@@ -106,7 +106,7 @@ class SymbolTableTest : AbstractTest() {
                 assertIs<DataDefinition>(dataDefinition)
                 assertIs<FieldDefinition>(fieldDefinition1)
                 assertIs<DataDefinition>(fieldDefinition1.parent)
-                assertEquals("DS1", (fieldDefinition1.parent as DataDefinition).name, "DS10_FLD50 is field DS1.")
+                assertEquals("DS10", (fieldDefinition1.parent as DataDefinition).name, "DS10_FLD50 is field DS1.")
                 assertNull(fieldDefinition2, "DS10_FLD51 field not found.")
             }
         )
