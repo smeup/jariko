@@ -421,9 +421,9 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     @Test
     fun executeMUDRNRAPU00272() {
         val expected = listOf("ok", "ok", "ok", "ok")
-        C5ADFF9LDbMock().usePopulated {
+        C5ADFF9LDbMock().usePopulated({
             assertEquals(expected, "smeup/MUDRNRAPU00272".outputOf(configuration = smeupConfig))
-        }
+        })
     }
 
     /**

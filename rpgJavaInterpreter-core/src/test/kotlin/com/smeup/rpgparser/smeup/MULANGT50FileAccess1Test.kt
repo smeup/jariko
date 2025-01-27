@@ -71,9 +71,9 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
 
     @Test
     fun executeMUDRNRAPU00254() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("1.000000000")
             assertEquals(expected, "smeup/MUDRNRAPU00254".outputOf(configuration = smeupConfig))
-        }
+        })
     }
 }
