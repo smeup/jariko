@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -135,8 +136,14 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                     else -> {
                         if (!value.isBlank()) {
-                            val intValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
-                            IntValue(intValue.longValueExact())
+                            val intValue = value.value.trim()
+                            if (intValue.isNumber()) {
+                                IntValue(intValue.toLong())
+                            } else {
+                                // A Packed could end with a char. Consider MUDRNRAPU00115.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits)
+                                IntValue(packedValue.longValueExact())
+                            }
                         } else {
                             IntValue(0)
                         }
@@ -150,8 +157,21 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(decimalValue)
                         }
                         else -> {
-                            val decimalValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
-                            DecimalValue(decimalValue)
+                            /*
+                             * FIXME: Could be wrong. Have to reach only an encoded number and not a clean. For example,
+                             *  during the execution of `MUDRNRAPU00254`, at this point arrives:
+                             *   NumberType(entireDigits=21, decimalDigits=9, rpgType=P)
+                             *  and:
+                             *   StringValue[11](1.000000000)
+                             */
+                            val decimalValue = value.value.trim()
+                            if (decimalValue.isNumber()) {
+                                DecimalValue(decimalValue.toBigDecimal())
+                            } else {
+                                // A Packed could end with a char. Consider MUDRNRAPU00115.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
+                                DecimalValue(packedValue)
+                            }
                         }
                     }
                 } else {
