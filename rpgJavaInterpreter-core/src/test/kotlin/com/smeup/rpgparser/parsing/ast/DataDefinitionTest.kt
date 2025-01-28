@@ -370,4 +370,34 @@ class DataDefinitionPerformanceTest : AbstractTest() {
             println("decodeFromDS: $it")
         }
     }
+
+    @Test
+    @Category(PerformanceTest::class)
+    fun encodeDecodePacked() {
+        var encoded = ""
+
+        var value = "9".repeat(15).plus(".").plus("9".repeat(6)).toBigDecimal()
+        measureTime {
+            encoded = encodeToPacked(value, 21, 6)
+        }.also { time ->
+            println("Time execution during the encode of ${value}: $time")
+        }
+        measureTime {
+            decodeFromPacked(encoded, 21, 6)
+        }.also { time ->
+            println("Time execution during the decode: $time")
+        }
+
+        value = "9".repeat(21).plus(".").plus("9".repeat(9)).toBigDecimal()
+        measureTime {
+            encoded = encodeToPacked(value, 30, 9)
+        }.also { time ->
+            println("Time execution during the encode of ${value}: $time")
+        }
+        measureTime {
+            decodeFromPacked(encoded, 30, 9)
+        }.also { time ->
+            println("Time execution during the decode: $time")
+        }
+    }
 }
