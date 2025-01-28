@@ -771,44 +771,40 @@ fun encodeToPacked(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 fun decodeFromPacked(value: String, digits: Int, scale: Int): BigDecimal {
-    return try {
-        value.toBigDecimal()
-    } catch (e: Exception) {
-        val buffer = IntArray(value.length)
-        for (i in value.indices) {
-            buffer[i] = value[i].code
-        }
-
-        val sign = StringBuilder()
-        val number = StringBuilder()
-        var nibble = (buffer[buffer.size - 1] and 0x0F)
-        if (nibble == 0x0B || nibble == 0x0D) {
-            sign.append("-")
-        }
-
-        var offset = 0
-        while (offset < (buffer.size - 1)) {
-            nibble = (buffer[offset] and 0xFF).ushr(4)
-            number.append((nibble or 0x30).toChar())
-            nibble = buffer[offset] and 0x0F or 0x30
-            number.append((nibble or 0x30).toChar())
-
-            offset++
-        }
-
-// read last digit
-        nibble = (buffer[offset] and 0xFF).ushr(4)
-        if (nibble <= 9) {
-            number.append((nibble or 0x30).toChar())
-        }
-// adjust the scale
-        if (scale > 0 && number.toString() != "0") {
-            val len = number.length
-            number.insert(len - scale, ".")
-        }
-        number.insert(0, sign)
-        number.toString().toBigDecimal()
+    val buffer = IntArray(value.length)
+    for (i in value.indices) {
+        buffer[i] = value[i].code
     }
+
+    val sign = StringBuilder()
+    val number = StringBuilder()
+    var nibble = (buffer[buffer.size - 1] and 0x0F)
+    if (nibble == 0x0B || nibble == 0x0D) {
+        sign.append("-")
+    }
+
+    var offset = 0
+    while (offset < (buffer.size - 1)) {
+        nibble = (buffer[offset] and 0xFF).ushr(4)
+        number.append((nibble or 0x30).toChar())
+        nibble = buffer[offset] and 0x0F or 0x30
+        number.append((nibble or 0x30).toChar())
+
+        offset++
+    }
+
+    // read last digit
+    nibble = (buffer[offset] and 0xFF).ushr(4)
+    if (nibble <= 9) {
+        number.append((nibble or 0x30).toChar())
+    }
+    // adjust the scale
+    if (scale > 0 && number.toString() != "0") {
+        val len = number.length
+        number.insert(len - scale, ".")
+    }
+    number.insert(0, sign)
+    return number.toString().toBigDecimal()
 }
 
 enum class Visibility {
