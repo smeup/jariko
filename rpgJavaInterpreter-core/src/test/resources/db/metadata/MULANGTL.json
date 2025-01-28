@@ -1,0 +1,49 @@
+{"name": "MULANGTL",
+  "tableName": "MULANGTF",
+  "recordFormat": "MULANGR",
+  "fields": [
+    { "fieldName": "MLSYST",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "MLLIBR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLFILE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLTIPO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLPROG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLPSEZ",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLPPAS",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLPDES",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":256, "varying":false}}
+  , { "fieldName": "MLSQIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLSQFI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLAAAT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1024, "varying":false}}
+  , { "fieldName": "MLAAVA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1024, "varying":false}}
+  , { "fieldName": "MLNNAT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":21, "decimalDigits":9, "rpgType":"P"}}
+  , { "fieldName": "MLNNVA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":21, "decimalDigits":9, "rpgType":"P"}}
+  , { "fieldName": "MLINDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":99, "varying":false}}
+  , { "fieldName": "MLTEES",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "MLUSES",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLDTES",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "MLORES",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "MLASLA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "MLASNR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "MLLIBE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30000, "varying":true}}
+  ], "accessFields": [ "MLSYST", "MLTIPO", "MLPROG", "MLPSEZ", "MLPPAS"]}

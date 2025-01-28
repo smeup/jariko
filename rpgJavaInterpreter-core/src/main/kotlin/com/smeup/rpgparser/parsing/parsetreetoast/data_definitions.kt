@@ -404,7 +404,12 @@ internal fun RpgParser.DspecContext.toAst(
                 NumberType(elementSize!! - decimalPositions, decimalPositions)
             } else {
                 if (like != null) {
-                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+                    val baseType = compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+
+                    // When LIKE is used on a DS we must declare a string with size == to the DS size
+                    if (baseType is DataStructureType) {
+                        StringType.createInstance(elementSize!!, varying)
+                    } else baseType
                 } else {
                     StringType.createInstance(elementSize!!, varying)
                 }

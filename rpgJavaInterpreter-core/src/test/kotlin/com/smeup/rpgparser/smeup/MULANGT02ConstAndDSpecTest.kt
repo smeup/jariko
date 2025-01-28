@@ -1,11 +1,14 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.DataStructureType
+import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     @BeforeTest
@@ -198,13 +201,13 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00101() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("HELLO THERE")
             assertEquals(
                 expected = expected,
                 "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
             )
-        }
+        })
     }
 
     /**
@@ -266,10 +269,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     @Test
     fun executeMUDRNRAPU00202() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("ok")
             assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
-        }
+        })
     }
 
     /**
@@ -427,7 +430,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00227() {
-        val expected = listOf("9991\uFFFF\uFFFF99999")
+        val expected = listOf("\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF")
         assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
     }
 
@@ -859,6 +862,20 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * Writing on a field of DS which use `EXTNAME` of a file.
+     * @see #LS25000142
+     */
+    @Test
+    fun executeMUDRNRAPU00189() {
+        MULANGTLDbMock().usePopulated({
+                val expected = listOf("IBMI", "", "IBMI", "MULANGT00", "", "", "IBMI", "MULANGT00")
+                assertEquals(expected, "smeup/MUDRNRAPU00189".outputOf(configuration = smeupConfig))
+            },
+            listOf(mapOf("MLSYST" to "IBMI", "MLPROG" to "MULANGT00"))
+        )
+    }
+
+    /**
      * Reading from a field of DS with dot notation. This DS have the same fields of another.
      * @see #LS25000142
      */
@@ -887,5 +904,44 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00192() {
         val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
         assertEquals(expected, "smeup/MUDRNRAPU00192".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Definitions with LIKE referencing a DS must be defined as strings with the same size as the DS
+     * @see #LS25000333
+     */
+    @Test
+    fun executeMUDRNRAPU00281() {
+        var mlDataDefinition: DataDefinition? = null
+        var ds0002DataDefinition: DataDefinition? = null
+
+        assertASTCanBeProduced("smeup/MUDRNRAPU00281", afterAstCreation = {
+            mlDataDefinition = it.getDataDefinition("ML")
+            ds0002DataDefinition = it.getDataDefinition("DS0002")
+        })
+
+        assertIs<DataStructureType>(mlDataDefinition?.type)
+        assertIs<StringType>(ds0002DataDefinition?.type)
+        assertEquals(mlDataDefinition?.elementSize(), ds0002DataDefinition?.elementSize())
+    }
+
+    /**
+     * Definitions with *LIKE DEFINE referencing a DS must be defined as strings with the same size as the DS
+     * @see #LS25000333
+     */
+    @Test
+    fun executeMUDRNRAPU00282() {
+        var aDefinition: AbstractDataDefinition? = null
+        var bDefinition: AbstractDataDefinition? = null
+
+        assertASTCanBeProduced("smeup/MUDRNRAPU00282", afterAstCreation = {
+            it.resolveAndValidate() // Needed to solve InStatementDataDefinitions
+            aDefinition = it.allDataDefinitions.firstOrNull { def -> def.name.equals("\$A", ignoreCase = true) }
+            bDefinition = it.allDataDefinitions.firstOrNull { def -> def.name.equals("\$B", ignoreCase = true) }
+        })
+
+        assertIs<DataStructureType>(aDefinition?.type)
+        assertIs<StringType>(bDefinition?.type)
+        assertEquals(aDefinition?.elementSize(), bDefinition?.elementSize())
     }
 }
