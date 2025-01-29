@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
@@ -536,6 +537,12 @@ class ExpressionEvaluation(
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
         callback.traceBlock(trace) {
+            val source: LogSourceProvider = {
+                LogSourceData(MainExecutionContext.getExecutionProgramName(), expression.startLine())
+            }
+            val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
+            val logRenderer = LazyLogEntry(entry) { sep -> "FUNCTION$sep$functionToCall" }
+            MainExecutionContext.log(logRenderer)
             val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
                 ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
             val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
