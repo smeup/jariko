@@ -911,102 +911,111 @@ data class CallStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
+        val callerProgramName = MainExecutionContext.getExecutionProgramName()
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
-        val program: Program?
-        val callIssueException = ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
         try {
-            program = interpreter.getSystemInterface().findProgram(programToCall)
-            if (errorIndicator != null) {
-                interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+            val program: Program?
+            val callIssueException =
+                ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
+            try {
+                program = interpreter.getSystemInterface().findProgram(programToCall)
+                if (errorIndicator != null) {
+                    interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+                }
+            } catch (e: Exception) {
+                errorIndicator ?: throw callIssueException
+                interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                return
             }
-        } catch (e: Exception) {
-            errorIndicator ?: throw callIssueException
-            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
-            return
-        }
 
-        program ?: throw callIssueException
-        if (program is RpgProgram) {
-            MainExecutionContext.getProgramStack().push(program)
-        }
+            program ?: throw callIssueException
+            if (program is RpgProgram) {
+                MainExecutionContext.getProgramStack().push(program)
+            }
 
-        // Ignore exceeding params
-        val targetProgramParams = program.params()
-        val params = this.params.take(targetProgramParams.size).mapIndexed { index, it ->
-            if (it.dataDefinition != null) {
-                // handle declaration of new variable
-                if (it.dataDefinition.initializationValue != null) {
-                    if (!interpreter.exists(it.result.name)) {
-                        interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
+            // Ignore exceeding params
+            val targetProgramParams = program.params()
+            val params = this.params.take(targetProgramParams.size).mapIndexed { index, it ->
+                if (it.dataDefinition != null) {
+                    // handle declaration of new variable
+                    if (it.dataDefinition.initializationValue != null) {
+                        if (!interpreter.exists(it.result.name)) {
+                            interpreter.assign(
+                                it.dataDefinition,
+                                interpreter.eval(it.dataDefinition.initializationValue)
+                            )
+                        } else {
+                            interpreter.assign(
+                                interpreter.dataDefinitionByName(it.result.name)!!,
+                                interpreter.eval(it.dataDefinition.initializationValue)
+                            )
+                        }
                     } else {
-                        interpreter.assign(
-                            interpreter.dataDefinitionByName(it.result.name)!!,
-                            interpreter.eval(it.dataDefinition.initializationValue)
-                        )
+                        if (!interpreter.exists(it.result.name)) {
+                            interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
+                        }
                     }
                 } else {
-                    if (!interpreter.exists(it.result.name)) {
-                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr(it.position)))
+                    // handle initialization value without declaration of new variables
+                    // change the value of parameter with initialization value
+                    if (it.initializationValue != null) {
+                        interpreter.assign(
+                            interpreter.dataDefinitionByName(it.result.name)!!,
+                            interpreter.eval(it.initializationValue)
+                        )
                     }
                 }
-            } else {
-                // handle initialization value without declaration of new variables
-                // change the value of parameter with initialization value
-                if (it.initializationValue != null) {
-                    interpreter.assign(
-                        interpreter.dataDefinitionByName(it.result.name)!!,
-                        interpreter.eval(it.initializationValue)
-                    )
+
+                if (it.result.name.split(".").size > 2) {
+                    throw NotImplementedError("Is not implemented a DS access with more of one dot, like ${it.result.name}.")
                 }
-            }
+                val resultName = if (it.result.name.contains("."))
+                    it.result.name.substring(it.result.name.indexOf(".") + 1)
+                else it.result.name
+                targetProgramParams[index].name to interpreter[resultName]
+            }.toMap(LinkedHashMap())
 
-            if (it.result.name.split(".").size > 2) {
-                throw NotImplementedError("Is not implemented a DS access with more of one dot, like ${it.result.name}.")
-            }
-            val resultName = if (it.result.name.contains("."))
-                it.result.name.substring(it.result.name.indexOf(".") + 1)
-            else it.result.name
-            targetProgramParams[index].name to interpreter[resultName]
-        }.toMap(LinkedHashMap())
-
-        val paramValuesAtTheEnd =
-            try {
-                interpreter.getSystemInterface().registerProgramExecutionStart(program, params)
-                kotlin.run {
-                    val callProgramHandler = MainExecutionContext.getConfiguration().options.callProgramHandler
-                    // call program.execute only if callProgramHandler.handleCall do nothing
-                    callProgramHandler?.handleCall?.invoke(programToCall, interpreter.getSystemInterface(), params)
-                        ?: program.execute(interpreter.getSystemInterface(), params)
-                }.apply {
-                    if (errorIndicator != null) {
-                        interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+            val paramValuesAtTheEnd =
+                try {
+                    interpreter.getSystemInterface().registerProgramExecutionStart(program, params)
+                    kotlin.run {
+                        val callProgramHandler = MainExecutionContext.getConfiguration().options.callProgramHandler
+                        // call program.execute only if callProgramHandler.handleCall do nothing
+                        callProgramHandler?.handleCall?.invoke(programToCall, interpreter.getSystemInterface(), params)
+                            ?: program.execute(interpreter.getSystemInterface(), params)
+                    }.apply {
+                        if (errorIndicator != null) {
+                            interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+                        }
                     }
-                }
-            } catch (e: Exception) { // TODO Catch a more specific exception?
-                if (errorIndicator == null) {
-                    if (program is RpgProgram) {
-                        MainExecutionContext.getProgramStack().pop()
+                } catch (e: Exception) { // TODO Catch a more specific exception?
+                    if (errorIndicator == null) {
+                        if (program is RpgProgram) {
+                            MainExecutionContext.getProgramStack().pop()
+                        }
+                        throw e
                     }
-                    throw e
+
+                    interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                    MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
+                    null
                 }
+            paramValuesAtTheEnd?.forEachIndexed { index, value ->
+                if (this.params.size > index) {
+                    val currentParam = this.params[index]
+                    interpreter.assign(currentParam.result.referred!!, value)
 
-                interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
-                MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
-                null
+                    // If we also have a result field, assign to it
+                    currentParam.factor1?.let { interpreter.assign(it, value) }
+                }
             }
-        paramValuesAtTheEnd?.forEachIndexed { index, value ->
-            if (this.params.size > index) {
-                val currentParam = this.params[index]
-                interpreter.assign(currentParam.result.referred!!, value)
 
-                // If we also have a result field, assign to it
-                currentParam.factor1?.let { interpreter.assign(it, value) }
-            }
+            if (program is RpgProgram)
+                MainExecutionContext.getProgramStack().pop()
+        } finally {
+            MainExecutionContext.setExecutionProgramName(callerProgramName)
         }
-
-        if (program is RpgProgram)
-            MainExecutionContext.getProgramStack().pop()
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
