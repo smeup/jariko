@@ -440,6 +440,6 @@ class DataDefinitionPerformanceTest : AbstractTest() {
             }
             .div(filtered.size)
 
-        println("Time execution of encoding/decoding for ${nRandomNumbers} random numbers is: ${result.toDuration(DurationUnit.MILLISECONDS)}.")
+        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: ${result.toDuration(DurationUnit.MILLISECONDS)}.")
     }
 }
