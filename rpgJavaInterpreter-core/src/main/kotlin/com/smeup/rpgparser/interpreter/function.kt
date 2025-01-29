@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
@@ -208,11 +209,29 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
 
     private val staticMemorySliceId = MemorySliceId(
         activationGroup = "*STATIC",
-        programName = "FunctionInterpreter.$procedureName.static")
+        programName = functionName
+    )
+
+    private val functionName: String get() = "FunctionInterpreter.$procedureName.static"
 
     override fun getMemorySliceId(): MemorySliceId? {
         val memorySliceId = super.getMemorySliceId()
         return memorySliceId?.copy(programName = "${memorySliceId.programName}.$procedureName")
+    }
+
+    override fun getInterpretationContext(): InterpretationContext {
+        return object : InterpretationContext {
+            private var iDataWrapUpChoice: DataWrapUpChoice? = null
+            override val currentProgramName: String
+                get() = functionName
+
+            override fun shouldReinitialize() = false
+            override var dataWrapUpChoice: DataWrapUpChoice?
+                get() = iDataWrapUpChoice
+                set(value) {
+                    iDataWrapUpChoice = value
+                }
+        }
     }
 
     /**
