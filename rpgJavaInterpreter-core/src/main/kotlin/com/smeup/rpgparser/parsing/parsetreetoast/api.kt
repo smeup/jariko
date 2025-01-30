@@ -18,6 +18,9 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.AbstractDataStructureType
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.FieldDefinition
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
@@ -51,9 +54,25 @@ internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfig
 private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
     return apiId.runNode {
         apiId.loadAndUse { api ->
+            // FIXME: Wrong
+//            val mergedFileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions)
+//            val mergedDataDefinitions = api.compilationUnit.dataDefinitions.toMutableList().replace(this.dataDefinitions)
+//            val newCompilationUnit = CompilationUnit(
+//                fileDefinitions = mergedFileDefinitions,
+//                dataDefinitions = mergedDataDefinitions,
+//                subroutines = api.compilationUnit.subroutines,
+//                compileTimeArrays = api.compilationUnit.compileTimeArrays,
+//                directives = api.compilationUnit.directives,
+//                position = api.compilationUnit.position,
+//                apiDescriptors = api.compilationUnit.apiDescriptors,
+//                procedures = api.compilationUnit.procedures,
+//                main = api.compilationUnit.main,
+//            )
+//            newCompilationUnit.resolveAndValidate()
+
             this.copy(
                 fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
-                dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
+                dataDefinitions = this.dataDefinitions.filterAndInclude(api.compilationUnit.dataDefinitions),
                 subroutines = this.subroutines.include(api.compilationUnit.subroutines),
                 compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
                 directives = this.directives.include(api.compilationUnit.directives),
@@ -65,6 +84,46 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
             )
         }
     }
+}
+
+//fun List<DataDefinition>.replace(parent: List<DataDefinition>): List<DataDefinition> {
+//    val newDataDefinitions = emptyList<DataDefinition>().toMutableList()
+//    val parentFieldsUnqualifiedDs = parent
+//        .filter { dataDefinition -> dataDefinition.type is AbstractDataStructureType && !(dataDefinition.type as AbstractDataStructureType).isQualified }
+//        .flatMap { dataDefinition -> dataDefinition.fields }
+//
+//    this.forEach { dataDefinition ->
+//        val fromParent = parentFieldsUnqualifiedDs.firstOrNull { field -> field.name.equals(dataDefinition.name, ignoreCase = true) }
+//        if (fromParent != null) {
+//            newDataDefinitions.add(fromParent.parent as DataDefinition)
+//        } else {
+//            newDataDefinitions.add(dataDefinition)
+//        }
+//    }
+//
+//    return newDataDefinitions
+//}
+
+fun List<DataDefinition>.filterAndInclude(newDataDefinitions: List<DataDefinition>): List<DataDefinition> {
+    val newDataDefinitionsFiltered = newDataDefinitions.toMutableList()
+
+    /* Removing Standalone field which parent has declared as field of unqualified DS. */
+    val fieldsUnqualifiedDs = this
+        .filter { dataDefinition -> dataDefinition.type is AbstractDataStructureType && !(dataDefinition.type as AbstractDataStructureType).isQualified }
+        .flatMap { dataDefinition -> dataDefinition.fields }
+
+    newDataDefinitionsFiltered.removeIf { newDataDefinition ->
+        val found: FieldDefinition? = fieldsUnqualifiedDs.firstOrNull { field -> field.name.equals(newDataDefinition.name, ignoreCase = true) }
+
+        if (found != null) {
+            found.matchType(newDataDefinition)
+            return@removeIf true
+        }
+
+        return@removeIf false
+    }
+
+    return this.include(newDataDefinitionsFiltered);
 }
 
 /**
