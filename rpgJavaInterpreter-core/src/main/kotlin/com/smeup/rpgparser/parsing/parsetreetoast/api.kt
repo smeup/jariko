@@ -132,7 +132,6 @@ private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<
     }
 }
 
-
 /**
  * Invalidates the resolution of variable references within a list of `Subroutine` objects.
  *
