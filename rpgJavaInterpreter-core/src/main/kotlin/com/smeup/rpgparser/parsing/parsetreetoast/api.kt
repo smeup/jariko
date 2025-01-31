@@ -21,6 +21,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.specificProcess
 
 internal fun RpgParser.Dir_apiContext.toApiId(conf: ToAstConfiguration): ApiId {
     return ApiId(
@@ -54,7 +55,7 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
             this.copy(
                 fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
                 dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
-                subroutines = this.subroutines.include(api.compilationUnit.subroutines),
+                subroutines = this.subroutines.include(api.compilationUnit.subroutines.invalidateResolution()),
                 compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
                 directives = this.directives.include(api.compilationUnit.directives),
                 position = this.position,
@@ -128,5 +129,30 @@ private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<
         } else {
             procedure
         }
+    }
+}
+
+
+/**
+ * Invalidates the resolution of variable references within a list of `Subroutine` objects.
+ *
+ * This function iterates through each `Subroutine` in the list and clears the `referred` property
+ * of any `Variable` referenced by a `DataRefExpr`.  This effectively invalidates the previous
+ * resolution of these variable references, potentially forcing them to be re-resolved later.
+ * This is often necessary when changes have been made to the data model that might affect
+ * the validity of existing variable resolutions.
+ *
+ * The function uses the `specificProcess` method to traverse the `Subroutine`'s expression tree
+ * and target only `DataRefExpr` instances.  For each `DataRefExpr`, it sets the `referred`
+ * property of the associated `Variable` to `null`.
+ *
+ * This function does not modify the original `Subroutine` objects; it returns a *new* list
+ * containing modified copies of the `Subroutine` objects.
+ *
+ * @return A new list of `Subroutine` objects with invalidated variable references.
+ */
+private fun List<Subroutine>.invalidateResolution(): List<Subroutine> {
+    return this.map { subroutine ->
+        subroutine.specificProcess(DataRefExpr::class.java) { it.variable.referred = null }.let { subroutine }
     }
 }
