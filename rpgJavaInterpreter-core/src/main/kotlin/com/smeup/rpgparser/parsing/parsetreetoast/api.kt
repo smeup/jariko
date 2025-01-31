@@ -90,7 +90,7 @@ internal fun <T> ApiId.loadAndUse(parentCu: CompilationUnit? = null, logic: (api
     val parentPgmName = MainExecutionContext.getExecutionProgramName()
     val apiId = this
     MainExecutionContext.setExecutionProgramName(this.toString())
-    val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).also { api ->
+    val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).let { api ->
         // Have to adjust the definitions by removing duplicates if already provided by its caller program.
         var apiPostProcess: Api = api
         if (parentCu != null) {
@@ -98,6 +98,7 @@ internal fun <T> ApiId.loadAndUse(parentCu: CompilationUnit? = null, logic: (api
         }
 
         MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, apiPostProcess)
+        apiPostProcess
     }.validate()
     logic.invoke(api).let { result ->
         MainExecutionContext.setExecutionProgramName(parentPgmName)
@@ -127,12 +128,12 @@ internal fun <T> ApiId.loadAndUse(parentCu: CompilationUnit? = null, logic: (api
 private fun Api.resolveDuplicates(parentCu: CompilationUnit): Api {
     // TODO: Provide File logic by considering the existence of a DS with EXTNAME to the same File and from parent.
 
-    val dataDefinitionResolved: List<DataDefinition> = this.compilationUnit.dataDefinitions.findAndReplaceDuplicatesFromParent(parentCu.dataDefinitions)
+    val dataDefinitionsResolved: List<DataDefinition> = this.compilationUnit.dataDefinitions.findAndReplaceDuplicatesFromParent(parentCu.dataDefinitions)
 
     return Api(
         compilationUnit = CompilationUnit(
             fileDefinitions = this.compilationUnit.fileDefinitions,
-            dataDefinitions = dataDefinitionResolved,
+            dataDefinitions = dataDefinitionsResolved,
             subroutines = this.compilationUnit.subroutines,
             compileTimeArrays = this.compilationUnit.compileTimeArrays,
             directives = this.compilationUnit.directives,
