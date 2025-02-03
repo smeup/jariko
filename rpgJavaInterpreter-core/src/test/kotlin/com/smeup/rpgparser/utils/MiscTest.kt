@@ -19,8 +19,12 @@ package com.smeup.rpgparser.utils
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.MainBody
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.preprocess
+import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
@@ -28,10 +32,7 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 class MiscTest {
 
@@ -379,4 +380,99 @@ class MiscTest {
             }
         }
     }
+
+    /**
+     * Test to ensure that standalone data definitions are removed if they are present
+     * in an unqualified data structure.
+     * @see #LS25000430
+     */
+    @Test
+    fun removeDuplicatedDataDefinition_RemoveStandaloneIfPresentInUnqualifiedDS() {
+        val standaloneField1 = DataDefinition(name = "field_1", type = StringType(10), fields = emptyList())
+        val standaloneField10 = DataDefinition(name = "field_10", type = StringType(10), fields = emptyList())
+        val unqualifiedDS = DataDefinition(
+            name = "UNQUALIFIED",
+            type = DataStructureType(
+                fields = listOf(
+                    FieldType("field_1", StringType(10)),
+                    FieldType("field_2", StringType(10))
+                ),
+                elementSize = 10,
+                isQualified = false
+            ),
+            fields = listOf(
+                FieldDefinition(
+                    name = "field_1",
+                    type = StringType(10),
+                    explicitStartOffset = 0,
+                    explicitEndOffset = 10,
+                ),
+                FieldDefinition(
+                    name = "field_2",
+                    type = StringType(10),
+                    explicitStartOffset = 11,
+                    explicitEndOffset = 20,
+                ),
+            )
+        )
+        val qualifiedDS = DataDefinition(
+            name = "QUALIFIED",
+            type = DataStructureType(
+                fields = listOf(
+                    FieldType("field_1", StringType(10)),
+                    FieldType("field_10", StringType(10))
+                ),
+                elementSize = 10,
+                isQualified = true
+            ),
+            fields = listOf(
+                FieldDefinition(
+                    name = "field_1",
+                    type = StringType(10),
+                    explicitStartOffset = 0,
+                    explicitEndOffset = 10,
+                ),
+                FieldDefinition(
+                    name = "field_10",
+                    type = StringType(10),
+                    explicitStartOffset = 11,
+                    explicitEndOffset = 20,
+                ),
+            )
+        )
+        val dataDefinitions = listOf(
+            standaloneField1,
+            standaloneField10,
+            unqualifiedDS,
+            qualifiedDS
+        )
+
+        val compilationUnit = CompilationUnit(
+            fileDefinitions = emptyList(),
+            dataDefinitions = dataDefinitions,
+            main = MainBody(stmts = emptyList()),
+            subroutines = emptyList(),
+            compileTimeArrays = emptyList(),
+            directives = emptyList(),
+            position = null
+        )
+
+        assertEquals(4 , compilationUnit.dataDefinitions.size)
+
+        val allDataDefinitions = compilationUnit.allDataDefinitions
+        assertEquals(
+            expected = 5,
+            actual = allDataDefinitions.size,
+            message = "There must be 5 data definitions because all `FieldDefinition` is added to the `allDataDefinitions` list"
+        )
+        assertIs<FieldDefinition>(
+            value = allDataDefinitions.firstOrNull { it.name == "field_1" },
+            message = "`field_1` must be a FieldDefinition",
+        )
+        assertNotNull(
+            actual = allDataDefinitions.firstOrNull { it.name == "field_10" },
+            message = "`field_10` does not must be removed because it is present both as qualified data structure field (with access only by dot notation) and `DataDefinition`"
+        )
+    }
+
 }
