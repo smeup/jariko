@@ -359,7 +359,6 @@ class LoggingTest : AbstractTest() {
         System.setErr(defaultErr)
     }
 
-
     /**
      * Test if function resolution logs are correctly printed out
      */
