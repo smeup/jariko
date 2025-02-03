@@ -24,7 +24,6 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.MainBody
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.preprocess
-import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
@@ -405,14 +404,14 @@ class MiscTest {
                     name = "field_1",
                     type = StringType(10),
                     explicitStartOffset = 0,
-                    explicitEndOffset = 10,
+                    explicitEndOffset = 10
                 ),
                 FieldDefinition(
                     name = "field_2",
                     type = StringType(10),
                     explicitStartOffset = 11,
-                    explicitEndOffset = 20,
-                ),
+                    explicitEndOffset = 20
+                )
             )
         )
         val qualifiedDS = DataDefinition(
@@ -430,14 +429,14 @@ class MiscTest {
                     name = "field_1",
                     type = StringType(10),
                     explicitStartOffset = 0,
-                    explicitEndOffset = 10,
+                    explicitEndOffset = 10
                 ),
                 FieldDefinition(
                     name = "field_10",
                     type = StringType(10),
                     explicitStartOffset = 11,
-                    explicitEndOffset = 20,
-                ),
+                    explicitEndOffset = 20
+                )
             )
         )
         val dataDefinitions = listOf(
@@ -457,7 +456,7 @@ class MiscTest {
             position = null
         )
 
-        assertEquals(4 , compilationUnit.dataDefinitions.size)
+        assertEquals(4, compilationUnit.dataDefinitions.size)
 
         val allDataDefinitions = compilationUnit.allDataDefinitions
         assertEquals(
@@ -467,12 +466,11 @@ class MiscTest {
         )
         assertIs<FieldDefinition>(
             value = allDataDefinitions.firstOrNull { it.name == "field_1" },
-            message = "`field_1` must be a FieldDefinition",
+            message = "`field_1` must be a FieldDefinition"
         )
         assertNotNull(
             actual = allDataDefinitions.firstOrNull { it.name == "field_10" },
             message = "`field_10` does not must be removed because it is present both as qualified data structure field (with access only by dot notation) and `DataDefinition`"
         )
     }
-
 }
