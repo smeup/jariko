@@ -377,69 +377,37 @@ class DataDefinitionPerformanceTest : AbstractTest() {
     /**
      * Performance test for encoding and decoding packed decimal values.
      *
-     * This test evaluates the efficiency of the `encodeToPacked` and `decodeFromPacked` functions by:
-     * 1. Generating a list of 1,000 random decimal numbers within a defined range.
-     * 2. Encoding each number to a packed decimal format and then decoding it back.
-     * 3. Repeating this encoding/decoding process 1,000 times to collect performance data.
-     * 4. Computing statistical metrics, including the average execution time and standard deviation, to filter out noise.
-     * 5. Printing the final execution time after noise removal.
+     * This test measures the performance of the `encodeToPacked` and `decodeFromPacked` functions by repeatedly
+     * encoding and decoding a set of random decimal numbers.  The test generates 1000 random decimal numbers
+     * within a specified range and then performs 1000 iterations of encoding each number to packed decimal
+     * format and subsequently decoding it back to a BigDecimal.
      *
-     * The purpose of this test is to analyze the performance stability of packed decimal operations
-     * and ensure that encoding and decoding are efficient under heavy computational load.
+     * The test focuses on the end-to-end encoding/decoding cycle and measures the total time taken for all
+     * iterations.  The average execution time per number is then calculated and printed.  This provides a
+     * measure of the typical performance for a single encode/decode operation.
+     *
+     * The test uses `measureTime` to capture the execution time of each encoding/decoding cycle and accumulates
+     * these measurements.  Finally the average time is printed to the console.
+     *
+     * @see encodeToPacked
+     * @see decodeFromPacked
      */
-    @Test(timeout = 9_000)
+    @Test(timeout = 3_000)
     @Category(PerformanceTest::class)
     fun encodeDecodePackedPerformanceTest1() {
         val nRandomNumbers = 1000
 
-        /*
-         * Generating n-causal numbers.
-         */
         val valueFrom = "-".plus("9".repeat(21).plus(".").plus("9".repeat(9))).toBigDecimal()
         val valueTo = "9".repeat(21).plus(".").plus("9".repeat(9)).toBigDecimal()
         val randomNumbers = List(nRandomNumbers) { Random.nextDouble(valueFrom.toDouble(), valueTo.toDouble()) }
 
-        /*
-         * Applying encoding/decoding for all random numbers and by getting overall time.
-         * This operation is repeated for certain times, by storing each time measurement in an array.
-         */
-        val timeMeasurements = emptyList<Duration>().toMutableList()
-        for (i in 1..1000) {
+        var timeMeasurements = 0.0
+        randomNumbers.forEach { randomNumber ->
             measureTime {
-                randomNumbers.forEach { randomNumber ->
-                    decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
-                }
-            }.also { timeMeasurements.add(it) }
+                decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
+            }.also { timeMeasurements += it.toDouble(DurationUnit.MICROSECONDS)}
         }
 
-        /*
-         * Calculating standard deviance for next noise removal.
-         */
-        val average = timeMeasurements.map { measureTime -> measureTime.toDouble(DurationUnit.MILLISECONDS) }.average()
-        val standardDeviance = timeMeasurements
-            .map { measureTime -> measureTime.toDouble(DurationUnit.MILLISECONDS) }
-            .reduce { acc: Double, measure: Double ->
-                acc.plus((measure - average).pow(2))
-                acc
-            }
-            .div(timeMeasurements.size)
-
-        /*
-         * Removing noise by using standard deviance. This is usefully to calculate average.
-         */
-        val filtered = timeMeasurements.filter { measure -> abs(average - measure.toDouble(DurationUnit.MILLISECONDS)) < standardDeviance }
-
-        /*
-         * Calculating average in microseconds.
-         */
-        val result = filtered
-            .map { measureTime -> measureTime.toDouble(DurationUnit.MILLISECONDS) }
-            .reduce { acc: Double, measure: Double ->
-                acc.plus(measure)
-                acc
-            }
-            .div(filtered.size)
-
-        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: ${result.toDuration(DurationUnit.MILLISECONDS)}.")
+        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: ${(timeMeasurements/nRandomNumbers).toDuration(DurationUnit.MILLISECONDS)}.")
     }
 }
