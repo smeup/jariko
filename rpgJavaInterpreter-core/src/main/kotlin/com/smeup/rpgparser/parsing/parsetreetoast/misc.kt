@@ -141,9 +141,7 @@ private fun List<StatementContext?>.getDataDefinition(
             fileDefinitions = fileDefinitions
         )
     }
-    dataDefinitionProviders
-        .removeFileFieldsDefinedInDs(firstPassProviders)
-        .addAll(firstPassProviders)
+    dataDefinitionProviders.addAll(firstPassProviders)
 
     // Second pass, everything, I mean everything
     val secondPassProviders = sortedStatements.getValidDataDefinitionHolders(
@@ -156,27 +154,6 @@ private fun List<StatementContext?>.getDataDefinition(
     dataDefinitionProviders.addAll(secondPassProviders)
 
     return Pair(dataDefinitionProviders, knownDataDefinitions)
-}
-
-/**
- * Removes file fields from the root of the `dataDefinitionProviders` when they are also defined in a data structure (DS)
- * that uses `EXTNAME` in RPG, ensuring that field manipulations apply to both the file and the DS.
- *
- * The function scans through `firstPassProviders`, extracts the fields, filters out those not of `RecordFormatType`,
- * and removes corresponding file fields from the mutable list to avoid redundancy and potential conflicts.
- *
- * @param firstPassProviders a list of `DataDefinitionProvider` objects from the first pass to extract fields from
- * @return the updated mutable list with the file fields removed, ensuring only the DS manages those fields
- */
-private fun MutableList<DataDefinitionProvider>.removeFileFieldsDefinedInDs(firstPassProviders: List<DataDefinitionProvider>): MutableList<DataDefinitionProvider> {
-    firstPassProviders
-        .flatMap { provider -> provider.toDataDefinition().fields }
-        .filter { field -> field.type !is RecordFormatType }
-        .forEach { field ->
-            this.removeIf { provider -> provider.toDataDefinition().name.equals(field.name, ignoreCase = true) }
-        }
-
-    return this
 }
 
 private fun List<StatementContext>.getValidDataDefinitionHolders(
