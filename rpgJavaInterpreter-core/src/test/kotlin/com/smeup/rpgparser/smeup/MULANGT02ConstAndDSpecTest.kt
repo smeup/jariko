@@ -935,12 +935,12 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         C5RREGHLDbMock().usePopulated({
             val expected = listOf(
                 "01", "2009", "", "", "",
-                "01", "2009", "", "", "1234007",
+                "01", "2009", "", "", "1234007"
             )
             assertEquals(expected, "smeup/MUDRNRAPU00192".outputOf(configuration = smeupConfig))
         },
             listOf(
-                mapOf("R5AZIE" to "01", "R5ESER" to "2009", "R5TPCN" to "", "R5SOGG" to "", "R5CONT" to "1234007"),
+                mapOf("R5AZIE" to "01", "R5ESER" to "2009", "R5TPCN" to "", "R5SOGG" to "", "R5CONT" to "1234007")
             )
         )
     }
