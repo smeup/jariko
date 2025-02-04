@@ -22,8 +22,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.experimental.categories.Category
-import kotlin.math.abs
-import kotlin.math.pow
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -405,9 +403,9 @@ class DataDefinitionPerformanceTest : AbstractTest() {
         randomNumbers.forEach { randomNumber ->
             measureTime {
                 decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
-            }.also { timeMeasurements += it.toDouble(DurationUnit.MICROSECONDS)}
+            }.also { timeMeasurements += it.toDouble(DurationUnit.MICROSECONDS) }
         }
 
-        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: ${(timeMeasurements/nRandomNumbers).toDuration(DurationUnit.MILLISECONDS)}.")
+        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: ${(timeMeasurements / nRandomNumbers).toDuration(DurationUnit.MILLISECONDS)}.")
     }
 }
