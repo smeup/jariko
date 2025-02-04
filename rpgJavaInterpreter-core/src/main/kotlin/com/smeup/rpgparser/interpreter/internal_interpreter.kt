@@ -112,13 +112,16 @@ open class InternalInterpreter(
         return indicators
     }
 
-    private var interpretationContext: InterpretationContext = DummyInterpretationContext
+    /**
+     * NOTE: This should never be accessed as is. Is [getInterpretationContext] to get its value.
+     */
+    private var _interpretationContext: InterpretationContext = DummyInterpretationContext
     override fun getInterpretationContext(): InterpretationContext {
-        return interpretationContext
+        return _interpretationContext
     }
 
     fun setInterpretationContext(interpretationContext: InterpretationContext) {
-        this.interpretationContext = interpretationContext
+        this._interpretationContext = interpretationContext
     }
 
     private val klists = HashMap<String, List<String>>()
@@ -167,7 +170,7 @@ open class InternalInterpreter(
             "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
 
-        val programName = interpretationContext.currentProgramName
+        val programName = getInterpretationContext().currentProgramName
 
         renderLogInternal {
             val logSource = { LogSourceData(programName, data.startLine()) }
@@ -248,7 +251,7 @@ open class InternalInterpreter(
     ) {
         val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
-        val programName = interpretationContext.currentProgramName
+        val programName = getInterpretationContext().currentProgramName
         val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
 
         callback.traceBlock(initTrace) {
@@ -521,7 +524,7 @@ open class InternalInterpreter(
 
                 if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
                     throw InterpreterTimeoutException(
-                        interpretationContext.currentProgramName,
+                        getInterpretationContext().currentProgramName,
                         elapsed.inWholeMilliseconds,
                         compilationUnit.minTimeOut!!
                     )
@@ -599,7 +602,7 @@ open class InternalInterpreter(
     }
 
     private fun executeWithMute(statement: Statement) {
-        val programName = interpretationContext.currentProgramName
+        val programName = getInterpretationContext().currentProgramName
         renderLogInternal {
             val logSource = { LogSourceData(programName, statement.position.line()) }
             LazyLogEntry.produceLine(logSource)
@@ -694,7 +697,7 @@ open class InternalInterpreter(
         compilationUnit: CompilationUnit,
         line: String
     ) {
-        val programName = interpretationContext.currentProgramName
+        val programName = getInterpretationContext().currentProgramName
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -723,7 +726,7 @@ open class InternalInterpreter(
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteComparisonAnnotationExecuted(
-                            this.interpretationContext.currentProgramName,
+                            this.getInterpretationContext().currentProgramName,
                             exp,
                             it.val1,
                             it.val2,
@@ -743,7 +746,7 @@ open class InternalInterpreter(
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteTimeoutAnnotationExecuted(
-                            this.interpretationContext.currentProgramName,
+                            this.getInterpretationContext().currentProgramName,
                             it.timeout,
                             line
                         )
@@ -759,7 +762,7 @@ open class InternalInterpreter(
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteFailAnnotationExecuted(
-                            this.interpretationContext.currentProgramName,
+                            this.getInterpretationContext().currentProgramName,
                             message,
                             line
                         )
@@ -857,7 +860,7 @@ open class InternalInterpreter(
     }
 
     private fun errorDescription(statement: Statement, throwable: Throwable) =
-        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
+        "Program ${getInterpretationContext().currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
     override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
         if (!record.isEmpty()) {
@@ -906,7 +909,7 @@ open class InternalInterpreter(
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
-            val programName = this.interpretationContext.currentProgramName
+            val programName = this.getInterpretationContext().currentProgramName
             renderLogInternal {
                 val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
@@ -935,7 +938,7 @@ open class InternalInterpreter(
             else -> expression.evalWith(expressionEvaluation)
         }
 
-        val programName = this.interpretationContext.currentProgramName
+        val programName = this.getInterpretationContext().currentProgramName
         val sourceProvider = { LogSourceData(programName, expression.startLine()) }
         renderLogInternal { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
@@ -1042,7 +1045,7 @@ open class InternalInterpreter(
 
                 renderLogInternal {
                     val logSource =
-                        { LogSourceData(interpretationContext.currentProgramName, target.array.startLine()) }
+                        { LogSourceData(getInterpretationContext().currentProgramName, target.array.startLine()) }
                     LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value)
                 }
 
@@ -1226,7 +1229,7 @@ open class InternalInterpreter(
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
                 return configuration.jarikoCallback.getActivationGroup.invoke(
-                    interpretationContext.currentProgramName, associatedActivationGroup
+                    getInterpretationContext().currentProgramName, associatedActivationGroup
                 )?.assignedName ?: activationGroup
             }
         }
@@ -1234,7 +1237,7 @@ open class InternalInterpreter(
 
     open fun getMemorySliceId(): MemorySliceId? {
         return getActivationGroupAssignedName()?.let {
-            MemorySliceId(activationGroup = it, interpretationContext.currentProgramName)
+            MemorySliceId(activationGroup = it, getInterpretationContext().currentProgramName)
         }
     }
 
@@ -1267,7 +1270,7 @@ open class InternalInterpreter(
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
         return configuration.jarikoCallback.exitInRT.invoke(
-            interpretationContext.currentProgramName
+            getInterpretationContext().currentProgramName
         ) ?: exitRT
     }
 
@@ -1306,7 +1309,7 @@ open class InternalInterpreter(
      * Execute a statement keeping track of its state for observability purposes
      */
     private inline fun execute(statement: Statement) {
-        val programName = this.interpretationContext.currentProgramName
+        val programName = this.getInterpretationContext().currentProgramName
         val sourceProducer = if (logsEnabled()) {
             { LogSourceData(programName, statement.position.line()) }
         } else null
