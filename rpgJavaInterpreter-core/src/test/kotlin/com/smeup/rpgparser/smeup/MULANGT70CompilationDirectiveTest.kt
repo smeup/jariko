@@ -78,4 +78,15 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val expected = listOf("OK")
         assertEquals(expected, "smeup/MUDRNRAPU00133".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Utilization of a field (declared from unqualified DS) on main program and a variable, with same name, declared as
+     *  Standalone on API program.
+     * @see #LS25000430
+     */
+    @Test
+    fun executeMUDRNRAPU00191() {
+        val expected = listOf("FOO")
+        assertEquals(expected, "smeup/MUDRNRAPU00191".outputOf())
+    }
 }

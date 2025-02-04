@@ -2231,7 +2231,9 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
     // NOTE: With current logic when type matches on duplications the first definition wins
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
-    return removeUnnecessaryRecordFormat().filter {
+    return removeUnnecessaryRecordFormat()
+        .removeStandaloneDefinedAsFieldOfUnqualifiedDs()
+        .filter {
         val dataDefinition = dataDefinitionMap[it.name]
         if (dataDefinition == null) {
             dataDefinitionMap[it.name] = it
@@ -2284,6 +2286,46 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
 private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat(): List<T> {
     return this.filterNot { dataDef ->
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
+    }
+}
+
+/**
+ * Removes "standalone" `DataDefinition` objects that are also defined as fields within
+ * unqualified Data Structures in the same list.
+ *
+ * This function identifies and removes `DataDefinition` objects that have the same name (case-insensitive)
+ * as a `FieldDefinition` within the list.  This is typically done to resolve conflicts where a
+ * data definition might be defined both independently (as a "standalone" definition) and as a
+ * field within a Data Structure.  The field definition is generally preferred.
+ *
+ * The function performs a type compatibility check using `matchType` between the standalone
+ * `DataDefinition` and the corresponding `FieldDefinition`.  If a name match is found but the types
+ * are incompatible, an `IllegalArgumentException` is thrown.
+ *
+ * This function operates on a list of `AbstractDataDefinition` objects, which can include both
+ * `DataDefinition` and `FieldDefinition` objects.  It returns a *new* list containing only the
+ * `AbstractDataDefinition` objects that are *not* standalone definitions matching a field.
+ *
+ * @param <T> The specific type of `AbstractDataDefinition` in the list.
+ * @return A new list of `AbstractDataDefinition` objects with the standalone duplicates removed.
+ * @throws IllegalArgumentException If a name match is found between a `DataDefinition` and a
+ *                                  `FieldDefinition`, but their types are incompatible. The
+ *                                  exception message will detail the conflicting types.
+ */
+private fun <T : AbstractDataDefinition> List<T>.removeStandaloneDefinedAsFieldOfUnqualifiedDs(): List<T> {
+    val fieldsInRoot = this.filterIsInstance<FieldDefinition>()
+    return this.filterNot { dataDefinition ->
+        dataDefinition is DataDefinition &&
+                fieldsInRoot
+                    .any { fieldInRoot -> dataDefinition.name.equals(fieldInRoot.name, ignoreCase = true)
+                        .also {
+                            if (it) {
+                                dataDefinition.require(dataDefinition.matchType(fieldInRoot)) {
+                                    "Incongruous definitions of ${dataDefinition.name}: ${fieldInRoot.type} vs ${dataDefinition.type}"
+                                }
+                            }
+                        }
+                    }
     }
 }
 
