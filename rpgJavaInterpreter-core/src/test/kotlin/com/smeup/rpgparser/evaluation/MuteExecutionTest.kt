@@ -466,7 +466,7 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    @Ignore("Until is improved Encode/Decode to/from Packed")
+    @Ignore("Is going to be resolved from another work")
     fun executeMUTE13_41() {
         executePgm("mute/MUTE13_41", configuration = smeupConfig)
     }
