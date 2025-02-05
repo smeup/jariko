@@ -1342,6 +1342,10 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
         result = 31 * result + unlimitedStringField.hashCode()
         return result
     }
+
+    override fun takeFirst(n: Int): Value {
+        return getSubstring(0, n)
+    }
 }
 
 fun Int.asValue() = IntValue(this.toLong())
