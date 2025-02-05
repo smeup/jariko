@@ -4,7 +4,7 @@
     O * PROGRAM GOAL
     O * This program declares and uses variables and fields as
     O *  Standalone for a simple math operation,
-    O *  like `MUDRNRAPU00191` test.
+    O *  like `MUDRNRAPU00193` test.
      V* ==============================================================
      D STD1            S              8  0
      D STD2            S              8  0
