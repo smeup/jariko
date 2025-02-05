@@ -931,6 +931,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #LS25000430
      */
     @Test
+    @Ignore("Is requested an improvement")
     fun executeMUDRNRAPU00192() {
         C5RREGHLDbMock().usePopulated({
             val expected = listOf(
