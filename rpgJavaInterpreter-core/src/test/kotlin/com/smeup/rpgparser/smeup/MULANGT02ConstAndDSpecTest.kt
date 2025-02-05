@@ -890,20 +890,20 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      * @see #LS25000341
      */
     @Test
-    fun executeMUDRNRAPU00192() {
+    fun executeMUDRNRAPU00193() {
         val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
-        assertEquals(expected, "smeup/MUDRNRAPU00192".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00193".outputOf(configuration = smeupConfig))
     }
 
     /**
      * This program declares and uses variables and fields as Standalone for a simple math operation,
-     *  like `MUDRNRAPU00191` test.
+     *  like `MUDRNRAPU00193` test.
      * @see #LS25000341
      */
     @Test
-    fun executeMUDRNRAPU00193() {
+    fun executeMUDRNRAPU00194() {
         val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
-        assertEquals(expected, "smeup/MUDRNRAPU00193".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/MUDRNRAPU00194".outputOf(configuration = smeupConfig))
     }
 
     /**
