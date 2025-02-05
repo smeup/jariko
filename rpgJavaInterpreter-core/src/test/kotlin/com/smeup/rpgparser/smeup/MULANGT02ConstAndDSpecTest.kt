@@ -6,6 +6,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.smeup.dbmock.C5RREGHLDbMock
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
 import kotlin.test.*
@@ -943,5 +944,26 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         assertIs<DataStructureType>(aDefinition?.type)
         assertIs<StringType>(bDefinition?.type)
         assertEquals(aDefinition?.elementSize(), bDefinition?.elementSize())
+    }
+
+    /**
+     * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
+     *  from `F` spec but shares same fields.
+     * @see #LS25000430
+     */
+    @Test
+    @Ignore("Is requested an improvement for mocked values and by changing the metadata and KLIST.")
+    fun executeMUDRNRAPU00192() {
+        C5RREGHLDbMock().usePopulated({
+            val expected = listOf(
+                "01", "2009", "", "", "",
+                "01", "2009", "", "", "1234007"
+            )
+            assertEquals(expected, "smeup/MUDRNRAPU00192".outputOf(configuration = smeupConfig))
+        },
+            listOf(
+                mapOf("R5AZIE" to "01", "R5ESER" to "2009", "R5TPCN" to "", "R5SOGG" to "", "R5CONT" to "1234007")
+            )
+        )
     }
 }

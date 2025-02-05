@@ -37,11 +37,11 @@ class SymbolTable : ISymbolTable {
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
         /*
-         * In order, try to resolve a Data Definition, by its name and by finding it:
-         * 1. in root because might be a Data Definition;
-         * 2. in DS declared as not `QUALIFIED` because might be a Field Definition with access without dot notation. In this
-         *  case will be added in `names` if found.
-         * 3. in parent Symbol Table.
+         * Attempts to resolve a Data Definition by its name, searching in the following order:
+         * 1. Root scope: Checks if a Data Definition with the given name exists directly within the current scope.
+         * 2. Unqualified Data Structures: Searches within the fields of any *unqualified* Data Structures
+         *    declared in the current scope. This handles cases where a field is accessed without dot notation.
+         * 3. Parent Symbol Table: If not found in the current scope, delegates the search to the parent Symbol Table.
          */
         return names.compute(dataName.uppercase()) { key, value ->
             value ?: names
