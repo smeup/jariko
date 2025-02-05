@@ -1034,6 +1034,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR51CallBackTest() {
+        executePgmCallBackTest("ERROR51", SourceReferenceType.Program, "ERROR51", mapOf(
+            13 to "Factor 2 and Result aren't same type: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))"
+        ))
+    }
+
+    @Test
+    fun executeERROR51SourceLineTest() {
+        executeSourceLineTest("ERROR51")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
