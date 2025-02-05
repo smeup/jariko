@@ -56,6 +56,10 @@ private fun moveaNumber(
     interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
+    if (value is DataRefExpr && value.variable.referred?.type is DataStructureType) {
+        throw IllegalStateException("Factor 2 and Result aren't same type: ${value.render()} (${value.position})")
+    }
+
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val newValue = interpreterCore.toArray(value, targetArray.elementType)
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
