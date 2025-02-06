@@ -17,9 +17,16 @@ sealed interface DSPF {
     fun getRecord(name: String): DSPFRecord
 
     /**
-     * Retrieve a list of [DSPFField] given its record's name.
+     * Retrieve a list of [MutableField] given its record's name.
      * @param name the name of the record
-     * @return [List]<[DSPFField]>
+     * @return [List]<[MutableField]>
      */
-    fun getFieldsFromRecord(name: String): List<DSPFField>
+    fun getMutableFieldsFromRecord(name: String): List<MutableField>
+
+    /**
+     * Retrieve a list of [ConstantField] given its record's name.
+     * @param name the name of the record
+     * @return [List]<[ConstantField]>
+     */
+    fun getConstantFieldsFromRecord(name: String): List<ConstantField>
 }

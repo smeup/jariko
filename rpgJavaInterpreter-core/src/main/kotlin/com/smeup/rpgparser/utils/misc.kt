@@ -17,6 +17,11 @@
 package com.smeup.rpgparser.utils
 
 import com.smeup.rpgparser.execution.ParsingProgram
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.TagStmt
+import com.smeup.rpgparser.parsing.ast.UnwrappedStatementData
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.util.*
 import kotlin.system.measureTimeMillis
@@ -147,13 +152,34 @@ internal fun Stack<ParsingProgram>.pushIfNotAlreadyPresent(parsingProgram: Parsi
 }
 
 /**
- * Pop a ParsingProgram from a stack if it is present
+ * Pop a value from a stack if it is present
  * @return The element popped or null if the stack is empty
  * */
-internal fun Stack<ParsingProgram>.popIfPresent(): ParsingProgram? {
+internal fun <T> Stack<T>.popIfPresent(): T? {
     return if (this.isNotEmpty()) {
         this.pop()
     } else {
         null
     }
+}
+
+/**
+ * Peek a value from a [Stack] if it is present
+ * @return The element peeked or null if the stack is empty
+ */
+internal fun <T> Stack<T>.peekOrNull(): T? = if (isNotEmpty()) {
+    this.peek()
+} else null
+
+/**
+ * Get the [CompilationUnit] that contains the current [Node]
+ */
+internal fun Node.getContainingCompilationUnit() = ancestor(CompilationUnit::class.java)
+
+internal fun List<UnwrappedStatementData>.indexOfTag(tag: String) = indexOfFirst {
+    it.statement is TagStmt && (it.statement as TagStmt).tag.lowercase() == tag.lowercase()
+}
+
+internal inline fun <T, R> Iterable<T>.mapNotNullOrError(transform: (T) -> R?): List<R> {
+    return this.mapNotNull { kotlin.runCatching { transform(it) }.getOrNull() }
 }

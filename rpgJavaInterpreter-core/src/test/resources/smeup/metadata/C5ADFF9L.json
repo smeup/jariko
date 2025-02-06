@@ -1,0 +1,153 @@
+{"name": "C5ADFF9L",
+  "tableName": "C5ADFF0F",
+  "recordFormat": "C5ADFFR",
+  "fields": [
+    { "fieldName": "D5AZIE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "D5DEAZ",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "D5SCEN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "D5DESC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "D5IDOJ",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "D5LIVE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5STAT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "D5TPOG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "D5CDOG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "D5DEOG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "D5TPOR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "D5CDOR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "D5DEOR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "D5TPOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "D5CDOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "D5DEOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "D5TPFO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":12, "varying":false}}
+  , { "fieldName": "D5CDFO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "D5DEFO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "D5ORDF",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5RICL",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5ORDR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5DATA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5SEGN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5VALU",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":4, "varying":false}}
+  , { "fieldName": "D5CAMB",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5IMPO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5IMVA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5CD01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "D5DEC1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":50, "varying":false}}
+  , { "fieldName": "D5CD02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "D5DEC2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":50, "varying":false}}
+  , { "fieldName": "D5CD03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "D5DEC3",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":50, "varying":false}}
+  , { "fieldName": "D5CD04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "D5DEC4",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":50, "varying":false}}
+  , { "fieldName": "D5CD05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "D5DEC5",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":50, "varying":false}}
+  , { "fieldName": "D5DT01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5DT02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5DT03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5DT04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5DT05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5QT01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5QT02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5QT03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5QT04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5QT05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "D5FL01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL12",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL13",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL14",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL15",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL16",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL17",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL18",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL19",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5FL20",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "D5DTIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5ORIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5USIN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "D5DTAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5ORAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "D5USAG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  ], "accessFields": [ "D5SCEN", "D5DATA", "D5AZIE", "D5TPOG", "D5CDOG", "D5TPFO", "D5CDFO"]}

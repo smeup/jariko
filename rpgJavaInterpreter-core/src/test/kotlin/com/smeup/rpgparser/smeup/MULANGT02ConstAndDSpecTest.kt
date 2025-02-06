@@ -1,11 +1,15 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.DataStructureType
+import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.smeup.dbmock.C5RREGHLDbMock
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     @BeforeTest
@@ -198,13 +202,13 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00101() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("HELLO THERE")
             assertEquals(
                 expected = expected,
                 "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
             )
-        }
+        })
     }
 
     /**
@@ -266,10 +270,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
 
     @Test
     fun executeMUDRNRAPU00202() {
-        MULANGTLDbMock().usePopulated {
+        MULANGTLDbMock().usePopulated({
             val expected = listOf("ok")
             assertEquals(expected, "smeup/MUDRNRAPU00202".outputOf(configuration = smeupConfig))
-        }
+        })
     }
 
     /**
@@ -294,7 +298,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00206".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00206".outputOf(configuration = turnOnZAddLegacyFlagConfig)
         )
     }
 
@@ -427,7 +431,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00227() {
-        val expected = listOf("9991\uFFFF\uFFFF99999")
+        val expected = listOf("\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF\uFFFF")
         assertEquals(expected, "smeup/MUDRNRAPU00227".outputOf(configuration = smeupConfig))
     }
 
@@ -571,5 +575,395 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00247() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00247".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Array declaration inside a DS with an empty INZ keyword
+     * @see #LS24003783
+     */
+    @Test
+    fun executeMUDRNRAPU00249() {
+        val expected = listOf(List(99) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00249".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * INZ of a field inside a DS declared with OCCURS keyword
+     * @see #LS24003786
+     */
+    @Test
+    fun executeMUDRNRAPU00250() {
+        val expected = listOf(List(40) { ".00" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00250".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU01101() {
+        val expected = listOf("test", "test")
+        assertEquals(expected, "smeup/MUDRNRAPU01101".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU01102() {
+        val expected = listOf("test", "te", "st")
+        assertEquals(expected, "smeup/MUDRNRAPU01102".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU01103() {
+        val expected = listOf("1", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU01103".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Access to a DS numeric field not initialized both by parent or from itself.
+     * @note This behaviour is different on AS400: a field of DS not initialized is a
+     *       hexadecimal value instead `0`.
+     * @see #LS24004159
+     */
+    @Test
+    fun executeMUDRNRAPU00131() {
+        val expected = listOf(".00", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00131".outputOf())
+    }
+
+    /**
+     * LIKE on DS field with absolute path
+     * @see #LS24003324
+     */
+    @Test
+    fun executeMUDRNRAPU00263() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00263".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Verifies the sort of ds array values
+     * @see #LS24004379
+     */
+    @Test
+    fun executeMUDRNRAPU01104() {
+        val expected = listOf("ORIGINAL", "3", "2", "4", "1", "5", "ORDERED", "3", "1", "2", "4", "5")
+        assertEquals(expected, "smeup/MUDRNRAPU01104".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Like on an InStatement definition inside an API
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00264() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00264".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Declaration with DIM based on a constant whose definition is not known yet
+     * @see #LS24004491
+     */
+    @Test
+    fun executeMUDRNRAPU00267() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00267".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Allows for the correct handling of composed (nested) statements during execution, ensuring that `TagStmts`
+     *  can be found even within complex structures.
+     * @see #LS24004437
+     */
+    @Test
+    fun executeMUDRNRAPU01105() {
+        val expected = listOf("FLG-FALSE", "EMPTY", "FLG-TRUE")
+        assertEquals(expected, "smeup/MUDRNRAPU01105".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Using %LEN on a definition inside a DIM
+     * @see #LS24004434
+     */
+    @Test
+    fun executeMUDRNRAPU00265() {
+        val expected = listOf(List(500) { "0" }.toString())
+        assertEquals(expected, "smeup/MUDRNRAPU00265".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of integer value to a DS decimal subfield
+     * @see #LS24004450
+     */
+    @Test
+    fun executeMUDRNRAPU00132() {
+        val expected = listOf("10.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU00132".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case between CTDATA and its name there is more space.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00150() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00150".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there isn't CTDATA but more space between name and stars.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00151() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00151".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there is only CTDATA.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00152() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00152".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there is only the name.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00153() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00153".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DS field declared as Array and CTDATA. In this case there are only the stars.
+     * @see #LS24004654
+     */
+    @Test
+    fun executeMUDRNRAPU00154() {
+        val expected = listOf("*SCPAccesso da script             00S")
+        assertEquals(expected, "smeup/MUDRNRAPU00154".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * SUBST with a side effect where the factor 2 has changed type in `UnlimitedStringValue`.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00162() {
+        val expected = listOf("ABCDE", "CDE")
+        assertEquals(expected, "smeup/MUDRNRAPU00162".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is greater than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00163() {
+        val expected = listOf("ABC")
+        assertEquals(expected, "smeup/MUDRNRAPU00163".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00164() {
+        val expected = listOf("ABCDE   FG")
+        assertEquals(expected, "smeup/MUDRNRAPU00164".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assignment of UnlimitedStringValue to a StringValue (VARYING) where the size of first is smaller than second.
+     * @see #LS24004854
+     */
+    @Test
+    fun executeMUDRNRAPU00165() {
+        val expected = listOf("ABCFG")
+        assertEquals(expected, "smeup/MUDRNRAPU00165".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Fields in a DS based on existing definitions
+     * @see #LS24004911
+     */
+    @Test
+    fun executeMUDRNRAPU00270() {
+        val expected = listOf("OK", "OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00270".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * DEFINE with indicator as original name
+     * @see #LS24005143
+     */
+    @Test
+    fun executeMUDRNRAPU00273() {
+        val expected = listOf("1", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU00273".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Define a field of a DS defined with a DIM based on a d-spec constant
+     * @see #LS24005268
+     */
+    @Test
+    fun executeMUDRNRAPU00277() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00277".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are integer.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00168() {
+        val expected = listOf("241122", "1122")
+        assertEquals(expected, "smeup/MUDRNRAPU00168".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination.
+     * Source and destination are decimal.
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00169() {
+        val expected = listOf("123.456", "23.45")
+        assertEquals(expected, "smeup/MUDRNRAPU00169".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination. Source is decimal
+     *  and destination is integer
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00170() {
+        val expected = listOf("123.456", "123")
+        assertEquals(expected, "smeup/MUDRNRAPU00170".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Truncation of number by using Z-ADD. The source is greater than destination. Source is integer
+     *  and destination is decimal
+     * @see #LS24005040
+     */
+    @Test
+    fun executeMUDRNRAPU00171() {
+        val expected = listOf("123456", "56.00")
+        assertEquals(expected, "smeup/MUDRNRAPU00171".outputOf(configuration = turnOnZAddLegacyFlagConfig))
+    }
+
+    /**
+     * Writing on a field of DS which use `EXTNAME` of a file.
+     * @see #LS25000142
+     */
+    @Test
+    fun executeMUDRNRAPU00189() {
+        MULANGTLDbMock().usePopulated({
+                val expected = listOf("IBMI", "", "IBMI", "MULANGT00", "", "", "IBMI", "MULANGT00")
+                assertEquals(expected, "smeup/MUDRNRAPU00189".outputOf(configuration = smeupConfig))
+            },
+            listOf(mapOf("MLSYST" to "IBMI", "MLPROG" to "MULANGT00"))
+        )
+    }
+
+    /**
+     * Reading from a field of DS with dot notation. This DS have the same fields of another.
+     * @see #LS25000142
+     */
+    @Test
+    fun executeMUDRNRAPU00190() {
+        val expected = listOf("IBMI", "", "IBMI")
+        assertEquals(expected, "smeup/MUDRNRAPU00190".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program declares and uses variables and fields as Packed for a simple math operation.
+     * @see #LS25000341
+     */
+    @Test
+    fun executeMUDRNRAPU00193() {
+        val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
+        assertEquals(expected, "smeup/MUDRNRAPU00193".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program declares and uses variables and fields as Standalone for a simple math operation,
+     *  like `MUDRNRAPU00193` test.
+     * @see #LS25000341
+     */
+    @Test
+    fun executeMUDRNRAPU00194() {
+        val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
+        assertEquals(expected, "smeup/MUDRNRAPU00194".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Definitions with LIKE referencing a DS must be defined as strings with the same size as the DS
+     * @see #LS25000333
+     */
+    @Test
+    fun executeMUDRNRAPU00281() {
+        var mlDataDefinition: DataDefinition? = null
+        var ds0002DataDefinition: DataDefinition? = null
+
+        assertASTCanBeProduced("smeup/MUDRNRAPU00281", afterAstCreation = {
+            mlDataDefinition = it.getDataDefinition("ML")
+            ds0002DataDefinition = it.getDataDefinition("DS0002")
+        })
+
+        assertIs<DataStructureType>(mlDataDefinition?.type)
+        assertIs<StringType>(ds0002DataDefinition?.type)
+        assertEquals(mlDataDefinition?.elementSize(), ds0002DataDefinition?.elementSize())
+    }
+
+    /**
+     * Definitions with *LIKE DEFINE referencing a DS must be defined as strings with the same size as the DS
+     * @see #LS25000333
+     */
+    @Test
+    fun executeMUDRNRAPU00282() {
+        var aDefinition: AbstractDataDefinition? = null
+        var bDefinition: AbstractDataDefinition? = null
+
+        assertASTCanBeProduced("smeup/MUDRNRAPU00282", afterAstCreation = {
+            it.resolveAndValidate() // Needed to solve InStatementDataDefinitions
+            aDefinition = it.allDataDefinitions.firstOrNull { def -> def.name.equals("\$A", ignoreCase = true) }
+            bDefinition = it.allDataDefinitions.firstOrNull { def -> def.name.equals("\$B", ignoreCase = true) }
+        })
+
+        assertIs<DataStructureType>(aDefinition?.type)
+        assertIs<StringType>(bDefinition?.type)
+        assertEquals(aDefinition?.elementSize(), bDefinition?.elementSize())
+    }
+
+    /**
+     * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
+     *  from `F` spec but shares same fields.
+     * @see #LS25000430
+     */
+    @Test
+    @Ignore("Is requested an improvement for mocked values and by changing the metadata and KLIST.")
+    fun executeMUDRNRAPU00192() {
+        C5RREGHLDbMock().usePopulated({
+            val expected = listOf(
+                "01", "2009", "", "", "",
+                "01", "2009", "", "", "1234007"
+            )
+            assertEquals(expected, "smeup/MUDRNRAPU00192".outputOf(configuration = smeupConfig))
+        },
+            listOf(
+                mapOf("R5AZIE" to "01", "R5ESER" to "2009", "R5TPCN" to "", "R5SOGG" to "", "R5CONT" to "1234007")
+            )
+        )
     }
 }

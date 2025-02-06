@@ -1,3 +1,20 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.utils.EBCDICComparator
@@ -13,7 +30,6 @@ fun sortA(value: Value, arrayType: ArrayType) {
 
     when (value) {
         is ConcreteArrayValue -> {
-            // TODO pass the correct charset to the default sorting algorithm
             if (ascend) {
                 value.elements.sort()
             } else {
@@ -25,16 +41,20 @@ fun sortA(value: Value, arrayType: ArrayType) {
             require(value.field.type is ArrayType)
 
             val numOfElements = value.arrayLength
-            val totalLengthOfAllElements = value.container.len
-            val elementSize = totalLengthOfAllElements / numOfElements
+            val elements: List<String> = value.container.value.chunked(value.step)
 
-            val elements: List<String> = value.container.value.chunked(elementSize)
-            val elementsToCalculateSort: List<String> = elements.map {
+            val start = value.startOffset / value.step
+            val end = (start + numOfElements).coerceAtMost(elements.size)
+
+            val elementsLeft = if (start > 0) elements.subList(0, start) else emptyList()
+            val elementsRight = if (end < elements.size) elements.subList(end, elements.size) else emptyList()
+
+            val elementsToCalculateSort: MutableList<String> = elements.subList(start, end).map {
                 it.substring(
                     value.field.calculatedStartOffset!!,
                     value.field.calculatedEndOffset!!
                 )
-            }
+            }.toMutableList()
             // crete a map <Index, ValueToSort>
             val indexesMap: Map<Int, String> = elementsToCalculateSort.mapIndexed { i, v -> i + 1 to v }.toMap()
             // sort the map
@@ -50,12 +70,12 @@ fun sortA(value: Value, arrayType: ArrayType) {
                 .sortedBy { sortedValues.indexOf(it.value) }
                 .associate { it.toPair() }
 
-            var containerValue = StringBuilder()
-            sortedMap.keys.forEach { key ->
-                containerValue.append(elements[key - 1])
-            }
+            val sortedElementsToSort = sortedMap.keys.map { elements[start + it - 1] }
+
+            val resultList = elementsLeft + sortedElementsToSort + elementsRight
+
             // return value
-            value.container.value = containerValue.toString()
+            value.container.value.replaceAll(resultList.joinToString(""))
         }
     }
 }

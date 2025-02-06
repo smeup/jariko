@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
@@ -65,10 +66,6 @@ class ExpressionEvaluation(
         return value
     }
 
-    override fun eval(expression: AddrExpr): Value = proxyLogging(expression) { throw NotImplementedError("AddrExpr are not implemented yet") }
-    override fun eval(expression: AllocExpr): Value = proxyLogging(expression) { throw NotImplementedError("AllocExpr are not implemented yet") }
-    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) { throw NotImplementedError("ReallocExpr are not implemented yet") }
-
     override fun eval(expression: StringLiteral): Value = proxyLogging(expression) { StringValue(expression.value) }
     override fun eval(expression: IntLiteral) = proxyLogging(expression) { IntValue(expression.value) }
     override fun eval(expression: RealLiteral) = proxyLogging(expression) { DecimalValue(expression.value) }
@@ -98,10 +95,10 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: NumberOfElementsExpr): Value = proxyLogging(expression) {
-        return@proxyLogging when (val value = expression.value.evalWith(this)) {
-            is ArrayValue -> value.arrayLength().asValue()
-            is OccurableDataStructValue -> value.occurs.asValue()
-            else -> throw IllegalStateException("Cannot ask number of elements of $value")
+        return@proxyLogging when (expression.value.type()) {
+            is ArrayType -> expression.value.type().numberOfElements().asValue()
+            is OccurableDataStructureType -> (expression.value.evalWith(this) as OccurableDataStructValue).occurs.asValue()
+            else -> throw IllegalStateException("Cannot ask number of elements of ${expression.value}")
         }
     }
 
@@ -154,9 +151,7 @@ class ExpressionEvaluation(
         val decDigits = expression.decDigits.evalWith(this).asInt().value
         val valueAsString = expression.value.evalWith(this).asString().value
         val valueAsBigDecimal = valueAsString.asBigDecimal()
-        require(valueAsBigDecimal != null) {
-            "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
-        }
+        valueAsBigDecimal ?: throw ProgramStatusCode.INVALID_CHARACTERS.toThrowable("value: $valueAsString", expression.position)
 
         return@proxyLogging if (decDigits == 0L) {
             IntValue(valueAsBigDecimal.toLong())
@@ -215,6 +210,10 @@ class ExpressionEvaluation(
                     val s = left.value + right.value
                     StringValue(s)
                 }
+            }
+            left is StringValue && right is BooleanValue -> {
+                val s = left.trimEndIfVarying() + right.asString().value
+                s.asValue()
             }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
@@ -535,9 +534,18 @@ class ExpressionEvaluation(
 
     override fun eval(expression: FunctionCall): Value = proxyLogging(expression) {
         val functionToCall = expression.function.name
-        val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
-            ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
+        callback.traceBlock(trace) {
+            val source: LogSourceProvider = {
+                LogSourceData(MainExecutionContext.getExecutionProgramName(), expression.startLine())
+            }
+            val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
+            val logRenderer = LazyLogEntry(entry) { sep -> "FUNCTION$sep$functionToCall" }
+            MainExecutionContext.log(logRenderer)
+            val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
+                ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
+            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
             val paramsValues = expression.args.map {
                 if (it is DataRefExpr) {
                     FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
@@ -614,6 +622,9 @@ class ExpressionEvaluation(
         val v1 = expression.left.evalWith(this)
         val v2 = expression.right.evalWith(this)
         require(v1 is NumberValue && v2 is NumberValue)
+
+        if (v2.bigDecimal.isZero())
+            throw ProgramStatusCode.DIVIDE_BY_ZERO.toThrowable("v1: $v1, v2: $v2", expression.position)
 
         // Detects what kind of eval must be evaluated
         val res = if (expression.parent is EvalStmt) {
@@ -803,7 +814,11 @@ class ExpressionEvaluation(
 
     override fun eval(expression: SqrtExpr): Value = proxyLogging(expression) {
         val value = evalAsDecimal(expression.value)
-        DecimalValue(BigDecimal.valueOf(sqrt(value.toDouble())))
+        val sqrt = sqrt(value.toDouble())
+        if (sqrt.isNaN()) {
+            ProgramStatusCode.NEGATIVE_SQUARE_ROOT.toThrowable("value: $value", expression.position)
+        }
+        BigDecimal.valueOf(sqrt).asValue()
     }
 
     override fun eval(expression: AssignmentExpr) =
@@ -852,9 +867,19 @@ class ExpressionEvaluation(
         xfoot(array)
     }
 
+    override fun eval(expression: ReallocExpr): Value = proxyLogging(expression) {
+        MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
+        val pointer = expression.value as? DataRefExpr ?: error("%REALLOC is only allowed for pointers")
+        val references = interpreterStatus.getReferences(pointer)
+        require(references.all { it.key.type is ArrayType }) {
+            "%REALLOC is only supported for pointers referencing arrays"
+        }
+        expression.defaultValue
+    }
+
     override fun eval(expression: MockExpression): Value {
         MainExecutionContext.getConfiguration().jarikoCallback.onMockExpression(expression)
-        return NullValue
+        return expression.defaultValue
     }
 
     private fun lookupLinearSearch(values: List<Value>, target: Value): Int {
@@ -943,7 +968,7 @@ class ExpressionEvaluation(
         start: IntValue?,
         length: IntValue?,
         operator: ComparisonOperator
-    ): Value {
+    ): IntValue {
         val arrayLength = arrayType.numberOfElements()
         val isSequenced = arrayType.ascend != null
 

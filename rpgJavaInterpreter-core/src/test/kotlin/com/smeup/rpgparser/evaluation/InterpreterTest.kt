@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.evaluation
@@ -842,6 +843,30 @@ Test 6
     }
 
     @Test
+    fun executeMONITORTST1() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST1".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST2() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST2".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST3() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST3".outputOf())
+    }
+
+    @Test
+    fun executeMONITORTST4() {
+        val expected = listOf("ok")
+        assertEquals(expected, "MONITORTST4".outputOf())
+    }
+
+    @Test
     fun executeDO_TST01() {
         val si = CollectorSystemInterface().apply { printOutput = true }
         assertStartsWith(outputOf("DO_TST01", si = si), "DO_TST01(91ms) Spent")
@@ -889,7 +914,8 @@ Test 6
             "Concat literal A with literal B",
             "ok blank",
             "Concat UnlimitedStringType with StringType",
-            "Concat StringType                                 with UnlimitedStringType"
+            "Concat StringType                                 with UnlimitedStringType",
+            "0"
         )
         assertEquals(expected, outputOf("UNLIMIT_S"))
     }
@@ -912,7 +938,8 @@ Test 6
             "Compare unlimited with literal",
             "Compare unlimited with limited",
             "Compare uninitialized unlimited with *BLANKS",
-            "Reset an unlimited and compare with *BLANKS"
+            "Reset an unlimited and compare with *BLANKS",
+            "Assignment from a boolean"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
@@ -1316,6 +1343,90 @@ Test 6
     @Test
     fun executeGoto02N() {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02N"))
+    }
+
+    @Test
+    fun executeGOTOTST1() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST1"))
+    }
+
+    @Test
+    fun executeGOTOTST2() {
+        val expected = listOf("3")
+        assertEquals(expected, outputOf("GOTOTST2"))
+    }
+
+    @Test
+    fun executeGOTOTST3() {
+        val expected = listOf("1")
+        assertEquals(expected, outputOf("GOTOTST3"))
+    }
+
+    @Test
+    fun executeGOTOTST4() {
+        val expected = listOf("1")
+        assertEquals(expected, outputOf("GOTOTST4"))
+    }
+
+    @Test
+    fun executeGOTOTST5() {
+        val expected = listOf("1", "3")
+        assertEquals(expected, outputOf("GOTOTST5"))
+    }
+
+    @Test
+    fun executeGOTOTST6() {
+        val expected = listOf("1", "4", "3")
+        assertEquals(expected, outputOf("GOTOTST6"))
+    }
+
+    @Test
+    fun executeGOTOTST7() {
+        val expected = listOf("1", "4", "2")
+        assertEquals(expected, outputOf("GOTOTST7"))
+    }
+
+    @Test
+    fun executeGOTOTST8() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST8"))
+    }
+
+    @Test
+    fun executeGOTOTST9() {
+        val expected = listOf("2")
+        assertEquals(expected, outputOf("GOTOTST9"))
+    }
+
+    @Test
+    fun executeGOTOTST10() {
+        val expected = listOf("ok", "ok")
+        assertEquals(expected, outputOf("GOTOTST10"))
+    }
+
+    @Test
+    fun executeGOTOTST11() {
+        val expected = listOf("ok")
+        assertEquals(expected, outputOf("GOTOTST11"))
+    }
+
+    @Test
+    fun executeGOTOTST12() {
+        val expected = listOf("ok")
+        assertEquals(expected, outputOf("GOTOTST12"))
+    }
+
+    @Test
+    fun executeGOTOTST13() {
+        val expected = listOf("ok")
+        assertEquals(expected, outputOf("GOTOTST13"))
+    }
+
+    @Test
+    fun executeGOTOTST14() {
+        val expected = listOf("1", "2")
+        assertEquals(expected, outputOf("GOTOTST14"))
     }
 
     @Test
@@ -2450,5 +2561,68 @@ Test 6
     fun executeCALL_WITH_VOID_PARMS() {
         val expected = listOf("1")
         assertEquals(expected, "VPARMSCALLER".outputOf())
+    }
+
+    @Test
+    fun executeEXCPCALL() {
+        val expected = listOf("ok")
+        assertEquals(expected, "EXCPCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLER() {
+        val expected = listOf("(1,1)", "(0,0)", "(1,1,0,0,0)")
+        assertEquals(expected, "PRSLTCALLER".outputOf())
+    }
+
+    @Test
+    fun executePRSLTCALLERDUPLICATE() {
+        val expected = listOf("0", "0", "0", "1")
+        assertEquals(expected, "PRSLTCALLERDUPLICATE".outputOf())
+    }
+
+    @Test
+    fun executeFUNCALLMUTABILITY() {
+        val expected = listOf("ok")
+        assertEquals(expected, "FUNCALLMUTABILITY".outputOf())
+    }
+
+    @Test
+    fun missingDefinitionOnPListShouldThrowResolutionError() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     C                   CALL      'PGM'
+|     C                   PARM                    MISSING
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        assertFailsWith(AstResolutionError::class) {
+            program.singleCall(listOf())
+        }
+    }
+
+    @Test
+    fun executeBIG_DO_LOOP() {
+        val jarikoExecutorThread = Thread {
+            val error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
+            require(error is RuntimeException)
+        }
+        val jarikoKillerThread = Thread {
+            println("Waiting 2 seconds before killing jariko")
+            Thread.sleep(2000)
+            println("Killing jariko")
+            jarikoExecutorThread.interrupt()
+            println(jarikoExecutorThread.state)
+        }
+        jarikoExecutorThread.start()
+        jarikoKillerThread.start()
+        jarikoExecutorThread.join()
+    }
+
+    @Test
+    fun executeNULLPTR01() {
+        // Test that the program does not throw a NullPointerException
+        "NULLPTR01".outputOf()
     }
 }

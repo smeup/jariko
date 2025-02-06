@@ -96,8 +96,31 @@ object KListType : Type() {
     override fun canBeAssigned(value: Value): Boolean = false
 }
 
+/**
+ * Represents a data structure with a qualification state, extending the `Type` class.
+ *
+ * `QualifiedDataStructure` is a sealed class that serves as a base for data structures
+ * which may or may not be qualified. Subclasses of this sealed class must provide an
+ * implementation of the `isQualified` property to indicate whether the data structure is qualified.
+ *
+ * For now, a data structure is qualified when has:
+ * - `QUALIFIED` keyword;
+ * - `LIKEDS` keyword, even if the parent data structure is not qualified
+ *    See https://www.ibm.com/docs/en/i/7.4?topic=keywords-likedsdata-structure-name.
+ *
+ * @property isQualified a boolean property that indicates if the data structure is qualified
+ */
 @Serializable
-data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
+sealed class AbstractDataStructureType() : Type() {
+    abstract val isQualified: Boolean
+}
+
+@Serializable
+data class DataStructureType(
+    var fields: List<FieldType>,
+    val elementSize: Int,
+    override val isQualified: Boolean = false
+) : AbstractDataStructureType() {
     override val size: Int
         get() = elementSize
 }
@@ -108,7 +131,11 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
  * @param occurs Occurrences number
  * */
 @Serializable
-data class OccurableDataStructureType(val dataStructureType: DataStructureType, val occurs: Int) : Type() {
+data class OccurableDataStructureType(
+    val dataStructureType: DataStructureType,
+    val occurs: Int,
+    override val isQualified: Boolean = false
+) : AbstractDataStructureType() {
     override val size: Int
         get() = dataStructureType.size
 }
@@ -236,7 +263,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
 
     init {
-        if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType || rpgType == RpgType.POINTER.rpgType) {
+        if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType) {
             require(entireDigits <= MAX_INTEGER_DIGITS) {
                 "Integer or Unsigned integer can have only length up to 20. Value specified: $this"
             }
@@ -253,7 +280,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() {
             return when (rpgType) {
                 RpgType.PACKED.rpgType -> ceil((numberOfDigits + 1).toDouble() / 2.toFloat()).toInt()
-                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.POINTER.rpgType -> {
+                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> {
                     when (entireDigits) {
                         in 1..3 -> 1
                         in 4..5 -> 2
@@ -286,6 +313,18 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         } else {
             return false
         }
+    }
+
+    override fun isNumeric() = true
+}
+
+@Serializable
+object PointerType : Type() {
+    override val size: Int get() = 8
+
+    override fun canBeAssigned(type: Type): Boolean = when (type) {
+        is PointerType, is NumberType -> true
+        else -> false
     }
 
     override fun isNumeric() = true

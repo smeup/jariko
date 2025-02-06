@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.mute
@@ -271,12 +272,12 @@ object MuteRunner {
         }
     }
 
-    private fun isRpgle(path: Path) = path.toString().toLowerCase().endsWith(".rpgle")
-    fun resolved(): Int = results.sumBy { it.resolved }
-    fun executed(): Int = results.sumBy { it.executed }
-    fun failed(): Int = results.sumBy { it.failed }
-    fun errors(): Int = results.sumBy { it.syntaxErrors.size }
-    fun exceptions(): Int = results.sumBy { it.exceptions.size }
+    private fun isRpgle(path: Path) = path.toString().lowercase(Locale.getDefault()).endsWith(".rpgle")
+    fun resolved(): Int = results.sumOf { it.resolved }
+    fun executed(): Int = results.sumOf { it.executed }
+    fun failed(): Int = results.sumOf { it.failed }
+    fun errors(): Int = results.sumOf { it.syntaxErrors.size }
+    fun exceptions(): Int = results.sumOf { it.exceptions.size }
 }
 
 const val FAILURE_EXIT_CODE = 1
@@ -286,12 +287,12 @@ class MuteRunnerCLI : CliktCommand() {
         false
     )
 
-    private val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    private val logConfigurationFile by option("-lc", "--log-configuration").file(mustExist = true, mustBeReadable = true)
 
     private val pathsToProcessArgs by argument(name = "Paths to process").file(
-            exists = true,
-            folderOkay = true,
-            fileOkay = true
+        mustExist = true,
+        canBeDir = true,
+        canBeFile = true
     ).multiple(required = false)
 
     override fun run() {

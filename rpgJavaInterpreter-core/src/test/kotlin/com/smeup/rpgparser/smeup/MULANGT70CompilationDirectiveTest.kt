@@ -69,6 +69,28 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     }
 
     /**
+     * Using API which declares a standalone variable that is already declared inline from MUDRNRAPU00133_API,
+     *  imported by API directive.
+     * @see #LS24004504
+     */
+    @Test
+    fun executeMUDRNRAPU00133() {
+        val expected = listOf("OK")
+        assertEquals(expected, "smeup/MUDRNRAPU00133".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Utilization of a field (declared from unqualified DS) on main program and a variable, with same name, declared as
+     *  Standalone on API program.
+     * @see #LS25000430
+     */
+    @Test
+    fun executeMUDRNRAPU00191() {
+        val expected = listOf("FOO")
+        assertEquals(expected, "smeup/MUDRNRAPU00191".outputOf())
+    }
+
+    /**
      * Strict inclusions causes `Incongruous definitions of £UDLDA`.
      * Main program declares `£UDLDA`, by using `/COPY QILEGEN,£PDS`, and adds it other fields by using `/COPY QILEGEN,£C5PDS`
      * `MUDRNRAPU001101_API`, imported by `API` directive, imports only `£UDLDA`, without additions.

@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.mute
@@ -27,9 +28,9 @@ import java.io.File
 data class FilesToRun(val directory: File, val files: List<File>)
 
 private object RunnerCLI : CliktCommand() {
-    private val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
-    private val programArgs by argument().file(exists = true)
-    private val dirProgramFinder by argument().file(exists = true)
+    private val logConfigurationFile by option("-lc", "--log-configuration").file(mustExist = true, mustBeReadable = true)
+    private val programArgs by argument().file(mustExist = true)
+    private val dirProgramFinder by argument().file(mustExist = true)
 
     override fun run() {
         val filesToRun = findFilesToRun(programArgs)

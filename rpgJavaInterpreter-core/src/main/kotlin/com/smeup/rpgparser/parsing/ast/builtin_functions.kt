@@ -16,8 +16,7 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.Evaluator
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -25,7 +24,9 @@ import kotlinx.serialization.Transient
 /**
  * For expressions with this interface there isn't resolution but will be called the callback `onMockExpression` and returned a null value.
  */
-interface MockExpression
+interface MockExpression {
+    val defaultValue get(): Value = NullValue
+}
 
 // %LOOKUP
 @Serializable
@@ -486,6 +487,7 @@ data class XFootExpr(var value: Expression, override val position: Position? = n
 // %ADDR
 @Serializable
 data class AddrExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
     override val loggableEntityName get() = "%ADDR"
     override fun render() = "%ADDR"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
@@ -494,6 +496,7 @@ data class AddrExpr(override val position: Position? = null) : Expression(positi
 // %ALLOC
 @Serializable
 data class AllocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
     override val loggableEntityName get() = "%ALLOC"
     override fun render() = "%ALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
@@ -501,7 +504,8 @@ data class AllocExpr(override val position: Position? = null) : Expression(posit
 
 // %REALLOC
 @Serializable
-data class ReallocExpr(override val position: Position? = null) : Expression(position), MockExpression {
+data class ReallocExpr(val value: Expression, override val position: Position? = null) : Expression(position), MockExpression {
+    override val defaultValue: Value get() = PointerValue.NULL
     override val loggableEntityName get() = "%REALLOC"
     override fun render() = "%REALLOC"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)

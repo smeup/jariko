@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -135,8 +136,14 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                     else -> {
                         if (!value.isBlank()) {
-                            val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                            IntValue(intValue.longValueExact())
+                            val intValue = value.value.trim()
+                            if (intValue.isNumber()) {
+                                IntValue(intValue.toLong())
+                            } else {
+                                // A Packed could end with a char. Consider MUDRNRAPU00115.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits)
+                                IntValue(packedValue.longValueExact())
+                            }
                         } else {
                             IntValue(0)
                         }
@@ -144,12 +151,28 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if (type.rpgType == RpgType.ZONED.rpgType) {
-                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
-                    } else {
-                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        DecimalValue(decimalValue)
+                    when {
+                        type.rpgType == RpgType.ZONED.rpgType -> {
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            DecimalValue(decimalValue)
+                        }
+                        else -> {
+                            /*
+                             * FIXME: Could be wrong. Have to reach only an encoded number and not a clean. For example,
+                             *  during the execution of `MUDRNRAPU00254`, at this point arrives:
+                             *   NumberType(entireDigits=21, decimalDigits=9, rpgType=P)
+                             *  and:
+                             *   StringValue[11](1.000000000)
+                             */
+                            val decimalValue = value.value.trim()
+                            if (decimalValue.isNumber()) {
+                                DecimalValue(decimalValue.toBigDecimal())
+                            } else {
+                                // A Packed could end with a char. Consider MUDRNRAPU00115.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
+                                DecimalValue(packedValue)
+                            }
+                        }
                     }
                 } else {
                     DecimalValue(BigDecimal.ZERO)
@@ -167,7 +190,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.isBlank()) {
                 type.blank()
             } else {
-                DataStructValue(value.value)
+                DataStructValue(value.value.padEnd(type.elementSize))
             }
         }
         is CharacterType -> {
@@ -186,6 +209,11 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
     return when (type) {
         is BooleanType -> value
         is StringType -> value.asString()
+        is UnlimitedStringType -> value.asUnlimitedString()
+        is ArrayType -> {
+            val coercedValue = coerce(value, type.element)
+            ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+        }
         else -> TODO("Converting BooleanValue to $type")
     }
 }
@@ -243,7 +271,10 @@ fun coerce(value: Value, type: Type): Value {
                     } else {
                         return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
-                    return value
+                }
+                is ArrayType -> {
+                    val coercedValue = coerce(value, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }
@@ -276,10 +307,16 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is StringType -> StringValue(value.value.toString(), varying = type.varying)
                 is DateType -> DateValue(value.value, type.format)
+                is NumberType -> if (type.decimalDigits > 0) value.asDecimal() else value
+                is ArrayType -> {
+                    val coercedValue = coerce(value, type.element)
+                    ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
+                }
                 else -> value
             }
         }
         is BooleanValue -> coerceBoolean(value, type)
+        is UnlimitedStringValue -> coerceString(value.value.asValue(), type)
         else -> value
     }
 }
@@ -291,7 +328,7 @@ fun Type.lowValue(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
         is DataStructureType -> {
             val fields = this.fields.associateWith { field -> field.type.lowValue() }
-            DataStructValue.fromFields(fields)
+            DataStructValue.fromFields(fields = fields, type = this)
         }
         is BooleanType -> BooleanValue.FALSE
         is RecordFormatType -> BlanksValue
@@ -306,10 +343,17 @@ fun Type.hiValue(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
         is DataStructureType -> {
             val fields = this.fields.associateWith { field -> field.type.hiValue() }
-            DataStructValue.fromFields(fields)
+            DataStructValue.fromFields(fields = fields, type = this)
         }
         is BooleanType -> BooleanValue.TRUE
         is RecordFormatType -> BlanksValue
+        else -> TODO("Converting HiValValue to $this")
+    }
+}
+
+fun Value.hiValue(): Value {
+    return when (this) {
+        is StringValue -> StringValue(hiValueString(this.value.length))
         else -> TODO("Converting HiValValue to $this")
     }
 }
@@ -355,16 +399,6 @@ private fun computeHiValue(type: NumberType): Value {
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
 
-private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type))
-
-private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type))
-
-// TODO
-fun lowValueString(type: StringType) = " ".repeat(type.size)
-
-// TODO
-fun hiValueString(type: StringType) = "\uFFFF".repeat(type.size)
-
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
     if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType.isNullOrBlank()) {
@@ -397,3 +431,13 @@ private fun computeLowValue(type: NumberType): Value {
     }
     TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
+
+private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type.size))
+
+private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type.size))
+
+// TODO
+private fun hiValueString(size: Int) = "\uFFFF".repeat(size)
+
+// TODO
+private fun lowValueString(size: Int) = " ".repeat(size)

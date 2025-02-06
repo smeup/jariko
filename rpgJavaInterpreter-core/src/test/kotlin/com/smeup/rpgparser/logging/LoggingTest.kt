@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.smeup.rpgparser.logging
@@ -221,7 +222,7 @@ class LoggingTest : AbstractTest() {
             // Files.writeString(Paths.get("c:\\temp\\errorEventsInErrorChannel.txt"), out.toString().trim())
             assertEquals(2, errorLogEntries.size)
             assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
-            assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
+            assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[1]} does not match $errorPattern")
             System.setOut(defaultOut)
             println("errorEventsInErrorChannel: ${out.toString().trim()}")
         }
@@ -292,5 +293,149 @@ class LoggingTest : AbstractTest() {
             StringValue(varValue),
             null
         )
+    }
+
+    /**
+     * Test if analytics logs are overwritten through the setting of [com.smeup.rpgparser.execution.JarikoCallback.logInfo]
+     * */
+    @Test
+    fun analyticsChannelLogInfo() {
+        val configuration = Configuration()
+        var logInfCalled = false
+        configuration.jarikoCallback.logInfo = { _, _ ->
+            logInfCalled = true
+        }
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
+        }
+        executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
+        assertTrue(logInfCalled, "logInfo never called")
+    }
+
+    /**
+     * Test if mock statements are printed out in the appropriate format
+     * @see #LS24004983
+     */
+    @Test
+    fun mockStatementFormat() {
+        val defaultErr = System.err
+        val virtualErr = StringOutputStream()
+        System.setErr(PrintStream(virtualErr))
+        val systemInterface = JavaSystemInterface()
+        executePgm(programName = "MOCK01", systemInterface = systemInterface)
+        virtualErr.flush()
+        val logEntries = virtualErr.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val stmtLogEntries = logEntries.filter { it.contains("MOCKSTMT") }
+        assertEquals(3, stmtLogEntries.size)
+
+        val logFormatRegexMockStatement = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKSTMT\\tMOCK01.*")
+        assertTrue(stmtLogEntries[0].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement")
+        assertTrue(stmtLogEntries[1].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[1]} does not match $logFormatRegexMockStatement")
+        assertTrue(stmtLogEntries[2].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[2]} does not match $logFormatRegexMockStatement")
+
+        System.setErr(defaultErr)
+    }
+
+    /**
+     * Test if mock expression are printed out in the appropriate format
+     * @see #LS24004983
+     */
+    @Test
+    fun mockExpressionFormat() {
+        val defaultErr = System.err
+        val virtualErr = StringOutputStream()
+        System.setErr(PrintStream(virtualErr))
+        val systemInterface = JavaSystemInterface()
+        executePgm(programName = "MOCK01", systemInterface = systemInterface)
+        virtualErr.flush()
+        val logEntries = virtualErr.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val exprLogEntries = logEntries.filter { it.contains("MOCKEXPR") }
+        assertEquals(2, exprLogEntries.size)
+
+        val logFormatRegexMockExpr = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKEXPR\\tMOCK01.*")
+        assertTrue(exprLogEntries[0].matches(logFormatRegexMockExpr), "Error entry: ${exprLogEntries[0]} does not match $logFormatRegexMockExpr")
+        assertTrue(exprLogEntries[1].matches(logFormatRegexMockExpr), "Error entry: ${exprLogEntries[1]} does not match $logFormatRegexMockExpr")
+
+        System.setErr(defaultErr)
+    }
+
+    /**
+     * Test if function resolution logs are correctly printed out
+     */
+    @Test
+    fun functionResolution() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
+        }
+        executePgm(programName = "FUNCLOG", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val functionEntries = logEntries.filter { it.contains("FUNCTION", ignoreCase = true) }
+        assertEquals(1, functionEntries.size)
+        assertTrue { functionEntries.first().contains("CALL1") }
+
+        System.setOut(defaultOut)
+    }
+
+    /**
+     * Test if function statement logs are correctly printed out
+     */
+    @Test
+    fun functionStatement() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+        }
+        executePgm(programName = "FUNCLOG", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val functionEntries = logEntries.filter { it.contains("FunctionInterpreter.CALL1", ignoreCase = true) }
+        // 2 * SYMTBLINI + 2 SYMTBLLOAD + 1 Func body + 1 Func return
+        assertEquals(6, functionEntries.size)
+
+        System.setOut(defaultOut)
+    }
+
+    /**
+     * Test if function statement logs are correctly printed out
+     */
+    @Test
+    fun callScope() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+        }
+        executePgm(programName = "CALLSCOPE", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+
+        // Program CALL logs in its context
+        assertTrue { logEntries.any { it.contains("STMT\tCALLSCOPE\t1\tEXEC\tCALL\t\"CALLDEFV2\"") } }
+        // We start called program interpretation
+        assertTrue { logEntries.any { it.contains("STMT\tCALLDEFV2\t\tSTART\tINTERPRETATION") } }
+        // We execute statements inside the called program
+        assertTrue { logEntries.any { it.contains("STMT\tCALLDEFV2\t6\tEXEC\tEVAL\tP1 = \"R\"\t") } }
+        // We finish called program interpretation
+        assertTrue { logEntries.any { it.contains("STMT\tCALLDEFV2\t\tEND\tINTERPRETATION") } }
+        // We immediately restore the correct scope
+        assertTrue { logEntries.any { it.contains("STMT\tCALLSCOPE\t3\tEXEC\tEVAL\t\$A = \"T\"\t") } }
+
+        System.setOut(defaultOut)
     }
 }

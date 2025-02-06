@@ -36,7 +36,25 @@ class SymbolTable : ISymbolTable {
         if (MainExecutionContext.isLoggingEnabled) getWithLogging(dataName) else getInternal(dataName)
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
-        return names[dataName.uppercase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
+        /*
+         * Attempts to resolve a Data Definition by its name, searching in the following order:
+         * 1. Root scope: Checks if a Data Definition with the given name exists directly within the current scope.
+         * 2. Unqualified Data Structures: Searches within the fields of any *unqualified* Data Structures
+         *    declared in the current scope. This handles cases where a field is accessed without dot notation.
+         * 3. Parent Symbol Table: If not found in the current scope, delegates the search to the parent Symbol Table.
+         */
+        return names.compute(dataName.uppercase()) { key, value ->
+            value ?: names
+                .asSequence()
+                .filter { name ->
+                    name.value.type is DataStructureType &&
+                            !(name.value.type as AbstractDataStructureType).isQualified &&
+                            name.value is DataDefinition
+                }
+                .map { it.value }
+                .flatMap { dataStructure -> (dataStructure as DataDefinition).fields }
+                .firstOrNull { field -> field.name.equals(key, ignoreCase = true) } as AbstractDataDefinition?
+        } ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
@@ -175,17 +193,17 @@ class SymbolTable : ISymbolTable {
     private fun getLocal(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
             val containerValue = get(data.container)
-            return if (data.container.isArray()) {
-                TODO("We do not yet handle an array container")
-            } else if (data.declaredArrayInLine != null) {
-                ProjectedArrayValue.forData(containerValue as DataStructValue, data)
-            } else {
-                // Should be always a DataStructValue
-                when (containerValue) {
-                    is DataStructValue -> return coerce(containerValue[data], data.type)
-                    is OccurableDataStructValue -> return coerce(containerValue.value()[data], data.type)
-                    else -> {
-                        throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+            return when {
+                data.container.isArray() -> TODO("We do not yet handle an array container")
+                containerValue is OccurableDataStructValue -> return coerce(containerValue.value()[data], data.type)
+                data.declaredArrayInLine != null -> ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+                else -> {
+                    // Should be always a DataStructValue
+                    when (containerValue) {
+                        is DataStructValue -> return coerce(containerValue[data], data.type)
+                        else -> {
+                            throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+                        }
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.Ignore
@@ -66,5 +67,13 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
     fun executeMUDRNRAPU00248() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00248".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeMUDRNRAPU00254() {
+        MULANGTLDbMock().usePopulated({
+            val expected = listOf("1.000000000")
+            assertEquals(expected, "smeup/MUDRNRAPU00254".outputOf(configuration = smeupConfig))
+        })
     }
 }

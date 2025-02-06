@@ -20,17 +20,22 @@ import com.smeup.rpgparser.parsing.ast.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+data class WithOffset<T>(
+    val data: T,
+    val offset: Int
+)
+
 fun Value.stringRepresentation(format: String? = null): String {
     return when (this) {
         is StringValue -> value
         is BooleanValue -> asString().value // TODO check if it's the best solution
         is NumberValue -> render()
-        is ArrayValue -> "[${elements().map { it.render() }.joinToString(", ")}]"
+        is ArrayValue -> "[${elements().joinToString(", ") { it.render() }}]"
         is TimeStampValue -> timestampFormatting(format)
-        is DataStructValue -> value.trimEnd()
-        is ZeroValue -> "0"
+        is DataStructValue -> value.toString().trimEnd()
+        is ZeroValue -> STRING_REPRESENTATION
         is AllValue -> charsToRepeat
-        is OccurableDataStructValue -> value().value.trimEnd()
+        is OccurableDataStructValue -> value().value.toString().trimEnd()
         is UnlimitedStringValue -> value.trimEnd()
         else -> TODO("Unable to render value $this (${this.javaClass.canonicalName})")
     }
