@@ -43,7 +43,7 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
         val computedValue = when (type) {
             is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
             is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
-            is DataStructureType -> DataStructValue(interpreterCore.eval(value).asString().value)
+            is DataStructureType -> moveaDataStructure(operationExtenter, target, startIndex, interpreterCore, value)
             else -> TODO()
         }
         interpreterCore.assign(target, computedValue)
@@ -77,10 +77,24 @@ private fun moveaNumber(
                     IntValue.ZERO
                 }
             }
-            internalCoercing(elementValue, targetArray.elementType, newValue.elementType)
+            internalCoercing(elementValue, targetArray.elementType, newValue.elementType) // TODO: rename it for more readable
         }
     }
     return arrayValue
+}
+
+private fun moveaDataStructure(
+    operationExtender: String?,
+    target: DataRefExpr,
+    startIndex: Int,
+    interpreterCore: InterpreterCore,
+    value: Expression
+): DataStructValue {
+    val targetValue: DataStructValue = interpreterCore.eval(target) as DataStructValue
+    val newValue: StringValue = interpreterCore.eval(value).asString()
+
+    targetValue.setSubstring(startIndex - 1, newValue.length(), newValue)
+    return targetValue
 }
 
 private fun InterpreterCore.toArray(expression: Expression, targetType: Type): ArrayValue =
