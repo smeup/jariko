@@ -29,8 +29,8 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
 
 private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCore: InterpreterCore): Value {
     val targetType = target.type()
-    require(targetType is ArrayType || targetType is StringType) {
-        "Result must be an Array or a String"
+    require(targetType is ArrayType || targetType is StringType || targetType is DataStructureType) {
+        "Result must be an Array, String or a Data Structure"
     }
     return if (value is FigurativeConstantRef) {
         interpreterCore.assign(target, interpreterCore.eval(value))
@@ -43,6 +43,7 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
         val computedValue = when (type) {
             is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
             is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
+            is DataStructureType -> DataStructValue(interpreterCore.eval(value).asString().value)
             else -> TODO()
         }
         interpreterCore.assign(target, computedValue)
