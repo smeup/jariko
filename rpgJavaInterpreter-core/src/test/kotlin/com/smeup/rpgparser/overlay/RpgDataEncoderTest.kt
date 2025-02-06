@@ -120,9 +120,9 @@ class RpgDataEncoderTest {
 
     private val encodeDecodePackedLambda: Int.() -> Boolean = {
         val packed50 = toBigDecimal(MathContext(0))
-        val encoded50 = encodeToDS(packed50, 5, 0)
+        val encoded50 = encodeToPacked(packed50, 5, 0)
         assertTrue(encoded50.length <= 7)
-        val decoded50 = decodeFromDS(encoded50, 5, 0)
+        val decoded50 = decodeFromPacked(encoded50, 5, 0)
         assertEquals(packed50.compareTo(decoded50), 0)
         true
     }

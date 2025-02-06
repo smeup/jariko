@@ -887,6 +887,27 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * This program declares and uses variables and fields as Packed for a simple math operation.
+     * @see #LS25000341
+     */
+    @Test
+    fun executeMUDRNRAPU00193() {
+        val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
+        assertEquals(expected, "smeup/MUDRNRAPU00193".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * This program declares and uses variables and fields as Standalone for a simple math operation,
+     *  like `MUDRNRAPU00193` test.
+     * @see #LS25000341
+     */
+    @Test
+    fun executeMUDRNRAPU00194() {
+        val expected = listOf("STD: 40461860", "DS: 40461860", "STD: 99999999", "DS: 99999999")
+        assertEquals(expected, "smeup/MUDRNRAPU00194".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Definitions with LIKE referencing a DS must be defined as strings with the same size as the DS
      * @see #LS25000333
      */
