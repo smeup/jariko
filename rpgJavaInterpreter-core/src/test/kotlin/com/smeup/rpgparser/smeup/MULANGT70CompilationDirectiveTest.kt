@@ -71,12 +71,12 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     /**
      * Strict inclusions causes `Incongruous definitions of £UDLDA`.
      * Main program declares `£UDLDA`, by using `/COPY QILEGEN,£PDS`, and adds it other fields by using `/COPY QILEGEN,£C5PDS`
-     * `MUDRNRAPU00108_API1`, imported by `API` directive, imports only `£UDLDA`, without additions.
+     * `MUDRNRAPU001101_API`, imported by `API` directive, imports only `£UDLDA`, without additions.
      * @see #LS24003795
      */
     @Test
-    fun executeMUDRNRAPU00108() {
+    fun executeMUDRNRAPU001101() {
         val expected = listOf("FOO", "BAR")
-        assertEquals(expected, "smeup/MUDRNRAPU00108".outputOf())
+        assertEquals(expected, "smeup/MUDRNRAPU001101".outputOf())
     }
 }
