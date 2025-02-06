@@ -751,6 +751,8 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun takeLast(n: Int): Value = takeAll().takeLast(n)
 
     override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
+
+    override fun asString(): StringValue = takeAll().asString()
 }
 
 object BlanksValue : Value {
