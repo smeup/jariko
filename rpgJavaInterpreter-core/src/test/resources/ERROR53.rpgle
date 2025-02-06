@@ -1,7 +1,7 @@
       /COPY QILEGEN,£PDS
       /COPY QILEGEN,£C5PDS
 
-      /API QILEGEN,ERROR37_API
+      /API QILEGEN,ERROR53_API
 
      C                   EVAL      £UDO2F = 'FOO'
      C                   EVAL      U$FUW2 = 'BAR'
