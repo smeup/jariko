@@ -90,6 +90,10 @@ private fun moveaDataStructure(
     interpreterCore: InterpreterCore,
     value: Expression
 ): DataStructValue {
+    if (value is DataRefExpr && value.variable.referred?.type is ArrayType && (value.variable.referred?.type as ArrayType).element is NumberType) {
+        throw IllegalStateException("Factor 2 and Result aren't same type: ${value.render()} (${value.position})")
+    }
+
     val targetValue: DataStructValue = interpreterCore.eval(target) as DataStructValue
     var newValue: StringValue = interpreterCore.eval(value).asString()
     var endIndex: Int = newValue.length()
