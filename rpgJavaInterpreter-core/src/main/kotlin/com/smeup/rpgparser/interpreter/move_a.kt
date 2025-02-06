@@ -77,7 +77,7 @@ private fun moveaNumber(
                     IntValue.ZERO
                 }
             }
-            internalCoercing(elementValue, targetArray.elementType, newValue.elementType) // TODO: rename it for more readable
+            numberCoercing(elementValue, targetArray.elementType, newValue.elementType)
         }
     }
     return arrayValue
@@ -204,7 +204,7 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
  * @throws ClassCastException if `sourceValue` is not a `DecimalValue` or `IntValue`, or if `targetType`
  *                            or `sourceType` are not of numeric types.
  */
-private fun internalCoercing(
+private fun numberCoercing(
     sourceValue: Value,
     targetType: Type,
     sourceType: Type
