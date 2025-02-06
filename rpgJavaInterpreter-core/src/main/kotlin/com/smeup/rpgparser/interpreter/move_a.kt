@@ -83,6 +83,33 @@ private fun moveaNumber(
     return arrayValue
 }
 
+/**
+ * Moves data into a Data Structure.
+ *
+ * This function takes a portion of a string value (provided as an `Expression`) and inserts it into a
+ * `DataStructValue` at a specified position.  It handles cases where the input string is longer than
+ * the available space in the target Data Structure by truncating the input string.
+ *
+ * The function performs the following steps:
+ * 1. Evaluates the `target` `DataRefExpr` to obtain the `DataStructValue` to modify.
+ * 2. Evaluates the `value` `Expression` to obtain the string value to insert (converting if necessary).
+ * 3. Checks for a specific type mismatch: If the `value` is a `DataRefExpr` referring to an array of numbers,
+ *    an `IllegalStateException` is thrown. This likely represents a domain-specific constraint.
+ * 4. Determines the end index for the substring to be inserted, taking into account the length of the
+ *    input string and the available space in the target `DataStructValue`.
+ * 5. Extracts the appropriate substring from the input string.
+ * 6. Uses the `setSubstring` method of the `DataStructValue` to insert the substring at the correct position.
+ * 7. Returns the modified `DataStructValue`.
+ *
+ * @param operationExtender (Optional) A string representing an operation extender.  Its purpose is not clear from the code and requires further context.
+ * @param target The `DataRefExpr` representing the target `DataStructValue` to modify.
+ * @param startIndex The starting index (1-based) within the `DataStructValue` where the substring should be inserted.
+ * @param interpreterCore The `InterpreterCore` instance used to evaluate expressions.
+ * @param value The `Expression` representing the string value to be inserted.
+ * @return The modified `DataStructValue`.
+ * @throws IllegalStateException If the `value` is a `DataRefExpr` referring to an array of numbers.
+ * @see DataStructValue.setSubstring
+ */
 private fun moveaDataStructure(
     operationExtender: String?,
     target: DataRefExpr,
