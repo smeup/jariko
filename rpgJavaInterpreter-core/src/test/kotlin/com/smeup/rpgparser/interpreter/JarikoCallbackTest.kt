@@ -672,7 +672,7 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun executeERROR36CallBackTest() {
-        TABDS01LDbMock().usePopulated {
+        TABDS01LDbMock().usePopulated({
             executePgmCallBackTest(
                 pgm = "ERROR36",
                 sourceReferenceType = SourceReferenceType.Program,
@@ -680,7 +680,7 @@ class JarikoCallbackTest : AbstractTest() {
                 lines = listOf(6),
                 reloadConfig = it.createReloadConfig()
             )
-        }
+        })
     }
 
     @Test

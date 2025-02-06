@@ -4,7 +4,7 @@ import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.utils.DbMock
 import java.io.File
 
-class MULANGTLDbMock : DbMock {
+class C5RREGHLDbMock : DbMock {
     override val metadata =
-        FileMetadata.createInstance(File("src/test/resources/smeup/metadata/MULANGTL.json").inputStream())
+        FileMetadata.createInstance(File("src/test/resources/smeup/metadata/C5RREGHL.json").inputStream())
 }
