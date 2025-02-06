@@ -91,9 +91,15 @@ private fun moveaDataStructure(
     value: Expression
 ): DataStructValue {
     val targetValue: DataStructValue = interpreterCore.eval(target) as DataStructValue
-    val newValue: StringValue = interpreterCore.eval(value).asString()
+    var newValue: StringValue = interpreterCore.eval(value).asString()
+    var endIndex: Int = newValue.length()
 
-    targetValue.setSubstring(startIndex - 1, newValue.length(), newValue)
+    if (endIndex > targetValue.len) {
+        endIndex = targetValue.len
+        newValue = newValue.getSubstring(startIndex - 1, endIndex)
+    }
+
+    targetValue.setSubstring(startIndex - 1, endIndex, newValue)
     return targetValue
 }
 
