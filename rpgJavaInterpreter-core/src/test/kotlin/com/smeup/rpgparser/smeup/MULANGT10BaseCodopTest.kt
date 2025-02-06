@@ -968,4 +968,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("0123456789", "AAAAAAAAAA", "AAAAAAAAAA", "AAAAAAAAAA")
         assertEquals(expected, "smeup/MUDRNRAPU00198".outputOf())
     }
+
+    /**
+     * MOVEA from S, defined as array, to DS. The array size is lower than DS.
+     * @see #LS25000567
+     */
+    @Test
+    fun executeMUDRNRAPU00199() {
+        val expected = listOf("0123456789", "AAAAAAAA", "AAAAAAAA89", "AAAAAAAA")
+        assertEquals(expected, "smeup/MUDRNRAPU00199".outputOf())
+    }
 }
