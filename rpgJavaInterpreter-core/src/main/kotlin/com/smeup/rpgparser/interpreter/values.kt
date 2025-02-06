@@ -1344,7 +1344,7 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
     }
 
     override fun takeFirst(n: Int): Value {
-        return getSubstring(0, n)
+        return getSubstring(0, if (n <= len) n else len)
     }
 }
 
