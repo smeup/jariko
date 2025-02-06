@@ -376,16 +376,14 @@ class DataDefinitionPerformanceTest : AbstractTest() {
      * Performance test for encoding and decoding packed decimal values.
      *
      * This test measures the performance of the `encodeToPacked` and `decodeFromPacked` functions by repeatedly
-     * encoding and decoding a set of random decimal numbers.  The test generates 1000 random decimal numbers
-     * within a specified range and then performs 1000 iterations of encoding each number to packed decimal
-     * format and subsequently decoding it back to a BigDecimal.
+     * encoding and decoding a set of random decimal numbers. The test generates 1000 random decimal numbers
+     * within a specified range and then performs 1000 encode/decode cycles.
      *
-     * The test focuses on the end-to-end encoding/decoding cycle and measures the total time taken for all
-     * iterations.  The average execution time per number is then calculated and printed.  This provides a
-     * measure of the typical performance for a single encode/decode operation.
+     * The test focuses on the end-to-end encoding/decoding cycle and measures the *total* time taken for all
+     * operations.
      *
-     * The test uses `measureTime` to capture the execution time of each encoding/decoding cycle and accumulates
-     * these measurements.  Finally the average time is printed to the console.
+     * The test uses `measureTime` to capture the execution time of the entire set of encoding/decoding operations.
+     * The total time is printed to the console.
      *
      * @see encodeToPacked
      * @see decodeFromPacked
@@ -399,13 +397,12 @@ class DataDefinitionPerformanceTest : AbstractTest() {
         val valueTo = "9".repeat(21).plus(".").plus("9".repeat(9)).toBigDecimal()
         val randomNumbers = List(nRandomNumbers) { Random.nextDouble(valueFrom.toDouble(), valueTo.toDouble()) }
 
-        var timeMeasurements = 0.0
-        randomNumbers.forEach { randomNumber ->
-            measureTime {
+        val timeMeasurements = measureTime {
+            randomNumbers.forEach { randomNumber ->
                 decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
-            }.also { timeMeasurements += it.toDouble(DurationUnit.MICROSECONDS) }
+            }
         }
 
-        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: ${(timeMeasurements / nRandomNumbers).toDuration(DurationUnit.MILLISECONDS)}.")
+        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: $timeMeasurements.")
     }
 }
