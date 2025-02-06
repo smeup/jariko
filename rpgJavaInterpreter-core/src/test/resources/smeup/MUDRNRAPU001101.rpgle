@@ -1,15 +1,16 @@
      V* ==============================================================
      V* 22/08/2024 APU001 Creation
      V* 06/02/2025 API001 Changed name
+     V* 06/02/2025 API001 Improved description
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Strict inclusions, by `API` directive, of a DS
-    O *  already declared in caller program.
-    O * Main program declares `£UDLDA`, by using
-    O *  `/COPY QILEGEN,£PDS`, and adds it other fields
-    O * by using `/COPY QILEGEN,£C5PDS`
+    O * Strict inclusions, by `API` directive, of a DS already
+    O *  from caller program.
+    O * This one declares `£UDLDA`, by using `/COPY QILEGEN,£PDS`,
+    O *  and appends to it other fields by using
+    O *  `/COPY QILEGEN,£C5PDS`.
     O * `MUDRNRAPU001101_API`, imported by `API` directive,
-    O *  imports only `£UDLDA`, without additions.
+    O *  imports only `£UDLDA`, without any addition.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was

@@ -91,9 +91,9 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
     }
 
     /**
-     * Strict inclusions causes `Incongruous definitions of £UDLDA`.
-     * Main program declares `£UDLDA`, by using `/COPY QILEGEN,£PDS`, and adds it other fields by using `/COPY QILEGEN,£C5PDS`
-     * `MUDRNRAPU001101_API`, imported by `API` directive, imports only `£UDLDA`, without additions.
+     * Strict inclusions, by `API` directive, of a DS already from caller program. This one declares `£UDLDA`,
+     *  by using `/COPY QILEGEN,£PDS`, and appends to it other fields by using `/COPY QILEGEN,£C5PDS`.
+     * `MUDRNRAPU001101_API`, imported by `API` directive, imports only `£UDLDA`, without any addition.
      * @see #LS24003795
      */
     @Test
