@@ -1034,13 +1034,25 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
-    fun executeERROR53SourceLineTest() {
-        executeSourceLineTest("ERROR53")
+    fun executeERROR51CallBackTest() {
+        executePgmCallBackTest("ERROR51", SourceReferenceType.Program, "ERROR51", mapOf(
+            13 to "You cannot move a DS into a numeric array: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))"
+        ))
+    }
+
+    @Test
+    fun executeERROR51SourceLineTest() {
+        executeSourceLineTest("ERROR51")
     }
 
     @Test
     fun executeERROR53CallBackTest() {
         executePgmCallBackTest("ERROR53", SourceReferenceType.Copy, "QILEGEN,£PDS", listOf(130))
+    }
+
+    @Test
+    fun executeERROR53SourceLineTest() {
+        executeSourceLineTest("ERROR53")
     }
 
     @Test
