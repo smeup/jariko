@@ -58,7 +58,7 @@ private fun moveaNumber(
     value: Expression
 ): ConcreteArrayValue {
     if (value is DataRefExpr && value.variable.referred?.type is DataStructureType) {
-        throw IllegalStateException("Factor 2 and Result aren't same type: ${value.render()} (${value.position})")
+        throw IllegalStateException("You cannot move a DS into a numeric array: ${value.render()} (${value.position})")
     }
 
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
