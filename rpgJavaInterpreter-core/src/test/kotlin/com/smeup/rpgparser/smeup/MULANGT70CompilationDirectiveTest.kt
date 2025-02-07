@@ -89,4 +89,16 @@ open class MULANGT70CompilationDirectiveTest : MULANGTTest() {
         val expected = listOf("FOO")
         assertEquals(expected, "smeup/MUDRNRAPU00191".outputOf())
     }
+
+    /**
+     * Strict inclusions, by `API` directive, of a DS already from caller program. This one declares `£UDLDA`,
+     *  by using `/COPY QILEGEN,£PDS`, and appends to it other fields by using `/COPY QILEGEN,£C5PDS`.
+     * `MUDRNRAPU001101_API`, imported by `API` directive, imports only `£UDLDA`, without any addition.
+     * @see #LS24003795
+     */
+    @Test
+    fun executeMUDRNRAPU001101() {
+        val expected = listOf("FOO", "BAR")
+        assertEquals(expected, "smeup/MUDRNRAPU001101".outputOf())
+    }
 }
