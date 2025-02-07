@@ -2226,7 +2226,6 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
     fun Type.matchType(other: Any?): Boolean {
-        // TODO: Improve logic for StringType/UnlimitedStringType matching
         return when {
             this is NumberType && other is NumberType -> {
                 val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
@@ -2235,7 +2234,11 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
                 }
                 resultDigits
             }
+            // TODO: Improve logic for StringType/UnlimitedStringType matching
             this is UnlimitedStringType && other is StringType -> true
+            this is DataStructureType && other is DataStructureType -> {
+                return this.fields.intersect(other.fields).toList() == other.fields
+            }
             else -> this == other
         }
     }
