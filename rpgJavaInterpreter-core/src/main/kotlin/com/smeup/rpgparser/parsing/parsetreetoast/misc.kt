@@ -2225,21 +2225,21 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 }
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
-    fun Type.matchType(called: Any?): Boolean {
+    fun Type.matchType(other: Any?): Boolean {
         return when {
-            this is NumberType && called is NumberType -> {
-                val resultDigits = this.entireDigits == called.entireDigits && this.decimalDigits == called.decimalDigits
-                if (rpgType?.isNotBlank()!! && called.rpgType?.isNotEmpty()!!) {
-                    return resultDigits && rpgType == called.rpgType
+            this is NumberType && other is NumberType -> {
+                val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
+                if (rpgType?.isNotBlank()!! && other.rpgType?.isNotEmpty()!!) {
+                    return resultDigits && rpgType == other.rpgType
                 }
                 resultDigits
             }
             // TODO: Improve logic for StringType/UnlimitedStringType matching
-            this is UnlimitedStringType && called is StringType -> true
-            this is DataStructureType && called is DataStructureType -> {
-                return this.fields.intersect(called.fields).toList() == called.fields
+            this is UnlimitedStringType && other is StringType -> true
+            this is DataStructureType && other is DataStructureType -> {
+                return this.fields.intersect(other.fields).toList() == other.fields
             }
-            else -> this == called
+            else -> this == other
         }
     }
 
