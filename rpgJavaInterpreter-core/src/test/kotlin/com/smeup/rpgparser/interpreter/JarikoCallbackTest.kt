@@ -1036,7 +1036,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR51CallBackTest() {
         executePgmCallBackTest("ERROR51", SourceReferenceType.Program, "ERROR51", mapOf(
-            13 to "Factor 2 and Result aren't same type: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))"
+            13 to "You cannot move a DS into a numeric array: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))"
         ))
     }
 
