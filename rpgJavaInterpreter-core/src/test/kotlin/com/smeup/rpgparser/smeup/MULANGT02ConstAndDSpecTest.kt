@@ -947,6 +947,16 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     }
 
     /**
+     * LIKE DEFINE on an indicator defined without a SET statement
+     * @see #LS25000738
+     */
+    @Test
+    fun executeMUDRNRAPU00283() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00283".outputOf(configuration = smeupConfig))
+    }
+
+    /**
      * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
      *  from `F` spec but shares same fields.
      * @see #LS25000430
