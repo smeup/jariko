@@ -1455,6 +1455,10 @@ data class DefineStmt(
     val newVarName: String,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    companion object {
+        private val INDICATOR_PATTERN = Regex("\\*IN\\(?(\\d\\d)\\)?", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+    }
+
     override val loggableEntityName: String
         get() = "DEFINE"
 
@@ -1462,13 +1466,14 @@ data class DefineStmt(
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
-        val indicatorPattern = Regex("\\*IN\\d\\d")
         val normalizedOriginalName = originalName.trim().uppercase()
-        val isIndicator = normalizedOriginalName.matches(indicatorPattern)
-        if (isIndicator) {
-            val indicatorKey = normalizedOriginalName.removePrefix("*IN").toIndicatorKey()
-            val setStatements = containingCU.main.stmts.explode(true).filterIsInstance<SetStmt>()
-            val definedIndicators = setStatements.map { it.indicators }.flatten().filterIsInstance<IndicatorExpr>()
+        val indicatorMatch = INDICATOR_PATTERN.find(normalizedOriginalName)
+        if (indicatorMatch != null) {
+            // First matching group is the indicator index
+            val (indicatorIndex) = indicatorMatch.destructured
+
+            val indicatorKey = indicatorIndex.toIndicatorKey()
+            val definedIndicators = containingCU.collectByType(IndicatorExpr::class.java)
             val isIndicatorDefined = definedIndicators.any { it.index == indicatorKey }
 
             if (!isIndicatorDefined) throw Error("Data reference $originalName not resolved")
