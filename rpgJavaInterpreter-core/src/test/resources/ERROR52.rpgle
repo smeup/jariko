@@ -2,7 +2,7 @@
      D* 06/02/25
      D* Purpose: Must fire the following errors during execution of
      D*  `C                   MOVEA     SCAATT        SCAATTDS`:
-     D*     line 19 - "Factor 2 and Result aren't same type"
+     D*     line 13 - "You cannot move a numeric array into a DS"
      D* because isn't possible to assign Standalone defined
      D* as number to a DS.
      V* ==============================================================

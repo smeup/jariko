@@ -123,7 +123,7 @@ private fun moveaDataStructure(
     value: Expression
 ): DataStructValue {
     if (value is DataRefExpr && value.variable.referred?.type is ArrayType && (value.variable.referred?.type as ArrayType).element is NumberType) {
-        throw IllegalStateException("Factor 2 and Result aren't same type: ${value.render()} (${value.position})")
+        throw IllegalStateException("You cannot move a numeric array into a DS: ${value.render()} (${value.position})")
     }
 
     val targetValue: DataStructValue = interpreterCore.eval(target) as DataStructValue
