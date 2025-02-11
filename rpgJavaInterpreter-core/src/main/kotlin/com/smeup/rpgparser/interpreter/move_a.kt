@@ -77,7 +77,12 @@ private fun moveaNumber(
                     IntValue.ZERO
                 }
             }
-            numberCoercing(elementValue, targetArray.elementType, newValue.elementType)
+
+            if (newValue.elementType is NumberType && targetArray.elementType is NumberType) {
+                numberCoercing(elementValue, targetArray.elementType as NumberType, newValue.elementType as NumberType)
+            } else {
+                elementValue
+            }
         }
     }
     return arrayValue
@@ -219,9 +224,9 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
  * the conversion.
  *
  * @param sourceValue The `Value` to be coerced, generally a numeric type such as `DecimalValue` or `IntValue`.
- * @param targetType The target `Type` for the coercion, used to guide the conversion, particularly
+ * @param targetType The target `NumberType` for the coercion, used to guide the conversion, particularly
  *                   regarding the number of decimal places.
- * @param sourceType The `Type` representing the original type of `sourceValue`, assisting in determining
+ * @param sourceType The `NumberType` representing the original type of `sourceValue`, assisting in determining
  *                   the required scale and format for conversion.
  *
  * @return The resulting `Value` after coercion, transformed to align with `targetType`.
@@ -233,20 +238,20 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
  */
 private fun numberCoercing(
     sourceValue: Value,
-    targetType: Type,
-    sourceType: Type
+    targetType: NumberType,
+    sourceType: NumberType
 ): Value {
     // Number of digits between source and target must be equals.
-    if (sourceType is NumberType && targetType is NumberType && sourceType.numberOfDigits != targetType.numberOfDigits) {
+    if (sourceType.numberOfDigits != targetType.numberOfDigits) {
         throw IllegalStateException("Factor 2 and Result with different type and size.")
     }
 
     return when {
         // Proper conversion between a left side as decimal to right side as integer
-        sourceValue is DecimalValue && sourceType is NumberType && targetType is NumberType && targetType.decimalDigits == 0 ->
+        sourceValue is DecimalValue && targetType.decimalDigits == 0 ->
             DecimalValue(sourceValue.value * 10.0.pow(targetType.entireDigits - sourceType.entireDigits).toBigDecimal())
         // Or integer to decimal
-        sourceValue is IntValue && targetType is NumberType && targetType.decimalDigits > 0 ->
+        sourceValue is IntValue && targetType.decimalDigits > 0 ->
             DecimalValue((sourceValue.value / 10.0.pow(targetType.decimalDigits)).toBigDecimal())
         else -> sourceValue
     }
