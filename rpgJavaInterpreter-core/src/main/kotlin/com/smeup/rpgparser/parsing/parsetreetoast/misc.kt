@@ -226,7 +226,17 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
     val old = get(dataDefinition.name)
-    if (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) {
+
+    /*
+     * The addition is done by these assertion:
+     *  - could not exist;
+     *  - could already exist as RecordFormat and the new definition is Data Structure;
+     *  - could already exist as File field and the new definition is Data Structure.
+     */
+    if (
+        (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) ||
+        (old.fromFile && old.type is StringType && dataDefinition.type is DataStructureType && old.type.size == dataDefinition.type.size)
+    ) {
         put(dataDefinition.name, dataDefinition)
     } else {
         dataDefinition.error("${dataDefinition.name} has been defined twice")
