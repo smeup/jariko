@@ -24,5 +24,5 @@
      D S$INTE          DS            22                                         # S$INTE has been defined twice
      D  S4INTE                        4    OVERLAY(S$INTE:1)
 
-     C                   OPEN      B£G11G0V
+     C     'FOO'         DSPLY
      C                   SETON                                        RT
