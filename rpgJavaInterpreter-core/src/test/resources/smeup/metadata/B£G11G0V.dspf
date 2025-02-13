@@ -1,0 +1,250 @@
+     A*%%TS  SD  20250129  183636  BERNIC      REL-V7R5M0  5770-WDS
+     A*::F.FLD K(£USFL3.S$VALO) Ogg="[$$TPA]"
+     A*::F.FLD K(£USFL4.S$VALO) Ogg="[$$TPA]"
+     A*%%EC
+     A                                      DSPSIZ(24 80 *DS3                  -
+     A                                             27 132 *DS4)
+     A                                      CHGINPDFT(HI CS)
+     A                                      PRINT
+     A                                      HELP
+     A N44                                  CF02
+     A  42                                  CF04
+     A  02                                  CF08
+     A  06                                  CF06
+     A  11                                  CF11
+     A N44                                  CF10
+     A N44                                  CF16
+     A N44                                  CF17
+     A                                      CA03
+     A                                      CA12
+     A N44                                  CF15
+     A N44                                  CF20
+     A N44                                  CF22
+     A N44                                  CF14
+     A          R DUMMY
+     A*%%TS  SD  19960920  145035  ZD          REL-V3R1M0  5763-PW1
+     A                                      ASSUME
+     A                                 24 79' '
+     A                                      DSPATR(ND)
+     A          R SFL1                      SFL
+     A*%%TS  SD  20160922  114936  CATMAS      REL-V7R1M0  5770-WDS
+     A                                      TEXT('Videata Lista (Subfile)')
+     A  95                                  SFLNXTCHG
+     A            SHINDI         5Y 0H
+     A            S$TIPO         2A  H
+     A            S$PARA        10A  H
+     A            SHVALO        20A  H
+     A            SHNUME        20S 6H
+     A            $$OBB          1A  H
+     A            $$FPR          1A  H
+     A            $$TIP          2A  H
+     A            $$PAR         18A  H
+     A            $$TPA         20A  H
+     A            $$LGH          5Y 0H
+     A            $$DEC          1Y 0H
+     A            $$INT         30A  H
+     A            SHIN38         1A  H
+     A            S$NUME        20Y 6H
+     A            S$INTE        22A  O  4  2TEXT('                             -
+     A                                      **')
+     A            S$VALO        20A  B  4 25DSPATR(HI)
+     A                                      TEXT('                             -
+     A                                      [$$TPA]')
+     A  62                                  DSPATR(RI)
+     A  43                                  DSPATR(CS)
+     A  62 43
+     AO 65                                  DSPATR(PC)
+     A N43                                  DSPATR(PR)
+     A  38                                  DSPATR(ND)
+     A            S$DESC        35A  O  4 46TEXT('                             -
+     A                                      **')
+     A          R SFC1                      SFLCTL(SFL1)
+     A*%%TS  SD  20160922  114936  CATMAS      REL-V7R1M0  5770-WDS
+     A  *DS3                                SFLSIZ(0200)
+     A  *DS4                                SFLSIZ(0200)
+     A  *DS3                                SFLPAG(0019)
+     A  *DS4                                SFLPAG(0019)
+     A                                      TEXT('Videata Lista (Controller)')
+     A                                      KEEP
+     A                                      DSPMOD(*DS3)
+     A                                      OVERLAY
+     A                                      PUTRETAIN
+     A                                      SFLCSRRRN(&CUR1)
+     A N92N93                               SFLDSP
+     A N92                                  SFLDSPCTL
+     A  92                                  SFLCLR
+     A  94                                  SFLEND
+     A            CUR1           5S 0H
+     A            RRN01          4S 0H      SFLRCDNBR
+     A            £RASDI        15A  O  1  2DSPATR(HI)
+     A            W$INTE        40A  O  1 19DSPATR(RI)
+     A                                  1 60SYSNAME
+     A  03                              1 69'H'
+     A                                      DSPATR(RI)
+     A            XPDSNP        10A  O  1 71
+     A                                  2  2DATE
+     A                                      EDTCDE(Y)
+     A N42                              2 33'Visualizzazione'
+     A                                      DSPATR(HI)
+     A  42N06N11                        2 33'Modifica       '
+     A                                      DSPATR(HI)
+     A  42 06
+     AO 42 11                           2 33'Richiesta dati '
+     A                                      DSPATR(HI)
+     A            £PDSJN        10A  O  2 60
+     A            £PDSNU        10A  O  2 71
+     A            W$RISC         8A  B  3 71CHGINPDFT
+     A N42                                  DSPATR(PR)
+     A  42                                  DSPATR(UL)
+     A          R SFP1
+     A*%%TS  SD  20070903  182613  ZZ          REL-V5R3M0  5722-WDS
+     A                                      TEXT('Videata Lista (Piede)')
+     A                                      DSPMOD(*DS3)
+     A N41                             23  2'F10=Presenti'
+     A  41                             23 10'F10=Tutti'
+     A                                 23 15'F14=Stampa'
+     A                                 23 26'F15=Window'
+     A                                 23 37'F16/F20=Zoom'
+     A                                 23 50'F17=Impostaz.'
+     A  02
+     AO 06
+     AO 11        W$DSCM        14   O 23 64DSPATR(HI)
+     A                                      INDTXT(01 '£CMDTXT')
+     A  60        W$MESV        76A  O 24  2DSPATR(RI)
+     A          R SFL3                      SFL
+     A*%%TS  SD  20140303  091515  DIGMAS      REL-V6R1M0  5761-WDS
+     A  95                                  SFLNXTCHG
+     A            SHINDI         5Y 0H
+     A            S$TIPO         2A  H
+     A            S$PARA        10A  H
+     A            SHVALO        20A  H
+     A            SHNUME        20S 6H
+     A            $$OBB          1A  H
+     A            $$FPR          1A  H
+     A            $$TIP          2A  H
+     A            $$PAR         18A  H
+     A            $$TPA         20A  H
+     A            $$LGH          5Y 0H
+     A            $$DEC          1Y 0H
+     A            $$INT         30A  H
+     A            SHIN38         1A  H
+     A            S$NUME        20Y 6H
+     A            S$INTE        22A  O  3  1TEXT('                             -
+     A                                      **')
+     A            S$VALO        20A  B  3 24DSPATR(HI)
+     A  62                                  DSPATR(RI)
+     A  43                                  DSPATR(CS)
+     A  62 43
+     AO 65                                  DSPATR(PC)
+     A N43                                  DSPATR(PR)
+     A  38                                  DSPATR(ND)
+     A            W$DESC        26A  O  3 45TEXT('                             -
+     A                                      **')
+     A          R SFC3                      SFLCTL(SFL3)
+     A*%%TS  SD  20140303  091515  DIGMAS      REL-V6R1M0  5761-WDS
+     A  *DS3                                SFLSIZ(0200)
+     A  *DS4                                SFLSIZ(0200)
+     A  *DS3                                SFLPAG(0010)
+     A  *DS4                                SFLPAG(0010)
+     A  *DS3                                WINDOW(SFP3)
+     A  *DS4                                WINDOW(SFP3)
+     A                                      KEEP
+     A                                      DSPMOD(*DS3)
+     A                                      OVERLAY
+     A                                      PUTRETAIN
+     A                                      SFLCSRRRN(&CUR3)
+     A N92N93                               SFLDSP
+     A N92                                  SFLDSPCTL
+     A  92                                  SFLCLR
+     A  94                                  SFLEND
+     A            CUR3           5S 0H
+     A            RRN03          4S 0H      SFLRCDNBR
+     A            W$INTE        40A  O  1  1DSPATR(HI)
+     A  03                              1 59'H'
+     A                                      DSPATR(RI)
+     A            XPDSNP        10A  O  1 61DSPATR(HI)
+     A            W$RISC         8A  B  2 61CHGINPDFT
+     A N42                                  DSPATR(PR)
+     A  42                                  DSPATR(UL)
+     A          R SFP3
+     A*%%TS  SD  20070903  182613  ZZ          REL-V5R3M0  5722-WDS
+     A  *DS3                                WINDOW(8 4 15 70 *NOMSGLIN)
+     A  *DS4                                WINDOW(8 4 15 70 *NOMSGLIN)
+     A                                      DSPMOD(*DS3)
+     A  42                             13  1'F04=Decodifica'
+     A  41                             13 17'F10=Tutti Dati Possibili'
+     A N41                             13 17'F10=Solo Dati Presenti'
+     A                                 13 43'F12=Ritorno'
+     A                                 13 56'F14=Stampa'
+     A                                 14  1'F15=Screen'
+     A                                 14 13'F16=Funzioni'
+     A                                 14 27'F17=Impostazioni'
+     A                                 14 45'F20=Zoom'
+     A  02
+     AO 06
+     AO 11        W$DSCM        14   O 14 56DSPATR(HI)
+     A                                      INDTXT(01 '£CMDTXT')
+     A  60        W$MES1        70A  O 15  1DSPATR(RI)
+     A          R SFL4                      SFL
+     A*%%TS  SD  20160922  111936  CATMAS      REL-V7R1M0  5770-WDS
+     A                                      TEXT('Videata Lista (Subfile)')
+     A  95                                  SFLNXTCHG
+     A            SHINDI         5Y 0H
+     A            S$TIPO         2A  H
+     A            S$PARA        10A  H
+     A            SHVALO        20A  H
+     A            SHNUME        20S 6H
+     A            $$OBB          1A  H
+     A            $$FPR          1A  H
+     A            $$TIP          2A  H
+     A            $$PAR         18A  H
+     A            $$TPA         20A  H
+     A            $$LGH          5Y 0H
+     A            $$DEC          1Y 0H
+     A            $$INT         30A  H
+     A            SHIN38         1A  H
+     A            S$NUME        20Y 6H
+     A            S4INTE         4A  O  2  2
+     A            S$VALO        20A  B  2  7DSPATR(HI)
+     A                                      TEXT('[$$TPA]')
+     A  62                                  DSPATR(RI)
+     A  43                                  DSPATR(CS)
+     A  62 43
+     AO 65                                  DSPATR(PC)
+     A N43                                  DSPATR(PR)
+     A  38                                  DSPATR(ND)
+     A          R SFC4                      SFLCTL(SFL4)
+     A*%%TS  SD  20160922  114936  CATMAS      REL-V7R1M0  5770-WDS
+     A  *DS3                                SFLSIZ(0200)
+     A  *DS4                                SFLSIZ(0200)
+     A  *DS3                                SFLPAG(0012)
+     A  *DS4                                SFLPAG(0019)
+     A                                      TEXT('Videata Lista (Controller)')
+     A                                      CF01
+     A                                      CF05
+     A                                      CF07
+     A                                      CF09
+     A                                      CF13
+     A                                      CF18
+     A                                      CF19
+     A                                      CF21
+     A                                      CF23
+     A                                      CF24
+     A                                      KEEP
+     A                                      DSPMOD(*DS3)
+     A                                      OVERLAY
+     A                                      PUTRETAIN
+     A                                      SFLCSRRRN(&CUR4)
+     A N92N93                               SFLDSP
+     A N92                                  SFLDSPCTL
+     A  92                                  SFLCLR
+     A  94                                  SFLEND
+     A            CUR4           5S 0H
+     A            RRN04          4S 0H      SFLRCDNBR
+     A            W4INTE        25A  O  1  2DSPATR(RI)
+     A          R SFP4
+     A*%%TS  SD  20160922  120236  CATMAS      REL-V7R1M0  5770-WDS
+     A                                      TEXT('Videata Lista (Piede)')
+     A                                      DSPMOD(*DS3)
+     A            W$TCMD        21A  O 14  2
+     A  60        W4MES1        21A  O 15  2DSPATR(RI)

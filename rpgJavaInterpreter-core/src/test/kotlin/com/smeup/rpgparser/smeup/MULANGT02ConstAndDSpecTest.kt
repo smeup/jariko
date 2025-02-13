@@ -976,4 +976,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             )
         )
     }
+
+    /**
+     * This program defines a `DS` with its name, and its field name, like those already declared from file.
+     * @see #LS25000845
+     */
+    @Test
+    fun executeMUDRNRAPU001102() {
+        val expected = listOf("HELLO THERE")
+        assertEquals(expected, "smeup/MUDRNRAPU001102".outputOf(configuration = smeupConfig))
+    }
 }
