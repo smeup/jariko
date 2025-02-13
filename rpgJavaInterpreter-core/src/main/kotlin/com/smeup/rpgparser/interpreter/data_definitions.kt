@@ -196,7 +196,8 @@ data class DataDefinition(
     var paramOptions: List<ParamOption> = mutableListOf(),
     @Transient var defaultValue: Value? = null,
     override var basedOn: Expression? = null,
-    override val static: Boolean = false
+    override val static: Boolean = false,
+    val fromFile: Boolean = false
 ) :
     AbstractDataDefinition(
         name = name,

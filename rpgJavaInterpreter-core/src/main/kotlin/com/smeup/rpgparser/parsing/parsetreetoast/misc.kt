@@ -277,7 +277,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
 
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
-            dbField.toDataDefinition(prefix = prefix, position = position).apply {
+            dbField.toDataDefinition(prefix = prefix, position = position, fromFile = true).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
         }
@@ -295,7 +295,8 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             internalFormatName!!,
             type = RecordFormatType,
             position = position,
-            fields = fieldsDefinition
+            fields = fieldsDefinition,
+            fromFile = true
         )
 
         dataDefinitions.add(recordFormatDefinition)
