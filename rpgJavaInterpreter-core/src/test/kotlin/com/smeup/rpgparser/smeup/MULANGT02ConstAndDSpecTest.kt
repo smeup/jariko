@@ -986,4 +986,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("FOO")
         assertEquals(expected, "smeup/MUDRNRAPU001102".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program defines a `S` with its name, and its field name, like those already declared from file.
+     * @see #LS25000845
+     */
+    @Test
+    fun executeMUDRNRAPU001103() {
+        val expected = listOf("FOO")
+        assertEquals(expected, "smeup/MUDRNRAPU001103".outputOf(configuration = smeupConfig))
+    }
 }
