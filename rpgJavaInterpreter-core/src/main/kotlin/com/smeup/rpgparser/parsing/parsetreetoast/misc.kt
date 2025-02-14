@@ -231,11 +231,11 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
      * The addition is done by these assertion:
      *  - could not exist;
      *  - could already exist as RecordFormat and the new definition is Data Structure;
-     *  - could already exist as File field and the new definition is Data Structure.
+     *  - could already exist as File field and the new definition is Data Structure or String.
      */
     if (
         (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) ||
-        (old.fromFile && old.type is StringType && dataDefinition.type is DataStructureType && old.type.size == dataDefinition.type.size)
+        (old.fromFile && old.type is StringType && (dataDefinition.type is DataStructureType || dataDefinition.type is StringType) && old.type.size == dataDefinition.type.size)
     ) {
         put(dataDefinition.name, dataDefinition)
     } else {
