@@ -988,4 +988,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("0123456789", "AAAAAAAAAAAA", "AAAAAAAAAA", "AAAAAAAAAAAA")
         assertEquals(expected, "smeup/MUDRNRAPU001100".outputOf())
     }
+
+    /**
+     * Comparison between:
+     * - *HIVAL and number with 2 digits,
+     * - *HIVAL and *HIVAL
+     * by using "not equal" operator.
+     * @see #LS24005329
+     */
+    @Test
+    fun executeMUDRNRAPU001104() {
+        val expected = listOf("TRUE 1", "END 1", "TRUE 2", "END 2", "END 3", "END 4")
+        assertEquals(expected, "smeup/MUDRNRAPU001104".outputOf(configuration = smeupConfig))
+    }
 }
