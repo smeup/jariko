@@ -354,6 +354,7 @@ fun Type.hiValue(): Value {
 fun Value.hiValue(): Value {
     return when (this) {
         is StringValue -> StringValue(hiValueString(this.value.length))
+        is IntValue -> IntValue(hiValueInt(this.value.toString().length))
         else -> TODO("Converting HiValValue to $this")
     }
 }
@@ -441,3 +442,6 @@ private fun hiValueString(size: Int) = "\uFFFF".repeat(size)
 
 // TODO
 private fun lowValueString(size: Int) = " ".repeat(size)
+
+// TODO
+private fun hiValueInt(size: Int) = "9".repeat(size).toLong()

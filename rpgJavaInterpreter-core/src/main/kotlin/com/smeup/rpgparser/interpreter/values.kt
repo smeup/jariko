@@ -824,6 +824,7 @@ object HiValValue : Value {
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is StringValue -> other.hiValue() == other
+            is IntValue -> (other.hiValue() as IntValue).value == other.value
             else -> false
         }
     }
