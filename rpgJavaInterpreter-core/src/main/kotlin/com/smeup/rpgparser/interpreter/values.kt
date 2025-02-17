@@ -329,6 +329,11 @@ data class IntValue(val value: Long) : NumberValue() {
         else -> super.compareTo(other)
     }
 
+    override fun equals(other: Any?): Boolean = when (other) {
+        is HiValValue -> this.value == (this.hiValue() as IntValue).value
+        else -> super.equals(other)
+    }
+
     override fun asString(): StringValue {
         return StringValue(render())
     }
