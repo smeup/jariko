@@ -74,7 +74,7 @@ open class ReadTest : AbstractTest() {
     /**
      * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
      *  from `F` spec but shares same fields.
-     * @see #LS25000430
+     * @see #LS25000910
      */
     @Test
     fun afterSetgt() {
@@ -97,7 +97,7 @@ open class ReadTest : AbstractTest() {
 
     /**
      * Using `SETGT` and `READ` in a cycle.
-     * @see #LS25000430
+     * @see #LS25000910
      */
     @Test
     fun afterSetgtInCycle() {
