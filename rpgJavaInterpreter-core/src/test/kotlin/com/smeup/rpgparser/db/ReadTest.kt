@@ -17,8 +17,10 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.db.dbmock.ST02DDbMock
 import com.smeup.rpgparser.db.utilities.*
-import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.db.dbmock.ST02DbMock
 import org.hsqldb.Server
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -65,6 +67,30 @@ open class ReadTest : AbstractTest() {
                 listOf(createEmployeeMetadata()),
                 emptyList(),
                 mapOf("toFind" to StringValue("XXX"))
+            )
+        )
+    }
+
+    /**
+     * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
+     *  from `F` spec but shares same fields.
+     * @see #LS25000430
+     */
+    @Test
+    fun afterSetgt() {
+        assertEquals(
+            listOf(
+                "01", "", "", "", "",
+                "01", "2009", "", "", "1234007"
+            ),
+            outputOfDBPgm(
+            "db/SETGT_READ01",
+                listOf(ST02DbMock().metadata, ST02DDbMock().metadata),
+                listOf(
+                    ST02DbMock().createTable(), ST02DbMock().populateTable(listOf(
+                        mapOf("ST02F1" to "01", "ST02F2" to "2009", "ST02F3" to "", "ST02F4" to "", "ST02F5" to "1234007")
+                    ))
+                )
             )
         )
     }
