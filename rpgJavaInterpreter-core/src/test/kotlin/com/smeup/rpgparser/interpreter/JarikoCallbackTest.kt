@@ -27,7 +27,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
-import com.smeup.rpgparser.smeup.dbmock.TABDS01LDbMock
+import com.smeup.rpgparser.dbmock.TABDS01LDbMock
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import org.junit.Assert

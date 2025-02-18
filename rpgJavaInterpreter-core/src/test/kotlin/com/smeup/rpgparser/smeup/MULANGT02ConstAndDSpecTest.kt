@@ -6,8 +6,8 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.smeup.dbmock.C5RREGHLDbMock
-import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
+import com.smeup.rpgparser.dbmock.C5RREGHLDbMock
+import com.smeup.rpgparser.dbmock.MULANGTLDbMock
 import org.junit.Test
 import kotlin.test.*
 

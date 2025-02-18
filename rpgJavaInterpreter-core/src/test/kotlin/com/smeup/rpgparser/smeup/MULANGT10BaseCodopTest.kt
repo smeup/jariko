@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.smeup
 
-import com.smeup.rpgparser.smeup.dbmock.C5ADFF9LDbMock
+import com.smeup.rpgparser.dbmock.C5ADFF9LDbMock
 import org.junit.Test
 import kotlin.test.assertEquals
 
