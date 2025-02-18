@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.smeup.rpgparser.dbmock
+package com.smeup.rpgparser.smeup.dbmock
 
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.utils.DbMock
