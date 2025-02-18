@@ -110,7 +110,7 @@ open class ReadTest : AbstractTest() {
                     ST02DbMock().createTable(), ST02DbMock().populateTable(listOf(
                         mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                         mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                        mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+                        mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
                     ))
                 )
             )
