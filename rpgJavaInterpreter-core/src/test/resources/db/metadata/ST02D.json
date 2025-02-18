@@ -3,13 +3,13 @@
   "recordFormat": "ST02RF",
   "fields": [
     { "fieldName": "ST02F1",
-      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
   , { "fieldName": "ST02F2",
       "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
   , { "fieldName": "ST02F3",
-      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
   , { "fieldName": "ST02F4",
-      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
   , { "fieldName": "ST02F5",
-      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
   ], "accessFields": [ "ST02F1", "ST02F2", "ST02F3", "ST02F4", "ST02F5"]}
