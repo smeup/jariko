@@ -1,4 +1,6 @@
-      * TODO
+      * Writing on a field of DS which use `EXTNAME` of a file. In this
+      *  case the file in `EXTNAME` is different  from `F` spec
+      *  but shares same fields.
       * ------------------------------------------------------------------
      FST02      IF   E           K DISK    RENAME(ST02:ST02R)
      DC5RREG         E DS                  EXTNAME(ST02D) INZ
