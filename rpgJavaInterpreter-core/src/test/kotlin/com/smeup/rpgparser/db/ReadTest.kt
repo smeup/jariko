@@ -95,6 +95,28 @@ open class ReadTest : AbstractTest() {
         )
     }
 
+    /**
+     * Using `SETGT` and `READ` in a cycle.
+     * @see #LS25000430
+     */
+    @Test
+    fun afterSetgtInCycle() {
+        assertEquals(
+            listOf("A003", "A547", "A634"),
+            outputOfDBPgm(
+            "db/SETGT_READ02",
+                listOf(ST02DbMock().metadata, ST02DDbMock().metadata),
+                listOf(
+                    ST02DbMock().createTable(), ST02DbMock().populateTable(listOf(
+                        mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
+                        mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
+                        mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+                    ))
+                )
+            )
+        )
+    }
+
     @Test
     @Ignore
     fun findsExistingRecords2() {
