@@ -1,8 +1,12 @@
-      * Writing on a field of DS which use `EXTNAME` of a file. In this
-      *  case the file in `EXTNAME` is different  from `F` spec
-      *  but shares same fields.
-      * ------------------------------------------------------------------
-     FST02      IF   E           K DISK    RENAME(ST02:ST02R)
+     V* ==============================================================
+     V* 18/02/2025 APU001 Creation
+     V* ==============================================================
+    O * PROGRAM GOAL
+    O * Writing on a field of DS which use `EXTNAME` of a file. In this
+    O *  case the file in `EXTNAME` is different  from `F` spec
+    O *  but shares same fields.
+     V* ==============================================================
+     FST02      IF   E           K DISK    RENAME(ST02:ST02R)                   # TODO
      DC5RREG         E DS                  EXTNAME(ST02D) INZ
 
      C     KRREH5        KLIST
