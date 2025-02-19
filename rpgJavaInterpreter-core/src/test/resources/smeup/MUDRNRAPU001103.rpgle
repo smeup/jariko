@@ -1,10 +1,11 @@
      V* ==============================================================
      V* 18/02/2025 APU001 Creation
+     V* 19/02/2025 APU001 Applied simplification by removing `RENAME`
      V* ==============================================================
     O * PROGRAM GOAL
     O * Using `SETGT` and `READ` in a cycle.
      V* ==============================================================
-     FST02      IF   E           K DISK    RENAME(ST02:ST02R)
+     FST02      IF   E           K DISK
      D KST02F1         S                   LIKE(ST02F1)
      D KST02F2         S                   LIKE(ST02F2)
      D I               S              1  0
