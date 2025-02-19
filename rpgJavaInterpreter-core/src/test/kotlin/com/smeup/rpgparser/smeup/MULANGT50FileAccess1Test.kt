@@ -78,8 +78,6 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
         })
     }
 
-
-
     /**
      * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
      *  from `F` spec but shares same fields.
@@ -96,6 +94,24 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             },
             listOf(
                 mapOf("ST02F1" to "01", "ST02F2" to "2009", "ST02F3" to "", "ST02F4" to "", "ST02F5" to "1234007")
+            )
+        )
+    }
+
+    /**
+     * Using `SETGT` and `READ` in a cycle.
+     * @see #LS25000910
+     */
+    @Test
+    fun executeMUDRNRAPU001103() {
+        ST02DbMock().usePopulated({
+                val expected = listOf("A003", "A547", "A634")
+                assertEquals(expected, "smeup/MUDRNRAPU001103".outputOf(configuration = smeupConfig))
+            },
+            listOf(
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
             )
         )
     }
