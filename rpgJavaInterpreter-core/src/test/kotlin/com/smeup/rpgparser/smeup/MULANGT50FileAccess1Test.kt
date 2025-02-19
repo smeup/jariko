@@ -2,6 +2,7 @@ package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
+import com.smeup.rpgparser.smeup.dbmock.ST02DbMock
 import org.junit.Test
 import kotlin.test.BeforeTest
 import kotlin.test.Ignore
@@ -75,5 +76,43 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             val expected = listOf("1.000000000")
             assertEquals(expected, "smeup/MUDRNRAPU00254".outputOf(configuration = smeupConfig))
         })
+    }
+
+    /**
+     * Writing on a field of DS which use `EXTNAME` of a file. In this case the file in `EXTNAME` is different
+     *  from `F` spec but shares same fields.
+     * @see #LS25000910
+     */
+    @Test
+    fun executeMUDRNRAPU001102() {
+        ST02DbMock().usePopulated({
+                val expected = listOf(
+                    "01", "", "", "", "",
+                    "01", "2009", "", "", "1234007"
+                )
+                assertEquals(expected, "smeup/MUDRNRAPU001102".outputOf(configuration = smeupConfig))
+            },
+            listOf(
+                mapOf("ST02F1" to "01", "ST02F2" to "2009", "ST02F3" to "", "ST02F4" to "", "ST02F5" to "1234007")
+            )
+        )
+    }
+
+    /**
+     * Using `SETGT` and `READ` in a cycle.
+     * @see #LS25000910
+     */
+    @Test
+    fun executeMUDRNRAPU001103() {
+        ST02DbMock().usePopulated({
+                val expected = listOf("A003", "A547", "A634")
+                assertEquals(expected, "smeup/MUDRNRAPU001103".outputOf(configuration = smeupConfig))
+            },
+            listOf(
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
+            )
+        )
     }
 }
