@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 14/02/2025 APU001 Creation
+     V* 20/02/2025 APU001 Improvement
      V* ==============================================================
     O * PROGRAM GOAL
     O * This program defines an `S` with its name, and its field name,
@@ -13,5 +14,7 @@
 
      D S$INTE          S             22                                         # S$INTE has been defined twice
 
-     C     'FOO'         DSPLY
+     C                   EVAL      S$INTE='FOO'
+     C     S$INTE        DSPLY
+
      C                   SETON                                        RT
