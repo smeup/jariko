@@ -42,11 +42,12 @@ data class DbField(val fieldName: String, val type: Type) {
     /**
      * Creates a data definition associated to this
      * */
-    fun toDataDefinition(prefix: Prefix?, position: Position?) =
+    fun toDataDefinition(prefix: Prefix?, position: Position?, fromFile: Boolean = false) =
         DataDefinition(
             name = prefix?.applyReplacementRules(fieldName) ?: fieldName,
             type = type,
-            position = position
+            position = position,
+            fromFile = fromFile
         )
 }
 

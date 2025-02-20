@@ -34,6 +34,7 @@ import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
+import kotlin.collections.ArrayList
 
 enum class AstHandlingPhase {
     FileDefinitionsCreation,
@@ -130,7 +131,7 @@ private fun List<StatementContext?>.getDataDefinition(
         parentDataDefinitions = parentDataDefinitions,
         procedureName = procedureName
     )
-    dataDefinitionProviders.addAll(constantProviders)
+    dataDefinitionProviders.addOrReplaceAll(constantProviders)
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
@@ -141,7 +142,7 @@ private fun List<StatementContext?>.getDataDefinition(
             fileDefinitions = fileDefinitions
         )
     }
-    dataDefinitionProviders.addAll(firstPassProviders)
+    dataDefinitionProviders.addOrReplaceAll(firstPassProviders)
 
     // Second pass, everything, I mean everything
     val secondPassProviders = sortedStatements.getValidDataDefinitionHolders(
@@ -151,9 +152,29 @@ private fun List<StatementContext?>.getDataDefinition(
         parentDataDefinitions = parentDataDefinitions,
         procedureName = procedureName
     )
-    dataDefinitionProviders.addAll(secondPassProviders)
+    dataDefinitionProviders.addOrReplaceAll(secondPassProviders)
 
     return Pair(dataDefinitionProviders, knownDataDefinitions)
+}
+
+/**
+ * Adds or replaces elements in the current list with new data definitions.
+ *
+ * This function updates the mutable list of `DataDefinitionProvider` instances by:
+ * 1. Replacing existing elements if a matching entry (based on name, case-insensitive) is found in `dataDefinitions`.
+ * 2. Removing replaced elements from the input list to track which ones have been processed.
+ * 3. Adding any remaining elements from `dataDefinitions` that were not replacements.
+ *
+ * This is useful, for example, when a File defines a field but the program redefined it as Data Structure
+ * with same size of origin.
+ *
+ * @receiver Mutable list of `DataDefinitionProvider` elements to be updated.
+ * @param dataDefinitions The list of new `DataDefinitionProvider` elements to add or use for replacements.
+ */
+private fun MutableList<DataDefinitionProvider>.addOrReplaceAll(dataDefinitions: List<DataDefinitionProvider>) {
+    val dataDefinitionsMutable = dataDefinitions.toMutableList()
+    this.replaceAll { old -> dataDefinitionsMutable.firstOrNull { new -> old.toDataDefinition().name.equals(new.toDataDefinition().name, ignoreCase = true) }?.also { dataDefinitionsMutable.remove(it) } ?: old }
+    this.addAll(dataDefinitionsMutable)
 }
 
 private fun List<StatementContext>.getValidDataDefinitionHolders(
@@ -226,7 +247,18 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
     val old = get(dataDefinition.name)
-    if (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) {
+
+    /*
+     * The addition is done by these assertion:
+     *  - could not exist;
+     *  - could already exist as RecordFormat and the new definition is Data Structure;
+     *  - could already exist as File field and the new definition is Data Structure or String.
+     */
+    if (
+        old == null ||
+        (old.type is RecordFormatType && dataDefinition.type is DataStructureType) ||
+        (old.fromFile && old.type is StringType && (dataDefinition.type is DataStructureType || dataDefinition.type is StringType) && old.type.size == dataDefinition.type.size)
+    ) {
         put(dataDefinition.name, dataDefinition)
     } else {
         dataDefinition.error("${dataDefinition.name} has been defined twice")
@@ -277,7 +309,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
 
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
-            dbField.toDataDefinition(prefix = prefix, position = position).apply {
+            dbField.toDataDefinition(prefix = prefix, position = position, fromFile = true).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
         }
@@ -295,7 +327,8 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             internalFormatName!!,
             type = RecordFormatType,
             position = position,
-            fields = fieldsDefinition
+            fields = fieldsDefinition,
+            fromFile = true
         )
 
         dataDefinitions.add(recordFormatDefinition)

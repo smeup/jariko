@@ -1,0 +1,317 @@
+{"name": "B£G11G0V",
+  "tableName": "",
+  "recordFormat": "",
+  "fields": [
+    { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN38",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN43",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN62",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN65",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN95",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "SHINDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "S$TIPO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "S$PARA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "SHVALO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "SHNUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":14, "decimalDigits":6, "rpgType":"S"}}
+  , { "fieldName": "$$OBB",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "$$FPR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "$$TIP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "$$PAR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":18, "varying":false}}
+  , { "fieldName": "$$TPA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "$$LGH",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "$$DEC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":1, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "$$INT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "SHIN38",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "S$NUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":14, "decimalDigits":6, "rpgType":"S"}}
+  , { "fieldName": "S$INTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":22, "varying":false}}
+  , { "fieldName": "S$VALO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "S$DESC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":35, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN92",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN93",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN94",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "CUR1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "RRN01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":4, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "£RASDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "W$INTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":40, "varying":false}}
+  , { "fieldName": "XPDSNP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "£PDSJN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "£PDSNU",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "W$RISC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":8, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN41",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN60",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "W$DSCM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":14, "varying":false}}
+  , { "fieldName": "W$MESV",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":76, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN41",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN60",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "W$DSCM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":14, "varying":false}}
+  , { "fieldName": "W$MES1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":70, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN38",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN43",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN62",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN65",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN95",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "SHINDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "S$TIPO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "S$PARA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "SHVALO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "SHNUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":14, "decimalDigits":6, "rpgType":"S"}}
+  , { "fieldName": "$$OBB",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "$$FPR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "$$TIP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "$$PAR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":18, "varying":false}}
+  , { "fieldName": "$$TPA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "$$LGH",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "$$DEC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":1, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "$$INT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "SHIN38",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "S$NUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":14, "decimalDigits":6, "rpgType":"S"}}
+  , { "fieldName": "S$INTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":22, "varying":false}}
+  , { "fieldName": "S$VALO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "W$DESC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":26, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN92",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN93",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN94",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "CUR3",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "RRN03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":4, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "W$INTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":40, "varying":false}}
+  , { "fieldName": "XPDSNP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "W$RISC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":8, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN38",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN43",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN62",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN65",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN95",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "SHINDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "S$TIPO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "S$PARA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "SHVALO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "SHNUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":14, "decimalDigits":6, "rpgType":"S"}}
+  , { "fieldName": "$$OBB",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "$$FPR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "$$TIP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "$$PAR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":18, "varying":false}}
+  , { "fieldName": "$$TPA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "$$LGH",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "$$DEC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":1, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "$$INT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "SHIN38",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "S$NUME",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":14, "decimalDigits":6, "rpgType":"S"}}
+  , { "fieldName": "S4INTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":4, "varying":false}}
+  , { "fieldName": "S$VALO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN92",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN93",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN94",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "CUR4",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":5, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "RRN04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":4, "decimalDigits":0, "rpgType":"S"}}
+  , { "fieldName": "W4INTE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":25, "varying":false}}
+  , { "fieldName": "*IN02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN42",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN44",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN60",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "W$TCMD",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":21, "varying":false}}
+  , { "fieldName": "W4MES1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":21, "varying":false}}
+  ], "accessFields": []}

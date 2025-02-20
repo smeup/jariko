@@ -25,3 +25,5 @@
      C                   EVAL      U$FUW2 = 'BAR'
      C     £UDO2F        DSPLY
      C     U$FUW2        DSPLY
+
+     C                   SETON                                          LR
