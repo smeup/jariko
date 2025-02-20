@@ -34,6 +34,7 @@ import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
+import kotlin.collections.ArrayList
 
 enum class AstHandlingPhase {
     FileDefinitionsCreation,
@@ -130,7 +131,7 @@ private fun List<StatementContext?>.getDataDefinition(
         parentDataDefinitions = parentDataDefinitions,
         procedureName = procedureName
     )
-    dataDefinitionProviders.addAll(constantProviders)
+    dataDefinitionProviders.addOrReplaceAll(constantProviders)
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
@@ -141,7 +142,7 @@ private fun List<StatementContext?>.getDataDefinition(
             fileDefinitions = fileDefinitions
         )
     }
-    dataDefinitionProviders.addAll(firstPassProviders)
+    dataDefinitionProviders.addOrReplaceAll(firstPassProviders)
 
     // Second pass, everything, I mean everything
     val secondPassProviders = sortedStatements.getValidDataDefinitionHolders(
@@ -151,9 +152,29 @@ private fun List<StatementContext?>.getDataDefinition(
         parentDataDefinitions = parentDataDefinitions,
         procedureName = procedureName
     )
-    dataDefinitionProviders.addAll(secondPassProviders)
+    dataDefinitionProviders.addOrReplaceAll(secondPassProviders)
 
     return Pair(dataDefinitionProviders, knownDataDefinitions)
+}
+
+/**
+ * Adds or replaces elements in the current list with new data definitions.
+ *
+ * This function updates the mutable list of `DataDefinitionProvider` instances by:
+ * 1. Replacing existing elements if a matching entry (based on name, case-insensitive) is found in `dataDefinitions`.
+ * 2. Removing replaced elements from the input list to track which ones have been processed.
+ * 3. Adding any remaining elements from `dataDefinitions` that were not replacements.
+ *
+ * This is useful, for example, when a File defines a field but the program redefined it as Data Structure
+ * with same size of origin.
+ *
+ * @receiver Mutable list of `DataDefinitionProvider` elements to be updated.
+ * @param dataDefinitions The list of new `DataDefinitionProvider` elements to add or use for replacements.
+ */
+private fun MutableList<DataDefinitionProvider>.addOrReplaceAll(dataDefinitions: List<DataDefinitionProvider>) {
+    val dataDefinitionsMutable = dataDefinitions.toMutableList()
+    this.replaceAll { old -> dataDefinitionsMutable.firstOrNull { new -> old.toDataDefinition().name.equals(new.toDataDefinition().name, ignoreCase = true) }?.also { dataDefinitionsMutable.remove(it) } ?: old }
+    this.addAll(dataDefinitionsMutable)
 }
 
 private fun List<StatementContext>.getValidDataDefinitionHolders(
