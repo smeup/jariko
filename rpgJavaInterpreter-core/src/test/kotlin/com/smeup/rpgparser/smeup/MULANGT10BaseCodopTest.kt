@@ -990,7 +990,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * This program shows the `300.000000` Packed number of a DS.
+     * This program shows a Packed number of a DS which, in exadecimal, corresponds to `0   `.
      * @see #LS25000966
      */
     @Test
