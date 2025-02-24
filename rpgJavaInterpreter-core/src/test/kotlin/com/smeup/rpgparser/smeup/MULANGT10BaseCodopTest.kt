@@ -988,4 +988,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("0123456789", "AAAAAAAAAAAA", "AAAAAAAAAA", "AAAAAAAAAAAA")
         assertEquals(expected, "smeup/MUDRNRAPU001100".outputOf())
     }
+
+    /**
+     * This program shows the `300.000000` Packed number of a DS.
+     * @see #LS25000966
+     */
+    @Test
+    fun executeMUDRNRAPU001106() {
+        val expected = listOf("300.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU001106".outputOf())
+    }
 }
