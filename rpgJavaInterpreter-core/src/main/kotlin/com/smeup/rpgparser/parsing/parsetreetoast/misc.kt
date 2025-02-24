@@ -732,9 +732,9 @@ internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     }
 }
 
-internal fun String.isInt() = this.toIntOrNull() != null
+internal fun String.isInt() = this.matches(Regex("^-?[0-9]+$"))
 
-internal fun String.isDecimal() = this.toDoubleOrNull() != null
+internal fun String.isDecimal() = this.matches(Regex("^-?[0-9]*.[0-9]+$"))
 
 internal fun String.toDecimal() = this.toDouble()
 
