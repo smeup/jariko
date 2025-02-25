@@ -799,11 +799,18 @@ fun decodeFromPacked(value: String, digits: Int, scale: Int): BigDecimal {
     if (nibble <= 9) {
         number.append((nibble or 0x30).toChar())
     }
-    // adjust the scale
-    if (scale > 0 && number.toString() != "0") {
-        val len = number.length
-        number.insert(len - scale, ".")
+    // If extracted number is less than the scale it means the value has to be prepended with 0 to match the scale
+    // E.g. we extracted 10000 with a scale 6 -> encoded value was 0.010000
+    if (scale > number.length) {
+        val delta = scale - number.length
+        number.insert(0, "0".repeat(delta))
     }
+
+    // Position decimal mark depending on the scale if needed
+    if (scale > 0 && number.toString() != "0") {
+        number.insert(number.length - scale, ".")
+    }
+
     number.insert(0, sign)
     return number.toString().toBigDecimal()
 }
