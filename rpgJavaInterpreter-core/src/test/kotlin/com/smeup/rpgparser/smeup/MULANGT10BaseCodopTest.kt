@@ -998,4 +998,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("300.000000")
         assertEquals(expected, "smeup/MUDRNRAPU001106".outputOf())
     }
+
+    /**
+     * Decode a packed encoded with a scale smaller than what its type expects
+     * @see #LS25001002
+     */
+    @Test
+    fun executeMUDRNRAPU00284() {
+        val expected = listOf(".010000")
+        assertEquals(expected, "smeup/MUDRNRAPU00284".outputOf(configuration = smeupConfig))
+    }
 }
