@@ -1010,7 +1010,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Z-ADD on a from a binary field to a binary data definition
+     * Z-ADD from a binary field to a binary data definition
      * @see #LS25001162
      */
     @Test

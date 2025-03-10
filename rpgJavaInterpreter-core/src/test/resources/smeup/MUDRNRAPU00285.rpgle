@@ -2,7 +2,7 @@
      V* 10/03/2025 APU002 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Z-ADD on a from a binary field to a binary data definition
+    O * Z-ADD from a binary field to a binary data definition
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, we had an assignment error
