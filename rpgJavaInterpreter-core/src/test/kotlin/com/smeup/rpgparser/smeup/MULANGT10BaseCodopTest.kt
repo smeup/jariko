@@ -1008,4 +1008,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf(".010000")
         assertEquals(expected, "smeup/MUDRNRAPU00284".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Z-ADD on a from a binary field to a binary data definition
+     * @see #LS25001162
+     */
+    @Test
+    fun executeMUDRNRAPU00285() {
+        // The magic number 8224 correspond to the deserialization of the "  " DS substring
+        // code of ' ' = 32
+        // 8224 = 8192 + 32 = (32 << 8) + 32
+        val expected = listOf("8224", "8224")
+        assertEquals(expected, "smeup/MUDRNRAPU00285".outputOf(configuration = smeupConfig))
+    }
 }
