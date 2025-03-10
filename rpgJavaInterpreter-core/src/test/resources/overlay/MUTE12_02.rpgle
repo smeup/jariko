@@ -277,15 +277,15 @@
      C                   EVAL      DS0010=*HIVAL
     MU* VAL1(DS0010) VAL2(-9999999999,99999) COMP(EQ)
      C                   EVAL      DS0010=*LOVAL
-      * TODO incorrect, DS0011 is 2 bytes
+      * TODO incorrect, DS0011 is 2 bytes with precision 2
     MU* VAL1(DS0011) VAL2(99) COMP(EQ)
      C                   EVAL      DS0011=*HIVAL
     MU* VAL1(DS0011) VAL2(-99) COMP(EQ)
      C                   EVAL      DS0011=*LOVAL
-      * TODO incorrect, DS0012 is 2 bytes
-    MU* VAL1(DS0012) VAL2(99) COMP(EQ)
+      * TODO incorrect, DS0012 is 2 bytes with precision 4
+    MU* VAL1(DS0012) VAL2(9999) COMP(EQ)
      C                   EVAL      DS0012=*HIVAL
-    MU* VAL1(DS0012) VAL2(-99) COMP(EQ)
+    MU* VAL1(DS0012) VAL2(-9999) COMP(EQ)
      C                   EVAL      DS0012=*LOVAL
     MU* VAL1(DS0013) VAL2(127) COMP(EQ)
      C                   EVAL      DS0013=*HIVAL
