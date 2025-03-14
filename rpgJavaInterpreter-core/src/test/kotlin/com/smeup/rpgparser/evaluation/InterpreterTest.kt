@@ -2625,4 +2625,10 @@ Test 6
         // Test that the program does not throw a NullPointerException
         "NULLPTR01".outputOf()
     }
+
+    @Test
+    fun executeEVALR001() {
+        val expected = listOf("  ABC", "ABCDE", "BCDEF")
+        assertEquals(expected, "EVALR001".outputOf())
+    }
 }
