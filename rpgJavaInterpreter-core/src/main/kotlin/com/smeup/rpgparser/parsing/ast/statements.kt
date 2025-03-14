@@ -448,6 +448,42 @@ data class EvalStmt(
     }
 }
 
+/**
+ * The EVALR operation code evaluates an assignment statement in the form result=expression.
+ * The expression is evaluated and the result is placed right-adjusted in the result.
+ *
+ * This means that the result is left padded with blanks.
+ */
+@Serializable
+data class EvalRStmt(
+    val target: AssignableExpression,
+    var expression: Expression,
+    val flags: EvalFlags = EvalFlags(),
+    override val position: Position? = null
+) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "EVALR"
+
+    override fun execute(interpreter: InterpreterCore) {
+        // Result must be right adjustable
+        val targetType = target.type()
+        if (targetType !is StringType && targetType !is DataStructureType) {
+            throw UnsupportedOperationException("EVALR can only be applied to string-like and right-adjustable variables")
+        }
+
+        val result = interpreter.eval(expression)
+        val newValue = result.asString().rightAdjusted(targetType.size)
+        interpreter.assign(target, newValue)
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) {
+                sep -> "${this.loggableEntityName}$sep${target.render()} ${expression.render()}$sep"
+        }
+    }
+}
+
 @Serializable
 data class SubDurStmt(
     val factor1: Expression?,
