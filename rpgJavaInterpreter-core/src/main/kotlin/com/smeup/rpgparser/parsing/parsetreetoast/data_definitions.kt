@@ -808,12 +808,9 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             }
         }
         RpgType.BINARY.rpgType -> {
+            // Works like a packed or zoned
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
-            when (elementSize) {
-                2, 3, 4 -> NumberType(2, 0, rpgCodeType)
-                5, 6, 7, 8 -> NumberType(4, 0, rpgCodeType)
-                else -> NumberType(8, 0, rpgCodeType)
-            }
+            NumberType(elementSize, 0, rpgCodeType)
         }
         RpgType.CHARACTER.rpgType -> {
             CharacterType(precision!!)
