@@ -104,7 +104,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         assertEquals(2, ds0011.size)
 
         val ds0012 = ds.getFieldByName("DS0012")
-        assertEquals(NumberType(2, 0, RpgType.BINARY), ds0012.type)
+        assertEquals(NumberType(4, 0, RpgType.BINARY), ds0012.type)
         assertEquals(2, ds0012.size)
 
         val ds0013 = ds.getFieldByName("DS0013")
