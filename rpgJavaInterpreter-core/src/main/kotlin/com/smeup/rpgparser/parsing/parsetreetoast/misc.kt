@@ -855,6 +855,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
+        this.csEVALR() != null -> this.csEVALR().toAst(conf)
 
         this.csCALL() != null -> this.csCALL()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
@@ -1347,6 +1348,21 @@ internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         this.target().toAst(conf),
         this.fixedexpression.expression().toAst(conf),
         operator = this.operator.toAssignmentOperator(),
+        flags = flags,
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun CsEVALRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalRStmt {
+    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
+    val flags = EvalFlags(
+        halfAdjust = 'H' in extenders,
+        maximumNumberOfDigitsRule = 'M' in extenders,
+        resultDecimalPositionRule = 'R' in extenders
+    )
+    return EvalRStmt(
+        this.target().toAst(conf),
+        this.fixedexpression.expression().toAst(conf),
         flags = flags,
         position = toPosition(conf.considerPosition)
     )

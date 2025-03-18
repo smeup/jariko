@@ -127,6 +127,19 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
         value += " ".repeat(size - value.length)
     }
 
+    fun rightAdjusted(size: Int): StringValue {
+        val gap = size - value.length
+
+        // Truncate left if exceeding
+        if (gap < 0) {
+            return value.takeLast(value.length + gap).asValue()
+        }
+
+        // Pad left else-wise
+        val paddedValue = " ".repeat(gap) + value
+        return StringValue(paddedValue, varying)
+    }
+
     fun trimEnd() {
         value = value.trimEnd()
     }

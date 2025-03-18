@@ -69,6 +69,7 @@ private val modules = SerializersModule {
         subclass(DowStmt::class)
         subclass(DOWxxStmt::class)
         subclass(EvalStmt::class)
+        subclass(EvalRStmt::class)
         subclass(ExceptStmt::class)
         subclass(ExecuteSubroutine::class)
         subclass(ExfmtStmt::class)
