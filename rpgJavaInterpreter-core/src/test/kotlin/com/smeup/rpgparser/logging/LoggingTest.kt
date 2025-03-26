@@ -360,6 +360,28 @@ class LoggingTest : AbstractTest() {
     }
 
     /**
+     * Test if mock OPEN are printed out in the appropriate format
+     * @see #LS25001512
+     */
+    @Test
+    fun mockOpenFormat() {
+        val defaultErr = System.err
+        val virtualErr = StringOutputStream()
+        System.setErr(PrintStream(virtualErr))
+        val systemInterface = JavaSystemInterface()
+        executePgm(programName = "MOCK02", systemInterface = systemInterface)
+        virtualErr.flush()
+        val logEntries = virtualErr.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val stmtLogEntries = logEntries.filter { it.contains("MOCKOPEN") }
+        assertEquals(1, stmtLogEntries.size)
+
+        val logFormatRegexMockStatement = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKOPEN\\tMOCK02.*")
+        assertTrue(stmtLogEntries[0].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement")
+
+        System.setErr(defaultErr)
+    }
+
+    /**
      * Test if function resolution logs are correctly printed out
      */
     @Test

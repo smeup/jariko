@@ -1021,4 +1021,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("8224", "8224")
         assertEquals(expected, "smeup/MUDRNRAPU00285".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Perform OPEN on a F-spec marked with PRINTER
+     * @see #LS25001512
+     */
+    @Test
+    fun executeMUDRNRAPU00286() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00286".outputOf(configuration = smeupConfig))
+    }
 }
