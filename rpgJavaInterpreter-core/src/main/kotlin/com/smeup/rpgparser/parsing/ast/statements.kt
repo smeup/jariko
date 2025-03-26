@@ -2619,6 +2619,18 @@ data class OpenStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
+        // NOTE: Printer file are mocked for now, log a warning
+        val cu = getContainingCompilationUnit()
+        val isPrinter = cu?.fileDefinitions?.any { it.fileType == FileType.PRINTER && it.name.equals(name, ignoreCase = true) } ?: false
+        if (isPrinter) {
+            val programName = MainExecutionContext.getExecutionProgramName()
+            val provider = { LogSourceData(programName, position?.line() ?: "") }
+            val entry = LazyLogEntry.produceInformational(provider, "MOCKOPEN", name)
+            val rendered = entry.renderScoped()
+            System.err.println(rendered)
+            return
+        }
+
         val dbFile = interpreter.dbFile(name, this)
         dbFile.open = true
     }
