@@ -880,13 +880,12 @@ open class InternalInterpreter(
     }
 
     override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
-
-        // Nem could be file name or format name
+        // Name could be file name or format name
         val dbFile = status.dbFileMap[name]
-
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
         }
+
         status.lastDBFile = dbFile
         return dbFile
     }
