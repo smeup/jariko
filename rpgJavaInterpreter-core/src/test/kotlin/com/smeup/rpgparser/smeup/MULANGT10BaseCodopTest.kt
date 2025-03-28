@@ -1031,4 +1031,48 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00286".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Assign a number greater than destination by using Z-ADD. In this test the source is integer with 5 digits;
+     *  destination is integer with 3 digits.
+     * @see #LS25001532
+     */
+    @Test
+    fun executeMUDRNRAPU001107() {
+        val expected = listOf("43467", "0", "467")
+        assertEquals(expected, "smeup/MUDRNRAPU001107".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assign a number greater than destination by using Z-ADD. In this test the source is decimal with 5 digits,
+     *  two of these as decimals; destination is integer with 2 digits.
+     * @see #LS25001532
+     */
+    @Test
+    fun executeMUDRNRAPU001108() {
+        val expected = listOf("434.67", "0", "34")
+        assertEquals(expected, "smeup/MUDRNRAPU001108".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assign a number greater than destination by using Z-ADD. In this test the source is integer with 5 digits;
+     *  destination is decimal with 5 digits, two of these as decimals.
+     * @see #LS25001532
+     */
+    @Test
+    fun executeMUDRNRAPU001109() {
+        val expected = listOf("43467", ".00", "467.00")
+        assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Assign a number greater than destination by using Z-ADD. In this test the source is decimal with 5 digits,
+     *  two of these as decimals; destination is decimal with 3 digits, one of these as decimal.
+     * @see #LS25001532
+     */
+    @Test
+    fun executeMUDRNRAPU001110() {
+        val expected = listOf("434.67", ".0", "34.6")
+        assertEquals(expected, "smeup/MUDRNRAPU001110".outputOf(configuration = smeupConfig))
+    }
 }
