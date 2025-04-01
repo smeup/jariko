@@ -13,10 +13,13 @@
      D DS1             DS
      D  DS1_F1                        1  0 DIM(3) INZ
      D INX             S              1  0
+     D RES             S              3
      D PGM             S             17    INZ('MUDRNRAPU001107_P')
 
      C                   FOR       INX=1 TO 3
      C                   EVAL      DS1_F1(INX)=INX
+     C                   EVAL      RES=%CHAR(DS1_F1(INX))
+     C     RES           DSPLY
      C                   ENDFOR
 
      C                   CALL      PGM                                          # An operation is not implemented: 'ProjectedArrayValue.asString' is not yet implemented.
