@@ -111,7 +111,7 @@ object DummySystemInterface : SystemInterface {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-        TODO("Not yet implemented")
+        TODO("'DummySystemInterface.findCopy' is not yet implemented")
     }
 
     override fun display(value: String) {
@@ -127,11 +127,11 @@ object DummySystemInterface : SystemInterface {
     }
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
-        TODO("Not yet implemented")
+        TODO("'DummySystemInterface.findApiDescriptor' is not yet implemented")
     }
 
     override fun findApi(apiId: ApiId): Api {
-        TODO("Not yet implemented")
+        TODO("'DummySystemInterface.findApi' is not yet implemented")
     }
 }
 
@@ -151,7 +151,7 @@ class SimpleSystemInterface(
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-        TODO("Not yet implemented")
+        TODO("'SimpleSystemInterface.findCopy' is not yet implemented")
     }
 
     private val programs = HashMap<String, Program?>()
@@ -187,11 +187,11 @@ class SimpleSystemInterface(
     }
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
-        TODO("Not yet implemented")
+        TODO("'SimpleSystemInterface.findApiDescriptor' is not yet implemented")
     }
 
     override fun findApi(apiId: ApiId): Api {
-        TODO("Not yet implemented")
+        TODO("'SimpleSystemInterface.findApi' is not yet implemented")
     }
 }
 

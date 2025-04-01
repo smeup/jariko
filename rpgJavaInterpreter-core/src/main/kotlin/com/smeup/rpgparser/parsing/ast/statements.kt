@@ -2162,7 +2162,7 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
         get() = "OTHER"
 
     override fun execute(interpreter: InterpreterCore) {
-        TODO("Not yet implemented")
+        TODO("'OtherStmt.execute' is not yet implemented")
     }
 }
 

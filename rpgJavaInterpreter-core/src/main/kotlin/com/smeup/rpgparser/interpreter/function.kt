@@ -53,7 +53,7 @@ interface Function {
 
 interface JavaFunction : Function {
     override fun params(): List<FunctionParam> {
-        TODO("Not yet implemented")
+        TODO("'JavaFunction.params' not yet implemented")
     }
     override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value
 }

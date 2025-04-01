@@ -46,10 +46,10 @@ interface Value : Comparable<Value>, DSPFValue {
     fun asUnlimitedString(): UnlimitedStringValue =
         throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an UnlimitedString - $this")
     fun assignableTo(expectedType: Type): Boolean
-    fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
-    fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
-    fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
-    fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
+    fun takeLast(n: Int): Value = TODO("'Value.takeLast' is not yet implemented for ${this.javaClass.simpleName}")
+    fun takeFirst(n: Int): Value = TODO("'Value.takeFirst' is not yet implemented for ${this.javaClass.simpleName}")
+    fun take(from: Int, to: Int): Value = TODO("'Value.take' is not yet implemented for ${this.javaClass.simpleName}")
+    fun concatenate(other: Value): Value = TODO("Value.concatenate' is not yet implemented for ${this.javaClass.simpleName}")
     fun asArray(): ArrayValue = throw UnsupportedOperationException()
     fun render(): String = "Nope"
     fun copy(): Value
@@ -714,7 +714,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
                     is DataStructValue -> {
                         value.asString().copy()
                     }
-                    else -> TODO("Not yet implemented")
+                    else -> TODO("'ConcreteArrayValue.setElement' doesn't implement $elementType")
                 }
 
                 /*
@@ -826,7 +826,7 @@ object HiValValue : Value {
     }
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'HiValValue.asString' is not yet implemented")
     }
 
     override fun equals(other: Any?): Boolean {
@@ -855,7 +855,7 @@ object LowValValue : Value {
         if (other is LowValValue) 0 else -1
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'LowValValue.asString' is not yet implemented")
     }
 }
 
@@ -920,7 +920,7 @@ class AllValue(val charsToRepeat: String) : Value {
     override fun copy(): AllValue = this
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'AllValue.asString' is not yet implemented")
     }
 }
 
@@ -934,7 +934,7 @@ object IsoValue : Value {
     override fun assignableTo(expectedType: Type): Boolean = false
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'IsoValue.asString' is not yet implemented")
     }
 }
 
@@ -948,7 +948,7 @@ object JulValue : Value {
     override fun assignableTo(expectedType: Type): Boolean = false
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'JulValue.asString' is not yet implemented")
     }
 }
 
@@ -1020,7 +1020,7 @@ class ProjectedArrayValue(
     }
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'ProjectedArrayValue.asString' is not yet implemented")
     }
 
     fun takeAll(): Value {
@@ -1420,15 +1420,15 @@ fun areEquals(value1: Value, value2: Value): Boolean {
 object VoidValue : Value {
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        TODO("'VoidValue.asString' is not yet implemented")
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        TODO("Not yet implemented")
+        TODO("'VoidValue.assignableTo' is not yet implemented")
     }
 
     override fun copy(): Value {
-        TODO("Not yet implemented")
+        TODO("'VoidValue.copy' is not yet implemented")
     }
 }
 
