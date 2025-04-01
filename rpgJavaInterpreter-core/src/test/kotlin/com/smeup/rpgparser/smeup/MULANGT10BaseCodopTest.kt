@@ -1041,4 +1041,15 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1", "2", "3", "123")
         assertEquals(expected, "smeup/MUDRNRAPU001107".outputOf())
     }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * Is similar to `MUDRNRAPU001107` but the DS field is declared as array of decimals instead integers.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001108() {
+        val expected = listOf("1.5", "2.5", "3.5", "152535", "1.5", "2.5", "3.5")
+        assertEquals(expected, "smeup/MUDRNRAPU001108".outputOf())
+    }
 }
