@@ -1031,4 +1031,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00286".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001107() {
+        val expected = listOf("123")
+        assertEquals(expected, "smeup/MUDRNRAPU001107".outputOf())
+    }
 }
