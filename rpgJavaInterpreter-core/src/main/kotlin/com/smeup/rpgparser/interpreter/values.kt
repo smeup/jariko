@@ -1023,9 +1023,21 @@ class ProjectedArrayValue(
 
     fun takeAll(): Value {
         var result = elements()[0]
-        for (i in 1 until arrayLength()) {
-            result = result.concatenate(elements()[i])
+        when (result) {
+            is DecimalValue -> {
+                result = StringValue(result.value.toString().replace(".", ""))
+                for (i in 1 until arrayLength()) {
+                    val valueWithoutDot = elements()[i].asString().value.replace(".", "")
+                    result = result.concatenate(StringValue(valueWithoutDot))
+                }
+            }
+            else -> {
+                for (i in 1 until arrayLength()) {
+                    result = result.concatenate(elements()[i])
+                }
+            }
         }
+
         return result
     }
 
