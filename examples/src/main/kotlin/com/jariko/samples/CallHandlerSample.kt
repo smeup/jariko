@@ -86,11 +86,11 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
     }
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
-        TODO("Not yet implemented")
+        TODO("'UrlRpgProgramFinder.findApiDescriptor' is not yet implemented")
     }
 
     override fun findApi(apiId: ApiId): Api? {
-        TODO("Not yet implemented")
+        TODO("'UrlRpgProgramFinder.findApi' is not yet implemented")
     }
 }
 

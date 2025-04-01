@@ -238,7 +238,7 @@ data class LenExpr(var value: Expression, override val position: Position? = nul
     }
 
     override fun size(): Int {
-        TODO("Not yet implemented")
+        TODO("'LenExpr.size' is not yet implemented")
     }
 
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
