@@ -1019,9 +1019,7 @@ class ProjectedArrayValue(
         }
     }
 
-    override fun asString(): StringValue {
-        TODO("'ProjectedArrayValue.asString' is not yet implemented")
-    }
+    override fun asString(): StringValue = takeAll().asString()
 
     fun takeAll(): Value {
         var result = elements()[0]
