@@ -13,3 +13,16 @@
      C     £100I_DT      COMP      *ALL'90'                               10
      C     *IN09         DSPLY
      C     *IN10         DSPLY
+     C                   EVAL £100I_DT = *HIVAL
+     C     £100I_DT      COMP      *ALL'8'                              09
+     C     £100I_DT      COMP      *ALL'90'                             10
+     C     *IN09         DSPLY
+     C     *IN10         DSPLY
+     C     £100I_DT      COMP      *ALL'9'                                09
+     C     £100I_DT      COMP      *ALL'90'                               10
+     C     *IN09         DSPLY
+     C     *IN10         DSPLY
+     C     £100I_DT      COMP      *ALL'8'                                  09
+     C     £100I_DT      COMP      *ALL'90'                                 10
+     C     *IN09         DSPLY
+     C     *IN10         DSPLY
