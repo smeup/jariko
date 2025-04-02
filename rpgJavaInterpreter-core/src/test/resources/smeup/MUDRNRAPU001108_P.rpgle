@@ -1,13 +1,15 @@
      V* ==============================================================
      V* 01/04/2025 APU001 Creation
+     V* 02/04/2025 APU001 Edited size for `DS1_F1`
      V* ==============================================================
     O * PROGRAM GOAL
     O * This program is used by 'MUDRNRAPU001108_P' for its purpose.
      V* ==============================================================
      D DS1             DS
-     D  DS1_F1                        2  1 DIM(3) INZ
+     D  DS1_F1                        5  2 DIM(3) INZ
+     D VAR_PARM        S                   LIKE(DS1)
      D INX             S              1  0
-     D RES             S              3
+     D RES             S              6
 
      C     VAR_PARM      DSPLY
      C                   MOVE      VAR_PARM      DS1
@@ -19,5 +21,5 @@
 
      C     *INZSR        BEGSR
      C     *ENTRY        PLIST
-     C                   PARM                    VAR_PARM          6
+     C                   PARM                    VAR_PARM
      C                   ENDSR
