@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.smeup.dbmock.C5ADFF9LDbMock
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -1051,5 +1052,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU001108() {
         val expected = listOf("1.50", "2.50", "3.50", "001500025000350", "1.50", "2.50", "3.50")
         assertEquals(expected, "smeup/MUDRNRAPU001108".outputOf())
+    }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * Is similar to `MUDRNRAPU001107` but the DS field is declared as array of packed instead integers.
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001109() {
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
     }
 }
