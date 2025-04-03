@@ -1060,7 +1060,6 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS25001579
      */
     @Test
-    @Ignore
     fun executeMUDRNRAPU001109() {
         val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
         assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
