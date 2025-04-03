@@ -18,8 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toInt
 import kotlinx.serialization.Contextual
@@ -1042,19 +1041,21 @@ class ProjectedArrayValue(
             is DecimalValue -> {
                 /*
                  * More important: a decimal value as Packed has own format and business logic.
-                 * So, in this case isn't manipulated, even if is a plain number without any character which must be encoded/decoded.
+                 * So, in this case is removed only the dot.
                  */
                 result = if (this.elementType is NumberType && (this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
                     result.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
                 } else {
-                    result.asString()
+                    result.asStringWithoutComma()
                 }
 
                 for (i in 1 until arrayLength()) {
+                    val element = (elements()[i] as DecimalValue)
+
                     val itemResult = if (this.elementType is NumberType && (this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
-                        (elements()[i] as DecimalValue).asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
+                        element.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
                     } else {
-                        (elements()[i] as DecimalValue).asString()
+                        element.asStringWithoutComma()
                     }
                     result = result.concatenate(itemResult)
                 }
