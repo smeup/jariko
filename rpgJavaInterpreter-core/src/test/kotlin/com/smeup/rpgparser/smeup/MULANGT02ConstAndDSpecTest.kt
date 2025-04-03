@@ -974,4 +974,25 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("FOO")
         assertEquals(expected, "smeup/MUDRNRAPU001105".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * This program defines several DS field declared as array of Packed, with several sizes and scale.
+     * @see #LS25001614
+     */
+    @Test
+    fun executeMUDRNRAPU001110() {
+        val expected = listOf("1.50", "1.50", "1.500000", "1.500000", "1", "1", "1", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU001110".outputOf())
+    }
+
+    /**
+     * This program defines several DS field declared as array of Packed, with several sizes and scale,
+     *  and executes several sums between different declarations.
+     * @see #LS25001614
+     */
+    @Test
+    fun executeMUDRNRAPU001111() {
+        val expected = listOf("3.00", "3.00", "3.00", "3.00", "3.00")
+        assertEquals(expected, "smeup/MUDRNRAPU001111".outputOf())
+    }
 }
