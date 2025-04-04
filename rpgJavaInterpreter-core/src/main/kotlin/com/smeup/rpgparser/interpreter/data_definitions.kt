@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.andreapivetta.kolor.red
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
@@ -30,8 +31,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.math.BigDecimal
 import java.util.*
-import java.util.logging.Level
-import java.util.logging.Logger
 
 @Serializable
 abstract class AbstractDataDefinition(
@@ -709,7 +708,7 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
-    Logger.getLogger("DECODEFROMZONED").log(Level.SEVERE, "Decoding $value from $scale to $value")
+    println("DECODEFROMZONED - Received to $value".red())
     val builder = StringBuilder()
 
     value.forEach {
@@ -729,7 +728,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         builder.insert(builder.length - scale, ".")
     }
 
-    Logger.getLogger("DECODEFROMZONED").log(Level.SEVERE, "Decoded to $builder")
+    println("DECODEFROMZONED - Decoded to $builder".red())
 
     return BigDecimal(builder.toString())
 }
