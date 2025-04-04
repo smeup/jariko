@@ -158,18 +158,32 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         }
                         else -> {
                             /*
-                             * FIXME: Could be wrong. Have to reach only an encoded number and not a clean. For example,
-                             *  during the execution of `MUDRNRAPU00254`, at this point arrives:
+                             * This logic covers:
+                             * - a DB number which corresponds to the type;
+                             * - a Packed number to decode;
+                             * - a Packed number not encoded. In this case could be extracted from DS field declared as array.
+                             *
+                             *  For example, during the execution of `MUDRNRAPU00254`, we have:
                              *   NumberType(entireDigits=21, decimalDigits=9, rpgType=P)
                              *  and:
                              *   StringValue[11](1.000000000)
                              */
                             val decimalValue = value.value.trim()
                             if (decimalValue.isNumber()) {
-                                DecimalValue(decimalValue.toBigDecimal())
+                                val isDecimal = decimalValue.lastIndexOf('.') != -1
+                                if (isDecimal) {
+                                    return DecimalValue(decimalValue.toBigDecimal())
+                                }
+
+                                val numberPaddedLeft = decimalValue.padStart(type.entireDigits, '0')
+                                val numberWithDot = StringBuilder(numberPaddedLeft).apply {
+                                    insert(numberPaddedLeft.length - type.decimalDigits, ".")
+                                }.toString()
+
+                                return DecimalValue(numberWithDot.toBigDecimal())
                             } else {
                                 // A Packed could end with a char. Consider MUDRNRAPU00115.
-                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits) // A Packed could end always with a char.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits)
                                 DecimalValue(packedValue)
                             }
                         }
