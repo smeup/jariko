@@ -3,7 +3,7 @@
      V* 02/04/2025 APU001 Edited size for `VAR_PARM`
      V* ==============================================================
     O * PROGRAM GOAL
-    O * This program is used by 'MUDRNRAPU001107_P' for its purpose.
+    O * This program is used by 'MUDRNRAPU001107' for its purpose.
      V* ==============================================================
      D VAR_PARM        S             15
 
