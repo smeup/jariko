@@ -1046,7 +1046,7 @@ class ProjectedArrayValue(
                 result = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
                     result.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
                 } else {
-                    result.asStringWithoutComma()
+                    result.asString()
                 }
 
                 for (i in 1 until arrayLength()) {
@@ -1055,7 +1055,7 @@ class ProjectedArrayValue(
                     val itemResult = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
                         element.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
                     } else {
-                        element.asStringWithoutComma()
+                        element.asString()
                     }
                     result = result.concatenate(itemResult)
                 }
