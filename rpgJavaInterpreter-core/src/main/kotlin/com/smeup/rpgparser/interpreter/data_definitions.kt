@@ -16,7 +16,6 @@
 
 package com.smeup.rpgparser.interpreter
 
-import com.andreapivetta.kolor.red
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
@@ -700,7 +699,6 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
-    println("DECODEFROMZONED - Received to $value".red())
     val builder = StringBuilder()
 
     value.forEach {
@@ -719,8 +717,6 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
     if (scale != 0) {
         builder.insert(builder.length - scale, ".")
     }
-
-    println("DECODEFROMZONED - Decoded to $builder".red())
 
     return BigDecimal(builder.toString())
 }
