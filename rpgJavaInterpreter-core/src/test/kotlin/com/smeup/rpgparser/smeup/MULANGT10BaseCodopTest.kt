@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.smeup.dbmock.C5ADFF9LDbMock
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -1060,7 +1059,6 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      * @see #LS25001579
      */
     @Test
-    @Ignore
     fun executeMUDRNRAPU001109() {
         val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
         assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
