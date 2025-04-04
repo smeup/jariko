@@ -1031,4 +1031,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(expected, "smeup/MUDRNRAPU00286".outputOf(configuration = smeupConfig))
     }
+
+    /**
+     * COMP with an int on the left and an *ALL on the right
+     * @see #LS25001595
+     */
+    @Test
+    fun executeMUDRNRAPU00287() {
+        val expected = listOf("010", "010", "100", "100")
+        assertEquals(expected, "smeup/MUDRNRAPU00287".outputOf(configuration = smeupConfig))
+    }
 }
