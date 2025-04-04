@@ -1043,7 +1043,7 @@ class ProjectedArrayValue(
                  * More important: a decimal value as Packed has own format and business logic.
                  * So, in this case is removed only the dot.
                  */
-                result = if (this.elementType is NumberType && (this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
+                result = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
                     result.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
                 } else {
                     result.asStringWithoutComma()
@@ -1052,7 +1052,7 @@ class ProjectedArrayValue(
                 for (i in 1 until arrayLength()) {
                     val element = (elements()[i] as DecimalValue)
 
-                    val itemResult = if (this.elementType is NumberType && (this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
+                    val itemResult = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
                         element.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
                     } else {
                         element.asStringWithoutComma()
