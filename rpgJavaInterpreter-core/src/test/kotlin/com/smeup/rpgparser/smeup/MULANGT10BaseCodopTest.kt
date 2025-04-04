@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.smeup.dbmock.C5ADFF9LDbMock
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -1062,5 +1063,120 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU001109() {
         val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
         assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001112() {
+        /*
+            // FIXME:
+            Expected :[1.50, 2.50, 3.50, 001500025000350, 1.50, 2.50, 3.50]
+            Actual   :[1.50, 2.50, 3.50, 150  250  350, 1.50, 2.50, 3.50]
+         */
+        val expected = listOf("1.50", "2.50", "3.50", "001500025000350", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001112".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001113() {
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001113".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001114() {
+        /*
+            // FIXME:
+            Program MUDRNRAPU001114 - Issue executing CallStmt at line 19. param VAR_PARM was expected to have
+             type ArrayType(element=NumberType(entireDigits=3, decimalDigits=2, rpgType=S), nElements=3,
+             compileTimeRecordsPerLine=null). It has value: DataStructureValue[15](150  250  350  )
+         */
+        val expected = listOf("1.50", "2.50", "3.50", "  150", "1.50", ".00", ".00")
+        assertEquals(expected, "smeup/MUDRNRAPU001114".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001115() {
+        /*
+            // FIXME:
+            Program MUDRNRAPU001115 - Issue executing CallStmt at line 19. param VAR_PARM was expected to have
+             type ArrayType(element=NumberType(entireDigits=3, decimalDigits=2, rpgType=P), nElements=3,
+             compileTimeRecordsPerLine=null). It has value: DataStructureValue[9](150250350)
+         */
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", ".00", ".00")
+        assertEquals(expected, "smeup/MUDRNRAPU001115".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001116() {
+        val expected = listOf("1.50", "2.50", "3.50", "001500025000350", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001116".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001117() {
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001117".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001118() {
+        /*
+            // FIXME:
+            Expected :[1.50, 2.50, 3.50,   150, 1.50, .00, .00]
+            Actual   :[1.50, 2.50, 3.50, [1.50, 2.50, 3.50], 1.50, 2.50, 3.50]
+         */
+        val expected = listOf("1.50", "2.50", "3.50", "  150", "1.50", ".00", ".00")
+        assertEquals(expected, "smeup/MUDRNRAPU001118".outputOf())
+    }
+
+    /**
+     * TODO
+     * @see #LS25001579
+     */
+    @Test
+    @Ignore
+    fun executeMUDRNRAPU001119() {
+        /*
+            // FIXME:
+            Expected :[1.50, 2.50, 3.50, 1.50, .00, .00]
+            Actual   :[1.50, 2.50, 3.50, 1.50, 2.50, 3.50]
+         */
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", ".00", ".00")
+        assertEquals(expected, "smeup/MUDRNRAPU001119".outputOf())
     }
 }
