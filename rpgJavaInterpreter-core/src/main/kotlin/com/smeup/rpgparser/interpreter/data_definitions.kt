@@ -727,7 +727,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         builder.insert(builder.length - scale, ".")
     }
 
-    println("DECODEFROMZONED - TRANSLATED TO ${builder}")
+    println("DECODEFROMZONED - TRANSLATED TO $builder")
     return BigDecimal(builder.toString())
 }
 
