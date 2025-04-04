@@ -170,17 +170,19 @@ private fun coerceString(value: StringValue, type: Type): Value {
                              */
                             val decimalValue = value.value.trim()
                             if (decimalValue.isNumber()) {
-                                val isDecimal = decimalValue.lastIndexOf('.') != -1
-                                if (isDecimal) {
-                                    return DecimalValue(decimalValue.toBigDecimal())
-                                }
-
-                                val numberPaddedLeft = decimalValue.padStart(type.entireDigits, '0')
-                                val numberWithDot = StringBuilder(numberPaddedLeft).apply {
-                                    insert(numberPaddedLeft.length - type.decimalDigits, ".")
-                                }.toString()
-
-                                return DecimalValue(numberWithDot.toBigDecimal())
+                                // TODO
+//                                val isDecimal = decimalValue.lastIndexOf('.') != -1
+//                                if (isDecimal) {
+//                                    return DecimalValue(decimalValue.toBigDecimal())
+//                                }
+//
+//                                val numberPaddedLeft = decimalValue.padStart(type.entireDigits, '0')
+//                                val numberWithDot = StringBuilder(numberPaddedLeft).apply {
+//                                    insert(numberPaddedLeft.length - type.decimalDigits, ".")
+//                                }.toString()
+//
+//                                return DecimalValue(numberWithDot.toBigDecimal())
+                                DecimalValue(decimalValue.toBigDecimal())
                             } else {
                                 // A Packed could end with a char. Consider MUDRNRAPU00115.
                                 val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits)
