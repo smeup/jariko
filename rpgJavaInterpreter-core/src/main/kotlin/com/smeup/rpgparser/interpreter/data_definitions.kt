@@ -707,7 +707,7 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
-    print("DECODEFROMZONED - RECEIVED $value")
+    println("DECODEFROMZONED - RECEIVED $value")
     val builder = StringBuilder()
 
     value.forEach {
@@ -727,7 +727,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         builder.insert(builder.length - scale, ".")
     }
 
-    print("DECODEFROMZONED - TRANSLATED TO ${builder.toString()}")
+    println("DECODEFROMZONED - TRANSLATED TO ${builder.toString()}")
     return BigDecimal(builder.toString())
 }
 
