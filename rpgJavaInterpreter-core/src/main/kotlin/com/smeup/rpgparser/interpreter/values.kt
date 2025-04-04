@@ -453,21 +453,6 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun asString(): StringValue {
         return StringValue(value.toPlainString())
     }
-
-    /**
-     * Converts the current numeric value to a string, formatting it with a specified number of trailing zeros
-     * and removing any commas.
-     *
-     * The function uses `String.format` to create a string representation of the numeric value, ensuring it has
-     * the exact number of decimal digits specified by the `NumberType`. It then removes any commas from the resulting string.
-     *
-     * @param type The `NumberType` object that specifies the desired number of decimal digits.
-     * @return A `StringValue` object containing the formatted numeric value as a string.
-     */
-    fun asStringWithZerosAndWithoutComma(type: NumberType): StringValue {
-        val newValueAsString = String.format("%.0${type.decimalDigits}f", this.value).replace(",", "")
-        return StringValue(newValueAsString)
-    }
 }
 
 @Serializable
@@ -1085,22 +1070,6 @@ class ProjectedArrayValue(
         ProjectedArrayValue(container, field, startOffset = from * step, step, arrayLength = to)
 
     private fun DecimalValue.asStringWithoutComma(): StringValue = StringValue(value.toPlainString().replace(".", ""))
-
-    /**
-     * Pads the left side of the string value with 0 until it reaches the specified total number of digits.
-     *
-     * This function uses `String.padStart` to add spaces to the beginning of the string value, ensuring
-     * the resulting string has the total number of digits specified by the `NumberType`.
-     *
-     * @param type The `NumberType` object that specifies the desired total number of digits.
-     * @return A `StringValue` object containing the padded string.
-     *
-     * Note: If the initial string's length is already equal to or greater than the specified `numberOfDigits`,
-     * no padding is added.
-     */
-    private fun StringValue.padLeftWithZerosAndByDigits(type: NumberType): StringValue {
-        return StringValue(this.value.padStart(type.numberOfDigits, '0'))
-    }
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
