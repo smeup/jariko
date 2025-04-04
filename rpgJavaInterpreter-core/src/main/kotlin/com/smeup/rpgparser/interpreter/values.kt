@@ -259,10 +259,10 @@ data class UnlimitedStringValue(var value: String) : AbstractStringValue {
 
 @Serializable
 data class IntValue(val value: Long) : NumberValue() {
-    val digits: Int get() {
+    val digits: Int by lazy {
         // Maybe not the most efficient way but the simplest. Should be called very rarely anyway.
         val length = value.toString().length
-        return if (value < 0) length - 1 else length
+        if (value < 0) length - 1 else length
     }
 
     override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
