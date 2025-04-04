@@ -1044,7 +1044,7 @@ class ProjectedArrayValue(
                  * So, in this case is removed only the dot.
                  */
                 result = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
-                    result.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
+                    StringValue(encodeToZoned(result.value, (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
                 } else {
                     result.asStringWithoutComma()
                 }
@@ -1053,7 +1053,7 @@ class ProjectedArrayValue(
                     val element = (elements()[i] as DecimalValue)
 
                     val itemResult = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
-                        element.asStringWithZerosAndWithoutComma(this.elementType as NumberType).padLeftWithZerosAndByDigits(this.elementType as NumberType)
+                        StringValue(encodeToZoned(element.value, (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
                     } else {
                         element.asStringWithoutComma()
                     }
@@ -1061,9 +1061,9 @@ class ProjectedArrayValue(
                 }
             }
             is IntValue -> {
-                result = StringValue(result.value.toString()).padLeftWithZerosAndByDigits(this.elementType as NumberType)
+                result = StringValue(encodeToZoned(result.value.toBigDecimal(), (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
                 for (i in 1 until arrayLength()) {
-                    val itemResult = (elements()[i] as IntValue).asString().padLeftWithZerosAndByDigits(this.elementType as NumberType)
+                    val itemResult = StringValue(encodeToZoned((elements()[i] as IntValue).value.toBigDecimal(), (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
                     result = result.concatenate(itemResult)
                 }
             }
