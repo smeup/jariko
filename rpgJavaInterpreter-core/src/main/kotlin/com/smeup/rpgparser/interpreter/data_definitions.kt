@@ -30,6 +30,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.math.BigDecimal
 import java.util.*
+import java.util.logging.Level
+import java.util.logging.Logger
 
 @Serializable
 abstract class AbstractDataDefinition(
@@ -707,7 +709,7 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
-    println("DECODEFROMZONED - RECEIVED $value")
+    Logger.getLogger("DECODEFROMZONED").log(Level.SEVERE, "Decoding $value from $scale to $value")
     val builder = StringBuilder()
 
     value.forEach {
@@ -727,7 +729,8 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         builder.insert(builder.length - scale, ".")
     }
 
-    println("DECODEFROMZONED - TRANSLATED TO $builder")
+    Logger.getLogger("DECODEFROMZONED").log(Level.SEVERE, "Decoded to $builder")
+
     return BigDecimal(builder.toString())
 }
 
