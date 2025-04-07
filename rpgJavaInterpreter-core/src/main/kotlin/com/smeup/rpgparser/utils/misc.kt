@@ -108,6 +108,10 @@ fun String.asBigDecimal(): BigDecimal? =
         null
     }
 
+fun Int.ceilDiv(divisor: Int): Int {
+    return this / divisor + if (this % divisor > 0) 1 else 0
+}
+
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
@@ -120,7 +124,7 @@ fun String.moveEndingString(s: String): String =
         }
 
 fun String.repeatWithMaxSize(l: Int): String {
-    val repetitions = (l / this.length) + 1
+    val repetitions = l.ceilDiv(this.length)
     return this.repeat(repetitions).take(l)
 }
 

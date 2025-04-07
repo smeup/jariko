@@ -21,6 +21,8 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toInt
+import com.smeup.rpgparser.utils.asInt
+import com.smeup.rpgparser.utils.repeatWithMaxSize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
@@ -256,6 +258,12 @@ data class UnlimitedStringValue(var value: String) : AbstractStringValue {
 
 @Serializable
 data class IntValue(val value: Long) : NumberValue() {
+    val digits: Int by lazy {
+        // Maybe not the most efficient way but the simplest. Should be called very rarely anyway.
+        val length = value.toString().length
+        if (value < 0) length - 1 else length
+    }
+
     override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
     override fun negate(): NumberValue = IntValue(-value)
     override fun increment(amount: Long): NumberValue = this + IntValue(amount)
@@ -338,6 +346,10 @@ data class IntValue(val value: Long) : NumberValue() {
         is DecimalValue -> this.asDecimal().compareTo(other)
         is PointerValue -> value.compareTo(other.address)
         is ZeroValue -> value.compareTo(ZeroValue.asInt().value)
+        is AllValue -> {
+            val computedAll = other.toIntOfLength(this.digits)
+            value.compareTo(computedAll)
+        }
         else -> super.compareTo(other)
     }
 
@@ -920,6 +932,14 @@ class AllValue(val charsToRepeat: String) : Value {
 
     override fun asString(): StringValue {
         TODO("'AllValue.asString' is not yet implemented")
+    }
+
+    fun toStringOfLength(length: Int): String {
+        return this.charsToRepeat.repeatWithMaxSize(length)
+    }
+
+    fun toIntOfLength(length: Int): Int {
+        return toStringOfLength(length).asInt()
     }
 }
 
