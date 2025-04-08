@@ -2631,4 +2631,14 @@ Test 6
         val expected = listOf("  ABC", "ABCDE", "BCDEF")
         assertEquals(expected, "EVALR001".outputOf())
     }
+
+    /**
+     * Return a DS value to an array variable of the same size
+     * @see #LS25001659
+     */
+    @Test
+    fun executeArrayDS() {
+        val expected = listOf(List(99) { ".000000" }.toString())
+        assertEquals(expected, "ARRAYDS".outputOf())
+    }
 }
