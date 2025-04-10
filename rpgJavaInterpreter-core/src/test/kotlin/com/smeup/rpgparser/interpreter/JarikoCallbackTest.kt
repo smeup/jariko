@@ -1078,6 +1078,16 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR55CallBackTest() {
+        executePgmCallBackTest("ERROR55", SourceReferenceType.Program, "ERROR55", mapOf(5 to "Array index not valid - Indexes should be >=1. Index asked: 0"))
+    }
+
+    @Test
+    fun executeERROR55SourceLineTest() {
+        executeSourceLineTest("ERROR54")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
