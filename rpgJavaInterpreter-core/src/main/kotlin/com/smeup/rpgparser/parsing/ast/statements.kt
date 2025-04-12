@@ -1033,6 +1033,12 @@ data class CallStmt(
                         throw e
                     }
 
+                    // another thread probably invoked thread cancel, so it should not be ignored!
+                    val rootCause = getRootCause(e);
+                    if (rootCause is InterruptedException) {
+                        throw rootCause
+                    }
+
                     interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                     MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
                     null
