@@ -1034,7 +1034,7 @@ data class CallStmt(
                     }
 
                     // another thread probably invoked thread cancel, so it should not be ignored!
-                    val rootCause = getRootCause(e);
+                    val rootCause = getRootCause(e)
                     if (rootCause is InterruptedException) {
                         throw rootCause
                     }
