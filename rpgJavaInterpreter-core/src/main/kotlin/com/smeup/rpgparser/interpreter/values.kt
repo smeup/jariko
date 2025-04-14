@@ -998,10 +998,10 @@ class ProjectedArrayValue(
 
     override fun setElement(index: Int, value: Value) {
         if (index < 1) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
         if (index > arrayLength()) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
         }
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val startIndex = (this.startOffset + this.step * (index - 1))
@@ -1017,10 +1017,10 @@ class ProjectedArrayValue(
 
     override fun getElement(index: Int): Value {
         if (index < 1) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
         if (index > arrayLength()) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
         }
 
         val startIndex = (this.startOffset + this.step * (index - 1))
