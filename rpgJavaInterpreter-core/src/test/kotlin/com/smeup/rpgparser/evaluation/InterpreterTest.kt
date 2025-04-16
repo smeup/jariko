@@ -2640,6 +2640,7 @@ Test 6
      */
     @Test
     fun shouldStopWhenInterruptRequestedOnBlockingOperations() {
+        val obj = Object()
         val simulateBlockingOperation = { programName: String, blockAt: Int ->
             var i = 0
             val configuration = Configuration().apply {
@@ -2647,7 +2648,9 @@ Test 6
                     // simulates some instructions before sleeping
                     if (i == blockAt) {
                         // fakes blocking operation (e.g. IO on a DB)
-                        Thread.sleep(3000)
+                        synchronized(obj) {
+                            obj.wait(3000)
+                        }
                     }
                     i++
                 }
