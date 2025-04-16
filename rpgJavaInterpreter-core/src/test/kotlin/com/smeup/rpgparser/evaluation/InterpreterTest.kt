@@ -23,12 +23,15 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
+import com.smeup.rpgparser.utils.getRootCause
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -2630,5 +2633,50 @@ Test 6
     fun executeEVALR001() {
         val expected = listOf("  ABC", "ABCDE", "BCDEF")
         assertEquals(expected, "EVALR001".outputOf())
+    }
+
+    /**
+     * Make sure that when Jariko thread is requested an interrupt it will throw a RuntimeException which cause is an
+     * InterruptedException.
+     */
+    @Test
+    fun shouldStopWhenInterruptRequestedOnBlockingOperations() {
+        val runCatching = { programName: String ->
+            var i = 0;
+            val configuration = Configuration().apply {
+                jarikoCallback.onEnterStatement = { absoluteLine: Int, _: SourceReference ->
+                    // simulates some instructions
+                    if (i == 20) {
+                        // fakes blocking operation (e.g. IO on a DB)
+                        Thread.sleep(3000)
+                    }
+                    i++
+                }
+                options = Options().apply { debuggingInformation = true }
+            }
+
+            var rootCause: Throwable? = null
+            val jariko = Thread {
+                try {
+                    executePgm(programName = programName, configuration = configuration)
+                } catch (e: RuntimeException) {
+                    rootCause = getRootCause(e)
+                }
+            }
+
+            val killer = Thread {
+                Thread.sleep(2000)
+                jariko.interrupt()
+            }
+
+            jariko.start()
+            killer.start()
+            jariko.join()
+
+            rootCause
+        }
+
+        assertTrue(runCatching("BIG_DO_LOOP") is InterruptedException)
+        assertTrue(runCatching("CALLEE_ERROR") is InterruptedException)
     }
 }
