@@ -31,7 +31,6 @@ import com.smeup.rpgparser.utils.getRootCause
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -2641,12 +2640,12 @@ Test 6
      */
     @Test
     fun shouldStopWhenInterruptRequestedOnBlockingOperations() {
-        val runCatching = { programName: String ->
-            var i = 0;
+        val simulateBlockingOperation = { programName: String, blockAt: Int ->
+            var i = 0
             val configuration = Configuration().apply {
-                jarikoCallback.onEnterStatement = { absoluteLine: Int, _: SourceReference ->
-                    // simulates some instructions
-                    if (i == 20) {
+                jarikoCallback.onEnterStatement = { absoluteLine: Int, ref: SourceReference ->
+                    // simulates some instructions before sleeping
+                    if (i == blockAt) {
                         // fakes blocking operation (e.g. IO on a DB)
                         Thread.sleep(3000)
                     }
@@ -2665,6 +2664,7 @@ Test 6
             }
 
             val killer = Thread {
+                // do not set it too short, Jariko should compile program...
                 Thread.sleep(2000)
                 jariko.interrupt()
             }
@@ -2676,7 +2676,11 @@ Test 6
             rootCause
         }
 
-        assertTrue(runCatching("BIG_DO_LOOP") is InterruptedException)
-        assertTrue(runCatching("CALLEE_ERROR") is InterruptedException)
+        // it should pass for a simple "main only" program
+        assertTrue(simulateBlockingOperation("BIG_DO_LOOP", 1) is InterruptedException)
+
+        // it should pass also when exception occurs in a called program
+        // by setting 2nd param value to 5 we specify that the block should occur in called program
+        assertTrue(simulateBlockingOperation("CALLEE_ERROR", 5) is InterruptedException)
     }
 }
