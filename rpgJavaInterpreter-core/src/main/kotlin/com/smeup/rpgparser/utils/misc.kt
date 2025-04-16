@@ -187,3 +187,13 @@ internal fun List<UnwrappedStatementData>.indexOfTag(tag: String) = indexOfFirst
 internal inline fun <T, R> Iterable<T>.mapNotNullOrError(transform: (T) -> R?): List<R> {
     return this.mapNotNull { kotlin.runCatching { transform(it) }.getOrNull() }
 }
+
+/**
+ * Recursively get the root cause of a Throwable
+ */
+internal fun getRootCause(t: Throwable): Throwable {
+    if (t.cause != null && t.cause != t) {
+        return getRootCause(t.cause!!)
+    }
+    return t
+}
