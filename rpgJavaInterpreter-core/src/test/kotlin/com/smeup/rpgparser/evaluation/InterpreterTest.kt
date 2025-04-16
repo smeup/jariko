@@ -5,14 +5,13 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.smeup.rpgparser.evaluation
@@ -2606,9 +2605,9 @@ Test 6
 
     @Test
     fun executeBIG_DO_LOOP() {
+        var error: Throwable? = null
         val jarikoExecutorThread = Thread {
-            val error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
-            require(error is RuntimeException)
+            error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
         }
         val jarikoKillerThread = Thread {
             println("Waiting 2 seconds before killing jariko")
@@ -2620,6 +2619,8 @@ Test 6
         jarikoExecutorThread.start()
         jarikoKillerThread.start()
         jarikoExecutorThread.join()
+        require(error != null) { "Jariko should throw an error" }
+        require(getRootCause(error!!) is InterruptedException)
     }
 
     @Test
