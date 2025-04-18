@@ -1040,6 +1040,23 @@ class ProjectedArrayValue(
 
     override fun asString(): StringValue = takeAll().asString()
 
+    /**
+     * Concatenates all elements of the array into a single `StringValue`, applying
+     * type-specific formatting rules based on the element type.
+     *
+     * ### Behavior:
+     * - **DecimalValue**:
+     *   - If the element type is not `RpgType.PACKED`, each decimal is converted to its zoned representation using `encodeToZoned()`.
+     *   - If the type *is* `PACKED`, only the decimal point (dot) is removed using `asStringWithoutComma()`.
+     * - **IntValue**:
+     *   - Each integer value is converted to zoned decimal format using `encodeToZoned()`.
+     * - **Other types**:
+     *   - All elements are concatenated as-is without any transformation.
+     *
+     * The resulting value is built by concatenating all transformed elements into a single `StringValue`.
+     *
+     * @return A `StringValue` representing the concatenated and appropriately formatted elements of the array.
+     */
     fun takeAll(): Value {
         var result = elements()[0]
         when (result) {
