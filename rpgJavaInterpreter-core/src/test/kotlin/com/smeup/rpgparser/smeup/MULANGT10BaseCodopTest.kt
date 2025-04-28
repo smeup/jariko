@@ -1033,12 +1033,34 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * COMP with an int on the left and an *ALL on the right
-     * @see #LS25001595
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * @see #LS25001579
      */
     @Test
-    fun executeMUDRNRAPU00287() {
-        val expected = listOf("010", "010", "100", "100")
-        assertEquals(expected, "smeup/MUDRNRAPU00287".outputOf(configuration = smeupConfig))
+    fun executeMUDRNRAPU001107() {
+        val expected = listOf("1", "2", "3", "000010000200003")
+        assertEquals(expected, "smeup/MUDRNRAPU001107".outputOf())
+    }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * Is similar to `MUDRNRAPU001107` but the DS field is declared as array of decimals instead integers.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001108() {
+        val expected = listOf("1.50", "2.50", "3.50", "001500025000350", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001108".outputOf())
+    }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * Is similar to `MUDRNRAPU001107` but the DS field is declared as array of packed instead integers.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001109() {
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
     }
 }
