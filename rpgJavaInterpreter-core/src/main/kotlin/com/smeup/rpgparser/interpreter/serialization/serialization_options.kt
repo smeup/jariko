@@ -49,6 +49,10 @@ private val module = SerializersModule {
         subclass(DataStructValue::class)
         subclass(OccurableDataStructValue::class)
         subclass(UnlimitedStringValue::class)
+        subclass(BlanksValue::class)
+        subclass(NullValue::class)
+        subclass(ZeroValue::class)
+        subclass(PointerValue::class)
     }
     polymorphic(DSPFValue::class) {
         subclass(ConstantValue::class)

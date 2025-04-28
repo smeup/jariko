@@ -780,6 +780,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun asString(): StringValue = takeAll().asString()
 }
 
+@Serializable
 object BlanksValue : Value {
     override fun toString(): String {
         return "BlanksValue"
@@ -797,6 +798,7 @@ object BlanksValue : Value {
     }
 }
 
+@Serializable
 object NullValue : Value {
     override fun toString(): String {
         return "NullValue"
@@ -900,6 +902,7 @@ object EndValValue : Value {
 /**
  * Character/numeric fields: All zeros. The value is '0' or X'F0'. For numeric float fields: The value is '0 E0'.
  */
+@Serializable
 object ZeroValue : Value {
     const val STRING_REPRESENTATION = "0"
 
