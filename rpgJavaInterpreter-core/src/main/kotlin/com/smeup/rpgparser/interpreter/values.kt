@@ -965,6 +965,7 @@ object IsoValue : Value {
     }
 }
 
+@Serializable
 object JulValue : Value {
     override fun copy() = this
 
