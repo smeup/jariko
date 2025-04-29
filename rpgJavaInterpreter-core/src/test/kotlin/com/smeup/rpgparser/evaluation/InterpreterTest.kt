@@ -22,9 +22,11 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
+import com.smeup.rpgparser.utils.getRootCause
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
