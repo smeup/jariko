@@ -149,31 +149,31 @@ class SerializationTest {
 
     @Test
     fun `BlanksValue to Json`() {
-        checkValueSerialization(BlanksValue);
+        checkValueSerialization(BlanksValue)
     }
 
     @Test
     fun `NullValue to Json`() {
-        checkValueSerialization(NullValue);
+        checkValueSerialization(NullValue)
     }
 
     @Test
     fun `ZeroValue to Json`() {
-        checkValueSerialization(ZeroValue);
+        checkValueSerialization(ZeroValue)
     }
 
     @Test
     fun `PointerValue to Json`() {
-        checkValueSerialization(PointerValue(10));
+        checkValueSerialization(PointerValue(10))
     }
 
     @Test
     fun `IsoValue to Json`() {
-        checkValueSerialization(IsoValue);
+        checkValueSerialization(IsoValue)
     }
 
     @Test
     fun `LowValValue to Json`() {
-        checkValueSerialization(LowValValue);
+        checkValueSerialization(LowValValue)
     }
 }
