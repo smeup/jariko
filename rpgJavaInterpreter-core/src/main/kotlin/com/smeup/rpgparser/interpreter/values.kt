@@ -815,6 +815,7 @@ object NullValue : Value {
     }
 }
 
+@Serializable
 object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
@@ -846,6 +847,7 @@ object HiValValue : Value {
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is StringValue -> other.hiValue() == other
+            is HiValValue -> true
             else -> false
         }
     }

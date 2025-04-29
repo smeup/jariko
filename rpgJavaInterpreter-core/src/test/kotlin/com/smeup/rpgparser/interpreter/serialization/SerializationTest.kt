@@ -173,6 +173,11 @@ class SerializationTest {
     }
 
     @Test
+    fun `HiValValue to Json`() {
+        checkValueSerialization(HiValValue)
+    }
+
+    @Test
     fun `LowValValue to Json`() {
         checkValueSerialization(LowValValue)
     }
