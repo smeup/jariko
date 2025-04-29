@@ -146,4 +146,24 @@ class SerializationTest {
         dsValue.set(fieldDefinition, value)
         checkValueSerialization(dsValue, true)
     }
+
+    @Test
+    fun `BlanksValue to Json`() {
+        checkValueSerialization(BlanksValue);
+    }
+
+    @Test
+    fun `NullValue to Json`() {
+        checkValueSerialization(NullValue);
+    }
+
+    @Test
+    fun `ZeroValue to Json`() {
+        checkValueSerialization(ZeroValue);
+    }
+
+    @Test
+    fun `PointerValue to Json`() {
+        checkValueSerialization(PointerValue(10));
+    }
 }
