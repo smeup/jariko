@@ -53,6 +53,7 @@ private val module = SerializersModule {
         subclass(NullValue::class)
         subclass(ZeroValue::class)
         subclass(PointerValue::class)
+        subclass(IsoValue::class)
     }
     polymorphic(DSPFValue::class) {
         subclass(ConstantValue::class)
