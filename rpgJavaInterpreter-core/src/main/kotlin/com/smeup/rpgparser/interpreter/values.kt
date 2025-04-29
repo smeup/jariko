@@ -851,6 +851,7 @@ object HiValValue : Value {
     }
 }
 
+@Serializable
 object LowValValue : Value {
     override fun copy(): Value {
         TODO("not implemented")
