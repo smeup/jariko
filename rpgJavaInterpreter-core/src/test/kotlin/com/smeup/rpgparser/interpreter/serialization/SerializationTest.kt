@@ -196,4 +196,9 @@ class SerializationTest {
     fun `AllValue to Json`() {
         checkValueSerialization(AllValue("F"))
     }
+
+    @Test
+    fun `EndValValue to Json`() {
+        checkValueSerialization(EndValValue)
+    }
 }

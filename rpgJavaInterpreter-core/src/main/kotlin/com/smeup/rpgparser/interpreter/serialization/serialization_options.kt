@@ -59,6 +59,7 @@ private val module = SerializersModule {
         subclass(JulValue::class)
         subclass(StartValValue::class)
         subclass(AllValue::class)
+        subclass(EndValValue::class)
     }
     polymorphic(DSPFValue::class) {
         subclass(ConstantValue::class)

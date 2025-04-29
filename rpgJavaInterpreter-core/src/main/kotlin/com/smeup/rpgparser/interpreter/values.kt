@@ -890,6 +890,7 @@ object StartValValue : Value {
     override fun asString() = "*START".asValue()
 }
 
+@Serializable
 object EndValValue : Value {
     override fun toString() = "EndValValue"
 
