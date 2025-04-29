@@ -930,6 +930,7 @@ object ZeroValue : Value {
     // override fun asBoolean() = BooleanValue.FALSE
 }
 
+@Serializable
 class AllValue(val charsToRepeat: String) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
@@ -948,6 +949,13 @@ class AllValue(val charsToRepeat: String) : Value {
 
     fun toIntOfLength(length: Int): Int {
         return toStringOfLength(length).asInt()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is AllValue -> return this.charsToRepeat == other.charsToRepeat
+            else -> false
+        }
     }
 }
 
