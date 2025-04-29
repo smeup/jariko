@@ -166,4 +166,9 @@ class SerializationTest {
     fun `PointerValue to Json`() {
         checkValueSerialization(PointerValue(10));
     }
+
+    @Test
+    fun `IsoValue to Json`() {
+        checkValueSerialization(IsoValue);
+    }
 }

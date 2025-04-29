@@ -947,6 +947,7 @@ class AllValue(val charsToRepeat: String) : Value {
     }
 }
 
+@Serializable
 object IsoValue : Value {
     override fun copy() = this
 
