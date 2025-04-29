@@ -186,4 +186,9 @@ class SerializationTest {
     fun `JulValue to Json`() {
         checkValueSerialization(JulValue)
     }
+
+    @Test
+    fun `StartValValue to Json`() {
+        checkValueSerialization(StartValValue)
+    }
 }

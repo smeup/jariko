@@ -876,6 +876,7 @@ object LowValValue : Value {
     }
 }
 
+@Serializable
 object StartValValue : Value {
     override fun toString() = "StartValValue"
 
