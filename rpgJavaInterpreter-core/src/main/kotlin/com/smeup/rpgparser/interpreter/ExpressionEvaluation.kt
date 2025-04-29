@@ -704,7 +704,7 @@ class ExpressionEvaluation(
         if (expression.name == null) {
             return@proxyLogging BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
         }
-        TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
+        return@proxyLogging BooleanValue(interpreterStatus.dbFileMap[expression.name!!]?.eof() ?: false)
     }
 
     override fun eval(expression: EqualExpr): Value = proxyLogging(expression) {

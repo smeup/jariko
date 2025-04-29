@@ -128,7 +128,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                     type.rpgType == RpgType.ZONED.rpgType -> {
                         if (!value.isBlank()) {
-                            val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            val intValue = decodeFromZoned(value.value.trim(), type.numberOfDigits, type.decimalDigits)
                             IntValue(intValue.longValueExact())
                         } else {
                             DecimalValue(BigDecimal.ZERO)
@@ -141,7 +141,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                                 IntValue(intValue.toLong())
                             } else {
                                 // A Packed could end with a char. Consider MUDRNRAPU00115.
-                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits)
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.numberOfDigits, type.decimalDigits)
                                 IntValue(packedValue.longValueExact())
                             }
                         } else {
@@ -153,7 +153,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 if (!value.isBlank()) {
                     when {
                         type.rpgType == RpgType.ZONED.rpgType -> {
-                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.numberOfDigits, type.decimalDigits)
                             DecimalValue(decimalValue)
                         }
                         else -> {
@@ -180,10 +180,10 @@ private fun coerceString(value: StringValue, type: Type): Value {
                                     insert(numberPaddedLeft.length - type.decimalDigits, ".")
                                 }.toString()
 
-                                return DecimalValue(numberWithDot.toBigDecimal())
+                                DecimalValue(numberWithDot.toBigDecimal())
                             } else {
                                 // A Packed could end with a char. Consider MUDRNRAPU00115.
-                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.entireDigits, type.decimalDigits)
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.numberOfDigits, type.decimalDigits)
                                 DecimalValue(packedValue)
                             }
                         }

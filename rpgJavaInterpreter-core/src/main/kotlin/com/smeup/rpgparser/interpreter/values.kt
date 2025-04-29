@@ -18,8 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toInt
 import com.smeup.rpgparser.utils.asInt
@@ -999,10 +998,10 @@ class ProjectedArrayValue(
 
     override fun setElement(index: Int, value: Value) {
         if (index < 1) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
         if (index > arrayLength()) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
         }
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val startIndex = (this.startOffset + this.step * (index - 1))
@@ -1018,10 +1017,10 @@ class ProjectedArrayValue(
 
     override fun getElement(index: Int): Value {
         if (index < 1) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
         if (index > arrayLength()) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
         }
 
         val startIndex = (this.startOffset + this.step * (index - 1))
@@ -1039,15 +1038,64 @@ class ProjectedArrayValue(
         }
     }
 
-    override fun asString(): StringValue {
-        TODO("'ProjectedArrayValue.asString' is not yet implemented")
-    }
+    override fun asString(): StringValue = takeAll().asString()
 
+    /**
+     * Concatenates all elements of the array into a single `StringValue`, applying
+     * type-specific formatting rules based on the element type.
+     *
+     * ### Behavior:
+     * - **DecimalValue**:
+     *   - If the element type is not `RpgType.PACKED`, each decimal is converted to its zoned representation using `encodeToZoned()`.
+     *   - If the type *is* `PACKED`, only the decimal point (dot) is removed using `asStringWithoutComma()`.
+     * - **IntValue**:
+     *   - Each integer value is converted to zoned decimal format using `encodeToZoned()`.
+     * - **Other types**:
+     *   - All elements are concatenated as-is without any transformation.
+     *
+     * The resulting value is built by concatenating all transformed elements into a single `StringValue`.
+     *
+     * @return A `StringValue` representing the concatenated and appropriately formatted elements of the array.
+     */
     fun takeAll(): Value {
         var result = elements()[0]
-        for (i in 1 until arrayLength()) {
-            result = result.concatenate(elements()[i])
+        when (result) {
+            is DecimalValue -> {
+                /*
+                 * More important: a decimal value as Packed has own format and business logic.
+                 * So, in this case is removed only the dot.
+                 */
+                result = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
+                    StringValue(encodeToZoned(result.value, (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                } else {
+                    result.asStringWithoutComma()
+                }
+
+                for (i in 1 until arrayLength()) {
+                    val element = (elements()[i] as DecimalValue)
+
+                    val itemResult = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
+                        StringValue(encodeToZoned(element.value, (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                    } else {
+                        element.asStringWithoutComma()
+                    }
+                    result = result.concatenate(itemResult)
+                }
+            }
+            is IntValue -> {
+                result = StringValue(encodeToZoned(result.value.toBigDecimal(), (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                for (i in 1 until arrayLength()) {
+                    val itemResult = StringValue(encodeToZoned((elements()[i] as IntValue).value.toBigDecimal(), (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                    result = result.concatenate(itemResult)
+                }
+            }
+            else -> {
+                for (i in 1 until arrayLength()) {
+                    result = result.concatenate(elements()[i])
+                }
+            }
         }
+
         return result
     }
 

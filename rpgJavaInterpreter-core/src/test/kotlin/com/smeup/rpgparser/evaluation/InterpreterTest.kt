@@ -5,14 +5,13 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.smeup.rpgparser.evaluation
@@ -2640,5 +2639,58 @@ Test 6
     fun executeArrayDS() {
         val expected = listOf(List(99) { ".000000" }.toString())
         assertEquals(expected, "ARRAYDS".outputOf())
+    }
+
+    /**
+     * Make sure that when Jariko thread is requested an interrupt it will throw a RuntimeException which cause is an
+     * InterruptedException.
+     */
+    @Test
+    fun shouldStopWhenInterruptRequestedOnBlockingOperations() {
+        val obj = Object()
+        val simulateBlockingOperation = { programName: String, blockAt: Int ->
+            var i = 0
+            val configuration = Configuration().apply {
+                jarikoCallback.onEnterStatement = { absoluteLine: Int, ref: SourceReference ->
+                    // simulates some instructions before sleeping
+                    if (i == blockAt) {
+                        // fakes blocking operation (e.g. IO on a DB)
+                        synchronized(obj) {
+                            obj.wait(3000)
+                        }
+                    }
+                    i++
+                }
+                options = Options().apply { debuggingInformation = true }
+            }
+
+            var rootCause: Throwable? = null
+            val jariko = Thread {
+                try {
+                    executePgm(programName = programName, configuration = configuration)
+                } catch (e: RuntimeException) {
+                    rootCause = getRootCause(e)
+                }
+            }
+
+            val killer = Thread {
+                // do not set it too short, Jariko should compile program...
+                Thread.sleep(2000)
+                jariko.interrupt()
+            }
+
+            jariko.start()
+            killer.start()
+            jariko.join()
+
+            rootCause
+        }
+
+        // it should pass for a simple "main only" program
+        assertTrue(simulateBlockingOperation("BIG_DO_LOOP", 1) is InterruptedException)
+
+        // it should pass also when exception occurs in a called program
+        // by setting 2nd param value to 5 we specify that the block should occur in called program
+        assertTrue(simulateBlockingOperation("CALLEE_ERROR", 5) is InterruptedException)
     }
 }

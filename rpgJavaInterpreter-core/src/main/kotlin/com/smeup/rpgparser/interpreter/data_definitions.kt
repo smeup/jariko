@@ -255,25 +255,17 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         // case numeric
         is NumberType -> {
             if (this.rpgType == RpgType.ZONED.rpgType) {
-                val s = encodeToZoned(value.asDecimal().value, this.entireDigits, this.decimalDigits)
+                val s = encodeToZoned(value.asDecimal().value, this.numberOfDigits, this.decimalDigits)
                 val fitted = s.padStart(this.numberOfDigits, '0')
                 return StringValue(fitted)
             }
             // Packed
             if (this.rpgType == RpgType.PACKED.rpgType || this.rpgType == "") {
-                return if (this.decimal) {
-                    // Transform the numeric to an encoded string
-                    val encoded = encodeToPacked(value.asDecimal().value, this.entireDigits, this.decimalDigits)
-                    // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size)
-                    StringValue(fitted)
-                } else {
-                    // Transform the numeric to an encoded string
-                    val encoded = encodeToPacked(value.asDecimal().value, this.entireDigits, 0)
-                    // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size)
-                    StringValue(fitted)
-                }
+                // Transform the numeric to an encoded string
+                val encoded = encodeToPacked(value.asDecimal().value, this.numberOfDigits, this.decimalDigits)
+                // adjust the size to fit the target field
+                val fitted = encoded.padEnd(this.size)
+                return StringValue(fitted)
             }
             if (this.rpgType == RpgType.INTEGER.rpgType) {
                 // Transform the integer to an encoded string
@@ -725,6 +717,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
     if (scale != 0) {
         builder.insert(builder.length - scale, ".")
     }
+
     return BigDecimal(builder.toString())
 }
 
