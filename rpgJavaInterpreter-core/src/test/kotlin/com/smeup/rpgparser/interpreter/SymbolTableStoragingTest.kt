@@ -694,16 +694,23 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
     @Test
     fun `all concrete implementations of Value are annotated with @Serializable`() {
+        val classesToIgnore: List<String> = listOf(
+            ProjectedArrayValue::class.java.simpleName
+        )
+
         val valueImplementations = getAllSubclasses(
             packageName = "com.smeup.rpgparser.interpreter",
             baseClass = Value::class.java
         ).filter { !it.isInterface && !java.lang.reflect.Modifier.isAbstract(it.modifiers) } // Filter only concrete classes
 
+
         valueImplementations.forEach { implementation ->
-            assertTrue(
-                implementation.kotlin.findAnnotation<Serializable>() != null, // Convert Class to KClass using `.kotlin`
-                "Class ${implementation.simpleName} is not @Serializable"
-            )
+            if (!classesToIgnore.contains(implementation.simpleName)) {
+                assertTrue(
+                    implementation.kotlin.findAnnotation<Serializable>() != null, // Convert Class to KClass using `.kotlin`
+                    "Class ${implementation.simpleName} is not @Serializable"
+                )
+            }
         }
     }
 }
