@@ -212,7 +212,7 @@ class SerializationTest {
             name = "DS1_FL1",
             type = ArrayType(
                 element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
-                nElements = 9,
+                nElements = 9
             )
         )
 
@@ -220,17 +220,17 @@ class SerializationTest {
             name = ds1Fl1Type.name,
             type = ArrayType(
                 element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
-                nElements = 9,
+                nElements = 9
             ),
             explicitStartOffset = 0,
             explicitEndOffset = 1,
             position = Position(start = Point(2, 5), end = Point(2, 85)),
-            declaredArrayInLineOnThisField = 9,
+            declaredArrayInLineOnThisField = 9
         )
         ds1Fl1Definition.overriddenContainer = DataDefinition("DS1", type = DataStructureType(
             fields = listOf(ds1Fl1Type),
-            elementSize = 9,
-        ));
+            elementSize = 9
+        ))
 
         val projectedArrayValue = ProjectedArrayValue(
             container = DataStructValue("111111111"),

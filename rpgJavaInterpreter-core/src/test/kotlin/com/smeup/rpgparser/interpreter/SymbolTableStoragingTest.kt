@@ -703,7 +703,6 @@ open class SymbolTableStoragingTest : AbstractTest() {
             baseClass = Value::class.java
         ).filter { !it.isInterface && !java.lang.reflect.Modifier.isAbstract(it.modifiers) } // Filter only concrete classes
 
-
         valueImplementations.forEach { implementation ->
             if (!classesToIgnore.contains(implementation.simpleName)) {
                 assertTrue(
