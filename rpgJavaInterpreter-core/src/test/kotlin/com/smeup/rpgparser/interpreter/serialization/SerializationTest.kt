@@ -21,11 +21,14 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.test.doubles
 import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
+import com.strumenta.kolasu.model.Point
+import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.math.BigDecimal
 import java.time.ZoneId
 import java.util.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -200,5 +203,43 @@ class SerializationTest {
     @Test
     fun `EndValValue to Json`() {
         checkValueSerialization(EndValValue)
+    }
+
+    @Test
+    @Ignore("TODO: Is necessary to remove `@Transient` from `FieldDefinition.overriddenContainer` and fix `JFTCPR.rpgle` test.")
+    fun `ProjectedArrayValue to Json`() {
+        val ds1Fl1Type = FieldType(
+            name = "DS1_FL1",
+            type = ArrayType(
+                element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
+                nElements = 9,
+            )
+        )
+
+        val ds1Fl1Definition = FieldDefinition(
+            name = ds1Fl1Type.name,
+            type = ArrayType(
+                element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
+                nElements = 9,
+            ),
+            explicitStartOffset = 0,
+            explicitEndOffset = 1,
+            position = Position(start = Point(2, 5), end = Point(2, 85)),
+            declaredArrayInLineOnThisField = 9,
+        )
+        ds1Fl1Definition.overriddenContainer = DataDefinition("DS1", type = DataStructureType(
+            fields = listOf(ds1Fl1Type),
+            elementSize = 9,
+        ));
+
+        val projectedArrayValue = ProjectedArrayValue(
+            container = DataStructValue("111111111"),
+            field = ds1Fl1Definition,
+            startOffset = 0,
+            step = 1,
+            arrayLength = 9
+        )
+
+        checkValueSerialization(projectedArrayValue)
     }
 }
