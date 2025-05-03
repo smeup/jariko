@@ -208,7 +208,7 @@ private fun CompilationUnit.resolve() {
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
             kotlin.runCatching {
-                esr.require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
+                esr.require(esr.subroutine.tryToResolve(this.subroutinesByName, caseInsensitive = true)) {
                     "Subroutine call not resolved: ${esr.subroutine.name}"
                 }
             }

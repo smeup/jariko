@@ -107,6 +107,10 @@ data class CompilationUnit(
         allDataDefinitions.associateBy { it.name.uppercase() }
     }
 
+    internal val subroutinesByName: Map<String, Subroutine> by lazy {
+        subroutines.associateBy { it.name.uppercase() }
+    }
+
     /**
      * This returns `true` if this procedure is a prototype by its empty lists for file definition,
      *  data definition, subroutines, compile time arrays and directive.
