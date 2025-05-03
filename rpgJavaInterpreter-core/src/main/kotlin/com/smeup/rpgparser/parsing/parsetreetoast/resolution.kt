@@ -102,7 +102,7 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                     var currentCu: CompilationUnit? = cu
                     var resolved = false
                     while (currentCu != null && !resolved) {
-                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitionsByName, caseInsensitive = true)
                         currentCu = currentCu.parent?.let { it as CompilationUnit }
                     }
                     if (!resolved) {
@@ -265,7 +265,7 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
         var currentCu: CompilationUnit? = cu
         var resolved = false
         while (currentCu != null && !resolved) {
-            resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+            resolved = this.tryToResolve(currentCu.allDataDefinitionsByName, caseInsensitive = true)
             currentCu = currentCu.parent?.let { it as CompilationUnit }
         }
         val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)

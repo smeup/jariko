@@ -103,6 +103,10 @@ data class CompilationUnit(
             return _allDataDefinitions
         }
 
+    internal val allDataDefinitionsByName: Map<String, AbstractDataDefinition> by lazy {
+        allDataDefinitions.associateBy { it.name.uppercase() }
+    }
+
     /**
      * This returns `true` if this procedure is a prototype by its empty lists for file definition,
      *  data definition, subroutines, compile time arrays and directive.
