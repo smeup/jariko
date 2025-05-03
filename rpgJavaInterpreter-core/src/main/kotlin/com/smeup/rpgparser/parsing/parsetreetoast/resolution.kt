@@ -221,7 +221,7 @@ private fun CompilationUnit.resolve() {
                 val dataDefinition = dataRef.variable.referred!! as DataDefinition
                 qae.runNode {
                     kotlin.runCatching {
-                        require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
+                        require(qae.field.tryToResolve(dataDefinition.fieldsByName, caseInsensitive = true)) {
                             "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
                         }
                     }
