@@ -187,6 +187,12 @@ data class FileDefinition private constructor(
 data class DataDefinition(
     override val name: String,
     @SerialName(value = "dataDefType") override var type: Type,
+    /***
+     * The fields associated with the data definition.
+     * This property is used to define the fields of the data structure.
+     * After initialization if you want to change the fields, use the newFields property.
+     * @see newFields
+     */
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
@@ -214,6 +220,22 @@ data class DataDefinition(
     init {
         this.require(name.trim().isNotEmpty(), { "name cannot be empty" })
     }
+
+    // If you want to change visibility of this property, decorate as @Derived
+    /**
+     * A list of fields associated with the data definition.
+     * When this property is updated, it also updates the `fields` property
+     * and rebuilds the `fieldsByName` map to ensure consistency.
+     */
+    @Transient
+    internal var newFields: List<FieldDefinition> = fields
+        set(value) {
+            fields = value
+            fieldsByName = fields.associateBy { it.name.uppercase() }
+        }
+
+    @Transient
+    internal var fieldsByName: Map<String, FieldDefinition> = fields.associateBy { it.name.uppercase() }
 
     @Deprecated("The start offset should be calculated before defining the FieldDefinition")
     fun startOffset(fieldDefinition: FieldDefinition): Int {

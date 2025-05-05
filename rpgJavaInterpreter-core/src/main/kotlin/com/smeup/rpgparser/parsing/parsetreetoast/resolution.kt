@@ -102,7 +102,7 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                     var currentCu: CompilationUnit? = cu
                     var resolved = false
                     while (currentCu != null && !resolved) {
-                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitionsByName, caseInsensitive = true)
                         currentCu = currentCu.parent?.let { it as CompilationUnit }
                     }
                     if (!resolved) {
@@ -208,7 +208,7 @@ private fun CompilationUnit.resolve() {
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
             kotlin.runCatching {
-                esr.require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
+                esr.require(esr.subroutine.tryToResolve(this.subroutinesByName, caseInsensitive = true)) {
                     "Subroutine call not resolved: ${esr.subroutine.name}"
                 }
             }
@@ -221,7 +221,7 @@ private fun CompilationUnit.resolve() {
                 val dataDefinition = dataRef.variable.referred!! as DataDefinition
                 qae.runNode {
                     kotlin.runCatching {
-                        require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
+                        require(qae.field.tryToResolve(dataDefinition.fieldsByName, caseInsensitive = true)) {
                             "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
                         }
                     }
@@ -265,7 +265,7 @@ private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(posi
         var currentCu: CompilationUnit? = cu
         var resolved = false
         while (currentCu != null && !resolved) {
-            resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+            resolved = this.tryToResolve(currentCu.allDataDefinitionsByName, caseInsensitive = true)
             currentCu = currentCu.parent?.let { it as CompilationUnit }
         }
         val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
