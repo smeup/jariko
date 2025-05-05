@@ -1176,7 +1176,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(
             referredDs.fields,
             position = this.toPosition(true)
         )
-        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        dataDefinition.newFields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         return dataDefinition
     }
 
