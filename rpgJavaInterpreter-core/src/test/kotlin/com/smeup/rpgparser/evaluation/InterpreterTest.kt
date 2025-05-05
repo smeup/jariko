@@ -2605,9 +2605,9 @@ Test 6
 
     @Test
     fun executeBIG_DO_LOOP() {
+        var error: Throwable? = null
         val jarikoExecutorThread = Thread {
-            val error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
-            require(error is RuntimeException)
+            error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
         }
         val jarikoKillerThread = Thread {
             println("Waiting 2 seconds before killing jariko")
@@ -2619,6 +2619,8 @@ Test 6
         jarikoExecutorThread.start()
         jarikoKillerThread.start()
         jarikoExecutorThread.join()
+        require(error != null) { "Jariko should throw an error" }
+        require(getRootCause(error!!) is InterruptedException)
     }
 
     @Test
