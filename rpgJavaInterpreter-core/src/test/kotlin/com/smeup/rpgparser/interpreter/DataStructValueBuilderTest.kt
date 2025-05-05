@@ -16,7 +16,9 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.parsing.ast.json
+import org.junit.experimental.categories.Category
 import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.measureTime
@@ -76,6 +78,7 @@ class DataStructValueBuilderTest {
     }
 
     @Test
+    @Category(PerformanceTest::class)
     fun littleDSBetterStringBuilderWrapper() {
         val littleDS = listOf(10, 20, 20, 4, 5)
         val value = "a".repeat(littleDS.sum())
@@ -109,6 +112,7 @@ class DataStructValueBuilderTest {
     }
 
     @Test
+    @Category(PerformanceTest::class)
     fun bigDSBetterIndexedStringBuilder() {
         val bigDS = List(100) { Random.nextInt(100, 1000) }
         val value = "a".repeat(bigDS.sum())
@@ -142,6 +146,7 @@ class DataStructValueBuilderTest {
     }
 
     @Test
+    @Category(PerformanceTest::class)
     fun overlayingDSMuchBetterIndexedStringBuilder() {
         val dsWithOverlay = List(10_000) { Random.nextInt(10, 101) }
         val value = "a".repeat(dsWithOverlay.sum())
