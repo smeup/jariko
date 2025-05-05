@@ -71,12 +71,16 @@ open class BaseCompileTimeInterpreter(
     private val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
 ) : CompileTimeInterpreter {
 
+    private val knownDataDefinitionsByName: Map<String, DataDefinition> by lazy {
+        knownDataDefinitions.associateBy { it.name }
+    }
+
     override fun evaluate(rContext: RContext, expression: Expression): Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
             is StringLiteral -> StringValue(expression.value)
-            is DataRefExpr -> if (expression.variable.tryToResolve(knownDataDefinitions))
+            is DataRefExpr -> if (expression.variable.tryToResolve(knownDataDefinitionsByName))
                 return this.evaluate(rContext, (expression.variable.referred as? DataDefinition)?.initializationValue as Expression)
                     else
                 TODO(expression.toString())
