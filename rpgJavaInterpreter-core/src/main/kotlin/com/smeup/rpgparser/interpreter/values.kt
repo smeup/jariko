@@ -779,6 +779,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun asString(): StringValue = takeAll().asString()
 }
 
+@Serializable
 object BlanksValue : Value {
     override fun toString(): String {
         return "BlanksValue"
@@ -796,6 +797,7 @@ object BlanksValue : Value {
     }
 }
 
+@Serializable
 object NullValue : Value {
     override fun toString(): String {
         return "NullValue"
@@ -812,6 +814,7 @@ object NullValue : Value {
     }
 }
 
+@Serializable
 object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
@@ -843,11 +846,13 @@ object HiValValue : Value {
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is StringValue -> other.hiValue() == other
+            is HiValValue -> true
             else -> false
         }
     }
 }
 
+@Serializable
 object LowValValue : Value {
     override fun copy(): Value {
         TODO("not implemented")
@@ -870,6 +875,7 @@ object LowValValue : Value {
     }
 }
 
+@Serializable
 object StartValValue : Value {
     override fun toString() = "StartValValue"
 
@@ -883,6 +889,7 @@ object StartValValue : Value {
     override fun asString() = "*START".asValue()
 }
 
+@Serializable
 object EndValValue : Value {
     override fun toString() = "EndValValue"
 
@@ -899,6 +906,7 @@ object EndValValue : Value {
 /**
  * Character/numeric fields: All zeros. The value is '0' or X'F0'. For numeric float fields: The value is '0 E0'.
  */
+@Serializable
 object ZeroValue : Value {
     const val STRING_REPRESENTATION = "0"
 
@@ -922,6 +930,7 @@ object ZeroValue : Value {
     // override fun asBoolean() = BooleanValue.FALSE
 }
 
+@Serializable
 class AllValue(val charsToRepeat: String) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
@@ -941,8 +950,16 @@ class AllValue(val charsToRepeat: String) : Value {
     fun toIntOfLength(length: Int): Int {
         return toStringOfLength(length).asInt()
     }
+
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is AllValue -> return this.charsToRepeat == other.charsToRepeat
+            else -> false
+        }
+    }
 }
 
+@Serializable
 object IsoValue : Value {
     override fun copy() = this
 
@@ -957,6 +974,7 @@ object IsoValue : Value {
     }
 }
 
+@Serializable
 object JulValue : Value {
     override fun copy() = this
 
@@ -974,6 +992,7 @@ object JulValue : Value {
 /**
  * The container should always be a DS value
  */
+// @Serializable TODO: See `ProjectedArrayValue to Json` test for reason.
 class ProjectedArrayValue(
     val container: DataStructValue,
     val field: FieldDefinition,

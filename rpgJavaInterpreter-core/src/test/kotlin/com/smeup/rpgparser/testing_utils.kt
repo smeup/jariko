@@ -56,6 +56,8 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
@@ -798,6 +800,18 @@ object SingletonRpgSystem : RpgSystem() {
     fun reset() {
         programFinders.clear()
     }
+}
+
+/**
+ * Retrieves all subclasses of a given base class within a specified package.
+ *
+ * @param packageName The name of the package to search for subclasses.
+ * @param baseClass The base class whose subclasses are to be found.
+ * @return A set of classes that are subclasses of the specified base class.
+ */
+fun getAllSubclasses(packageName: String, baseClass: Class<*>): Set<Class<*>> {
+    val reflections = Reflections(packageName, SubTypesScanner(false))
+    return reflections.getSubTypesOf(baseClass).toSet()
 }
 
 fun main(args: Array<String>) {

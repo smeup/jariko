@@ -23,11 +23,13 @@ import com.smeup.rpgparser.execution.CommandLineParms
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.getAllSubclasses
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.LogChannel
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import kotlinx.serialization.Serializable
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.io.File
@@ -36,6 +38,7 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.full.findAnnotation
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -686,6 +689,27 @@ open class SymbolTableStoragingTest : AbstractTest() {
             require(result != null)
             assertEquals(param, result.parmsList[0])
             assertEquals(returnAssertions[i], result.parmsList[1])
+        }
+    }
+
+    @Test
+    fun `all concrete implementations of Value are annotated with @Serializable`() {
+        val classesToIgnore: List<String> = listOf(
+            ProjectedArrayValue::class.java.simpleName
+        )
+
+        val valueImplementations = getAllSubclasses(
+            packageName = "com.smeup.rpgparser.interpreter",
+            baseClass = Value::class.java
+        ).filter { !it.isInterface && !java.lang.reflect.Modifier.isAbstract(it.modifiers) } // Filter only concrete classes
+
+        valueImplementations.forEach { implementation ->
+            if (!classesToIgnore.contains(implementation.simpleName)) {
+                assertTrue(
+                    implementation.kotlin.findAnnotation<Serializable>() != null, // Convert Class to KClass using `.kotlin`
+                    "Class ${implementation.simpleName} is not @Serializable"
+                )
+            }
         }
     }
 }
