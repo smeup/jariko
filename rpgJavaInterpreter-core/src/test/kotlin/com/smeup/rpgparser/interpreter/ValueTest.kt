@@ -44,4 +44,20 @@ class ValueTest {
             assertEquals(dataStructBlankValue, occurableDataStructBlankValue[i])
         }
     }
+
+    @Test
+    fun varyingDSField() {
+        val fields = listOf(
+            FieldType("A", StringType(30000, true))
+        )
+        val fieldDefinitions = fields.toFieldDefinitions()
+        val aFieldDefinition = fieldDefinitions.first()
+        val dataStructureType = DataStructureType(fields = fields, elementSize = 99999)
+        val dataStructValue = dataStructureType.blank() as DataStructValue
+        dataStructValue.set(aFieldDefinition, StringValue("ABCDE", true))
+
+        val outputValue = dataStructValue.get(aFieldDefinition) as StringValue
+        assertEquals(outputValue.length(), 5)
+        assertEquals(outputValue.value, "ABCDE")
+    }
 }
