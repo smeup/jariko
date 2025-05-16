@@ -18,8 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.parsetreetoast.DateFormat
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toInt
 import com.smeup.rpgparser.utils.asInt
@@ -780,6 +779,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun asString(): StringValue = takeAll().asString()
 }
 
+@Serializable
 object BlanksValue : Value {
     override fun toString(): String {
         return "BlanksValue"
@@ -797,6 +797,7 @@ object BlanksValue : Value {
     }
 }
 
+@Serializable
 object NullValue : Value {
     override fun toString(): String {
         return "NullValue"
@@ -813,6 +814,7 @@ object NullValue : Value {
     }
 }
 
+@Serializable
 object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
@@ -844,11 +846,13 @@ object HiValValue : Value {
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is StringValue -> other.hiValue() == other
+            is HiValValue -> true
             else -> false
         }
     }
 }
 
+@Serializable
 object LowValValue : Value {
     override fun copy(): Value {
         TODO("not implemented")
@@ -871,6 +875,7 @@ object LowValValue : Value {
     }
 }
 
+@Serializable
 object StartValValue : Value {
     override fun toString() = "StartValValue"
 
@@ -884,6 +889,7 @@ object StartValValue : Value {
     override fun asString() = "*START".asValue()
 }
 
+@Serializable
 object EndValValue : Value {
     override fun toString() = "EndValValue"
 
@@ -900,6 +906,7 @@ object EndValValue : Value {
 /**
  * Character/numeric fields: All zeros. The value is '0' or X'F0'. For numeric float fields: The value is '0 E0'.
  */
+@Serializable
 object ZeroValue : Value {
     const val STRING_REPRESENTATION = "0"
 
@@ -923,6 +930,7 @@ object ZeroValue : Value {
     // override fun asBoolean() = BooleanValue.FALSE
 }
 
+@Serializable
 class AllValue(val charsToRepeat: String) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
@@ -942,8 +950,16 @@ class AllValue(val charsToRepeat: String) : Value {
     fun toIntOfLength(length: Int): Int {
         return toStringOfLength(length).asInt()
     }
+
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is AllValue -> return this.charsToRepeat == other.charsToRepeat
+            else -> false
+        }
+    }
 }
 
+@Serializable
 object IsoValue : Value {
     override fun copy() = this
 
@@ -958,6 +974,7 @@ object IsoValue : Value {
     }
 }
 
+@Serializable
 object JulValue : Value {
     override fun copy() = this
 
@@ -975,6 +992,7 @@ object JulValue : Value {
 /**
  * The container should always be a DS value
  */
+// @Serializable TODO: See `ProjectedArrayValue to Json` test for reason.
 class ProjectedArrayValue(
     val container: DataStructValue,
     val field: FieldDefinition,
@@ -999,10 +1017,10 @@ class ProjectedArrayValue(
 
     override fun setElement(index: Int, value: Value) {
         if (index < 1) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
         if (index > arrayLength()) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
         }
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val startIndex = (this.startOffset + this.step * (index - 1))
@@ -1018,10 +1036,10 @@ class ProjectedArrayValue(
 
     override fun getElement(index: Int): Value {
         if (index < 1) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be >=1. Index asked: $index")
         }
         if (index > arrayLength()) {
-            ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
+            throw ProgramStatusCode.ARRAY_INDEX_NOT_VALID.toThrowable("Indexes should be less than array length. Index asked: $index, Array length: ${arrayLength()}.")
         }
 
         val startIndex = (this.startOffset + this.step * (index - 1))
@@ -1039,15 +1057,64 @@ class ProjectedArrayValue(
         }
     }
 
-    override fun asString(): StringValue {
-        TODO("'ProjectedArrayValue.asString' is not yet implemented")
-    }
+    override fun asString(): StringValue = takeAll().asString()
 
+    /**
+     * Concatenates all elements of the array into a single `StringValue`, applying
+     * type-specific formatting rules based on the element type.
+     *
+     * ### Behavior:
+     * - **DecimalValue**:
+     *   - If the element type is not `RpgType.PACKED`, each decimal is converted to its zoned representation using `encodeToZoned()`.
+     *   - If the type *is* `PACKED`, only the decimal point (dot) is removed using `asStringWithoutComma()`.
+     * - **IntValue**:
+     *   - Each integer value is converted to zoned decimal format using `encodeToZoned()`.
+     * - **Other types**:
+     *   - All elements are concatenated as-is without any transformation.
+     *
+     * The resulting value is built by concatenating all transformed elements into a single `StringValue`.
+     *
+     * @return A `StringValue` representing the concatenated and appropriately formatted elements of the array.
+     */
     fun takeAll(): Value {
         var result = elements()[0]
-        for (i in 1 until arrayLength()) {
-            result = result.concatenate(elements()[i])
+        when (result) {
+            is DecimalValue -> {
+                /*
+                 * More important: a decimal value as Packed has own format and business logic.
+                 * So, in this case is removed only the dot.
+                 */
+                result = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
+                    StringValue(encodeToZoned(result.value, (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                } else {
+                    result.asStringWithoutComma()
+                }
+
+                for (i in 1 until arrayLength()) {
+                    val element = (elements()[i] as DecimalValue)
+
+                    val itemResult = if ((this.elementType as NumberType).rpgType != RpgType.PACKED.rpgType) {
+                        StringValue(encodeToZoned(element.value, (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                    } else {
+                        element.asStringWithoutComma()
+                    }
+                    result = result.concatenate(itemResult)
+                }
+            }
+            is IntValue -> {
+                result = StringValue(encodeToZoned(result.value.toBigDecimal(), (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                for (i in 1 until arrayLength()) {
+                    val itemResult = StringValue(encodeToZoned((elements()[i] as IntValue).value.toBigDecimal(), (this.elementType as NumberType).numberOfDigits, (this.elementType as NumberType).decimalDigits))
+                    result = result.concatenate(itemResult)
+                }
+            }
+            else -> {
+                for (i in 1 until arrayLength()) {
+                    result = result.concatenate(elements()[i])
+                }
+            }
         }
+
         return result
     }
 

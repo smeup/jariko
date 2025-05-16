@@ -49,6 +49,18 @@ private val module = SerializersModule {
         subclass(DataStructValue::class)
         subclass(OccurableDataStructValue::class)
         subclass(UnlimitedStringValue::class)
+        subclass(BlanksValue::class)
+        subclass(NullValue::class)
+        subclass(ZeroValue::class)
+        subclass(PointerValue::class)
+        subclass(IsoValue::class)
+        subclass(HiValValue::class)
+        subclass(LowValValue::class)
+        subclass(JulValue::class)
+        subclass(StartValValue::class)
+        subclass(AllValue::class)
+        subclass(EndValValue::class)
+//        subclass(ProjectedArrayValue::class) TODO: See `ProjectedArrayValue to Json` test for reason.
     }
     polymorphic(DSPFValue::class) {
         subclass(ConstantValue::class)

@@ -473,4 +473,22 @@ class MiscTest {
             message = "`field_10` does not must be removed because it is present both as qualified data structure field (with access only by dot notation) and `DataDefinition`"
         )
     }
+
+    @Test
+    fun getRootCause() {
+        val rootCause = Exception("I'm the root cause")
+        try {
+            try {
+                try {
+                    throw rootCause
+                } catch (e: Exception) {
+                    throw Exception("I'm the 2nd exception", rootCause)
+                }
+            } catch (e: Exception) {
+                throw Exception("I'm the 3rd exception", e)
+            }
+        } catch (e: Exception) {
+            assertEquals(rootCause, getRootCause(e))
+        }
+    }
 }

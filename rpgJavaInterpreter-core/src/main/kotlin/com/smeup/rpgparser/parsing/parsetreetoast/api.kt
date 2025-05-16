@@ -20,6 +20,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.specificProcess
 
@@ -55,7 +56,8 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
             this.copy(
                 fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
                 dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
-                subroutines = this.subroutines.include(api.compilationUnit.subroutines.invalidateResolution()),
+                // subroutines with the same names cannot be included
+                subroutines = this.subroutines.merge(api.compilationUnit.subroutines.invalidateResolution()),
                 compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
                 directives = this.directives.include(api.compilationUnit.directives),
                 position = this.position,
@@ -111,6 +113,20 @@ internal fun CompilationUnit.postProcess(): CompilationUnit {
 
 private fun <T : Node> List<T>.include(list: List<T>): List<T> {
     return this + list
+}
+
+/**
+ * Merges two lists of elements, ensuring no duplicates based on the `name` property.
+ *
+ * This function combines the current list with another list, filtering out elements
+ * from the second list that have a `name` property matching any element in the current list.
+ *
+ * @param list The list of elements to merge with the current list.
+ * @return A new list containing all elements from both lists, excluding duplicates
+ *         based on the `name` property.
+ */
+private fun <T> List<T>.merge(list: List<T>): List<T> where T : Node, T : Named {
+    return this + list.filter { elementToMerge -> elementToMerge.name != null && this.none { existingElement -> existingElement.name == elementToMerge.name } }
 }
 
 private fun <F, D : Node> Map<F, List<D>>.include(map: Map<F, List<D>>): Map<F, List<D>> {

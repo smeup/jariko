@@ -1696,6 +1696,7 @@ internal fun CsMVRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     )
     return MvrStmt(
         target = target,
+        position = toPosition(conf.considerPosition),
         dataDefinition = dataDefinition
     )
 }
