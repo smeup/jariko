@@ -995,4 +995,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("3.00", "3.00", "3.00", "3.00", "3.00")
         assertEquals(expected, "smeup/MUDRNRAPU001111".outputOf())
     }
+
+    /**
+     * Extracting a VARYING field from a DS
+     * @see #LS25002246
+     */
+    @Test
+    fun executeMUDRNRAPU00291() {
+        val expected = listOf("5")
+        assertEquals(expected, "smeup/MUDRNRAPU00291".outputOf())
+    }
 }
