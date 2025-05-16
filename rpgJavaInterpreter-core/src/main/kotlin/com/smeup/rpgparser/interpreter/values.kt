@@ -1220,17 +1220,36 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
     }
 
     operator fun get(data: FieldDefinition): Value {
-        return if (data.type is UnlimitedStringType) {
-            // if there is no unlimited field I return a default value
-            unlimitedStringField[data.name] ?: UnlimitedStringValue("")
-        } else if (data.declaredArrayInLine != null) {
-            ProjectedArrayValue.forData(this, data)
-        } else {
-            val substring = this.getSubstring(data.startOffset, data.endOffset)
-            if (data.type is NumberType && !checkNumberSyntax(substring.value, data.type)) {
-                throw UnsupportedOperationException("Cannot coerce sub-string `${substring.value}` to ${data.type}.")
+        return when {
+            data.type is UnlimitedStringType -> {
+                // if there is no unlimited field I return a default value
+                unlimitedStringField[data.name] ?: UnlimitedStringValue("")
             }
-            coerce(substring, data.type)
+            data.declaredArrayInLine != null -> {
+                ProjectedArrayValue.forData(this, data)
+            }
+            data.type is StringType && data.type.varying -> {
+                val rawValue = this.value.toString()
+
+                // Buffer might be greater than the actual length, find the actual last char
+                var endOffset = data.endOffset - 2
+                while (endOffset > data.startOffset) {
+                    if (rawValue[endOffset] != ' ') {
+                        break
+                    }
+                    --endOffset
+                }
+
+                // endOffset is 0-based but we want it to be 1-based
+                this.getSubstring(data.startOffset, endOffset + 1)
+            }
+            else -> {
+                val substring = this.getSubstring(data.startOffset, data.endOffset)
+                if (data.type is NumberType && !checkNumberSyntax(substring.value, data.type)) {
+                    throw UnsupportedOperationException("Cannot coerce sub-string `${substring.value}` to ${data.type}.")
+                }
+                coerce(substring, data.type)
+            }
         }
     }
 
