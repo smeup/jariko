@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -127,7 +128,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                     type.rpgType == RpgType.ZONED.rpgType -> {
                         if (!value.isBlank()) {
-                            val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            val intValue = decodeFromZoned(value.value.trim(), type.numberOfDigits, type.decimalDigits)
                             IntValue(intValue.longValueExact())
                         } else {
                             DecimalValue(BigDecimal.ZERO)
@@ -135,8 +136,14 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                     else -> {
                         if (!value.isBlank()) {
-                            val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                            IntValue(intValue.longValueExact())
+                            val intValue = value.value.trim()
+                            if (intValue.isNumber()) {
+                                IntValue(intValue.toLong())
+                            } else {
+                                // A Packed could end with a char. Consider MUDRNRAPU00115.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.numberOfDigits, type.decimalDigits)
+                                IntValue(packedValue.longValueExact())
+                            }
                         } else {
                             IntValue(0)
                         }
@@ -146,12 +153,39 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 if (!value.isBlank()) {
                     when {
                         type.rpgType == RpgType.ZONED.rpgType -> {
-                            val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            val decimalValue = decodeFromZoned(value.value.trim(), type.numberOfDigits, type.decimalDigits)
                             DecimalValue(decimalValue)
                         }
                         else -> {
-                            val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                            DecimalValue(decimalValue)
+                            /*
+                             * This logic covers:
+                             * - a DB number which corresponds to the type;
+                             * - a Packed number to decode;
+                             * - a Packed number not encoded. In this case could be extracted from DS field declared as array.
+                             *
+                             *  For example, during the execution of `MUDRNRAPU00254`, we have:
+                             *   NumberType(entireDigits=21, decimalDigits=9, rpgType=P)
+                             *  and:
+                             *   StringValue[11](1.000000000)
+                             */
+                            val decimalValue = value.value.trim()
+                            if (decimalValue.isNumber()) {
+                                val isDecimal = decimalValue.lastIndexOf('.') != -1
+                                if (isDecimal) {
+                                    return DecimalValue(decimalValue.toBigDecimal())
+                                }
+
+                                val numberPaddedLeft = decimalValue.padStart(type.entireDigits, '0')
+                                val numberWithDot = StringBuilder(numberPaddedLeft).apply {
+                                    insert(numberPaddedLeft.length - type.decimalDigits, ".")
+                                }.toString()
+
+                                DecimalValue(numberWithDot.toBigDecimal())
+                            } else {
+                                // A Packed could end with a char. Consider MUDRNRAPU00115.
+                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.numberOfDigits, type.decimalDigits)
+                                DecimalValue(packedValue)
+                            }
                         }
                     }
                 } else {
@@ -308,7 +342,7 @@ fun Type.lowValue(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
         is DataStructureType -> {
             val fields = this.fields.associateWith { field -> field.type.lowValue() }
-            DataStructValue.fromFields(fields)
+            DataStructValue.fromFields(fields = fields, type = this)
         }
         is BooleanType -> BooleanValue.FALSE
         is RecordFormatType -> BlanksValue
@@ -323,7 +357,7 @@ fun Type.hiValue(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
         is DataStructureType -> {
             val fields = this.fields.associateWith { field -> field.type.hiValue() }
-            DataStructValue.fromFields(fields)
+            DataStructValue.fromFields(fields = fields, type = this)
         }
         is BooleanType -> BooleanValue.TRUE
         is RecordFormatType -> BlanksValue

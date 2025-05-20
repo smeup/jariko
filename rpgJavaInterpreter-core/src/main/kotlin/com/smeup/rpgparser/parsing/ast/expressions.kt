@@ -307,9 +307,6 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
         require(variable.name.trim() == variable.name) {
             "The variable name should not starts or ends with whitespace: $variable.name - ${position.atLine()}"
         }
-        require(!variable.name.contains(".")) {
-            "The variable name should not contain any dot: <${variable.name}> - ${position.atLine()}"
-        }
         require(!variable.name.contains("(") && !variable.name.contains(")")) {
             "The variable name should not contain any parenthesis: $variable.name - ${position.atLine()}"
         }

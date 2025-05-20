@@ -20,7 +20,9 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.specificProcess
 
 internal fun RpgParser.Dir_apiContext.toApiId(conf: ToAstConfiguration): ApiId {
     return ApiId(
@@ -54,7 +56,8 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
             this.copy(
                 fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
                 dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
-                subroutines = this.subroutines.include(api.compilationUnit.subroutines),
+                // subroutines with the same names cannot be included
+                subroutines = this.subroutines.merge(api.compilationUnit.subroutines.invalidateResolution()),
                 compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
                 directives = this.directives.include(api.compilationUnit.directives),
                 position = this.position,
@@ -112,6 +115,20 @@ private fun <T : Node> List<T>.include(list: List<T>): List<T> {
     return this + list
 }
 
+/**
+ * Merges two lists of elements, ensuring no duplicates based on the `name` property.
+ *
+ * This function combines the current list with another list, filtering out elements
+ * from the second list that have a `name` property matching any element in the current list.
+ *
+ * @param list The list of elements to merge with the current list.
+ * @return A new list containing all elements from both lists, excluding duplicates
+ *         based on the `name` property.
+ */
+private fun <T> List<T>.merge(list: List<T>): List<T> where T : Node, T : Named {
+    return this + list.filter { elementToMerge -> elementToMerge.name != null && this.none { existingElement -> existingElement.name == elementToMerge.name } }
+}
+
 private fun <F, D : Node> Map<F, List<D>>.include(map: Map<F, List<D>>): Map<F, List<D>> {
     return this + map
 }
@@ -128,5 +145,29 @@ private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<
         } else {
             procedure
         }
+    }
+}
+
+/**
+ * Invalidates the resolution of variable references within a list of `Subroutine` objects.
+ *
+ * This function iterates through each `Subroutine` in the list and clears the `referred` property
+ * of any `Variable` referenced by a `DataRefExpr`.  This effectively invalidates the previous
+ * resolution of these variable references, potentially forcing them to be re-resolved later.
+ * This is often necessary when changes have been made to the data model that might affect
+ * the validity of existing variable resolutions.
+ *
+ * The function uses the `specificProcess` method to traverse the `Subroutine`'s expression tree
+ * and target only `DataRefExpr` instances.  For each `DataRefExpr`, it sets the `referred`
+ * property of the associated `Variable` to `null`.
+ *
+ * This function does not modify the original `Subroutine` objects; it returns a *new* list
+ * containing modified copies of the `Subroutine` objects.
+ *
+ * @return A new list of `Subroutine` objects with invalidated variable references.
+ */
+private fun List<Subroutine>.invalidateResolution(): List<Subroutine> {
+    return this.map { subroutine ->
+        subroutine.specificProcess(DataRefExpr::class.java) { it.variable.referred = null }.let { subroutine }
     }
 }

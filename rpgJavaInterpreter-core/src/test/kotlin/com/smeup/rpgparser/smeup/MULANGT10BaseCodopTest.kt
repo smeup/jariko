@@ -421,9 +421,9 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     @Test
     fun executeMUDRNRAPU00272() {
         val expected = listOf("ok", "ok", "ok", "ok")
-        C5ADFF9LDbMock().usePopulated {
+        C5ADFF9LDbMock().usePopulated({
             assertEquals(expected, "smeup/MUDRNRAPU00272".outputOf(configuration = smeupConfig))
-        }
+        })
     }
 
     /**
@@ -927,5 +927,140 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU00280() {
         val expected = listOf("1", "0")
         assertEquals(expected, "smeup/MUDRNRAPU00280".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * MOVEA from DS to S defined as array.
+     * @see #LS25000557
+     */
+    @Test
+    fun executeMUDRNRAPU00195() {
+        val expected = listOf("0123456789", "", "0123456789", "0123456789")
+        assertEquals(expected, "smeup/MUDRNRAPU00195".outputOf())
+    }
+
+    /**
+     * MOVEA from DS to S defined as array, with size lower than DS.
+     * @see #LS25000557
+     */
+    @Test
+    fun executeMUDRNRAPU00196() {
+        val expected = listOf("0123456789", "", "0123456789", "01234567")
+        assertEquals(expected, "smeup/MUDRNRAPU00196".outputOf())
+    }
+
+    /**
+     * MOVEA from DS to S defined as array, with size greater than DS.
+     * @see #LS25000557
+     */
+    @Test
+    fun executeMUDRNRAPU00197() {
+        val expected = listOf("0123456789", "", "0123456789", "0123456789")
+        assertEquals(expected, "smeup/MUDRNRAPU00197".outputOf())
+    }
+
+    /**
+     * MOVEA from S, defined as array, to DS.
+     * @see #LS25000567
+     */
+    @Test
+    fun executeMUDRNRAPU00198() {
+        val expected = listOf("0123456789", "AAAAAAAAAA", "AAAAAAAAAA", "AAAAAAAAAA")
+        assertEquals(expected, "smeup/MUDRNRAPU00198".outputOf())
+    }
+
+    /**
+     * MOVEA from S, defined as array, to DS. The array size is lower than DS.
+     * @see #LS25000567
+     */
+    @Test
+    fun executeMUDRNRAPU00199() {
+        val expected = listOf("0123456789", "AAAAAAAA", "AAAAAAAA89", "AAAAAAAA")
+        assertEquals(expected, "smeup/MUDRNRAPU00199".outputOf())
+    }
+
+    /**
+     * MOVEA from S, defined as array, to DS. The array size is greater than DS.
+     * @see #LS25000567
+     */
+    @Test
+    fun executeMUDRNRAPU001100() {
+        val expected = listOf("0123456789", "AAAAAAAAAAAA", "AAAAAAAAAA", "AAAAAAAAAAAA")
+        assertEquals(expected, "smeup/MUDRNRAPU001100".outputOf())
+    }
+
+    /**
+     * This program shows a Packed number of a DS which, in hexadecimal, corresponds to `0   `.
+     * @see #LS25000966
+     */
+    @Test
+    fun executeMUDRNRAPU001106() {
+        val expected = listOf("300.000000")
+        assertEquals(expected, "smeup/MUDRNRAPU001106".outputOf())
+    }
+
+    /**
+     * Decode a packed encoded with a scale smaller than what its type expects
+     * @see #LS25001002
+     */
+    @Test
+    fun executeMUDRNRAPU00284() {
+        val expected = listOf(".010000")
+        assertEquals(expected, "smeup/MUDRNRAPU00284".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Z-ADD from a binary field to a binary data definition
+     * @see #LS25001162
+     */
+    @Test
+    fun executeMUDRNRAPU00285() {
+        // The magic number 8224 correspond to the deserialization of the "  " DS substring
+        // code of ' ' = 32
+        // 8224 = 8192 + 32 = (32 << 8) + 32
+        val expected = listOf("8224", "8224")
+        assertEquals(expected, "smeup/MUDRNRAPU00285".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Perform OPEN on a F-spec marked with PRINTER
+     * @see #LS25001512
+     */
+    @Test
+    fun executeMUDRNRAPU00286() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00286".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001107() {
+        val expected = listOf("1", "2", "3", "000010000200003")
+        assertEquals(expected, "smeup/MUDRNRAPU001107".outputOf())
+    }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * Is similar to `MUDRNRAPU001107` but the DS field is declared as array of decimals instead integers.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001108() {
+        val expected = listOf("1.50", "2.50", "3.50", "001500025000350", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001108".outputOf())
+    }
+
+    /**
+     * Pass an array declared as DS field to a program which declares same program entry as Standalone.
+     * Is similar to `MUDRNRAPU001107` but the DS field is declared as array of packed instead integers.
+     * @see #LS25001579
+     */
+    @Test
+    fun executeMUDRNRAPU001109() {
+        val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
+        assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
     }
 }

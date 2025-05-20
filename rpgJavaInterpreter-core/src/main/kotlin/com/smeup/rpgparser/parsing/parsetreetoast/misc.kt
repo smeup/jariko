@@ -34,6 +34,7 @@ import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
+import kotlin.collections.ArrayList
 
 enum class AstHandlingPhase {
     FileDefinitionsCreation,
@@ -130,7 +131,7 @@ private fun List<StatementContext?>.getDataDefinition(
         parentDataDefinitions = parentDataDefinitions,
         procedureName = procedureName
     )
-    dataDefinitionProviders.addAll(constantProviders)
+    dataDefinitionProviders.addOrReplaceAll(constantProviders)
 
     // First pass ignore exception and all the know definitions
     val firstPassProviders = sortedStatements.mapNotNull {
@@ -141,7 +142,7 @@ private fun List<StatementContext?>.getDataDefinition(
             fileDefinitions = fileDefinitions
         )
     }
-    dataDefinitionProviders.addAll(firstPassProviders)
+    dataDefinitionProviders.addOrReplaceAll(firstPassProviders)
 
     // Second pass, everything, I mean everything
     val secondPassProviders = sortedStatements.getValidDataDefinitionHolders(
@@ -151,9 +152,29 @@ private fun List<StatementContext?>.getDataDefinition(
         parentDataDefinitions = parentDataDefinitions,
         procedureName = procedureName
     )
-    dataDefinitionProviders.addAll(secondPassProviders)
+    dataDefinitionProviders.addOrReplaceAll(secondPassProviders)
 
     return Pair(dataDefinitionProviders, knownDataDefinitions)
+}
+
+/**
+ * Adds or replaces elements in the current list with new data definitions.
+ *
+ * This function updates the mutable list of `DataDefinitionProvider` instances by:
+ * 1. Replacing existing elements if a matching entry (based on name, case-insensitive) is found in `dataDefinitions`.
+ * 2. Removing replaced elements from the input list to track which ones have been processed.
+ * 3. Adding any remaining elements from `dataDefinitions` that were not replacements.
+ *
+ * This is useful, for example, when a File defines a field but the program redefined it as Data Structure
+ * with same size of origin.
+ *
+ * @receiver Mutable list of `DataDefinitionProvider` elements to be updated.
+ * @param dataDefinitions The list of new `DataDefinitionProvider` elements to add or use for replacements.
+ */
+private fun MutableList<DataDefinitionProvider>.addOrReplaceAll(dataDefinitions: List<DataDefinitionProvider>) {
+    val dataDefinitionsMutable = dataDefinitions.toMutableList()
+    this.replaceAll { old -> dataDefinitionsMutable.firstOrNull { new -> old.toDataDefinition().name.equals(new.toDataDefinition().name, ignoreCase = true) }?.also { dataDefinitionsMutable.remove(it) } ?: old }
+    this.addAll(dataDefinitionsMutable)
 }
 
 private fun List<StatementContext>.getValidDataDefinitionHolders(
@@ -226,7 +247,18 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
     val old = get(dataDefinition.name)
-    if (old == null || (old.type is RecordFormatType && dataDefinition.type is DataStructureType)) {
+
+    /*
+     * The addition is done by these assertion:
+     *  - could not exist;
+     *  - could already exist as RecordFormat and the new definition is Data Structure;
+     *  - could already exist as File field and the new definition is Data Structure or String.
+     */
+    if (
+        old == null ||
+        (old.type is RecordFormatType && dataDefinition.type is DataStructureType) ||
+        (old.fromFile && old.type is StringType && (dataDefinition.type is DataStructureType || dataDefinition.type is StringType) && old.type.size == dataDefinition.type.size)
+    ) {
         put(dataDefinition.name, dataDefinition)
     } else {
         dataDefinition.error("${dataDefinition.name} has been defined twice")
@@ -277,7 +309,7 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
 
     dataDefinitions.addAll(
         metadata.fields.map { dbField ->
-            dbField.toDataDefinition(prefix = prefix, position = position).apply {
+            dbField.toDataDefinition(prefix = prefix, position = position, fromFile = true).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
         }
@@ -295,7 +327,8 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             internalFormatName!!,
             type = RecordFormatType,
             position = position,
-            fields = fieldsDefinition
+            fields = fieldsDefinition,
+            fromFile = true
         )
 
         dataDefinitions.add(recordFormatDefinition)
@@ -699,9 +732,9 @@ internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     }
 }
 
-internal fun String.isInt() = this.toIntOrNull() != null
+internal fun String.isInt() = this.matches(Regex("^-?[0-9]+$"))
 
-internal fun String.isDecimal() = this.toDoubleOrNull() != null
+internal fun String.isDecimal() = this.matches(Regex("^-?[0-9]*.[0-9]+$"))
 
 internal fun String.toDecimal() = this.toDouble()
 
@@ -822,6 +855,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
+        this.csEVALR() != null -> this.csEVALR().toAst(conf)
 
         this.csCALL() != null -> this.csCALL()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
@@ -1062,21 +1096,9 @@ private fun annidatedReferenceExpression(
         return IndicatorExpr(index.toIndicatorKey(), position)
     }
 
-    var expr: Expression
-    if (text.contains(".")) {
-            val parts = text.split(".")
-            require(parts.isNotEmpty())
-            val varName = if (parts.size == 1) {
-                parts[0]
-            } else {
-                parts.last()
-            }
-            expr = DataRefExpr(ReferenceByName(varName), position)
-    } else {
-        expr = text.indexOf("(").let {
-            val varName = if (it == -1) text else text.substring(0, it)
-            DataRefExpr(ReferenceByName(varName), position)
-        }
+    var expr: Expression = text.indexOf("(").let {
+        val varName = if (it == -1) text else text.substring(0, it)
+        DataRefExpr(ReferenceByName(varName), position)
     }
 
     if (text.contains("(")) {
@@ -1175,11 +1197,6 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistParam {
     var resultName = this.cspec_fixed_standard_parts().result.text
-    if (resultName.contains(".")) {
-        val parts = resultName.split(".")
-        require(parts.isNotEmpty())
-        resultName = parts.last()
-    }
     val resultPosition = this.cspec_fixed_standard_parts().result.toPosition()
 
     val factor1Text = this.factor1.text.trim()
@@ -1331,6 +1348,21 @@ internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         this.target().toAst(conf),
         this.fixedexpression.expression().toAst(conf),
         operator = this.operator.toAssignmentOperator(),
+        flags = flags,
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun CsEVALRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalRStmt {
+    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
+    val flags = EvalFlags(
+        halfAdjust = 'H' in extenders,
+        maximumNumberOfDigitsRule = 'M' in extenders,
+        resultDecimalPositionRule = 'R' in extenders
+    )
+    return EvalRStmt(
+        this.target().toAst(conf),
+        this.fixedexpression.expression().toAst(conf),
         flags = flags,
         position = toPosition(conf.considerPosition)
     )
@@ -1664,6 +1696,7 @@ internal fun CsMVRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     )
     return MvrStmt(
         target = target,
+        position = toPosition(conf.considerPosition),
         dataDefinition = dataDefinition
     )
 }
@@ -2225,7 +2258,9 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
     // NOTE: With current logic when type matches on duplications the first definition wins
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
-    return removeUnnecessaryRecordFormat().filter {
+    return removeUnnecessaryRecordFormat()
+        .removeStandaloneDefinedAsFieldOfUnqualifiedDs()
+        .filter {
         val dataDefinition = dataDefinitionMap[it.name]
         if (dataDefinition == null) {
             dataDefinitionMap[it.name] = it
@@ -2241,7 +2276,6 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
     fun Type.matchType(other: Any?): Boolean {
-        // TODO: Improve logic for StringType/UnlimitedStringType matching
         return when {
             this is NumberType && other is NumberType -> {
                 val resultDigits = this.entireDigits == other.entireDigits && this.decimalDigits == other.decimalDigits
@@ -2250,7 +2284,11 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
                 }
                 resultDigits
             }
+            // TODO: Improve logic for StringType/UnlimitedStringType matching
             this is UnlimitedStringType && other is StringType -> true
+            this is DataStructureType && other is DataStructureType -> {
+                return this.fields.intersect(other.fields).toList() == other.fields
+            }
             else -> this == other
         }
     }
@@ -2278,6 +2316,46 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
 private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat(): List<T> {
     return this.filterNot { dataDef ->
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
+    }
+}
+
+/**
+ * Removes "standalone" `DataDefinition` objects that are also defined as fields within
+ * unqualified Data Structures in the same list.
+ *
+ * This function identifies and removes `DataDefinition` objects that have the same name (case-insensitive)
+ * as a `FieldDefinition` within the list.  This is typically done to resolve conflicts where a
+ * data definition might be defined both independently (as a "standalone" definition) and as a
+ * field within a Data Structure.  The field definition is generally preferred.
+ *
+ * The function performs a type compatibility check using `matchType` between the standalone
+ * `DataDefinition` and the corresponding `FieldDefinition`.  If a name match is found but the types
+ * are incompatible, an `IllegalArgumentException` is thrown.
+ *
+ * This function operates on a list of `AbstractDataDefinition` objects, which can include both
+ * `DataDefinition` and `FieldDefinition` objects.  It returns a *new* list containing only the
+ * `AbstractDataDefinition` objects that are *not* standalone definitions matching a field.
+ *
+ * @param <T> The specific type of `AbstractDataDefinition` in the list.
+ * @return A new list of `AbstractDataDefinition` objects with the standalone duplicates removed.
+ * @throws IllegalArgumentException If a name match is found between a `DataDefinition` and a
+ *                                  `FieldDefinition`, but their types are incompatible. The
+ *                                  exception message will detail the conflicting types.
+ */
+private fun <T : AbstractDataDefinition> List<T>.removeStandaloneDefinedAsFieldOfUnqualifiedDs(): List<T> {
+    val fieldsInRoot = this.filterIsInstance<FieldDefinition>()
+    return this.filterNot { dataDefinition ->
+        dataDefinition is DataDefinition &&
+                fieldsInRoot
+                    .any { fieldInRoot -> dataDefinition.name.equals(fieldInRoot.name, ignoreCase = true)
+                        .also {
+                            if (it) {
+                                dataDefinition.require(dataDefinition.matchType(fieldInRoot)) {
+                                    "Incongruous definitions of ${dataDefinition.name}: ${fieldInRoot.type} vs ${dataDefinition.type}"
+                                }
+                            }
+                        }
+                    }
     }
 }
 

@@ -29,8 +29,8 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
 
 private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCore: InterpreterCore): Value {
     val targetType = target.type()
-    require(targetType is ArrayType || targetType is StringType) {
-        "Result must be an Array or a String"
+    require(targetType is ArrayType || targetType is StringType || targetType is DataStructureType) {
+        "Result must be an Array, String or a DS"
     }
     return if (value is FigurativeConstantRef) {
         interpreterCore.assign(target, interpreterCore.eval(value))
@@ -43,6 +43,7 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
         val computedValue = when (type) {
             is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
             is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
+            is DataStructureType -> moveaDataStructure(operationExtenter, target, startIndex, interpreterCore, value)
             else -> TODO()
         }
         interpreterCore.assign(target, computedValue)
@@ -56,6 +57,10 @@ private fun moveaNumber(
     interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
+    if (value is DataRefExpr && value.variable.referred?.type is DataStructureType) {
+        throw IllegalStateException("You cannot move a DS into a numeric array: ${value.render()} (${value.position})")
+    }
+
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val newValue = interpreterCore.toArray(value, targetArray.elementType)
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
@@ -72,10 +77,66 @@ private fun moveaNumber(
                     IntValue.ZERO
                 }
             }
-            internalCoercing(elementValue, targetArray.elementType, newValue.elementType)
+
+            if (newValue.elementType is NumberType && targetArray.elementType is NumberType) {
+                numberCoercing(elementValue, targetArray.elementType as NumberType, newValue.elementType as NumberType)
+            } else {
+                elementValue
+            }
         }
     }
     return arrayValue
+}
+
+/**
+ * Moves data into a Data Structure.
+ *
+ * This function takes a portion of a string value (provided as an `Expression`) and inserts it into a
+ * `DataStructValue` at a specified position.  It handles cases where the input string is longer than
+ * the available space in the target Data Structure by truncating the input string.
+ *
+ * The function performs the following steps:
+ * 1. Evaluates the `target` `DataRefExpr` to obtain the `DataStructValue` to modify.
+ * 2. Evaluates the `value` `Expression` to obtain the string value to insert (converting if necessary).
+ * 3. Checks for a specific type mismatch: If the `value` is a `DataRefExpr` referring to an array of numbers,
+ *    an `IllegalStateException` is thrown. This likely represents a domain-specific constraint.
+ * 4. Determines the end index for the substring to be inserted, taking into account the length of the
+ *    input string and the available space in the target `DataStructValue`.
+ * 5. Extracts the appropriate substring from the input string.
+ * 6. Uses the `setSubstring` method of the `DataStructValue` to insert the substring at the correct position.
+ * 7. Returns the modified `DataStructValue`.
+ *
+ * @param operationExtender (Optional) A string representing an operation extender.  Its purpose is not clear from the code and requires further context.
+ * @param target The `DataRefExpr` representing the target `DataStructValue` to modify.
+ * @param startIndex The starting index (1-based) within the `DataStructValue` where the substring should be inserted.
+ * @param interpreterCore The `InterpreterCore` instance used to evaluate expressions.
+ * @param value The `Expression` representing the string value to be inserted.
+ * @return The modified `DataStructValue`.
+ * @throws IllegalStateException If the `value` is a `DataRefExpr` referring to an array of numbers.
+ * @see DataStructValue.setSubstring
+ */
+private fun moveaDataStructure(
+    operationExtender: String?,
+    target: DataRefExpr,
+    startIndex: Int,
+    interpreterCore: InterpreterCore,
+    value: Expression
+): DataStructValue {
+    if (value is DataRefExpr && value.variable.referred?.type is ArrayType && (value.variable.referred?.type as ArrayType).element is NumberType) {
+        throw IllegalStateException("You cannot move a numeric array into a DS: ${value.render()} (${value.position})")
+    }
+
+    val targetValue: DataStructValue = interpreterCore.eval(target) as DataStructValue
+    var newValue: StringValue = interpreterCore.eval(value).asString()
+    var endIndex: Int = newValue.length()
+
+    if (endIndex > targetValue.len) {
+        endIndex = targetValue.len
+        newValue = newValue.getSubstring(startIndex - 1, endIndex)
+    }
+
+    targetValue.setSubstring(startIndex - 1, endIndex, newValue)
+    return targetValue
 }
 
 private fun InterpreterCore.toArray(expression: Expression, targetType: Type): ArrayValue =
@@ -163,9 +224,9 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
  * the conversion.
  *
  * @param sourceValue The `Value` to be coerced, generally a numeric type such as `DecimalValue` or `IntValue`.
- * @param targetType The target `Type` for the coercion, used to guide the conversion, particularly
+ * @param targetType The target `NumberType` for the coercion, used to guide the conversion, particularly
  *                   regarding the number of decimal places.
- * @param sourceType The `Type` representing the original type of `sourceValue`, assisting in determining
+ * @param sourceType The `NumberType` representing the original type of `sourceValue`, assisting in determining
  *                   the required scale and format for conversion.
  *
  * @return The resulting `Value` after coercion, transformed to align with `targetType`.
@@ -175,22 +236,22 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
  * @throws ClassCastException if `sourceValue` is not a `DecimalValue` or `IntValue`, or if `targetType`
  *                            or `sourceType` are not of numeric types.
  */
-private fun internalCoercing(
+private fun numberCoercing(
     sourceValue: Value,
-    targetType: Type,
-    sourceType: Type
+    targetType: NumberType,
+    sourceType: NumberType
 ): Value {
     // Number of digits between source and target must be equals.
-    if (sourceType is NumberType && targetType is NumberType && sourceType.numberOfDigits != targetType.numberOfDigits) {
+    if (sourceType.numberOfDigits != targetType.numberOfDigits) {
         throw IllegalStateException("Factor 2 and Result with different type and size.")
     }
 
     return when {
         // Proper conversion between a left side as decimal to right side as integer
-        sourceValue is DecimalValue && sourceType is NumberType && targetType is NumberType && targetType.decimalDigits == 0 ->
+        sourceValue is DecimalValue && targetType.decimalDigits == 0 ->
             DecimalValue(sourceValue.value * 10.0.pow(targetType.entireDigits - sourceType.entireDigits).toBigDecimal())
         // Or integer to decimal
-        sourceValue is IntValue && targetType is NumberType && targetType.decimalDigits > 0 ->
+        sourceValue is IntValue && targetType.decimalDigits > 0 ->
             DecimalValue((sourceValue.value / 10.0.pow(targetType.decimalDigits)).toBigDecimal())
         else -> sourceValue
     }

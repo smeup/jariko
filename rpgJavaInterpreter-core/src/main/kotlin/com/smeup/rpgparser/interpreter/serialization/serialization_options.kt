@@ -21,6 +21,7 @@ import com.smeup.dspfparser.linesclassifier.DSPFValue
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
+import com.smeup.rpgparser.serialization.StringBuilderSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
@@ -32,6 +33,11 @@ import kotlinx.serialization.modules.subclass
 private val module = SerializersModule {
     contextual(BigDecimalSerializer)
     contextual(LocalDateTimeSerializer)
+    contextual(StringBuilderSerializer)
+    polymorphic(DataStructValueBuilder::class) {
+        subclass(StringBuilderWrapper::class)
+        subclass(IndexedStringBuilder::class)
+    }
     polymorphic(Value::class) {
         subclass(IntValue::class)
         subclass(DecimalValue::class)
@@ -43,6 +49,18 @@ private val module = SerializersModule {
         subclass(DataStructValue::class)
         subclass(OccurableDataStructValue::class)
         subclass(UnlimitedStringValue::class)
+        subclass(BlanksValue::class)
+        subclass(NullValue::class)
+        subclass(ZeroValue::class)
+        subclass(PointerValue::class)
+        subclass(IsoValue::class)
+        subclass(HiValValue::class)
+        subclass(LowValValue::class)
+        subclass(JulValue::class)
+        subclass(StartValValue::class)
+        subclass(AllValue::class)
+        subclass(EndValValue::class)
+//        subclass(ProjectedArrayValue::class) TODO: See `ProjectedArrayValue to Json` test for reason.
     }
     polymorphic(DSPFValue::class) {
         subclass(ConstantValue::class)

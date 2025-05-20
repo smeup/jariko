@@ -21,6 +21,7 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.AbstractDataStructureType
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
 import com.strumenta.kolasu.model.*
@@ -90,13 +91,37 @@ data class CompilationUnit(
         get() {
             if (_allDataDefinitions.isEmpty()) {
                 _allDataDefinitions.addAll(dataDefinitions)
-                // Adds DS sub-fields
-                dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
+                // Adds unqualified DS sub-fields
+                dataDefinitions.forEach { dataDefinition ->
+                    if (dataDefinition.type is AbstractDataStructureType && !(dataDefinition.type as AbstractDataStructureType).isQualified) {
+                        dataDefinition.fields.let { _allDataDefinitions.addAll(it) }
+                    }
+                }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 _allDataDefinitions = _allDataDefinitions.removeDuplicatedDataDefinition().toMutableList()
             }
             return _allDataDefinitions
         }
+
+    internal val allDataDefinitionsByName: Map<String, AbstractDataDefinition> by lazy {
+        allDataDefinitions.associateBy { it.name.uppercase() }
+    }
+
+    internal val subroutinesByName: Map<String, Subroutine> by lazy {
+        subroutines.associateBy { it.name.uppercase() }
+    }
+
+    internal val dataDefinitionsByName: Map<String, DataDefinition> by lazy {
+        dataDefinitions.associateBy { it.name.uppercase() }
+    }
+
+    internal val compileTimeArraysByName: Map<String, CompileTimeArray> by lazy {
+        compileTimeArrays.associateBy { it.name.uppercase() }
+    }
+
+    internal val fileDefinitionsByName: Map<String, FileDefinition> by lazy {
+        fileDefinitions.associateBy { it.name.uppercase() }
+    }
 
     /**
      * This returns `true` if this procedure is a prototype by its empty lists for file definition,
@@ -111,20 +136,21 @@ data class CompilationUnit(
                 this.directives.isEmpty()
     }
 
-    fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
+    fun hasDataDefinition(name: String) = dataDefinitionsByName.containsKey(name.uppercase())
 
-    fun getDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
+    fun getDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = dataDefinitionsByName[name.uppercase()]
             ?: throw IllegalArgumentException(errorMessage.invoke())
 
     fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
             ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
-    fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }
+    fun hasAnyDataDefinition(name: String) = allDataDefinitionsByName.containsKey(name.uppercase())
 
-    fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
+    fun getAnyDataDefinition(name: String) = allDataDefinitionsByName[name.uppercase()]
+        ?: throw IllegalArgumentException("Data definition $name was not found")
 
-    fun getAnyDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
+    fun getAnyDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = allDataDefinitionsByName[name.uppercase()]
         ?: throw IllegalArgumentException(errorMessage.invoke())
 
     fun compileTimeArray(name: String): CompileTimeArray {
@@ -133,7 +159,7 @@ data class CompilationUnit(
         } else {
             CompileTimeArray("", emptyList())
         }
-        return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: firstCompileTimeArray()
+        return compileTimeArraysByName[name.uppercase()] ?: firstCompileTimeArray()
     }
 
     fun compileTimeArray(index: Int): CompileTimeArray {
@@ -143,9 +169,10 @@ data class CompilationUnit(
         return compileTimeArrays[index]
     }
 
-    fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
+    fun hasFileDefinition(name: String) = fileDefinitionsByName.containsKey(name.uppercase())
 
-    fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
+    fun getFileDefinition(name: String) = fileDefinitionsByName[name.uppercase()]
+        ?: throw IllegalArgumentException("File definition $name was not found")
 }
 
 @Serializable

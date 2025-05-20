@@ -672,7 +672,7 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun executeERROR36CallBackTest() {
-        TABDS01LDbMock().usePopulated {
+        TABDS01LDbMock().usePopulated({
             executePgmCallBackTest(
                 pgm = "ERROR36",
                 sourceReferenceType = SourceReferenceType.Program,
@@ -680,7 +680,7 @@ class JarikoCallbackTest : AbstractTest() {
                 lines = listOf(6),
                 reloadConfig = it.createReloadConfig()
             )
-        }
+        })
     }
 
     @Test
@@ -1019,6 +1019,72 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR49SourceLineTest() {
         executeSourceLineTest("ERROR49")
+    }
+
+    @Test
+    fun executeERROR50CallBackTest() {
+        executePgmCallBackTest("ERROR50", SourceReferenceType.Program, "ERROR50", mapOf(
+            19 to "Data reference not resolved: DS1_F2 at: Position(start=Line 12, Column 35, end=Line 12, Column 41)"
+        ))
+    }
+
+    @Test
+    fun executeERROR50SourceLineTest() {
+        executeSourceLineTest("ERROR50")
+    }
+
+    @Test
+    fun executeERROR51CallBackTest() {
+        executePgmCallBackTest("ERROR51", SourceReferenceType.Program, "ERROR51", mapOf(
+            13 to "You cannot move a DS into a numeric array: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))"
+        ))
+    }
+
+    @Test
+    fun executeERROR51SourceLineTest() {
+        executeSourceLineTest("ERROR51")
+    }
+
+    @Test
+    fun executeERROR52CallBackTest() {
+        executePgmCallBackTest("ERROR52", SourceReferenceType.Program, "ERROR52", mapOf(
+            13 to "You cannot move a numeric array into a DS: SCAATT (Position(start=Line 13, Column 35, end=Line 13, Column 41))"
+        ))
+    }
+
+    @Test
+    fun executeERROR52SourceLineTest() {
+        executeSourceLineTest("ERROR52")
+    }
+
+    @Test
+    fun executeERROR53CallBackTest() {
+        executePgmCallBackTest("ERROR53", SourceReferenceType.Copy, "QILEGEN,£PDS", listOf(130))
+    }
+
+    @Test
+    fun executeERROR53SourceLineTest() {
+        executeSourceLineTest("ERROR53")
+    }
+
+    @Test
+    fun executeERROR54CallBackTest() {
+        executePgmCallBackTest("ERROR54", SourceReferenceType.Program, "ERROR54", mapOf(5 to "Array index not valid - Indexes should be >=1. Index asked: 0"))
+    }
+
+    @Test
+    fun executeERROR54SourceLineTest() {
+        executeSourceLineTest("ERROR54")
+    }
+
+    @Test
+    fun executeERROR55CallBackTest() {
+        executePgmCallBackTest("ERROR55", SourceReferenceType.Program, "ERROR55", mapOf(5 to "Array index not valid - Indexes should be >=1. Index asked: 0"))
+    }
+
+    @Test
+    fun executeERROR55SourceLineTest() {
+        executeSourceLineTest("ERROR54")
     }
 
     @Test

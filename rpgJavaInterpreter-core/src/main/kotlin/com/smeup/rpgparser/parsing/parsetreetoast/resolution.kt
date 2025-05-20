@@ -18,10 +18,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.smeup.rpgparser.interpreter.type
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
 import com.smeup.rpgparser.parsing.facade.adaptInFunctionOf
@@ -100,17 +97,12 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
         this.specificProcess(DataRefExpr::class.java) { dre ->
             if (!dre.variable.resolved) {
                 if (dre.variable.name.contains('.')) {
-                    dre.variable.name.substring(0, dre.variable.name.indexOf("."))
-
-                    val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
-
-                    val resField = cu.allDataDefinitions.find { it.name.equals(fieldName, true) }
-                    dre.variable.referred = resField
+                    dre.variable.referred = dre.variable.getReferredFromDsAccess(cu)
                 } else {
                     var currentCu: CompilationUnit? = cu
                     var resolved = false
                     while (currentCu != null && !resolved) {
-                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitionsByName, caseInsensitive = true)
                         currentCu = currentCu.parent?.let { it as CompilationUnit }
                     }
                     if (!resolved) {
@@ -216,7 +208,7 @@ private fun CompilationUnit.resolve() {
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
             kotlin.runCatching {
-                esr.require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
+                esr.require(esr.subroutine.tryToResolve(this.subroutinesByName, caseInsensitive = true)) {
                     "Subroutine call not resolved: ${esr.subroutine.name}"
                 }
             }
@@ -229,7 +221,7 @@ private fun CompilationUnit.resolve() {
                 val dataDefinition = dataRef.variable.referred!! as DataDefinition
                 qae.runNode {
                     kotlin.runCatching {
-                        require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
+                        require(qae.field.tryToResolve(dataDefinition.fieldsByName, caseInsensitive = true)) {
                             "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
                         }
                     }
@@ -265,14 +257,42 @@ private fun CompilationUnit.resolve() {
     this.allDataDefinitions
 }
 
-// try to resolve a Data reference through recursive search in parent compilation unit
+// Try to resolve a Data reference through recursive search in parent Compilation Unit.
 private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(position: Position? = null, cu: CompilationUnit) {
-    var currentCu: CompilationUnit? = cu
-    var resolved = false
-    while (currentCu != null && !resolved) {
-        resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
-        currentCu = currentCu.parent?.let { it as CompilationUnit }
+    if (this.name.contains(".")) {
+        this.referred = getReferredFromDsAccess(cu)
+    } else {
+        var currentCu: CompilationUnit? = cu
+        var resolved = false
+        while (currentCu != null && !resolved) {
+            resolved = this.tryToResolve(currentCu.allDataDefinitionsByName, caseInsensitive = true)
+            currentCu = currentCu.parent?.let { it as CompilationUnit }
+        }
+        val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
+        if (!resolved) cu.error("Data reference not resolved: ${this.name} at $relativePosition")
     }
-    val relativePosition = position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    if (!resolved) cu.error("Data reference not resolved: ${this.name} at $relativePosition")
+}
+
+/**
+ * Retrieves the `AbstractDataDefinition` referenced by a nested field access within a data structure.
+ *
+ * This function parses a nested field access pattern (e.g., `ds.field.subfield`) from the current
+ * `ReferenceByName`, extracting the data structure name and field name. It then searches
+ * through the `CompilationUnit` to find the corresponding `AbstractDataDefinition`.
+ *
+ * @param cu the `CompilationUnit` containing all data definitions
+ * @return the `AbstractDataDefinition` corresponding to the nested field access, or `null` if not found
+ *
+ */
+private fun ReferenceByName<AbstractDataDefinition>.getReferredFromDsAccess(cu: CompilationUnit): AbstractDataDefinition? {
+    if (this.name.split(".").size > 2) {
+        throw NotImplementedError("Is not implemented a DS access with more of one dot, like ${this.name}.")
+    }
+
+    val dsName = this.name.substring(0, this.name.indexOf("."))
+    val dsFieldName = this.name.substring(this.name.indexOf(".") + 1)
+
+    return cu.allDataDefinitions
+        .find { dataDefinition -> dataDefinition.name.equals(dsName, true) }
+        .let { ds -> (ds as DataDefinition).fields.find { field -> field.name == dsFieldName } }
 }

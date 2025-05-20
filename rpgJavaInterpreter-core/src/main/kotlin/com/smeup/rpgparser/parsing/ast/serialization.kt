@@ -25,13 +25,14 @@ import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
+import com.smeup.rpgparser.serialization.StringBuilderSerializer
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.math.BigDecimal
@@ -68,6 +69,7 @@ private val modules = SerializersModule {
         subclass(DowStmt::class)
         subclass(DOWxxStmt::class)
         subclass(EvalStmt::class)
+        subclass(EvalRStmt::class)
         subclass(ExceptStmt::class)
         subclass(ExecuteSubroutine::class)
         subclass(ExfmtStmt::class)
@@ -232,6 +234,7 @@ private val modules = SerializersModule {
     polymorphic(DSPFValue::class) {
         subclass(ConstantValue::class)
     }
+    contextual(StringBuilderSerializer)
 }
 
 val json = Json {
@@ -258,7 +261,7 @@ enum class SourceProgram(val extension: String, val sourceType: Boolean = true) 
 
     companion object {
         fun getByExtension(extension: String): SourceProgram {
-            return values().first {
+            return entries.first {
                 it.extension == extension
             }
         }

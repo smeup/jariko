@@ -1383,7 +1383,9 @@ csEVAL_CORR:
 	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
 csEVALR:
 	operation=OP_EVALR
-	operationExtender=cs_operationExtender? 
+	operationExtender=cs_operationExtender?
+	target
+	operator=assignmentOperatorIncludingEqual
 	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
 csEXCEPT:
 	operation=OP_EXCEPT

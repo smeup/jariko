@@ -21,11 +21,14 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.test.doubles
 import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
+import com.strumenta.kolasu.model.Point
+import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.math.BigDecimal
 import java.time.ZoneId
 import java.util.*
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -95,6 +98,20 @@ class SerializationTest {
     }
 
     @Test
+    fun `DataStructValue with IndexedStringBuilder can be serialized to Json`() {
+        val rawStringValue = " Hello world 123 "
+        val dsValue = DataStructValue(value = IndexedStringBuilder(rawStringValue, 2))
+        checkValueSerialization(dsValue, true)
+    }
+
+    @Test
+    fun `DataStructValue with StringBuilderWrapper can be serialized to Json`() {
+        val rawStringValue = " Hello world 123 "
+        val dsValue = DataStructValue(value = StringBuilderWrapper(rawStringValue))
+        checkValueSerialization(dsValue, true)
+    }
+
+    @Test
     fun `a map with Values can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
@@ -110,7 +127,7 @@ class SerializationTest {
             )
         val dsValue = DataStructValue(" test 11233 ")
 
-        val originalMap = mapOf<String, Value>(
+        val originalMap = mapOf(
             "one" to decimalValue,
             "two" to intValue,
             "three" to stringValue,
@@ -131,5 +148,98 @@ class SerializationTest {
         val value = UnlimitedStringValue("myValue")
         dsValue.set(fieldDefinition, value)
         checkValueSerialization(dsValue, true)
+    }
+
+    @Test
+    fun `BlanksValue to Json`() {
+        checkValueSerialization(BlanksValue)
+    }
+
+    @Test
+    fun `NullValue to Json`() {
+        checkValueSerialization(NullValue)
+    }
+
+    @Test
+    fun `ZeroValue to Json`() {
+        checkValueSerialization(ZeroValue)
+    }
+
+    @Test
+    fun `PointerValue to Json`() {
+        checkValueSerialization(PointerValue(10))
+    }
+
+    @Test
+    fun `IsoValue to Json`() {
+        checkValueSerialization(IsoValue)
+    }
+
+    @Test
+    fun `HiValValue to Json`() {
+        checkValueSerialization(HiValValue)
+    }
+
+    @Test
+    fun `LowValValue to Json`() {
+        checkValueSerialization(LowValValue)
+    }
+
+    @Test
+    fun `JulValue to Json`() {
+        checkValueSerialization(JulValue)
+    }
+
+    @Test
+    fun `StartValValue to Json`() {
+        checkValueSerialization(StartValValue)
+    }
+
+    @Test
+    fun `AllValue to Json`() {
+        checkValueSerialization(AllValue("F"))
+    }
+
+    @Test
+    fun `EndValValue to Json`() {
+        checkValueSerialization(EndValValue)
+    }
+
+    @Test
+    @Ignore("TODO: Is necessary to remove `@Transient` from `FieldDefinition.overriddenContainer` and fix `JFTCPR.rpgle` test.")
+    fun `ProjectedArrayValue to Json`() {
+        val ds1Fl1Type = FieldType(
+            name = "DS1_FL1",
+            type = ArrayType(
+                element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
+                nElements = 9
+            )
+        )
+
+        val ds1Fl1Definition = FieldDefinition(
+            name = ds1Fl1Type.name,
+            type = ArrayType(
+                element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
+                nElements = 9
+            ),
+            explicitStartOffset = 0,
+            explicitEndOffset = 1,
+            position = Position(start = Point(2, 5), end = Point(2, 85)),
+            declaredArrayInLineOnThisField = 9
+        )
+        ds1Fl1Definition.overriddenContainer = DataDefinition("DS1", type = DataStructureType(
+            fields = listOf(ds1Fl1Type),
+            elementSize = 9
+        ))
+
+        val projectedArrayValue = ProjectedArrayValue(
+            container = DataStructValue("111111111"),
+            field = ds1Fl1Definition,
+            startOffset = 0,
+            step = 1,
+            arrayLength = 9
+        )
+
+        checkValueSerialization(projectedArrayValue)
     }
 }

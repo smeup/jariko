@@ -133,11 +133,11 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
-        TODO("Not yet implemented")
+        TODO("'ResourceProgramFinder.findApiDescriptor' is not yet implemented")
     }
 
     override fun findApi(apiId: ApiId): Api? {
-        TODO("Not yet implemented")
+        TODO("'ResourceProgramFinder.findApi' is not yet implemented")
     }
 }
 

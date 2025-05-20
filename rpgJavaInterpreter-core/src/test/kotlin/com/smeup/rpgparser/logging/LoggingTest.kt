@@ -358,4 +358,106 @@ class LoggingTest : AbstractTest() {
 
         System.setErr(defaultErr)
     }
+
+    /**
+     * Test if mock OPEN are printed out in the appropriate format
+     * @see #LS25001512
+     */
+    @Test
+    fun mockOpenFormat() {
+        val defaultErr = System.err
+        val virtualErr = StringOutputStream()
+        System.setErr(PrintStream(virtualErr))
+        val systemInterface = JavaSystemInterface()
+        executePgm(programName = "MOCK02", systemInterface = systemInterface)
+        virtualErr.flush()
+        val logEntries = virtualErr.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val stmtLogEntries = logEntries.filter { it.contains("MOCKOPEN") }
+        assertEquals(1, stmtLogEntries.size)
+
+        val logFormatRegexMockStatement = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKOPEN\\tMOCK02.*")
+        assertTrue(stmtLogEntries[0].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement")
+
+        System.setErr(defaultErr)
+    }
+
+    /**
+     * Test if function resolution logs are correctly printed out
+     */
+    @Test
+    fun functionResolution() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
+        }
+        executePgm(programName = "FUNCLOG", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val functionEntries = logEntries.filter { it.contains("FUNCTION", ignoreCase = true) }
+        assertEquals(1, functionEntries.size)
+        assertTrue { functionEntries.first().contains("CALL1") }
+
+        System.setOut(defaultOut)
+    }
+
+    /**
+     * Test if function statement logs are correctly printed out
+     */
+    @Test
+    fun functionStatement() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+        }
+        executePgm(programName = "FUNCLOG", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val functionEntries = logEntries.filter { it.contains("FunctionInterpreter.CALL1", ignoreCase = true) }
+        // 2 * SYMTBLINI + 2 SYMTBLLOAD + 1 Func body + 1 Func return
+        assertEquals(6, functionEntries.size)
+
+        System.setOut(defaultOut)
+    }
+
+    /**
+     * Test if function statement logs are correctly printed out
+     */
+    @Test
+    fun callScope() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+        }
+        executePgm(programName = "CALLSCOPE", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+
+        // Program CALL logs in its context
+        assertTrue { logEntries.any { it.contains("STMT\tCALLSCOPE\t1\tEXEC\tCALL\t\"CALLDEFV2\"") } }
+        // We start called program interpretation
+        assertTrue { logEntries.any { it.contains("STMT\tCALLDEFV2\t\tSTART\tINTERPRETATION") } }
+        // We execute statements inside the called program
+        assertTrue { logEntries.any { it.contains("STMT\tCALLDEFV2\t6\tEXEC\tEVAL\tP1 = \"R\"\t") } }
+        // We finish called program interpretation
+        assertTrue { logEntries.any { it.contains("STMT\tCALLDEFV2\t\tEND\tINTERPRETATION") } }
+        // We immediately restore the correct scope
+        assertTrue { logEntries.any { it.contains("STMT\tCALLSCOPE\t3\tEXEC\tEVAL\t\$A = \"T\"\t") } }
+
+        System.setOut(defaultOut)
+    }
 }

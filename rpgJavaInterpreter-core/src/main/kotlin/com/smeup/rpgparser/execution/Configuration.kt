@@ -331,6 +331,23 @@ data class JarikoCallback(
      */
     var finishRpgTrace: (() -> Unit) = {
         // Defaults to a no-op
+    },
+
+    /**
+     * Creates a `DataStructValueBuilder` based on the provided value and data structure type.
+     * The default implementation creates an `IndexedStringBuilder` for data structures with 100 or more fields
+     * and all fields are arrays, elsewhere it creates a `StringBuilderWrapper`.
+     * @param value The string value to be used for the data structure.
+     * @param type The data structure type which defines the fields.
+     * @return A `DataStructValueBuilder` instance.
+     */
+    var createDataStructValueBuilder: ((value: String, type: DataStructureType) -> DataStructValueBuilder) = { value, type ->
+        val totalFields = type.totalFields()
+        if (totalFields >= 100 && type.containsOnlyArrays()) {
+            IndexedStringBuilder(value = value, chunksSize = value.length / totalFields)
+        } else {
+            StringBuilderWrapper(value)
+        }
     }
 )
 

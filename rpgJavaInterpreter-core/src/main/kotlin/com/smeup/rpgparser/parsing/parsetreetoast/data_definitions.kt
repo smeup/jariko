@@ -404,7 +404,12 @@ internal fun RpgParser.DspecContext.toAst(
                 NumberType(elementSize!! - decimalPositions, decimalPositions)
             } else {
                 if (like != null) {
-                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+                    val baseType = compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+
+                    // When LIKE is used on a DS we must declare a string with size == to the DS size
+                    if (baseType is DataStructureType) {
+                        StringType.createInstance(elementSize!!, varying)
+                    } else baseType
                 } else {
                     StringType.createInstance(elementSize!!, varying)
                 }
@@ -586,7 +591,11 @@ internal fun RpgParser.Dcl_dsContext.type(
     val elementSize = explicitSize
             ?: calculatedElementSize
             ?: throw CannotRetrieveDataStructureElementSizeException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
-    val dataStructureType = DataStructureType(fields = fieldTypes, elementSize = size ?: elementSize)
+    val dataStructureType = DataStructureType(
+        fields = fieldTypes,
+        elementSize = size ?: elementSize,
+        isQualified = keywords.any { it.keyword_qualified() != null }
+    )
     val baseType = occurs?.let {
         OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
     } ?: dataStructureType
@@ -799,12 +808,9 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             }
         }
         RpgType.BINARY.rpgType -> {
+            // Works like a packed or zoned
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
-            when (elementSize) {
-                2, 3, 4 -> NumberType(2, 0, rpgCodeType)
-                5, 6, 7, 8 -> NumberType(4, 0, rpgCodeType)
-                else -> NumberType(8, 0, rpgCodeType)
-            }
+            NumberType(elementSize, 0, rpgCodeType)
         }
         RpgType.CHARACTER.rpgType -> {
             CharacterType(precision!!)
@@ -1150,13 +1156,27 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     // Using `LIKEDS`
     if (this.keyword().any { it.keyword_likeds() != null }) {
         val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)
+
+        val type = if (referredDs.type is DataStructureType) {
+            /*
+             * Found referred, type of new DS must be like the other DS but object references have to be new.
+             * This avoids any change from source to new, or from new to source.
+             */
+            (referredDs.type as DataStructureType).copy(
+                fields = (referredDs.type as DataStructureType).fields.map { field -> field.copy() },
+                isQualified = true
+            )
+        } else {
+            referredDs.type
+        }
+
         val dataDefinition = DataDefinition(
             this.name,
-            referredDs.type,
+            type,
             referredDs.fields,
             position = this.toPosition(true)
         )
-        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        dataDefinition.newFields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         return dataDefinition
     }
 
@@ -1286,8 +1306,9 @@ internal fun RpgParser.Dcl_dsContext.getExtnameFields(
             val prefixIsNull = keywordPrefix == null && it.key.prefix == null
             val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
             val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+            val isForExtname = it.key.justExtName
 
-            nameMatches && (prefixIsNull || prefixMatches)
+            nameMatches && (prefixIsNull || prefixMatches) && isForExtname
         }.values.flatten()
 
     if (fileDataDefinitions.isEmpty()) return emptyList()

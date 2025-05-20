@@ -16,17 +16,17 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.assertDataDefinitionIsPresent
-import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import org.junit.experimental.categories.Category
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.*
 import org.junit.Test as test
 
 open class DataDefinitionTest : AbstractTest() {
@@ -355,5 +355,54 @@ open class DataDefinitionTest : AbstractTest() {
                 StringValue("3L"),
                 StringValue("4L"),
                 StringValue("5L")), StringType(2)) as ArrayValue, logValue)
+    }
+}
+
+class DataDefinitionPerformanceTest : AbstractTest() {
+
+    @Test(timeout = 10_000)
+    @Category(PerformanceTest::class)
+    fun decodeFromDS() {
+        measureTime {
+            for (i in 1..100_000_000) {
+                decodeFromPacked(value = "123456789.15", digits = 20, scale = 2)
+            }
+        }.also {
+            println("decodeFromDS: $it")
+        }
+    }
+
+    /**
+     * Performance test for encoding and decoding packed decimal values.
+     *
+     * This test measures the performance of the `encodeToPacked` and `decodeFromPacked` functions by repeatedly
+     * encoding and decoding a set of random decimal numbers. The test generates 1000 random decimal numbers
+     * within a specified range and then performs 1000 encode/decode cycles.
+     *
+     * The test focuses on the end-to-end encoding/decoding cycle and measures the *total* time taken for all
+     * operations.
+     *
+     * The test uses `measureTime` to capture the execution time of the entire set of encoding/decoding operations.
+     * The total time is printed to the console.
+     *
+     * @see encodeToPacked
+     * @see decodeFromPacked
+     */
+    @Test(timeout = 3_000)
+    @Category(PerformanceTest::class)
+    fun encodeDecodePackedPerformanceTest1() {
+        val nRandomNumbers = 1000
+
+        val valueFrom = "-".plus("9".repeat(21).plus(".").plus("9".repeat(9))).toBigDecimal()
+        val valueTo = "9".repeat(21).plus(".").plus("9".repeat(9)).toBigDecimal()
+        val randomNumbers = List(nRandomNumbers) { Random.nextDouble(valueFrom.toDouble(), valueTo.toDouble()) }
+
+        val timeMeasurements = measureTime {
+            randomNumbers.forEach { randomNumber ->
+                decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
+            }
+        }
+
+        println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: $timeMeasurements.")
     }
 }
