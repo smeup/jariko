@@ -1009,7 +1009,7 @@ data class CallStmt(
                 val resultName = if (it.result.name.contains("."))
                     it.result.name.substring(it.result.name.indexOf(".") + 1)
                 else it.result.name
-                targetProgramParams[index].name to interpreter[resultName]
+                targetProgramParams[index].name to coerce(interpreter[resultName], targetProgramParams[index].type)
             }.toMap(LinkedHashMap())
 
             val paramValuesAtTheEnd =
@@ -1047,7 +1047,7 @@ data class CallStmt(
             paramValuesAtTheEnd?.forEachIndexed { index, value ->
                 if (this.params.size > index) {
                     val currentParam = this.params[index]
-                    interpreter.assign(currentParam.result.referred!!, value)
+                    interpreter.assign(currentParam.result.referred!!, coerce(value, currentParam.result.referred!!.type))
 
                     // If we also have a result field, assign to it
                     currentParam.factor1?.let { interpreter.assign(it, value) }
