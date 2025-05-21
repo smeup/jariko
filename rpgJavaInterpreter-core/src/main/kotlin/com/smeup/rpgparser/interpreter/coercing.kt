@@ -244,7 +244,14 @@ fun coerce(value: Value, type: Type): Value {
         is ArrayValue -> {
             return when (type) {
                 is StringType -> {
-                    value.asString()
+                    val result = value.asString()
+                    if (result.length() > type.length) {
+                        result.setSubstring(0, type.length)
+                    }
+                    StringValue(
+                        result.value.padEnd(type.length, ' '),
+                        type.varying
+                    )
                 }
                 is ArrayType -> {
                     if (value.elements().size > type.nElements) {
@@ -331,7 +338,35 @@ fun coerce(value: Value, type: Type): Value {
         }
         is BooleanValue -> coerceBoolean(value, type)
         is UnlimitedStringValue -> coerceString(value.value.asValue(), type)
+        is DataStructValue -> coerceDataStruct(value, type)
         else -> value
+    }
+}
+
+/**
+ * Coerces a given DataStructValue to a target type.
+ *
+ * This method handles type conversions for a DataStructValue into its corresponding
+ * target type while enforcing rules such as length constraints for string types.
+ *
+ * @param value the DataStructValue to be coerced
+ * @param type the target Type to which the value is coerced
+ * @return a Value instance after applying the necessary transformations
+ */
+private fun coerceDataStruct(value: DataStructValue, type: Type): Value {
+    return when (type) {
+        is StringType -> {
+            val valueAsString: StringValue = value.asString().copy()
+            if (type.varying && valueAsString.length() < type.length) {
+                valueAsString.pad(type.length)
+            } else if (valueAsString.length() > type.length) {
+                valueAsString.setSubstring(0, type.length)
+            }
+
+            valueAsString
+        }
+        is DataStructureType -> value
+        else -> TODO("Converting DataStructValue to $type")
     }
 }
 
