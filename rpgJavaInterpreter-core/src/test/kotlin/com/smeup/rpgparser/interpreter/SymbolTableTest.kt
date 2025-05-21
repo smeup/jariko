@@ -2,6 +2,8 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import org.junit.experimental.categories.Category
 import kotlin.test.*
@@ -148,5 +150,130 @@ class SymbolTableTest : AbstractTest() {
             dataDefinition,
             dataDefinition.defaultValue ?: dataDefinition.type.blank()
         )
+    }
+
+    /**
+     * Tests the interaction between a program with a data structure and another program using standalone variables,
+     * validating symbol table entries and execution behavior.
+     *
+     * This test simulates the execution of a program (`symboltable/ST_CALL01`) that interacts with a called program
+     * (`ST_CALL01C`). Both programs pass data between them, and the symbol table entries for data structures and standalone
+     * variables are validated for correctness.
+     *
+     * Key Validations:
+     * 1. For the called program (`ST_CALL01C`):
+     *    - Verifies the type of the data definition `£G90WK` as `StringValue`.
+     * 2. For the calling program (`ST_CALL01`):
+     *    - Verifies the type of the data definition `£G90DS` as `DataStructValue`.
+     *
+     * Additional Assertions:
+     * - Captures system outputs during the execution using a mocked system interface.
+     * - Asserts expected output messages in the sequence: ["CALLED", "CALLER"].
+     */
+    @Test
+    fun callWithDataStructureToStandalone() {
+        val messages = emptyList<String>().toMutableList()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { message, printStream -> run {
+            messages.add(message)
+        } } }
+        executePgm(systemInterface = systemInterface, programName = "symboltable/ST_CALL01", configuration = Configuration().apply {
+            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                if (programName.equals("ST_CALL01C", ignoreCase = true)) {
+                    val dataDefinition = symbolTable.get("£G90WK")
+                    assertIs<StringValue>(dataDefinition)
+                }
+
+                if (programName.equals("ST_CALL01", ignoreCase = true)) {
+                    val dataDefinition = symbolTable.get("£G90DS")
+                    assertIs<DataStructValue>(dataDefinition)
+                }
+            }
+        })
+
+        assertEquals(listOf("CALLED", "CALLER"), messages)
+    }
+
+    /**
+     * Tests the interaction between standalone variables of different sizes across programs using a symbol table.
+     *
+     * The test simulates the execution of a program that calls another program, validating the behavior and properties
+     * of standalone variables (`VARSTD`) in both the calling and called programs. A mocked system interface captures
+     * output messages for validation.
+     *
+     * Key Validations:
+     * 1. For the standalone variable (`VARSTD`) in the called program:
+     *    - Confirms the type is `StringValue`.
+     *    - Verifies the length of the variable is 5.
+     * 2. For the standalone variable (`VARSTD`) in the calling program:
+     *    - Confirms the type is `StringValue`.
+     *    - Verifies the length of the variable is 6.
+     *
+     * Additional Assertions:
+     * - Verifies the system output messages during the execution sequence:
+     *   - Ensures expected outputs are captured in the order: ["CALLER", "FOOBAR", "CALLED", "FOOBA"].
+     */
+    @Test
+    fun callWithStandaloneToStandaloneWithDifferentSizes() {
+        val messages = emptyList<String>().toMutableList()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { message, printStream -> run {
+            messages.add(message)
+        } } }
+        executePgm(systemInterface = systemInterface, programName = "symboltable/ST_CALL02", configuration = Configuration().apply {
+            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                if (programName.equals("ST_CALL02C", ignoreCase = true)) {
+                    val dataDefinition = symbolTable.get("VARSTD")
+                    assertIs<StringValue>(dataDefinition)
+                    assertEquals(5, dataDefinition.length())
+                }
+
+                if (programName.equals("ST_CALL02", ignoreCase = true)) {
+                    val dataDefinition = symbolTable.get("VARSTD")
+                    assertIs<StringValue>(dataDefinition)
+                    assertEquals(6, dataDefinition.length())
+                }
+            }
+        })
+
+        assertEquals(listOf("CALLER", "FOOBAR", "CALLED", "FOOBA"), messages)
+    }
+
+    /**
+     * Tests the behavior of calling a program with an array of data structures, verifying its interaction
+     * with a standalone field using a symbol table.
+     *
+     * The test simulates program execution using a mocked system interface and verifies the following:
+     * 1. An array of data structures (`DS1_ARR`) is passed, checked for its properties such as array length
+     *    and element type (`StringType`).
+     * 2. A standalone variable (`VARSTD`) is validated in a called program for its type (`StringValue`)
+     *    and length.
+     *
+     * Assertions:
+     * - Verifies the system output messages during execution.
+     * - Confirms the symbol table contains the expected values and types for both standalone and array data.
+     */
+    @Test
+    fun callWithArrayOfDataStructureToStandalone() {
+        val messages = emptyList<String>().toMutableList()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { message, printStream -> run {
+            messages.add(message)
+        } } }
+        executePgm(systemInterface = systemInterface, programName = "symboltable/ST_CALL03", configuration = Configuration().apply {
+            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                if (programName.equals("ST_CALL03C", ignoreCase = true)) {
+                    val dataDefinition = symbolTable.get("VARSTD")
+                    assertIs<StringValue>(dataDefinition)
+                    assertEquals(2, dataDefinition.length())
+                }
+
+                if (programName.equals("ST_CALL03", ignoreCase = true)) {
+                    val dataDefinition = symbolTable.get("DS1_ARR")
+                    assertIs<ArrayValue>(dataDefinition)
+                    assertIs<StringType>(dataDefinition.elementType)
+                    assertEquals(5, dataDefinition.arrayLength())
+                }
+            }
+        })
+
+        assertEquals(listOf("CALLER", "5", "5", "5", "5", "5", "CALLED", "55"), messages)
     }
 }
