@@ -113,7 +113,7 @@ enum class ParamOption(val keyword: String) {
 
     companion object {
         fun getByKeyword(keyword: String): ParamOption {
-            return ParamOption.values().first {
+            return entries.first {
                 it.keyword == keyword
             }
         }
@@ -144,7 +144,7 @@ enum class FileType(val keyword: String?) {
     companion object {
         // see https://www.ibm.com/docs/sl/i/7.3?topic=statement-position-17-file-type
         fun getByKeyword(keyword: String): FileType {
-            return FileType.values().firstOrNull() {
+            return entries.firstOrNull() {
                 it.keyword == keyword
             } ?: DB
         }

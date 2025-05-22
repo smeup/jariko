@@ -30,7 +30,7 @@ internal data class DSPFCondition(
         }
 
         private fun getOp(text: String): BooleanNAryOperator {
-            return BooleanNAryOperator.values().first { it.value == text[0] }
+            return BooleanNAryOperator.entries.first { it.value == text[0] }
         }
 
         private fun getIndicators(text: String): MutableList<DSPFIndicator> {

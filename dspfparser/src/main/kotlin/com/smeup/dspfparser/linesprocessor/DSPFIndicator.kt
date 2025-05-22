@@ -30,7 +30,7 @@ internal data class DSPFIndicator(
         }
 
         private fun getOp(text: String): BooleanUnaryOperator {
-            return BooleanUnaryOperator.values().first { it.value == text[0] }
+            return BooleanUnaryOperator.entries.first { it.value == text[0] }
         }
 
         private fun getId(text: String): Int {
