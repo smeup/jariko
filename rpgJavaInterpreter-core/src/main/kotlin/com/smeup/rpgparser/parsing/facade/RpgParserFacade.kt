@@ -159,8 +159,8 @@ class RpgParserFacade {
             }
         } while (t.type != Token.EOF)
 
-        if (tokens.last.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition))
+        if (tokens.last().type != Token.EOF) {
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last().endPoint.asPosition))
         }
 
         return RpgLexerResult(errors, tokens)
