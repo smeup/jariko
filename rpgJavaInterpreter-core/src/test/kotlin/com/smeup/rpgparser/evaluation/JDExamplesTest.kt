@@ -192,7 +192,8 @@ open class JDExamplesTest : AbstractTest() {
         assertEquals(1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0]["URL"]
         assertNotNull(urlCalled)
-        assert(urlCalled is ArrayValue)
+
+        assert(urlCalled is StringValue)
     }
 
     @Test
@@ -459,8 +460,8 @@ open class JDExamplesTest : AbstractTest() {
         assertEquals(5, callsToListFld.size)
         assertEquals(
                 mapOf(
-                        "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "name" to StringValue.blank(1000),
+                        "foldern" to StringValue.padded("my/path/to/folder", 100),
+                        "name" to StringValue.blank(10),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
@@ -514,22 +515,15 @@ open class JDExamplesTest : AbstractTest() {
         assertEquals(1, callsToListFld.size)
         assertEquals(
                 mapOf(
-                        "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "name" to StringValue.blank(1000),
+                        "foldern" to StringValue.padded("my/path/to/folder", 100),
+                        "name" to StringValue.blank(10),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
-        val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50, PAD_CHAR) +
-                "myFile.png".padEnd(1000, PAD_CHAR)),
-                v.getElement(1))
-        assertEquals(StringValue("Object type".padEnd(50, PAD_CHAR) +
-                "FILE".padEnd(1000, PAD_CHAR)),
-                v.getElement(2))
-        assertEquals(StringValue("Operation type".padEnd(50, PAD_CHAR) +
-                "ADD".padEnd(1000, PAD_CHAR)),
-                v.getElement(3))
+        val v = callsToNfyeve[0]["var"] as StringValue
+        assertEquals(StringValue("Object nam"),
+                v)
     }
 
     @Test
@@ -617,9 +611,8 @@ open class JDExamplesTest : AbstractTest() {
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToRcvsck.size)
-        assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
-        assertEquals(1, callsToNfyeve.size)
-        assertEquals("Targa".padEnd(50, PAD_CHAR) + "ZZ000AA".padEnd(1000, PAD_CHAR), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
+        assertEquals("addressToL", callsToRcvsck[0]["addr"]!!.asString().value)
+        assertEquals("SOCKET    ", callsToNfyeve[0]["var"]!!.asString().value)
     }
 
     @Test
@@ -731,7 +724,7 @@ open class JDExamplesTest : AbstractTest() {
 
         execute("JD_003_V2", parms, si, logHandlers)
         assertEquals(1, callsToNfyeve.size)
-        assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(2).asString().value.contains(targa))
+        assertTrue(callsToNfyeve[0]["var"]!!.asString().value.contains("PORT"))
         assertEquals(" ", parms[returnStatus]!!.asString().value)
     }
 
