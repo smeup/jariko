@@ -192,6 +192,7 @@ open class JDExamplesTest : AbstractTest() {
         assertEquals(1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0]["URL"]
         assertNotNull(urlCalled)
+
         assert(urlCalled is StringValue)
     }
 
