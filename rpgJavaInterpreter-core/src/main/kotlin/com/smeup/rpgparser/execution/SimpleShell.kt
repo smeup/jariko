@@ -19,7 +19,6 @@ package com.smeup.rpgparser.execution
 import com.smeup.rpgparser.utils.measureAndPrint
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.util.Locale
 import java.util.Locale.getDefault
 
 // TODO describe what this program does
