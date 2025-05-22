@@ -19,6 +19,8 @@ package com.smeup.rpgparser.execution
 import com.smeup.rpgparser.utils.measureAndPrint
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.Locale
+import java.util.Locale.getDefault
 
 // TODO describe what this program does
 // TODO support option to add element to rpg program finders
@@ -55,11 +57,12 @@ rpg>
         while (true) {
             commandLine = console.readLine()
             run {
-                if (commandLine.trim().isNotEmpty() && !(exitCommands + interactiveCommands).contains(commandLine.trim().toLowerCase()) &&
+                if (commandLine.trim().isNotEmpty() && !(exitCommands + interactiveCommands).contains(commandLine.trim()
+                        .lowercase(getDefault())) &&
                     !commandLine.startsWith("@")) {
                     content.append(commandLine).append("\n")
                 }
-                val trimmed = commandLine.trim().toLowerCase()
+                val trimmed = commandLine.trim().lowercase(getDefault())
                 when {
                     trimmed == "play" -> {
                         interactiveMode = true
