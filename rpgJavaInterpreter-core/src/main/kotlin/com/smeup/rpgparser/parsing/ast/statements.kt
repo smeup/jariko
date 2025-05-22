@@ -2174,7 +2174,7 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 }
 
 @Serializable
-data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
+data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position) {
     override val loggableEntityName: String
         get() = "TAG"
 

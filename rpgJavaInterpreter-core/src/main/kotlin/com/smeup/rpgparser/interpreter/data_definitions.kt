@@ -152,7 +152,7 @@ enum class FileType(val keyword: String?) {
 }
 
 @Serializable
-data class FileDefinition private constructor(
+data class FileDefinition(
     override val name: String,
     override val position: Position?,
     val prefix: Prefix?,
