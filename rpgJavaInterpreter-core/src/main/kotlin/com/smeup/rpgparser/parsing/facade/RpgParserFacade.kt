@@ -159,8 +159,8 @@ class RpgParserFacade {
             }
         } while (t.type != Token.EOF)
 
-        if (tokens.last.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition))
+        if (tokens.last().type != Token.EOF) {
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last().endPoint.asPosition))
         }
 
         return RpgLexerResult(errors, tokens)
@@ -339,9 +339,14 @@ class RpgParserFacade {
         }
     }
 
+    private fun InputStream.bomInputStream(): InputStream {
+        return BOMInputStream.builder()
+            .setInputStream(this)
+            .get()
+    }
+
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
-        val muteParser = createMuteParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors,
-                longLines = true)
+        val muteParser = createMuteParser(code.byteInputStream(Charsets.UTF_8).bomInputStream(), errors, longLines = true)
         val root = muteParser.muteLine()
         verifyParseTree(muteParser, errors, root)
         return root
@@ -379,7 +384,7 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDMUTES", "START"))
         val mutes: MutesMap = HashMap()
         val elapsed = measureNanoTime {
-            val lexResult = lex(BOMInputStream(code))
+            val lexResult = lex(code.bomInputStream())
             errors.addAll(lexResult.errors)
             lexResult.root?.forEachIndexed { index, token0 ->
                 if (index + 2 < lexResult.root.size) {
@@ -426,7 +431,7 @@ class RpgParserFacade {
             MainExecutionContext.getParsingProgramStack().peek().copyBlocks = copyBlocks
             MainExecutionContext.getParsingProgramStack().peek().sourceLines = code.split("\\r\\n|\\n".toRegex())
         }
-        val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
+        val parser = createParser(code.byteInputStream(Charsets.UTF_8).bomInputStream(), errors, longLines = true)
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.Parsing, "RCONTEXT")
         val root = callback.traceBlock(trace) {
