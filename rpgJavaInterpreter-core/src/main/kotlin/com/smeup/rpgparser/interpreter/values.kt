@@ -86,7 +86,7 @@ data class StringValue(var value: String, var varying: Boolean = false) : Abstra
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            is StringType -> expectedType.length >= value.length.toLong()
+            is StringType -> true
             is CharacterType -> expectedType.nChars >= value.length.toLong()
             is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
             is ArrayType -> expectedType.size == value.length // Check for >= ???
@@ -1241,14 +1241,20 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
             // TO REVIEW
             is DataStructureType -> true
             is StringType -> true
+            is ArrayType -> len == expectedType.size
             else -> false
         }
     }
 
-    override fun copy() = DataStructValue(value.toString()).apply {
-        unlimitedStringField.forEach { entry ->
-            this.unlimitedStringField[entry.key] = entry.value.copy()
+    override fun copy(): DataStructValue {
+        val newValue = DataStructValue(value.toString())
+
+        // Copy UnlimitedString fields
+        this.unlimitedStringField.forEach { entry ->
+            newValue.unlimitedStringField[entry.key] = entry.value.copy()
         }
+
+        return newValue
     }
 
     /**
@@ -1467,6 +1473,8 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
     override fun takeFirst(n: Int): Value {
         return getSubstring(0, if (n <= len) n else len)
     }
+
+    override fun render() = this.toString()
 }
 
 fun Int.asValue() = IntValue(this.toLong())

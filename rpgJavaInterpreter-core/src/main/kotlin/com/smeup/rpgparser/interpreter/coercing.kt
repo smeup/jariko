@@ -218,6 +218,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
     }
 }
 
+private fun coerceDataStruct(value: DataStructValue, type: Type): Value {
+    // Note: add more cases if needed
+    return when (type) {
+        is DataStructureType -> value.copy()
+        is StringType -> value.asString()
+        else -> {
+            val unwrapped = value.asString()
+            coerceString(unwrapped, type)
+        }
+    }
+}
+
 private fun coerceBoolean(value: BooleanValue, type: Type): Value {
     // TODO: Add more coercion rules
     return when (type) {

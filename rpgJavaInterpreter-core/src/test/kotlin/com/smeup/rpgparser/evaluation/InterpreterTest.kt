@@ -2636,6 +2636,16 @@ Test 6
     }
 
     /**
+     * Return a DS value to an array variable of the same size
+     * @see #LS25001659
+     */
+    @Test
+    fun executeArrayDS() {
+        val expected = listOf(List(99) { ".000000" }.toString())
+        assertEquals(expected, "ARRAYDS".outputOf())
+    }
+
+    /**
      * Make sure that when Jariko thread is requested an interrupt it will throw a RuntimeException which cause is an
      * InterruptedException.
      */
