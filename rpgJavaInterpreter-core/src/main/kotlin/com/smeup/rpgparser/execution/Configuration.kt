@@ -91,6 +91,7 @@ data class DspfConfig(
  * This property is necessary to enable some features useful when jariko must be debugged, for example some callback functions
  * such as onEnter and onExit copies or statements, just for performance reasons, will be invoked only when this property
  * is true.
+ * @param profilingSupport Used to enable/disable scan execution of profiling annotations into rpg sources
  * */
 data class Options(
     var muteSupport: Boolean = false,
@@ -99,7 +100,8 @@ data class Options(
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
     var callProgramHandler: CallProgramHandler? = null,
     var dumpSourceOnExecutionError: Boolean? = false,
-    var debuggingInformation: Boolean? = false
+    var debuggingInformation: Boolean? = false,
+    var profilingSupport: Boolean = false
 ) {
     internal fun mustDumpSource() = dumpSourceOnExecutionError == true
     internal fun mustCreateCopyBlocks() = debuggingInformation == true
