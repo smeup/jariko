@@ -643,7 +643,7 @@ open class InternalInterpreter(
         } catch (t: Throwable) {
             throw RuntimeException(errorDescription(statement, t), t).fireErrorEvent(statement.position)
         } finally {
-            if (statement.muteAnnotations.size > 0) {
+            if (statement.muteAnnotations.isNotEmpty()) {
                 executeMutes(
                     statement.muteAnnotations,
                     statement.ancestor(CompilationUnit::class.java)!!,
@@ -768,7 +768,6 @@ open class InternalInterpreter(
                         )
                     )
                 }
-
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
         }
@@ -1318,12 +1317,49 @@ open class InternalInterpreter(
         sourceProducer?.let { openLoggingScope(statement, it) }
 
         val internalExecute = {
+            val attachBeforeProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext }
+            val attachAfterProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious }
+
+            executeProfiling(attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
             sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            executeProfiling(attachAfterProfilingAnnotations)
         }
         if (trace != null) {
             callback.traceBlock(trace) { internalExecute() }
         } else internalExecute()
+    }
+
+    private fun executeProfiling(annotations: List<ProfilingAnnotation>) {
+        annotations.forEach { executeProfiling(it) }
+    }
+
+    private fun executeProfiling(annotation: ProfilingAnnotation) {
+        val programName = getInterpretationContext().currentProgramName
+        when (annotation) {
+            is ProfilingSpanStartAnnotation -> {
+                val callback = configuration.jarikoCallback
+                val description = annotation.comment?.let { comment ->
+                    if (comment.isEmpty()) annotation.name else "${annotation.name} - $comment"
+                } ?: annotation.name
+                val trace = RpgTrace(programName, description)
+                callback.startRpgTrace(trace)
+
+                renderLogInternal {
+                    val logSource = { LogSourceData(programName, annotation.startLine()) }
+                    LazyLogEntry.produceProfiling(annotation, logSource)
+                }
+            }
+            is ProfilingSpanEndAnnotation -> {
+                val callback = configuration.jarikoCallback
+                callback.finishRpgTrace()
+
+                renderLogInternal {
+                    val logSource = { LogSourceData(programName, annotation.startLine()) }
+                    LazyLogEntry.produceProfiling(annotation, logSource)
+                }
+            }
+        }
     }
 
     override fun onInterpretationEnd() {

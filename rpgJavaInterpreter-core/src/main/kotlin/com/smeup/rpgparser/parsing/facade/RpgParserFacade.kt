@@ -18,6 +18,8 @@ package com.smeup.rpgparser.parsing.facade
 
 import com.smeup.rpgparser.MuteLexer
 import com.smeup.rpgparser.MuteParser
+import com.smeup.rpgparser.ProfilingLexer
+import com.smeup.rpgparser.ProfilingParser
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
@@ -32,6 +34,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.injectProfilingAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.insLineNumber
@@ -60,6 +63,9 @@ import kotlin.time.Duration.Companion.nanoseconds
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
 
+typealias ProfilingMap = MutableMap<Int, ProfilingParser.ProfilingLineContext>
+typealias ProfilingImmutableMap = Map<Int, ProfilingParser.ProfilingLineContext>
+
 open class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct: Boolean
         get() = errors.isEmpty()
@@ -74,6 +80,7 @@ fun List<Error>.firstLine(): String {
 data class ParseTrees(
     val rContext: RContext,
     val muteContexts: MutesImmutableMap? = null,
+    val profilingContexts: ProfilingImmutableMap? = null,
     val copyBlocks: CopyBlocks? = null
 )
 
@@ -123,6 +130,9 @@ class RpgParserFacade {
     // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
     var muteSupport: Boolean = MainExecutionContext.getConfiguration().options.muteSupport
     private var muteVerbose = MainExecutionContext.getConfiguration().options.muteVerbose
+
+    // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
+    var profilingSupport: Boolean = MainExecutionContext.getConfiguration().options.profilingSupport
 
     private val executionProgramName: String by lazy {
         getExecutionProgramNameWithNoExtension()
@@ -181,6 +191,27 @@ class RpgParserFacade {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.SYNTACTIC, errorMessage
                         ?: "unspecified"))
+            }
+        })
+        parser.removeErrorListeners()
+        return parser
+    }
+
+    fun createProfilingParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): ProfilingParser {
+        val lexer = ProfilingLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(object : BaseErrorListener() {
+            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
+                errors.add(Error(ErrorType.LEXICAL, errorMessage
+                    ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+            }
+        })
+        val commonTokenStream = CommonTokenStream(lexer)
+        val parser = ProfilingParser(commonTokenStream)
+        parser.addErrorListener(object : BaseErrorListener() {
+            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
+                errors.add(Error(ErrorType.SYNTACTIC, errorMessage
+                    ?: "unspecified"))
             }
         })
         parser.removeErrorListeners()
@@ -352,6 +383,14 @@ class RpgParserFacade {
         return root
     }
 
+    private fun parseProfiling(code: String, errors: MutableList<Error>): ProfilingParser.ProfilingLineContext {
+        val parser = createProfilingParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors,
+            longLines = true)
+        val root = parser.profilingLine()
+        verifyParseTree(parser, errors, root)
+        return root
+    }
+
     private fun preprocess(text: String): String {
         var s = text
         var level = 0
@@ -406,6 +445,37 @@ class RpgParserFacade {
         return mutes
     }
 
+    private fun findProfiling(code: String, errors: MutableList<Error>) =
+        findProfiling(code.byteInputStream(Charsets.UTF_8), errors)
+
+    private fun findProfiling(code: InputStream, errors: MutableList<Error>): ProfilingMap {
+        val logSource = { LogSourceData(executionProgramName, "") }
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDPROF", "START"))
+        val profiling: ProfilingMap = HashMap()
+        val elapsed = measureNanoTime {
+            val lexResult = lex(BOMInputStream(code))
+            errors.addAll(lexResult.errors)
+            lexResult.root?.forEachIndexed { index, token0 ->
+                val isInRange = index < lexResult.root.size - 2
+                if (isInRange) {
+                    val token1 = lexResult.root[index + 1]
+                    val token2 = lexResult.root[index + 2]
+                    // Please note the leading spaces added
+                    if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(2) + "PRO" &&
+                        token1.type == COMMENT_SPEC_FIXED && token1.text == "F*" &&
+                        token2.type == COMMENTS_TEXT) {
+                        // Please note the leading spaces added to the token
+                        val preproc = preprocess(token2.text)
+                        profiling[token2.line] = parseProfiling("".padStart(8) + preproc, errors)
+                    }
+                }
+            }
+        }.nanoseconds
+        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDPROF", "END"))
+        MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "FINDPROF", elapsed))
+        return profiling
+    }
+
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val logSource = { LogSourceData(executionProgramName, "") }
@@ -453,12 +523,15 @@ class RpgParserFacade {
             )
             root
         }
-        var mutes: MutesImmutableMap? = null
-        if (muteSupport) {
-            mutes = findMutes(code, errors)
-        }
+        val mutes = if (muteSupport) findMutes(code, errors) else null
+        val profiling = if (profilingSupport) findProfiling(code, errors) else null
         verifyParseTree(parser, errors, root)
-        parserResult = RpgParserResult(errors, ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
+        parserResult = RpgParserResult(
+            errors,
+            ParseTrees(rContext = root, muteContexts = mutes, profilingContexts = profiling, copyBlocks = copyBlocks),
+            parser,
+            code
+        )
         return parserResult
     }
 
@@ -542,6 +615,9 @@ class RpgParserFacade {
                                 }
                             }
                         }
+                        if (profilingSupport) {
+                            this.injectProfilingAnnotation(result.root.profilingContexts!!)
+                        }
                     }
                 }.nanoseconds
                 MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "END"))
@@ -593,15 +669,34 @@ class RpgParserFacade {
         val root = parser.statement()
         verifyParseTree(parser, errors, root)
         val result = ParsingResult(errors, root)
-        val mutes: MutesMap?
-        if (muteSupport && result.correct) {
-            inputStream.reset()
-            mutes = findMutes(inputStream, errors)
-            result.root!!.toAst().apply {
-                this.injectMuteAnnotation(mutes)
-            }
+
+        // Injection step
+        if (result.correct) {
+            tryInjectMute(inputStream, errors, result)
+            tryInjectProfiling(inputStream, errors, result)
         }
+
         return result
+    }
+
+    fun tryInjectMute(inputStream: InputStream, errors: MutableList<Error>, parsingResult: ParsingResult<StatementContext>) {
+        if (!muteSupport) return
+
+        inputStream.reset()
+        val mutes = findMutes(inputStream, errors)
+        parsingResult.root!!.toAst().apply {
+            this.injectMuteAnnotation(mutes)
+        }
+    }
+
+    fun tryInjectProfiling(inputStream: InputStream, errors: MutableList<Error>, parsingResult: ParsingResult<StatementContext>) {
+        if (!profilingSupport) return
+
+        inputStream.reset()
+        val profiling = findProfiling(inputStream, errors)
+        parsingResult.root!!.toAst().apply {
+            this.injectProfilingAnnotation(profiling)
+        }
     }
 }
 
@@ -618,7 +713,7 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
         operation(this)
     }
     if (this.children != null) {
-        this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
+        this.children.filterIsInstance<ParserRuleContext>().forEach { it.processDescendants(operation) }
     }
 }
 
@@ -641,10 +736,10 @@ fun ParserRuleContext.processDescendantsAndErrors(
         operationOnParserRuleContext(this)
     }
     if (this.children != null) {
-        this.children.filterIsInstance(ParserRuleContext::class.java).forEach {
+        this.children.filterIsInstance<ParserRuleContext>().forEach {
             it.processDescendantsAndErrors(operationOnParserRuleContext, operationOnError, includingMe = true)
         }
-        this.children.filterIsInstance(ErrorNode::class.java).forEach {
+        this.children.filterIsInstance<ErrorNode>().forEach {
             operationOnError(it)
         }
     }
@@ -777,7 +872,7 @@ fun Position.adaptInFunctionOf(copyBlocks: CopyBlocks?): Position {
             Point(copyBlocks?.relativeLine(this.end.line)?.first ?: this.end.line, this.end.column)
         )
     }.getOrElse {
-        System.err.println("Error on adaptInFunctionOf: " + it.toString())
+        System.err.println("Error on adaptInFunctionOf: $it")
         Position(
             Point(this.start.line, this.start.column),
             Point(this.end.line, this.end.column)
