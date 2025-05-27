@@ -962,6 +962,50 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeSimpleSpanOpenAlsoCloses() {
+        val openTraces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                muteSupport = true
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                openTraces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(1, openTraces.size)
+        assertEquals(1, closedTraces)
+    }
+
+    @Test
+    fun executeMultipleSpanOpenAlsoCloses() {
+        val openTraces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                muteSupport = true
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                openTraces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(12, openTraces.size)
+        assertEquals(12, closedTraces)
+    }
+
+    @Test
     fun executeERROR45CallBackTest() {
         executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
             18 to "Factor 2 and Result with different type and size."
