@@ -962,6 +962,27 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeSimpleSpanWithoutProfilingProducesNothing() {
+        var openTraces = 0
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = false
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                openTraces += 1
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(0, openTraces)
+        assertEquals(0, closedTraces)
+    }
+
+    @Test
     fun executeSimpleSpanOpenAlsoCloses() {
         val openTraces = mutableListOf<RpgTrace>()
         var closedTraces = 0
