@@ -128,8 +128,8 @@ abstract class Statement(
         this.profilingAnnotations.addAll(attachAfterCandidates.values)
 
         // Build resolved list
-        val before = attachBeforeCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling.position!!.start.line, statementStart.line) }
-        val after = attachAfterCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling.position!!.start.line, statementStart.line) }
+        val before = attachBeforeCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling, profiling.position!!.start.line, statementStart.line) }
+        val after = attachAfterCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling, profiling.position!!.start.line, statementStart.line) }
         return (before + after).toMutableList()
     }
 

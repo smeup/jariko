@@ -43,10 +43,10 @@ fun ProfilingParser.ProfilingLineContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-fun Statement.injectProfilingAnnotation(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
+fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
     // Process the main body statements
     val statements = listOf(this)
-    val resolved = injectProfilingAnnotationToStatements(
+    val resolved = injectProfilingAnnotationsToStatements(
         statements,
         this.position!!.start.line,
         this.position!!.end.line,
@@ -61,7 +61,7 @@ fun Statement.injectProfilingAnnotation(profiling: ProfilingImmutableMap): List<
  *
  * @param profiling The profiling annotations to inject.
  */
-fun CompilationUnit.injectProfilingAnnotation(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
+fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
     // Process the main body statements
     // There is an issue when annotations appear just above the first statement
     // so we want to expand the research area to cover preceding annotations
@@ -69,8 +69,10 @@ fun CompilationUnit.injectProfilingAnnotation(profiling: ProfilingImmutableMap):
     // D SPEC, the function stmts.position() returns null and then this fragments raises error
     val resolved = this.main.stmts.position()?.let { position ->
         val start = expandStartLineWhenNeeded(position.start.line, profiling)
-        injectProfilingAnnotationToStatements(this.main.stmts, start, position.end.line, profiling)
+        injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, profiling)
     } ?: emptyList()
+
+    this.resolvedProfilingAnnotations.addAll(resolved)
 
     return resolved
 }
@@ -83,7 +85,7 @@ fun CompilationUnit.injectProfilingAnnotation(profiling: ProfilingImmutableMap):
  * @param end End line to consider an annotation valid.
  * @param candidates The set of candidate profiling annotations to inject.
  */
-fun injectProfilingAnnotationToStatements(
+fun injectProfilingAnnotationsToStatements(
     statements: List<Statement>,
     start: Int,
     end: Int,

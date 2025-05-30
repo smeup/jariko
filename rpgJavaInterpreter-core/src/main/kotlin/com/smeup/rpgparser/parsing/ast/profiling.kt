@@ -70,4 +70,5 @@ data class ProfilingSpanEndAnnotation(override val position: Position? = null) :
 /**
  * A profiling annotation associated to a statement.
  */
-data class ProfilingAnnotationResolved(val profilingLine: Int, val statementLine: Int)
+@Serializable
+data class ProfilingAnnotationResolved(val source: ProfilingAnnotation, val profilingLine: Int, val statementLine: Int)

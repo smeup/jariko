@@ -53,6 +53,7 @@ data class CompilationUnit(
     val displayFiles: Map<String, DSPF>? = null
 ) : Node(position) {
 
+    var resolvedProfilingAnnotations = mutableListOf<ProfilingAnnotationResolved>()
     var timeouts = emptyList<MuteTimeoutAnnotation>()
 
     val minTimeOut by lazy {

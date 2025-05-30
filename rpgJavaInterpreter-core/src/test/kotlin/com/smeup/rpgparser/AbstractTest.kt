@@ -85,6 +85,7 @@ abstract class AbstractTest {
         exampleName: String,
         considerPosition: Boolean = false,
         withMuteSupport: Boolean = false,
+        withProfilingSupport: Boolean = false,
         printTree: Boolean = false,
         afterAstCreation: (ast: CompilationUnit) -> Unit = {}
     ): CompilationUnit {
@@ -92,6 +93,7 @@ abstract class AbstractTest {
             exampleName = exampleName,
             considerPosition = considerPosition,
             withMuteSupport = withMuteSupport,
+            withProfilingSupport = withProfilingSupport,
             printTree = printTree,
             compiledProgramsDir = getTestCompileDir(),
             afterAstCreation = afterAstCreation

@@ -34,7 +34,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsing.parsetreetoast.injectProfilingAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.injectProfilingAnnotations
 import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.insLineNumber
@@ -668,7 +668,7 @@ class RpgParserFacade {
                             }
                         }
                         if (profilingSupport) {
-                            this.injectProfilingAnnotation(result.root.profilingContexts!!)
+                            this.injectProfilingAnnotations(result.root.profilingContexts!!)
                         }
                     }
                 }.nanoseconds
@@ -761,7 +761,7 @@ class RpgParserFacade {
         inputStream.reset()
         val profiling = findProfiling(inputStream, errors)
         parsingResult.root!!.toAst().apply {
-            this.injectProfilingAnnotation(profiling)
+            this.injectProfilingAnnotations(profiling)
         }
     }
 }
