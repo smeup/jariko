@@ -1330,18 +1330,26 @@ open class InternalInterpreter(
         } else internalExecute()
     }
 
+    /**
+     * Execute a set of [ProfilingAnnotation]s.
+     *
+     * @param annotations The annotations to execute.
+     */
     private fun executeProfiling(annotations: List<ProfilingAnnotation>) {
         annotations.forEach { executeProfiling(it) }
     }
 
+    /**
+     * Execute a [ProfilingAnnotation].
+     *
+     * @param annotation The profiling annotation to execute.
+     */
     private fun executeProfiling(annotation: ProfilingAnnotation) {
         val programName = getInterpretationContext().currentProgramName
         when (annotation) {
             is ProfilingSpanStartAnnotation -> {
                 val callback = configuration.jarikoCallback
-                val description = annotation.comment?.let { comment ->
-                    if (comment.isEmpty()) annotation.name else "${annotation.name} - $comment"
-                } ?: annotation.name
+                val description = annotation.description
                 val trace = RpgTrace(programName, description)
                 callback.startRpgTrace(trace)
 

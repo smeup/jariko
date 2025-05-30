@@ -91,30 +91,46 @@ abstract class Statement(
         return mutesAttached
     }
 
+    /**
+     * Accept and bind relevant profiling annotations to this statement.
+     *
+     * @param candidates A map containing the candidate annotations to attach to this statement.
+     * @param startLine The line from which we should accept annotations.
+     * @param endLine The line at which we should stop accepting annotations.
+     */
     open fun acceptProfiling(
-        annotations: ProfilingMap,
-        start: Int = 0,
-        end: Int
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val statementStart = this.position!!.start
         val statementEnd = this.position!!.end
 
-        val resolvedAnnotations = annotations.map { it -> it.key to it.value.toAst(position = pos(it.key, statementStart.column, it.key, statementEnd.column)) }.toMap()
-        val attachBeforeCandidates = resolvedAnnotations.filter { it -> it.key < statementStart.line && it.key >= start && it.value.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext }
-        val attachAfterCandidates = resolvedAnnotations.filter { it -> it.key > statementEnd.line && it.key <= end && it.value.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious }
+        val resolvedAnnotations = candidates.map { it ->
+            it.key to it.value.toAst(position = pos(it.key, statementStart.column, it.key, statementEnd.column))
+        }.toMap()
 
-        val attached = mutableListOf<ProfilingAnnotationResolved>()
-        attachBeforeCandidates.forEach { (_, profiling) ->
-            this.profilingAnnotations.add(profiling)
-            attached.add(ProfilingAnnotationResolved(profiling.position!!.start.line, statementStart.line))
+        val attachBeforeCandidates = resolvedAnnotations.filter { it ->
+            val isBeforeStatement = it.key < statementStart.line
+            val isAfterUpperBound = it.key >= startLine
+            val matchesStrategy = it.value.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext
+            isBeforeStatement && isAfterUpperBound && matchesStrategy
+        }
+        val attachAfterCandidates = resolvedAnnotations.filter { it ->
+            val isAfterStatement = it.key > statementEnd.line
+            val isBeforeLowerBound = it.key <= endLine
+            val matchesStrategy = it.value.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious
+            isAfterStatement && isBeforeLowerBound && matchesStrategy
         }
 
-        attachAfterCandidates.forEach { (_, profiling) ->
-            this.profilingAnnotations.add(profiling)
-            attached.add(ProfilingAnnotationResolved(profiling.position!!.start.line, statementStart.line))
-        }
+        // Bind accepted profiling annotations with this statement
+        this.profilingAnnotations.addAll(attachBeforeCandidates.values)
+        this.profilingAnnotations.addAll(attachAfterCandidates.values)
 
-        return attached
+        // Build resolved list
+        val before = attachBeforeCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling.position!!.start.line, statementStart.line) }
+        val after = attachAfterCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling.position!!.start.line, statementStart.line) }
+        return (before + after).toMutableList()
     }
 
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
@@ -313,16 +329,16 @@ data class SelectStmt(
     }
 
     override fun acceptProfiling(
-        annotations: ProfilingMap,
-        start: Int,
-        end: Int
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val casesAnnotations = cases.map {
-            acceptProfilingBody(it.body, annotations, it.position!!.start.line, it.position.end.line)
+            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
         }.flatten()
 
         val otherAnnotations = other?.let {
-            acceptProfilingBody(it.body, annotations, it.position!!.start.line, it.position.end.line)
+            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
         } ?: emptyList()
 
         return (casesAnnotations + otherAnnotations).toMutableList()
@@ -1234,16 +1250,16 @@ data class MonitorStmt(
     }
 
     override fun acceptProfiling(
-        annotations: ProfilingMap,
-        start: Int,
-        end: Int
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         // Process the body statements
-        val monitorAnnotations = acceptProfilingBody(monitorBody, annotations, this.position!!.start.line, this.position.end.line)
+        val monitorAnnotations = acceptProfilingBody(monitorBody, candidates, this.position!!.start.line, this.position.end.line)
 
         // Process the ON ERROR
         val onErrorAnnotations = onErrorClauses.map {
-            acceptProfilingBody(it.body, annotations, it.position!!.start.line, it.position.end.line)
+            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
         }.flatten()
 
         return (monitorAnnotations + onErrorAnnotations).toMutableList()
@@ -1314,21 +1330,21 @@ data class IfStmt(
     }
 
     override fun acceptProfiling(
-        annotations: ProfilingMap,
-        start: Int,
-        end: Int
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         // Process the body statements
-        val ifAnnotations = acceptProfilingBody(thenBody, annotations, this.position!!.start.line, this.position.end.line)
+        val ifAnnotations = acceptProfilingBody(thenBody, candidates, this.position!!.start.line, this.position.end.line)
 
         // Process the ELSE IF
         val elseIfAnnotations = elseIfClauses.map {
-            acceptProfilingBody(it.body, annotations, it.position!!.start.line, it.position.end.line)
+            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
         }.flatten()
 
         // Process the ELSE
         val elseAnnotations = elseClause?.let {
-            acceptProfilingBody(it.body, annotations, it.position!!.start.line, it.position.end.line)
+            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
         } ?: emptyList()
 
         return (ifAnnotations + elseIfAnnotations + elseAnnotations).toMutableList()
@@ -2053,12 +2069,12 @@ data class DoStmt(
     }
 
     override fun acceptProfiling(
-        annotations: ProfilingMap,
-        start: Int,
-        end: Int
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
-        val self = super.acceptProfiling(annotations, start, end)
-        val children = acceptProfilingBody(body, annotations, position!!.start.line + 1, position.end.line - 1)
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
         return (self + children).toMutableList()
     }
 
@@ -2361,12 +2377,12 @@ data class ForStmt(
     }
 
     override fun acceptProfiling(
-        annotations: ProfilingMap,
-        start: Int,
-        end: Int
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
-        val self = super.acceptProfiling(annotations, start, end)
-        val children = acceptProfilingBody(body, annotations, position!!.start.line + 1, position.end.line - 1)
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
         return (self + children).toMutableList()
     }
 

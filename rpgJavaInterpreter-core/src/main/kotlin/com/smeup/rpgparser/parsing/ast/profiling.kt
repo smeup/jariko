@@ -22,29 +22,52 @@ import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+/**
+ * The strategy used to attach a profiling annotation to a sibling statement.
+ * @see ProfilingAnnotation
+ */
 enum class ProfilingAnnotationAttachStrategy {
+    /** Attach annotation to the statement following the annotation. */
     AttachToNext,
+
+    /** Attach annotation to the statement preceding the annotation. */
     AttachToPrevious
 }
 
-@Serializable
-abstract class ProfilingAnnotation(val attachStrategy: ProfilingAnnotationAttachStrategy, @Transient override val position: Position? = null) : Node(position)
-
 /**
- * A span start annotation
+ * A profiling annotation.
  */
 @Serializable
-data class ProfilingSpanStartAnnotation(val name: String, val comment: String?, override val position: Position? = null) :
-    ProfilingAnnotation(ProfilingAnnotationAttachStrategy.AttachToNext, position)
+abstract class ProfilingAnnotation(
+    val attachStrategy: ProfilingAnnotationAttachStrategy,
+    @Transient override val position: Position? = null
+) : Node(position)
 
 /**
- * A span end annotation
+ * A span start annotation.
+ */
+@Serializable
+data class ProfilingSpanStartAnnotation(
+    val name: String,
+    val comment: String?,
+    override val position: Position? = null
+) :
+    ProfilingAnnotation(ProfilingAnnotationAttachStrategy.AttachToNext, position) {
+    val description
+        get() = comment?.let {
+            if (it.isEmpty()) name else "$name - $comment"
+        } ?: name
+}
+
+/**
+ * A span end annotation.
  */
 @Serializable
 data class ProfilingSpanEndAnnotation(override val position: Position? = null) : ProfilingAnnotation(
-    ProfilingAnnotationAttachStrategy.AttachToPrevious, position)
+    ProfilingAnnotationAttachStrategy.AttachToPrevious, position
+)
 
 /**
- * A profiling annotation associated to a statement
+ * A profiling annotation associated to a statement.
  */
 data class ProfilingAnnotationResolved(val profilingLine: Int, val statementLine: Int)

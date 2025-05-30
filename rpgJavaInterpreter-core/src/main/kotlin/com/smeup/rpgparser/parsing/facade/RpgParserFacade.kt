@@ -63,7 +63,14 @@ import kotlin.time.Duration.Companion.nanoseconds
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
 
+/**
+ * Map of profiling lines by the line they are declared at.
+ */
 typealias ProfilingMap = MutableMap<Int, ProfilingParser.ProfilingLineContext>
+
+/**
+ * Immutable version of [ProfilingMap].
+ */
 typealias ProfilingImmutableMap = Map<Int, ProfilingParser.ProfilingLineContext>
 
 open class ParsingResult<C>(val errors: List<Error>, val root: C?) {
@@ -131,7 +138,7 @@ class RpgParserFacade {
     var muteSupport: Boolean = MainExecutionContext.getConfiguration().options.muteSupport
     private var muteVerbose = MainExecutionContext.getConfiguration().options.muteVerbose
 
-    // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
+    // Should be 'false' as default to avoid unnecessary search of 'profiling annotation' into rpg program source.
     var profilingSupport: Boolean = MainExecutionContext.getConfiguration().options.profilingSupport
 
     private val executionProgramName: String by lazy {
@@ -176,6 +183,13 @@ class RpgParserFacade {
         return RpgLexerResult(errors, tokens)
     }
 
+    /**
+     * Create parser for MUTE annotations.
+     *
+     * @param inputStream The input stream.
+     * @param errors A mutable list where output errors will be reported to.
+     * @param longLines Use long lines.
+     */
     fun createMuteParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): MuteParser {
         val lexer = MuteLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
         lexer.removeErrorListeners()
@@ -197,6 +211,13 @@ class RpgParserFacade {
         return parser
     }
 
+    /**
+     * Create parser for PROFILING annotations.
+     *
+     * @param inputStream The input stream.
+     * @param errors A mutable list where output errors will be reported to.
+     * @param longLines Use long lines.
+     */
     fun createProfilingParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): ProfilingParser {
         val lexer = ProfilingLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
         lexer.removeErrorListeners()
@@ -218,6 +239,13 @@ class RpgParserFacade {
         return parser
     }
 
+    /**
+     * Create parser for RPGLE.
+     *
+     * @param inputStream The input stream.
+     * @param errors A mutable list where output errors will be reported to.
+     * @param longLines Use long lines.
+     */
     fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): RpgParser {
         val logSource = { LogSourceData(executionProgramName, "") }
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
@@ -376,6 +404,12 @@ class RpgParserFacade {
             .get()
     }
 
+    /**
+     * Parse mute annotation.
+     *
+     * @param code The code to parse.
+     * @param errors A mutable list where output errors will be reported to.
+     */
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
         val muteParser = createMuteParser(code.byteInputStream(Charsets.UTF_8).bomInputStream(), errors, longLines = true)
         val root = muteParser.muteLine()
@@ -383,6 +417,12 @@ class RpgParserFacade {
         return root
     }
 
+    /**
+     * Parse profiling annotation.
+     *
+     * @param code The code to parse.
+     * @param errors A mutable list where output errors will be reported to.
+     */
     private fun parseProfiling(code: String, errors: MutableList<Error>): ProfilingParser.ProfilingLineContext {
         val parser = createProfilingParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors,
             longLines = true)
@@ -445,9 +485,21 @@ class RpgParserFacade {
         return mutes
     }
 
+    /**
+     * Find profiling annotations.
+     *
+     * @param code The code where to look for annotations.
+     * @param errors A mutable list where output errors will be reported to.
+     */
     private fun findProfiling(code: String, errors: MutableList<Error>) =
         findProfiling(code.byteInputStream(Charsets.UTF_8), errors)
 
+    /**
+     * Find profiling annotations.
+     *
+     * @param code The input stream where to look for annotations.
+     * @param errors A mutable list where output errors will be reported to.
+     */
     private fun findProfiling(code: InputStream, errors: MutableList<Error>): ProfilingMap {
         val logSource = { LogSourceData(executionProgramName, "") }
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDPROF", "START"))
@@ -679,6 +731,13 @@ class RpgParserFacade {
         return result
     }
 
+    /**
+     * Inject MUTE annotations if needed.
+     *
+     * @param code The input stream where to look for annotations.
+     * @param errors A mutable list where output errors will be reported to.
+     * @param parsingResult The result of the RPGLE parsing.
+     */
     fun tryInjectMute(inputStream: InputStream, errors: MutableList<Error>, parsingResult: ParsingResult<StatementContext>) {
         if (!muteSupport) return
 
@@ -689,6 +748,13 @@ class RpgParserFacade {
         }
     }
 
+    /**
+     * Inject PROFILING annotations if needed.
+     *
+     * @param code The input stream where to look for annotations.
+     * @param errors A mutable list where output errors will be reported to.
+     * @param parsingResult The result of the RPGLE parsing.
+     */
     fun tryInjectProfiling(inputStream: InputStream, errors: MutableList<Error>, parsingResult: ParsingResult<StatementContext>) {
         if (!profilingSupport) return
 
