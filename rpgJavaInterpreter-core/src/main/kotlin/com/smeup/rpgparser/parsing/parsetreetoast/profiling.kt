@@ -56,41 +56,41 @@ fun Statement.injectProfilingAnnotation(profiling: ProfilingImmutableMap): List<
     return resolved
 }
 
+/**
+ * Inject profiling annotations in compilation unit.
+ *
+ * @param profiling The profiling annotations to inject.
+ */
 fun CompilationUnit.injectProfilingAnnotation(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
-    val resolved: MutableList<ProfilingAnnotationResolved> = mutableListOf()
     // Process the main body statements
     // There is an issue when annotations appear just above the first statement
     // so we want to expand the research area to cover preceding annotations
-    // In a mute with no statements, as can happens for program with only
-    // D SPEC, the function stmts.position() returns null and than this fragments raises error
-    this.main.stmts.position()?.let { position ->
+    // In a mute with no statements, as can happen for program with only
+    // D SPEC, the function stmts.position() returns null and then this fragments raises error
+    val resolved = this.main.stmts.position()?.let { position ->
         val start = expandStartLineWhenNeeded(position.start.line, profiling)
-        val injected = injectProfilingAnnotationToStatements(this.main.stmts, start, position.end.line, profiling)
-        resolved.addAll(injected)
-    }
-
-    // Process subroutines body statements
-    // TODO: Check if this is needed
-    /*this.subroutines.forEach {
-        resolved.addAll(injectProfilingAnnotationToStatements(it.stmts,
-            it.position!!.start.line,
-            it.position.end.line,
-            profiling))
-    }*/
+        injectProfilingAnnotationToStatements(this.main.stmts, start, position.end.line, profiling)
+    } ?: emptyList()
 
     return resolved
 }
 
+/**
+ * Inject profiling annotations to statements considering the range in which they are valid.
+ *
+ * @param statements The list of statements to which annotations need to be injected.
+ * @param start Start line to consider an annotation valid.
+ * @param end End line to consider an annotation valid.
+ * @param candidates The set of candidate profiling annotations to inject.
+ */
 fun injectProfilingAnnotationToStatements(
     statements: List<Statement>,
     start: Int,
     end: Int,
-    map: ProfilingImmutableMap
+    candidates: ProfilingImmutableMap
 ): List<ProfilingAnnotationResolved> {
     // Consider only the annotation in the scope
-    val filtered: ProfilingImmutableMap = map.filterKeys {
-        it in start..end
-    }
+    val filtered: ProfilingImmutableMap = candidates.filterKeys { it in start..end }
 
     // makes a consumable list of annotation
     val profilingAnnotationsToProcess: ProfilingMap = filtered.toSortedMap()
@@ -110,14 +110,12 @@ fun injectProfilingAnnotationToStatements(
         val resolved = it.acceptProfiling(profilingAnnotationsToProcess, candidateStartForStatement, candidateEndForStatement)
         profilingAnnotationsResolved.addAll(resolved)
 
-        resolved.forEach {
-            profilingAnnotationsToProcess.remove(it.profilingLine)
-        }
+        resolved.forEach { processed -> profilingAnnotationsToProcess.remove(processed.profilingLine) }
     }
+
     // at the end the annotationsToProcess collection should be empty
     // otherwise it means the remaining annotations can't be attached
     // to any statement
-
     profilingAnnotationsToProcess.forEach {
         print("Could not attach the annotation @line ${it.key}")
     }
@@ -133,15 +131,22 @@ private fun expandStartLineWhenNeeded(startLine: Int, profiling: ProfilingImmuta
     return line
 }
 
+/**
+ * Accept profiling annotations in a [com.smeup.rpgparser.parsing.ast.CompositeStatement] body or list of [Statement].
+ *
+ * @param profiling The profiling annotation map.
+ * @param start The start line.
+ * @param end The end line.
+ */
 fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap, start: Int = 0, end: Int): MutableList<ProfilingAnnotationResolved> {
     val attached: MutableList<ProfilingAnnotationResolved> = mutableListOf()
 
     // Process the body statements
     body.forEach {
-        val toRemove = it.acceptProfiling(profiling, start, end)
-        toRemove.forEach {
-            profiling.remove(it.profilingLine)
-            attached.add(it)
+        val accepted = it.acceptProfiling(profiling, start, end)
+        accepted.forEach { annotation ->
+            profiling.remove(annotation.profilingLine)
+            attached.add(annotation)
         }
     }
 
