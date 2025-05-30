@@ -968,7 +968,6 @@ class JarikoCallbackTest : AbstractTest() {
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
         val configuration = Configuration().apply {
             options = Options().apply {
-                muteSupport = true
                 profilingSupport = true
             }
             jarikoCallback.startRpgTrace = { trace ->
@@ -990,7 +989,6 @@ class JarikoCallbackTest : AbstractTest() {
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
         val configuration = Configuration().apply {
             options = Options().apply {
-                muteSupport = true
                 profilingSupport = true
             }
             jarikoCallback.startRpgTrace = { trace ->
@@ -1003,6 +1001,25 @@ class JarikoCallbackTest : AbstractTest() {
         executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(12, openTraces.size)
         assertEquals(12, closedTraces)
+    }
+
+    @Test
+    fun executeMultipleSpanCloseNeverExceedOpen() {
+        val traces = Stack<RpgTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.push(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                traces.pop()
+            }
+        }
+        executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(0, traces.size)
     }
 
     @Test
