@@ -121,4 +121,39 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(18, closeSpan3.profilingLine)
         assertEquals(17, closeSpan3.statementLine)
     }
+
+    @Test
+    fun executeMultipleSpanSameStatement() {
+        val cu = assertASTCanBeProduced("profiling/MULTISPAN_SAME_STATEMENT", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
+        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+
+        assertEquals(4, openAnnotations.size)
+        assertEquals(4, closeAnnotations.size)
+
+        assertTrue(openAnnotations.all { it.statementLine == 15 })
+        assertTrue(closeAnnotations.all { it.statementLine == 15 })
+    }
+
+    @Test
+    fun executeMultipleSpanSameStatement2() {
+        val cu = assertASTCanBeProduced("profiling/MULTISPAN_SAME_STATEMENT_2", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
+        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+
+        assertEquals(4, openAnnotations.size)
+        assertEquals(4, closeAnnotations.size)
+
+        assertTrue(openAnnotations.all { it.statementLine == 15 })
+        assertEquals(3, closeAnnotations.count { it.statementLine == 15 })
+        assertEquals(1, closeAnnotations.count { it.statementLine == 19 })
+    }
 }
