@@ -156,4 +156,50 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(3, closeAnnotations.count { it.statementLine == 15 })
         assertEquals(1, closeAnnotations.count { it.statementLine == 19 })
     }
+
+    @Test
+    fun executeForSpan() {
+        val cu = assertASTCanBeProduced("profiling/FOR_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(4, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
+        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+
+        assertEquals(2, openAnnotations.size)
+        assertEquals(2, closeAnnotations.size)
+
+        val beforeFor = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFOREFOR" }
+        val forBodyStart = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "FORBODYSTART" }
+
+        assertEquals(13, beforeFor?.statementLine)
+        assertEquals(15, forBodyStart?.statementLine)
+
+        assertTrue(closeAnnotations.any { it.statementLine == 13 })
+        assertTrue(closeAnnotations.any { it.statementLine == 15 })
+    }
+
+    @Test
+    fun executeDoSpan() {
+        val cu = assertASTCanBeProduced("profiling/DO_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(4, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
+        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+
+        assertEquals(2, openAnnotations.size)
+        assertEquals(2, closeAnnotations.size)
+
+        val beforeDo = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFOREDO" }
+        val doBodyStart = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "DOBODYSTART" }
+
+        assertEquals(13, beforeDo?.statementLine)
+        assertEquals(15, doBodyStart?.statementLine)
+
+        assertTrue(closeAnnotations.any { it.statementLine == 13 })
+        assertTrue(closeAnnotations.any { it.statementLine == 15 })
+    }
 }
