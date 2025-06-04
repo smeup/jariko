@@ -18,6 +18,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.ProfilingParser
+import com.smeup.rpgparser.interpreter.lineBounds
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.ProfilingAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingAnnotationResolved
@@ -135,7 +136,25 @@ private fun expandStartLineWhenNeeded(startLine: Int, profiling: ProfilingImmuta
 
 /**
  * Accept profiling annotations in a [com.smeup.rpgparser.parsing.ast.CompositeStatement] body or list of [Statement].
+ * Determine the search range automatically.
  *
+ * @param body The list of statement to which we should apply profiling annotations.
+ * @param profiling The profiling annotation map.
+ */
+fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap): MutableList<ProfilingAnnotationResolved> {
+    var (start, end) = body.lineBounds()
+
+    // Expand bounds to include annotations
+    while (start - 1 in profiling) --start
+    while (end + 1 in profiling) ++end
+
+    return acceptProfilingBody(body, profiling, start, end)
+}
+
+/**
+ * Accept profiling annotations in a [com.smeup.rpgparser.parsing.ast.CompositeStatement] body or list of [Statement].
+ *
+ * @param body The list of statement to which we should apply profiling annotations.
  * @param profiling The profiling annotation map.
  * @param start The start line.
  * @param end The end line.

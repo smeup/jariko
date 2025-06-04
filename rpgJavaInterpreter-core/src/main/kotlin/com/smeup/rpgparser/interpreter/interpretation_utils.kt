@@ -20,11 +20,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-data class WithOffset<T>(
-    val data: T,
-    val offset: Int
-)
-
 fun Value.stringRepresentation(format: String? = null): String {
     return when (this) {
         is StringValue -> value
@@ -94,4 +89,15 @@ internal fun DataDefinition.resizeStringSize(newSize: Int) {
         defaultValue.value = defaultValue.value.padEnd(newSize)
     }
     defaultValue.varying = false
+}
+
+/**
+ * Get the smallest line bounds containing all the provided statements.
+ */
+internal fun List<Statement>.lineBounds(): Pair<Int, Int> {
+    val positions = this.mapNotNull { it.position }
+    val start = positions.minOfOrNull { it.start.line } ?: 0
+    val end = positions.maxOfOrNull { it.end.line } ?: 0
+
+    return start to end
 }

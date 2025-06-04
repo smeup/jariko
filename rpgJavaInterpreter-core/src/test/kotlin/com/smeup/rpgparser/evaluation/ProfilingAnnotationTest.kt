@@ -202,4 +202,30 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertTrue(closeAnnotations.any { it.statementLine == 13 })
         assertTrue(closeAnnotations.any { it.statementLine == 15 })
     }
+
+    @Test
+    fun executeMonitorSpan() {
+        val cu = assertASTCanBeProduced("profiling/MONITOR_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(6, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
+        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+
+        assertEquals(3, openAnnotations.size)
+        assertEquals(3, closeAnnotations.size)
+
+        val beforeMonitor = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFORESTMT" }
+        val monitorBegin = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "STMTBEGIN" }
+        val monitorOnErrorStart = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "STMTERROR" }
+
+        assertEquals(13, beforeMonitor?.statementLine)
+        assertEquals(15, monitorBegin?.statementLine)
+        assertEquals(19, monitorOnErrorStart?.statementLine)
+
+        assertTrue(closeAnnotations.any { it.statementLine == 13 })
+        assertTrue(closeAnnotations.any { it.statementLine == 15 })
+        assertTrue(closeAnnotations.any { it.statementLine == 19 })
+    }
 }

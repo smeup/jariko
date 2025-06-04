@@ -1254,15 +1254,10 @@ data class MonitorStmt(
         startLine: Int,
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
-        // Process the body statements
-        val monitorAnnotations = acceptProfilingBody(monitorBody, candidates, this.position!!.start.line, this.position.end.line)
-
-        // Process the ON ERROR
-        val onErrorAnnotations = onErrorClauses.map {
-            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
-        }.flatten()
-
-        return (monitorAnnotations + onErrorAnnotations).toMutableList()
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val body = acceptProfilingBody(monitorBody, candidates)
+        val errors = onErrorClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
+        return (self + body + errors).toMutableList()
     }
 
     override fun execute(interpreter: InterpreterCore) {
@@ -2021,7 +2016,7 @@ data class DOWxxStmt(
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val self = super.acceptProfiling(candidates, startLine, endLine)
-        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        val children = acceptProfilingBody(body, candidates)
         return (self + children).toMutableList()
     }
 
@@ -2084,7 +2079,7 @@ data class DoStmt(
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val self = super.acceptProfiling(candidates, startLine, endLine)
-        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        val children = acceptProfilingBody(body, candidates)
         return (self + children).toMutableList()
     }
 
@@ -2206,7 +2201,7 @@ data class DOUxxStmt(
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val self = super.acceptProfiling(candidates, startLine, endLine)
-        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        val children = acceptProfilingBody(body, candidates)
         return (self + children).toMutableList()
     }
 
@@ -2257,7 +2252,7 @@ data class DouStmt(
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val self = super.acceptProfiling(candidates, startLine, endLine)
-        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        val children = acceptProfilingBody(body, candidates)
         return (self + children).toMutableList()
     }
 
@@ -2422,7 +2417,7 @@ data class ForStmt(
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
         val self = super.acceptProfiling(candidates, startLine, endLine)
-        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        val children = acceptProfilingBody(body, candidates)
         return (self + children).toMutableList()
     }
 
