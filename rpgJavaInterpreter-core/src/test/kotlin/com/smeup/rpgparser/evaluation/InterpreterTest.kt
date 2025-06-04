@@ -2687,4 +2687,14 @@ Test 6
         // by setting 2nd param value to 5 we specify that the block should occur in called program
         assertTrue(simulateBlockingOperation("CALLEE_ERROR", 5) is InterruptedException)
     }
+
+    @Test
+    fun doStatementPositionTest() {
+        val cu = assertASTCanBeProduced("DO_TST02", true)
+        cu.resolveAndValidate()
+
+        val doStmt = cu.main.stmts.first()
+        assertEquals(4, doStmt.position?.start?.line)
+        assertEquals(6, doStmt.position?.end?.line)
+    }
 }
