@@ -2015,6 +2015,16 @@ data class DOWxxStmt(
     override val loopSubject: String
         get() = ""
 
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        return (self + children).toMutableList()
+    }
+
     override fun execute(interpreter: InterpreterCore) {
         try {
             while (comparisonOperator.verify(
@@ -2142,6 +2152,16 @@ data class DowStmt(
     override val iterations: Long
         get() = _iterations
 
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        return (self + children).toMutableList()
+    }
+
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
         try {
@@ -2179,6 +2199,16 @@ data class DOUxxStmt(
 
     override val loopSubject: String
         get() = ""
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        return (self + children).toMutableList()
+    }
 
     override fun execute(interpreter: InterpreterCore) {
         try {
@@ -2220,6 +2250,16 @@ data class DouStmt(
     private var _iterations: Long = 0
     override val iterations: Long
         get() = _iterations
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        return (self + children).toMutableList()
+    }
 
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
