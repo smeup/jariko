@@ -50,23 +50,9 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                 )
             }
         this.casestatement() != null -> this.casestatement().toAst(conf)
-        this.begindo() != null -> this.begindo()
-            .let {
-                it.csDO().cspec_fixed_standard_parts().validate(
-                    stmt = it.toAst(blockContext = this, conf = conf).buildIndicatorsFlags(this.begindo(), conf),
-                    conf = conf
-                )
-            }
-        this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
-            .buildIndicatorsFlags(this.begindow(), conf)
-        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
-            .buildIndicatorsFlags(this.csDOWxx(), conf)
+        this.dostatement() != null -> this.dostatement().toAst(this, conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
             .buildIndicatorsFlags(this.forstatement().beginfor(), conf)
-        this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
-            .buildIndicatorsFlags(this.begindou(), conf)
-        this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = this, conf = conf)
-            .buildIndicatorsFlags(this.csDOUxx(), conf)
         this.monitorstatement() != null -> this.monitorstatement().let {
             it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
                 stmt = it.toAst(conf = conf),
@@ -204,7 +190,8 @@ private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
     this.put(indicator, continuedIndicator)
 }
 
-internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
+internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, position: Position? = null, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
+    val pos = position ?: toPosition(conf.considerPosition)
     val comparison = when {
         this.csDOWEQ() != null -> ComparisonOperator.EQ
         this.csDOWNE() != null -> ComparisonOperator.NE
@@ -231,8 +218,8 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
         comparisonOperator = comparison,
         factor1 = factor1Ast,
         factor2 = factor2Ast,
-        position = toPosition(conf.considerPosition),
-        body = blockContext.statement().map { it.toAst(conf) }
+        position = pos,
+        body = blockContext.dostatement().statement().map { it.toAst(conf) }
     )
 }
 
@@ -241,7 +228,8 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
  *  instead for execute it like the new programming languages.
  * @see https://www.ibm.com/docs/en/i/7.5?topic=codes-douxx-do-until
  */
-internal fun RpgParser.CsDOUxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOUxxStmt {
+internal fun RpgParser.CsDOUxxContext.toAst(blockContext: BlockContext, position: Position? = null, conf: ToAstConfiguration = ToAstConfiguration()): DOUxxStmt {
+    val pos = position ?: toPosition(conf.considerPosition)
     val comparison = when {
         this.csDOUEQ() != null -> ComparisonOperator.NE
         this.csDOUNE() != null -> ComparisonOperator.EQ
@@ -265,8 +253,8 @@ internal fun RpgParser.CsDOUxxContext.toAst(blockContext: BlockContext, conf: To
         comparisonOperator = comparison,
         factor1 = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf),
         factor2 = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor1.error("Factor 2 cannot be null", conf = conf),
-        position = toPosition(conf.considerPosition),
-        body = blockContext.statement().map { it.toAst(conf) }
+        position = pos,
+        body = blockContext.dostatement().statement().map { it.toAst(conf) }
     )
 }
 
@@ -316,52 +304,85 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
     )
 }
 
+internal fun RpgParser.DostatementContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): Statement {
+    val position = toPosition(conf.considerPosition)
+    return when {
+        this.begindo() != null -> this.begindo()
+            .let {
+                val doStmt = it.toAst(blockContext = blockContext, position = position, conf = conf)
+                it.csDO().cspec_fixed_standard_parts().validate(
+                    stmt = doStmt.buildIndicatorsFlags(this.begindo(), conf),
+                    conf = conf
+                )
+            }
+        this.begindow() != null -> this.begindow().toAst(blockContext = blockContext, position = position, conf = conf)
+            .buildIndicatorsFlags(this.begindow(), conf)
+        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = blockContext, position = position, conf = conf)
+            .buildIndicatorsFlags(this.csDOWxx(), conf)
+        this.begindou() != null -> this.begindou().toAst(blockContext = blockContext, position = position, conf = conf)
+            .buildIndicatorsFlags(this.begindou(), conf)
+        this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = blockContext, position = position, conf = conf)
+            .buildIndicatorsFlags(this.csDOUxx(), conf)
+        else -> todo("Missing implementation for DO statement ${this.text}", conf)
+    }
+}
+
 internal fun RpgParser.BegindoContext.toAst(
     blockContext: BlockContext,
+    position: Position? = null,
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DoStmt {
     val result = csDO().cspec_fixed_standard_parts().result
     val iter = if (result.text.isBlank()) null else result.toAst(conf)
     val factor = factor()
     val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
-    val factor2 = csDO().cspec_fixed_standard_parts().factor2 ?: null
+    val factor2 = csDO().cspec_fixed_standard_parts().factor2
     val endLimit =
         when {
             factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
             factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
             else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
         }
-    val position = toPosition(conf.considerPosition)
-    val dataDefinition = csDO().cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+    val pos = position ?: toPosition(conf.considerPosition)
+    val dataDefinition = csDO().cspec_fixed_standard_parts().toDataDefinition(result.text, pos, conf)
     return DoStmt(
         endLimit = endLimit,
         index = iter,
-        body = blockContext.statement().map { it.toAst(conf) },
+        body = blockContext.dostatement().statement().map { it.toAst(conf) },
         startLimit = start,
         dataDefinition = dataDefinition,
-        position = toPosition(conf.considerPosition)
+        position = pos
     )
 }
 
 internal fun RpgParser.BegindowContext.toAst(
     blockContext: BlockContext,
+    position: Position? = null,
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DowStmt {
+    val pos = position ?: toPosition(conf.considerPosition)
     val endExpression = csDOW().fixedexpression.expression().toAst(conf)
     return DowStmt(endExpression,
-        blockContext.statement().map { it.toAst(conf) },
-        position = toPosition(conf.considerPosition)
+        blockContext.dostatement().statement().map { it.toAst(conf) },
+        position = pos
     )
 }
 
 internal fun RpgParser.BegindouContext.toAst(
     blockContext: BlockContext,
+    position: Position? = null,
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DouStmt {
+    val pos = position ?: toPosition(conf.considerPosition)
     val endExpression = csDOU().fixedexpression.expression().toAst(conf)
-    return DouStmt(endExpression,
-        blockContext.statement().map { it.toAst(conf) },
-        position = toPosition(conf.considerPosition))
+    return DouStmt(
+        endExpression,
+        blockContext.dostatement().statement().map { it.toAst(conf) },
+        position = pos
+    )
 }
 
 internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {
