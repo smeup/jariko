@@ -1332,7 +1332,7 @@ data class IfStmt(
     ): MutableList<ProfilingAnnotationResolved> {
         val self = super.acceptProfiling(candidates, startLine, endLine)
         val thenAnnotations = acceptProfilingBody(thenBody, candidates)
-        val elseIfAnnotations  = elseIfClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
+        val elseIfAnnotations = elseIfClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
         val elseAnnotations = elseClause?.let { acceptProfilingBody(it.body, candidates) } ?: emptyList()
         return (self + thenAnnotations + elseIfAnnotations + elseAnnotations).toMutableList()
     }

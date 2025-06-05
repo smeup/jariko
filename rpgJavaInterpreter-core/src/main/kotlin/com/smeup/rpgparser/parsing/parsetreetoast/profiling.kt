@@ -69,7 +69,7 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
     // In a mute with no statements, as can happen for program with only
     // D SPEC, the function stmts.position() returns null and then this fragments raises error
     val resolved = this.main.stmts.position()?.let { position ->
-        val start = position.start.line.expandStartLine( profiling)
+        val start = position.start.line.expandStartLine(profiling)
         injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, profiling)
     } ?: emptyList()
 
