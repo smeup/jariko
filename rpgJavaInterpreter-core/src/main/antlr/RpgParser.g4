@@ -289,16 +289,18 @@ datatypeName:
   | OBJECT;
 
 block:
-	((csDOUxx | csDOWxx | begindou | begindow | begindo)
-		statement*
-		enddo
-	)
+	dostatement
 	| ifstatement
 	| selectstatement
 	| forstatement
 	| monitorstatement
 	| casestatement
 ;
+
+dostatement: ((csDOUxx | csDOWxx | begindou | begindow | begindo)
+             		statement*
+             		enddo
+             	);
 
 ifstatement:
 	(beginif
