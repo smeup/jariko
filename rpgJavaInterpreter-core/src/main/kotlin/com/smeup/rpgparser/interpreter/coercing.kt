@@ -371,10 +371,11 @@ private fun coerceDataStruct(value: DataStructValue, type: Type): Value {
         }
         is DataStructureType -> value
         is NumberType -> {
+            val valueAsStringValue = value.getSubstring(0, value.len)
             if (type.decimal) {
                 TODO("Converting DataStructValue to $type")
             } else {
-                value.asInt()
+                valueAsStringValue.asInt()
             }
         }
         else -> TODO("Converting DataStructValue to $type")

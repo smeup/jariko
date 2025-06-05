@@ -1467,10 +1467,6 @@ data class DataStructValue(@Contextual val value: DataStructValueBuilder, privat
     override fun takeFirst(n: Int): Value {
         return getSubstring(0, if (n <= len) n else len)
     }
-
-    override fun asInt(): IntValue {
-        return getSubstring(0, len).asInt()
-    }
 }
 
 fun Int.asValue() = IntValue(this.toLong())
