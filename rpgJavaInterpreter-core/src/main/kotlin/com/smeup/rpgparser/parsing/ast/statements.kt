@@ -107,7 +107,8 @@ abstract class Statement(
         val statementEnd = this.position!!.end
 
         val resolvedAnnotations = candidates.map { it ->
-            it.key to it.value.toAst(position = pos(it.key, statementStart.column, it.key, statementEnd.column))
+            val position = pos(it.key, statementStart.column, it.key, statementEnd.column)
+            it.key to it.value.toAst(position = position)
         }.toMap()
 
         val attachBeforeCandidates = resolvedAnnotations.filter { it ->
@@ -1329,20 +1330,11 @@ data class IfStmt(
         startLine: Int,
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
-        // Process the body statements
-        val ifAnnotations = acceptProfilingBody(thenBody, candidates, this.position!!.start.line, this.position.end.line)
-
-        // Process the ELSE IF
-        val elseIfAnnotations = elseIfClauses.map {
-            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
-        }.flatten()
-
-        // Process the ELSE
-        val elseAnnotations = elseClause?.let {
-            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
-        } ?: emptyList()
-
-        return (ifAnnotations + elseIfAnnotations + elseAnnotations).toMutableList()
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val thenAnnotations = acceptProfilingBody(thenBody, candidates)
+        val elseIfAnnotations  = elseIfClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
+        val elseAnnotations = elseClause?.let { acceptProfilingBody(it.body, candidates) } ?: emptyList()
+        return (self + thenAnnotations + elseIfAnnotations + elseAnnotations).toMutableList()
     }
 
     override fun execute(interpreter: InterpreterCore) {

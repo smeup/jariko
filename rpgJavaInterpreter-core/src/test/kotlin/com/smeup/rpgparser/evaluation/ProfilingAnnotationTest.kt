@@ -30,6 +30,8 @@ import kotlin.test.*
 open class ProfilingAnnotationTest : AbstractTest() {
     lateinit var smeupConfig: Configuration
 
+    override fun useCompiledVersion() = true
+
     @BeforeTest
     open fun setUp() {
         if (!DBServer.isRunning()) {
@@ -227,5 +229,34 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertTrue(closeAnnotations.any { it.statementLine == 13 })
         assertTrue(closeAnnotations.any { it.statementLine == 15 })
         assertTrue(closeAnnotations.any { it.statementLine == 19 })
+    }
+
+    @Test
+    fun executeIfSpan() {
+        val cu = assertASTCanBeProduced("profiling/IF_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
+        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+
+        assertEquals(4, openAnnotations.size)
+        assertEquals(4, closeAnnotations.size)
+
+        val beforeIf = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFORESTMT" }
+        val ifBody = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "IFBODY" }
+        val elifBody = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "ELIFBODY" }
+        val elseBody = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "ELSEBODY" }
+
+        assertEquals(13, beforeIf?.statementLine)
+        assertEquals(15, ifBody?.statementLine)
+        assertEquals(20, elifBody?.statementLine)
+        assertEquals(25, elseBody?.statementLine)
+
+        assertTrue(closeAnnotations.any { it.statementLine == 16 })
+        assertTrue(closeAnnotations.any { it.statementLine == 21 })
+        assertTrue(closeAnnotations.any { it.statementLine == 26 })
+        assertTrue(closeAnnotations.any { it.statementLine == 13 })
     }
 }
