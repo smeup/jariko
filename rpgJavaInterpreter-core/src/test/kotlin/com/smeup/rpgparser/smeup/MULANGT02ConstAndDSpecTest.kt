@@ -1005,4 +1005,14 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("5")
         assertEquals(expected, "smeup/MUDRNRAPU00291".outputOf())
     }
+
+    /**
+     * Calling a program by passing Integer to a DS which defines only one field as Integer.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001121() {
+        val expected = listOf("05", "7")
+        assertEquals(expected, "smeup/MUDRNRAPU001121".outputOf())
+    }
 }
