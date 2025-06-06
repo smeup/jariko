@@ -6,9 +6,15 @@
      V* ==============================================================
      D DSPAMI          DS
      D  T$PAMI                 1      2  1
+     D MSG             S             50
 
-     C     DSPAMI        DSPLY
+     C                   EVAL      MSG=%CHAR(T$PAMI)
+     C     MSG           DSPLY
+
      C                   EVAL      T$PAMI=7.1
+
+     C                   EVAL      MSG=%CHAR(T$PAMI)
+     C     MSG           DSPLY
 
      C                   SETON                                          LR
 

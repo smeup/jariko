@@ -9,12 +9,17 @@
      D  ££UMHR                 1      1
      D  ££PAMI                 2      3  1
      D PGM             S             17     INZ('MUDRNRAPU001122_P')
+     D MSG             S             50
 
      C                   EVAL      ££PAMI=5.2
+
+     C                   EVAL      MSG=%CHAR(££PAMI)
+     C     MSG           DSPLY
 
      C                   CALL      PGM
      C                   PARM                    ££PAMI
 
-     C     ££PAMI        DSPLY
+     C                   EVAL      MSG=%CHAR(££PAMI)
+     C     MSG           DSPLY
 
      C                   SETON                                          LR
