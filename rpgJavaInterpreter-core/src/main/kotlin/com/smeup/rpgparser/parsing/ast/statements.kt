@@ -129,8 +129,20 @@ abstract class Statement(
         this.profilingAnnotations.addAll(attachAfterCandidates.values)
 
         // Build resolved list
-        val before = attachBeforeCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling, profiling.position!!.start.line, statementStart.line) }
-        val after = attachAfterCandidates.map { (_, profiling) -> ProfilingAnnotationResolved(profiling, profiling.position!!.start.line, statementStart.line) }
+        val before = attachBeforeCandidates.map { (_, profiling) ->
+            ProfilingAnnotationResolved(
+                profiling,
+                profiling.position!!.start.line,
+                statementStart.line
+            )
+        }
+        val after = attachAfterCandidates.map { (_, profiling) ->
+            ProfilingAnnotationResolved(
+                profiling,
+                profiling.position!!.start.line,
+                statementStart.line
+            )
+        }
         return (before + after).toMutableList()
     }
 
@@ -192,6 +204,7 @@ fun List<Statement>.unwrap(parent: UnwrappedStatementData? = null): List<Unwrapp
                 result.add(current)
                 result.addAll(body)
             }
+
             else -> {
                 val unwrapped = UnwrappedStatementData(it, 0, parent)
                 result.add(unwrapped)
@@ -334,15 +347,10 @@ data class SelectStmt(
         startLine: Int,
         endLine: Int
     ): MutableList<ProfilingAnnotationResolved> {
-        val casesAnnotations = cases.map {
-            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
-        }.flatten()
-
-        val otherAnnotations = other?.let {
-            acceptProfilingBody(it.body, candidates, it.position!!.start.line, it.position.end.line)
-        } ?: emptyList()
-
-        return (casesAnnotations + otherAnnotations).toMutableList()
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val casesAnnotations = cases.map { acceptProfilingBody(it.body, candidates) }.flatten()
+        val otherAnnotations = other?.let { acceptProfilingBody(it.body, candidates) } ?: emptyList()
+        return (self + casesAnnotations + otherAnnotations).toMutableList()
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()

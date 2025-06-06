@@ -69,7 +69,7 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
     // In a mute with no statements, as can happen for program with only
     // D SPEC, the function stmts.position() returns null and then this fragments raises error
     val resolved = this.main.stmts.position()?.let { position ->
-        val start = position.start.line.expandStartLine(profiling)
+        val start = position.start.line.expandStartLineWithAnnotations(profiling)
         injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, profiling)
     } ?: emptyList()
 
@@ -101,8 +101,8 @@ fun injectProfilingAnnotationsToStatements(
 
     // Visit each statement
     statements.forEach {
-        val candidateStartForStatement = it.position!!.start.line.expandStartLine(profilingAnnotationsToProcess)
-        val candidateEndForStatement = it.position!!.end.line.expandEndLine(profilingAnnotationsToProcess)
+        val candidateStartForStatement = it.position!!.start.line.expandStartLineWithAnnotations(profilingAnnotationsToProcess)
+        val candidateEndForStatement = it.position!!.end.line.expandEndLineWithAnnotations(profilingAnnotationsToProcess)
         val resolved = it.acceptProfiling(profilingAnnotationsToProcess, candidateStartForStatement, candidateEndForStatement)
         profilingAnnotationsResolved.addAll(resolved)
 
@@ -113,7 +113,7 @@ fun injectProfilingAnnotationsToStatements(
     // otherwise it means the remaining annotations can't be attached
     // to any statement
     profilingAnnotationsToProcess.forEach {
-        throw IllegalStateException("Could not attach the annotation @line ${it.key}")
+        it.value.error("Could not attach the annotation @line ${it.key}", conf = ToAstConfiguration())
     }
 
     return profilingAnnotationsResolved
@@ -124,10 +124,10 @@ fun injectProfilingAnnotationsToStatements(
  *
  * @param profiling The profiling annotation map.
  */
-private fun Pair<Int, Int>.expand(profiling: ProfilingImmutableMap): Pair<Int, Int> {
+internal fun Pair<Int, Int>.expandWithAnnotations(profiling: ProfilingImmutableMap): Pair<Int, Int> {
     val (a, b) = this
-    val start = a.expandStartLine(profiling)
-    val end = b.expandEndLine(profiling)
+    val start = a.expandStartLineWithAnnotations(profiling)
+    val end = b.expandEndLineWithAnnotations(profiling)
     return start to end
 }
 
@@ -136,7 +136,7 @@ private fun Pair<Int, Int>.expand(profiling: ProfilingImmutableMap): Pair<Int, I
  *
  * @param profiling The profiling annotation map.
  */
-private fun Int.expandStartLine(profiling: ProfilingImmutableMap): Int {
+internal fun Int.expandStartLineWithAnnotations(profiling: ProfilingImmutableMap): Int {
     var line = this
     while (line - 1 in profiling) --line
     return line
@@ -147,7 +147,7 @@ private fun Int.expandStartLine(profiling: ProfilingImmutableMap): Int {
  *
  * @param profiling The profiling annotation map.
  */
-private fun Int.expandEndLine(profiling: ProfilingImmutableMap): Int {
+internal fun Int.expandEndLineWithAnnotations(profiling: ProfilingImmutableMap): Int {
     var line = this
     while (line + 1 in profiling) ++line
     return line
@@ -161,7 +161,7 @@ private fun Int.expandEndLine(profiling: ProfilingImmutableMap): Int {
  * @param profiling The profiling annotation map.
  */
 fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap): MutableList<ProfilingAnnotationResolved> {
-    val (start, end) = body.lineBounds().expand(profiling)
+    val (start, end) = body.lineBounds().expandWithAnnotations(profiling)
     return acceptProfilingBody(body, profiling, start, end)
 }
 
@@ -197,8 +197,8 @@ fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap, start: I
  * @param profiling The profiling annotation map.
  */
 internal fun Statement.boundsIncludingProfiling(profiling: ProfilingMap): Pair<Int, Int> {
-    val start = this.position!!.start.line.expandStartLine(profiling)
-    val end = this.position!!.end.line.expandEndLine(profiling)
+    val start = this.position!!.start.line.expandStartLineWithAnnotations(profiling)
+    val end = this.position!!.end.line.expandEndLineWithAnnotations(profiling)
 
     return start to end
 }

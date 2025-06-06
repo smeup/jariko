@@ -22,6 +22,7 @@ import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanEndAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -29,8 +30,6 @@ import kotlin.test.*
 
 open class ProfilingAnnotationTest : AbstractTest() {
     lateinit var smeupConfig: Configuration
-
-    override fun useCompiledVersion() = true
 
     @BeforeTest
     open fun setUp() {
@@ -40,13 +39,15 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
         smeupConfig = Configuration()
         val path = javaClass.getResource("/smeup/metadata")!!.path
-        val connectionConfigs = listOf(ConnectionConfig(
-            fileName = "*",
-            url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
-            user = "SA",
-            password = "",
-            driver = "org.hsqldb.jdbc.JDBCDriver"
-        ))
+        val connectionConfigs = listOf(
+            ConnectionConfig(
+                fileName = "*",
+                url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+                user = "SA",
+                password = "",
+                driver = "org.hsqldb.jdbc.JDBCDriver"
+            )
+        )
         val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = connectionConfigs)
         smeupConfig.reloadConfig = ReloadConfig(
             nativeAccessConfig = DBNativeAccessConfig(connectionConfigs.map {
@@ -75,8 +76,8 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(2, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
@@ -96,8 +97,8 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(6, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(3, openAnnotations.size)
         assertEquals(3, closeAnnotations.size)
@@ -131,8 +132,8 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(4, openAnnotations.size)
         assertEquals(4, closeAnnotations.size)
@@ -148,8 +149,8 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(4, openAnnotations.size)
         assertEquals(4, closeAnnotations.size)
@@ -166,20 +167,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(4, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
-
-        assertEquals(2, openAnnotations.size)
-        assertEquals(2, closeAnnotations.size)
-
-        val beforeFor = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFOREFOR" }
-        val forBodyStart = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "FORBODYSTART" }
-
-        assertEquals(13, beforeFor?.statementLine)
-        assertEquals(15, forBodyStart?.statementLine)
-
-        assertTrue(closeAnnotations.any { it.statementLine == 13 })
-        assertTrue(closeAnnotations.any { it.statementLine == 15 })
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFOREFOR" to 13,
+                "FORBODYSTART" to 15
+            )
+        )
+        assertSpanEndPositions(cu, listOf(13, 15))
     }
 
     @Test
@@ -189,20 +183,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(4, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
-
-        assertEquals(2, openAnnotations.size)
-        assertEquals(2, closeAnnotations.size)
-
-        val beforeDo = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFOREDO" }
-        val doBodyStart = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "DOBODYSTART" }
-
-        assertEquals(13, beforeDo?.statementLine)
-        assertEquals(15, doBodyStart?.statementLine)
-
-        assertTrue(closeAnnotations.any { it.statementLine == 13 })
-        assertTrue(closeAnnotations.any { it.statementLine == 15 })
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFOREDO" to 13,
+                "DOBODYSTART" to 15
+            )
+        )
+        assertSpanEndPositions(cu, listOf(13, 15))
     }
 
     @Test
@@ -212,23 +199,14 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(6, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
-
-        assertEquals(3, openAnnotations.size)
-        assertEquals(3, closeAnnotations.size)
-
-        val beforeMonitor = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFORESTMT" }
-        val monitorBegin = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "STMTBEGIN" }
-        val monitorOnErrorStart = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "STMTERROR" }
-
-        assertEquals(13, beforeMonitor?.statementLine)
-        assertEquals(15, monitorBegin?.statementLine)
-        assertEquals(19, monitorOnErrorStart?.statementLine)
-
-        assertTrue(closeAnnotations.any { it.statementLine == 13 })
-        assertTrue(closeAnnotations.any { it.statementLine == 15 })
-        assertTrue(closeAnnotations.any { it.statementLine == 19 })
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFORESTMT" to 13,
+                "STMTBEGIN" to 15,
+                "STMTERROR" to 19
+            )
+        )
+        assertSpanEndPositions(cu, listOf(13, 15, 19))
     }
 
     @Test
@@ -238,25 +216,57 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
-        val openAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanStartAnnotation }
-        val closeAnnotations = cu.resolvedProfilingAnnotations.filter { it.source is ProfilingSpanEndAnnotation }
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFORESTMT" to 13,
+                "IFBODY" to 15,
+                "ELIFBODY" to 20,
+                "ELSEBODY" to 25
+            )
+        )
+        assertSpanEndPositions(cu, listOf(16, 21, 26, 13))
+    }
 
-        assertEquals(4, openAnnotations.size)
-        assertEquals(4, closeAnnotations.size)
+    @Test
+    fun executeSelectSpan() {
+        val cu = assertASTCanBeProduced("profiling/SELECT_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
 
-        val beforeIf = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "BEFORESTMT" }
-        val ifBody = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "IFBODY" }
-        val elifBody = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "ELIFBODY" }
-        val elseBody = openAnnotations.find { (it.source as ProfilingSpanStartAnnotation).name == "ELSEBODY" }
+        assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFORESELECT" to 13,
+                "CONTENT1" to 16,
+                "CONTENT2" to 20,
+                "CONTENT3" to 24
+            )
+        )
+        assertSpanEndPositions(cu, listOf(13, 24, 20, 16))
+    }
 
-        assertEquals(13, beforeIf?.statementLine)
-        assertEquals(15, ifBody?.statementLine)
-        assertEquals(20, elifBody?.statementLine)
-        assertEquals(25, elseBody?.statementLine)
+    private fun assertSpanStartPositions(cu: CompilationUnit, spans: List<Pair<String, Int>>) {
+        val openAnnotations = cu.getOpenAnnotations()
+        spans.forEach {
+            val (name, line) = it
+            val span =
+                openAnnotations.find { annotation -> (annotation.source as ProfilingSpanStartAnnotation).name == name }
+            assertEquals(line, span?.statementLine, "cannot find span '$name' at line '$line'")
+        }
+    }
 
-        assertTrue(closeAnnotations.any { it.statementLine == 16 })
-        assertTrue(closeAnnotations.any { it.statementLine == 21 })
-        assertTrue(closeAnnotations.any { it.statementLine == 26 })
-        assertTrue(closeAnnotations.any { it.statementLine == 13 })
+    private fun assertSpanEndPositions(cu: CompilationUnit, spans: List<Int>) {
+        val closedAnnotations = cu.getClosedAnnotations()
+        spans.forEach { span ->
+            assertTrue(closedAnnotations.any { it.statementLine == span })
+        }
+    }
+
+    private fun CompilationUnit.getOpenAnnotations() = this.resolvedProfilingAnnotations.filter {
+        it.source is ProfilingSpanStartAnnotation
+    }
+
+    private fun CompilationUnit.getClosedAnnotations() = this.resolvedProfilingAnnotations.filter {
+        it.source is ProfilingSpanEndAnnotation
     }
 }
