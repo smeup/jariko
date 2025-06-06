@@ -1025,4 +1025,24 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("5.2", "5.2", "7.1", "7.1")
         assertEquals(expected, "smeup/MUDRNRAPU001122".outputOf())
     }
+
+    /**
+     * Calling a program by passing Integer to a DS which defines only one field as Decimal.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001123() {
+        val expected = listOf("5", ".5", "7.1", "71")
+        assertEquals(expected, "smeup/MUDRNRAPU001123".outputOf())
+    }
+
+    /**
+     * Calling a program by passing Decimal to a DS which defines only one field as Integer.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001124() {
+        val expected = listOf("5.2", "52", "7", ".7")
+        assertEquals(expected, "smeup/MUDRNRAPU001124".outputOf())
+    }
 }
