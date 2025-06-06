@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 05/06/2025 APU001 Creation
+     V* 06/06/2025 APU001 Edit
      V* ==============================================================
     O * PROGRAM GOAL
     O * Calling a program by passing Integer to a DS which defines
@@ -14,12 +15,17 @@
      D  ££UMHR                 1      1
      D  ££PAMI                 2      3  0
      D PGM             S             17     INZ('MUDRNRAPU001121_P')
+     D MSG             S             50
 
      C                   EVAL      ££PAMI=5
+
+     C                   EVAL      MSG=%CHAR(££PAMI)
+     C     MSG           DSPLY
 
      C                   CALL      PGM
      C                   PARM                    ££PAMI
 
-     C     ££PAMI        DSPLY
+     C                   EVAL      MSG=%CHAR(££PAMI)
+     C     MSG           DSPLY
 
      C                   SETON                                          LR

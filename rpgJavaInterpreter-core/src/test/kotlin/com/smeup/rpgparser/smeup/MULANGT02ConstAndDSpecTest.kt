@@ -1012,7 +1012,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001121() {
-        val expected = listOf("05", "7")
+        val expected = listOf("5", "5", "7", "7")
         assertEquals(expected, "smeup/MUDRNRAPU001121".outputOf())
     }
 
