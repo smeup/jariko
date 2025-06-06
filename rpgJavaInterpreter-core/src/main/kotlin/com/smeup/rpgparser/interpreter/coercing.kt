@@ -297,6 +297,10 @@ fun coerce(value: Value, type: Type): Value {
                     val coercedValue = coerce(value, type.element)
                     ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
                 }
+                is DataStructureType -> {
+                    val coercedValue = value.value.toString().replace(".", "").padStart(type.size, '0')
+                    DataStructValue(coercedValue, type)
+                }
                 else -> TODO("Converting DecimalValue to $type")
             }
         }
@@ -373,9 +377,9 @@ private fun coerceDataStruct(value: DataStructValue, type: Type): Value {
         is NumberType -> {
             val valueAsStringValue = value.getSubstring(0, value.len)
             if (type.decimal) {
-                TODO("Converting DataStructValue to $type")
+                coerceString(valueAsStringValue, type)
             } else {
-                valueAsStringValue.asInt()
+                coerceString(valueAsStringValue, type)
             }
         }
         else -> TODO("Converting DataStructValue to $type")
