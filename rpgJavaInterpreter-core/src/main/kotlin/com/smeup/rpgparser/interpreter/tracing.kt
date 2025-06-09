@@ -46,8 +46,15 @@ data class JarikoTrace(
  */
 data class RpgTrace(
     val program: String,
-    val description: String? = null
-)
+    val description: String? = null,
+    val line: Int
+) {
+    val fullName = {
+        program + if (description != null && description.isNotBlank()) {
+            " - $description"
+        } else ""
+    }
+}
 
 internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
     startJarikoTrace(trace)

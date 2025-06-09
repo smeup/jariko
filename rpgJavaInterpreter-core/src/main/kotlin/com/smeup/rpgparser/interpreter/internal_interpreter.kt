@@ -1320,10 +1320,10 @@ open class InternalInterpreter(
             val attachBeforeProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext }
             val attachAfterProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious }
 
-            executeProfiling(attachBeforeProfilingAnnotations)
+            statement.executeProfiling(attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
             sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
-            executeProfiling(attachAfterProfilingAnnotations)
+            statement.executeProfiling(attachAfterProfilingAnnotations)
         }
         if (trace != null) {
             callback.traceBlock(trace) { internalExecute() }
@@ -1335,8 +1335,8 @@ open class InternalInterpreter(
      *
      * @param annotations The annotations to execute.
      */
-    private fun executeProfiling(annotations: List<ProfilingAnnotation>) {
-        annotations.forEach { executeProfiling(it) }
+    private fun Statement.executeProfiling(annotations: List<ProfilingAnnotation>) {
+        annotations.forEach { executeProfiling(it, this.position?.start?.line ?: 0) }
     }
 
     /**
@@ -1344,13 +1344,13 @@ open class InternalInterpreter(
      *
      * @param annotation The profiling annotation to execute.
      */
-    private fun executeProfiling(annotation: ProfilingAnnotation) {
+    private fun executeProfiling(annotation: ProfilingAnnotation, line: Int) {
         val programName = getInterpretationContext().currentProgramName
         when (annotation) {
             is ProfilingSpanStartAnnotation -> {
                 val callback = configuration.jarikoCallback
                 val description = annotation.description
-                val trace = RpgTrace(programName, description)
+                val trace = RpgTrace(programName, description, line)
                 callback.startRpgTrace(trace)
 
                 renderLogInternal {
