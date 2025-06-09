@@ -1319,8 +1319,7 @@ open class InternalInterpreter(
     }
 
     override fun onInterpretationEnd() {
-        val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
-        analyticsContext.generateCompleteReport().forEach { entry -> renderLog { entry } }
+        loggingContext.emitAnalyticsReport()
     }
 
     private fun Statement.toTracePoint(): JarikoTrace? {

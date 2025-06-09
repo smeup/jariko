@@ -43,6 +43,14 @@ data class InterpreterLoggingContext(
     }
 
     /**
+     * Emit analytics report.
+     */
+    fun emitAnalyticsReport() {
+        val ctx = MainExecutionContext.getAnalyticsLoggingContext() ?: return
+        ctx.generateCompleteReport().forEach { entry -> renderLog { entry } }
+    }
+
+    /**
      * Open a logging scope.
      *
      * @param statement The statement connected to the scope.
