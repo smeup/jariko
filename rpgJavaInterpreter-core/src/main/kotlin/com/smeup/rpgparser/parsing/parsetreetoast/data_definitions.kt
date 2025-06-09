@@ -611,7 +611,6 @@ internal fun RpgParser.Dcl_dsContext.type(
  */
 internal fun RpgParser.Keyword_occursContext.evaluate(conf: ToAstConfiguration = ToAstConfiguration()): Int? {
     return when {
-        this.numeric_constant != null -> numeric_constant?.getChild(0)?.text?.toInt()
         this.expr != null -> {
             val injectableCompileTimeInterpreter = InjectableCompileTimeInterpreter(
                 knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
