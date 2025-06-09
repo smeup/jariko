@@ -59,6 +59,7 @@ open class InternalInterpreter(
     private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
     private val configuration = MainExecutionContext.getConfiguration()
+    override fun getConfiguration() = configuration
 
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
@@ -1259,84 +1260,26 @@ open class InternalInterpreter(
     private inline fun execute(statement: Statement) {
         val programName = this.getInterpretationContext().currentProgramName
         val callback = configuration.jarikoCallback
-        val trace = statement.toTracePoint()
+        val trace = toTracePoint(statement)
 
         val internalExecute = {
             val sourceProducer = if (loggingContext.logsEnabled) {
                 { LogSourceData(programName, statement.position.line()) }
             } else null
             sourceProducer?.let { loggingContext.openLoggingScope(statement, it) }
-            val attachBeforeProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext }
-            val attachAfterProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious }
+            val attachBeforeProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToNext)
+            val attachAfterProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToPrevious)
 
-            statement.executeProfiling(attachBeforeProfilingAnnotations)
+            executeProfiling(statement, attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
             sourceProducer?.let { loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime) }
-            statement.executeProfiling(attachAfterProfilingAnnotations)
+            executeProfiling(statement, attachAfterProfilingAnnotations)
         }
 
         trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
     }
 
-    /**
-     * Execute a set of [ProfilingAnnotation]s.
-     *
-     * @param annotations The annotations to execute.
-     */
-    private fun Statement.executeProfiling(annotations: List<ProfilingAnnotation>) {
-        annotations.forEach { executeProfiling(it, this.position?.start?.line ?: 0) }
-    }
-
-    /**
-     * Execute a [ProfilingAnnotation].
-     *
-     * @param annotation The profiling annotation to execute.
-     */
-    private fun executeProfiling(annotation: ProfilingAnnotation, line: Int) {
-        val programName = getInterpretationContext().currentProgramName
-        when (annotation) {
-            is ProfilingSpanStartAnnotation -> {
-                val callback = configuration.jarikoCallback
-                val description = annotation.description
-                val trace = RpgTrace(programName, description, line)
-                callback.startRpgTrace(trace)
-
-                renderLog {
-                    val logSource = { LogSourceData(programName, annotation.startLine()) }
-                    LazyLogEntry.produceProfiling(annotation, logSource)
-                }
-            }
-            is ProfilingSpanEndAnnotation -> {
-                val callback = configuration.jarikoCallback
-                callback.finishRpgTrace()
-
-                renderLog {
-                    val logSource = { LogSourceData(programName, annotation.startLine()) }
-                    LazyLogEntry.produceProfiling(annotation, logSource)
-                }
-            }
-        }
-    }
-
     override fun onInterpretationEnd() {
         loggingContext.emitAnalyticsReport()
-    }
-
-    private fun Statement.toTracePoint(): JarikoTrace? {
-        return when (this) {
-            is CallStmt -> JarikoTrace(
-                kind = JarikoTraceKind.CallStmt,
-                description = eval(this.expression).asString().value.trim()
-            )
-            is ExecuteSubroutine -> JarikoTrace(
-                kind = JarikoTraceKind.ExecuteSubroutine,
-                description = this.subroutine.name
-            )
-            is CompositeStatement -> JarikoTrace(
-                kind = JarikoTraceKind.CompositeStatement,
-                description = this.loggableEntityName
-            )
-            else -> null
-        }
     }
 }
