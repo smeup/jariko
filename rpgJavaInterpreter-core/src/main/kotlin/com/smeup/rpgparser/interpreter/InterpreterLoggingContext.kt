@@ -24,15 +24,30 @@ import com.smeup.rpgparser.parsing.ast.LoopStatement
 import com.smeup.rpgparser.parsing.ast.Statement
 import kotlin.time.Duration
 
+/**
+ * Object holding information about the interpreter logging configuration and state.
+ */
 data class InterpreterLoggingContext(
     var logHandlers: List<InterpreterLogHandler> = emptyList()
 ) {
+    /**
+     * Determine whether logs are enabled or not.
+     */
     val logsEnabled get() = logHandlers.isNotEmpty()
 
-    fun doLog(renderer: LazyLogEntry) {
+    /**
+     * Log a [LazyLogEntry].
+     */
+    fun log(renderer: LazyLogEntry) {
         logHandlers.renderLog(renderer)
     }
 
+    /**
+     * Open a logging scope.
+     *
+     * @param statement The statement connected to the scope.
+     * @param sourceProducer The log source provider.
+     */
     fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
         renderLog { statement.getResolutionLogRenderer(sourceProducer) }
         if (statement is CompositeStatement) {
@@ -52,6 +67,14 @@ data class InterpreterLoggingContext(
         }
     }
 
+    /**
+     * Close a logging scope.
+     *
+     * @param statement The statement connected to the scope.
+     * @param programName The name of the program in which the log had origin.
+     * @param sourceProducer The log source provider.
+     * @param executionTime The duration of the execution of the scope.
+     */
     fun closeLoggingScope(
         statement: Statement,
         programName: String,
@@ -86,11 +109,16 @@ data class InterpreterLoggingContext(
         }
     }
 
+    /**
+     * Render a log lazily.
+     *
+     * @param producer The log producer.
+     */
     inline fun renderLog(producer: () -> LazyLogEntry?) {
         if (!logsEnabled) return
 
         val entry = producer()
         entry ?: return
-        doLog(entry)
+        log(entry)
     }
 }
