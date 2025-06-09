@@ -23,8 +23,10 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.execution.SimpleReloadConfig
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.EvalStmt
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanEndAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.allStatements
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import kotlin.test.*
 
@@ -243,6 +245,27 @@ open class ProfilingAnnotationTest : AbstractTest() {
             )
         )
         assertSpanEndPositions(cu, listOf(13, 24, 20, 16))
+    }
+
+    @Test
+    fun executeCopyTelemetrySpan() {
+        val cu = assertASTCanBeProduced("profiling/COPY_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
+
+        assertEquals(1, openAnnotations.size)
+        assertEquals(1, closeAnnotations.size)
+
+        // Annotations will result moved from the original expected position but will be attached to the same statement
+        val eval = cu.allStatements().firstOrNull { stmt -> stmt is EvalStmt }
+        assertEquals(openAnnotations[0].profilingLine + 1, openAnnotations[0].statementLine)
+        assertEquals(closeAnnotations[0].profilingLine - 1, closeAnnotations[0].statementLine)
+        assertEquals(closeAnnotations[0].statementLine, openAnnotations[0].statementLine)
+        assertEquals(closeAnnotations[0].statementLine, eval!!.position!!.start.line)
     }
 
     private fun assertSpanStartPositions(cu: CompilationUnit, spans: List<Pair<String, Int>>) {
