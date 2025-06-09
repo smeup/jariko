@@ -46,14 +46,16 @@ data class JarikoTrace(
  */
 data class RpgTrace(
     val program: String,
-    val description: String? = null,
+    val description: String = "",
     val line: Int
 ) {
-    val fullName = {
-        program + if (description != null && description.isNotBlank()) {
+    val fullName = run {
+        program + if (description.isNotBlank()) {
             " - $description"
         } else ""
     }
+
+    override fun toString() = fullName + "at line $line"
 }
 
 internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
