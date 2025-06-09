@@ -44,17 +44,15 @@ fun ProfilingParser.ProfilingLineContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
+fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
     // Process the main body statements
     val statements = listOf(this)
-    val resolved = injectProfilingAnnotationsToStatements(
+    injectProfilingAnnotationsToStatements(
         statements,
         this.position!!.start.line,
         this.position!!.end.line,
         profiling
     )
-
-    return resolved
 }
 
 /**
