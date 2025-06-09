@@ -22,6 +22,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.AbstractDataStructureType
+import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
 import com.strumenta.kolasu.model.*
@@ -53,7 +54,16 @@ data class CompilationUnit(
     val displayFiles: Map<String, DSPF>? = null
 ) : Node(position) {
 
-    var resolvedProfilingAnnotations = mutableListOf<ProfilingAnnotationResolved>()
+    val resolvedProfilingAnnotations: List<ProfilingAnnotationResolved> by lazy {
+        val statements = main.stmts.explode(true)
+        statements.map { stmt ->
+            val statementLine = stmt.position?.start?.line ?: stmt.startLine().toIntOrNull() ?: 0
+            stmt.profilingAnnotations.map { annotation ->
+                ProfilingAnnotationResolved(annotation, annotation.position!!.start.line, statementLine)
+            }
+        }.flatten()
+    }
+
     var timeouts = emptyList<MuteTimeoutAnnotation>()
 
     val minTimeOut by lazy {
