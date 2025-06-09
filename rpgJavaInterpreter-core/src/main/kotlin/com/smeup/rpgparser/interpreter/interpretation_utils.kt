@@ -16,9 +16,17 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.facade.SourceReference
+import com.smeup.rpgparser.parsing.facade.relative
+import com.strumenta.kolasu.model.Position
 import java.time.format.DateTimeFormatter
 import java.util.*
+
+private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
+
+typealias StatementReference = Pair<Int, SourceReference>
 
 fun Value.stringRepresentation(format: String? = null): String {
     return when (this) {
@@ -100,4 +108,57 @@ internal fun List<Statement>.lineBounds(): Pair<Int, Int> {
     val end = positions.maxOfOrNull { it.end.line } ?: 0
 
     return start to end
+}
+
+fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
+    IndicatorType.STATELESS_INDICATORS.forEach {
+        this.remove(it)
+    }
+}
+
+/**
+ * @return An instance of StatementReference related to position.
+ * */
+internal fun Position.relative(): StatementReference {
+    val programName =
+        if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
+    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
+    return this.relative(programName, copyBlocks)
+}
+
+/**
+ * Memory slice context attribute name must to be also string representation of MemorySliceId
+ * */
+internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
+
+/**
+ * Restores the symbol table from a memory slice.
+ *
+ * This function is used to restore the state of the symbol table from a previously saved memory slice.
+ * This is useful in scenarios where the state of the symbol table needs to be preserved across different
+ * executions of the same program, for example in case of stateful programs.
+ *
+ * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
+ * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
+ * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
+ */
+internal fun ISymbolTable.restoreFromMemorySlice(
+    memorySliceId: MemorySliceId?,
+    memorySliceMgr: MemorySliceMgr?,
+    initialValues: Map<String, Value> = emptyMap()
+) {
+    memorySliceId?.let { myMemorySliceId ->
+        memorySliceMgr?.let {
+            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
+                memorySliceId = memorySliceId,
+                symbolTable = this,
+                initSymbolTableEntry = { dataDefinition, storedValue ->
+                    // initial values have not to be overwritten
+                    if (!initialValues.containsKey(dataDefinition.name)) {
+                        this[dataDefinition] = storedValue
+                    }
+                }
+            )
+        }
+    }
 }

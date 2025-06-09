@@ -17,18 +17,14 @@
 
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
-import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
-import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -56,36 +52,7 @@ object InterpreterConfiguration {
 
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
-private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.prevStmtExecLine"
-
-typealias StatementReference = Pair<Int, SourceReference>
-
-class InterpreterStatus(
-    val symbolTable: ISymbolTable,
-    val indicators: HashMap<IndicatorKey, BooleanValue>,
-    var returnValue: Value? = null,
-    var params: Int = 0,
-    var callerParams: Int = params
-) {
-    var inzsrExecuted = false
-    var lastFound = false
-    var lastDBFile: DBFile? = null
-    val dbFileMap = DBFileMap()
-    var displayFiles: Map<String, DSPF>? = null
-    fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
-    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
-        val tmpValue = symbolTable[abstractDataDefinition]
-        if (tmpValue is NullValue) {
-            throw IllegalArgumentException("Void value for ${abstractDataDefinition.name}")
-        }
-        return tmpValue
-    }
-    fun getReferences(pointer: DataRefExpr) = symbolTable.getValues().filter {
-        val target = it.key.basedOn as? DataRefExpr
-        target?.variable == pointer.variable
-    }
-}
 
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
@@ -1371,59 +1338,6 @@ open class InternalInterpreter(
                 description = this.loggableEntityName
             )
             else -> null
-        }
-    }
-}
-
-fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
-    IndicatorType.STATELESS_INDICATORS.forEach {
-        this.remove(it)
-    }
-}
-
-/**
- * @return An instance of StatementReference related to position.
- * */
-internal fun Position.relative(): StatementReference {
-    val programName =
-        if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
-    return this.relative(programName, copyBlocks)
-}
-
-/**
- * Memory slice context attribute name must to be also string representation of MemorySliceId
- * */
-internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
-
-/**
- * Restores the symbol table from a memory slice.
- *
- * This function is used to restore the state of the symbol table from a previously saved memory slice.
- * This is useful in scenarios where the state of the symbol table needs to be preserved across different
- * executions of the same program, for example in case of stateful programs.
- *
- * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
- * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
- * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
- */
-internal fun ISymbolTable.restoreFromMemorySlice(
-    memorySliceId: MemorySliceId?,
-    memorySliceMgr: MemorySliceMgr?,
-    initialValues: Map<String, Value> = emptyMap()
-) {
-    memorySliceId?.let { myMemorySliceId ->
-        memorySliceMgr?.let {
-            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
-                memorySliceId = memorySliceId,
-                symbolTable = this,
-                initSymbolTableEntry = { dataDefinition, storedValue ->
-                    // initial values have not to be overwritten
-                    if (!initialValues.containsKey(dataDefinition.name)) {
-                        this[dataDefinition] = storedValue
-                    }
-                }
-            )
         }
     }
 }
