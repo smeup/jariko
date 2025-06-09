@@ -424,8 +424,8 @@ class RpgParserFacade {
      * @param errors A mutable list where output errors will be reported to.
      */
     private fun parseProfiling(code: String, errors: MutableList<Error>): ProfilingParser.ProfilingLineContext {
-        val parser = createProfilingParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors,
-            longLines = true)
+        val inputStream = code.byteInputStream(Charsets.UTF_8).bomInputStream()
+        val parser = createProfilingParser(inputStream, errors, longLines = true)
         val root = parser.profilingLine()
         verifyParseTree(parser, errors, root)
         return root
@@ -505,7 +505,8 @@ class RpgParserFacade {
         MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "FINDPROF", "START"))
         val profiling: ProfilingMap = HashMap()
         val elapsed = measureNanoTime {
-            val lexResult = lex(BOMInputStream(code))
+            val inputStream = code.bomInputStream()
+            val lexResult = lex(inputStream)
             errors.addAll(lexResult.errors)
             lexResult.root?.forEachIndexed { index, token0 ->
                 val isInRange = index < lexResult.root.size - 2
