@@ -45,7 +45,6 @@ import java.math.RoundingMode
 import java.util.*
 import kotlin.math.min
 import kotlin.system.measureNanoTime
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 object InterpreterConfiguration {
@@ -129,34 +128,17 @@ open class InternalInterpreter(
         return klists
     }
 
-    private var logHandlers: List<InterpreterLogHandler> = emptyList()
-
-    private fun logsEnabled() = logHandlers.isNotEmpty()
-
     private val status = InterpreterStatus(globalSymbolTable, indicators)
     override fun getStatus(): InterpreterStatus {
         return status
     }
 
+    private val loggingContext = InterpreterLoggingContext()
+    override fun getLoggingContext() = loggingContext
+
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override fun renderLog(producer: () -> LazyLogEntry?) = renderLogInternal(producer)
-
-    /**
-     * Internal implementation of the renderLog method
-     * This allows to inline when used internally, saving a lot of execution time
-     */
-    private inline fun renderLogInternal(producer: () -> LazyLogEntry?) {
-        if (!logsEnabled()) return
-
-        val entry = producer()
-        entry ?: return
-        doLog(entry)
-    }
-
-    private fun doLog(renderer: LazyLogEntry) {
-        logHandlers.renderLog(renderer)
-    }
+    override fun renderLog(producer: () -> LazyLogEntry?) = loggingContext.renderLog(producer)
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
@@ -172,7 +154,7 @@ open class InternalInterpreter(
 
         val programName = getInterpretationContext().currentProgramName
 
-        renderLogInternal {
+        renderLog {
             val logSource = { LogSourceData(programName, data.startLine()) }
             val previous = if (data.name in globalSymbolTable) {
                 globalSymbolTable[data.name]
@@ -232,7 +214,7 @@ open class InternalInterpreter(
                 }
             }
             else -> {
-                renderLogInternal {
+                renderLog {
                     val logSource = { LogSourceData(programName, data.startLine()) }
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
@@ -257,8 +239,8 @@ open class InternalInterpreter(
         callback.traceBlock(initTrace) {
             val start = System.nanoTime()
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
 
             // TODO verify if these values should be reinitialised or not
             compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
@@ -314,8 +296,8 @@ open class InternalInterpreter(
                                     if (field.initializationValue != null) {
                                         val fieldValue = coerce(eval(field.initializationValue), field.type)
                                         when (value) {
-                                            is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
-                                            is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                            is DataStructValue -> value.set(field, fieldValue)
+                                            is OccurableDataStructValue -> value.initializeField(field, fieldValue)
                                             else -> throw RuntimeException("Expected value to be a DataStructure")
                                         }
                                     }
@@ -382,21 +364,21 @@ open class InternalInterpreter(
 
             val initElapsed = (System.nanoTime() - start).nanoseconds
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
+            renderLog { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
         }
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
         callback.traceBlock(loadTrace) {
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
             val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLog { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
         }
     }
 
@@ -467,7 +449,8 @@ open class InternalInterpreter(
     }
 
     private fun configureLogHandlers() {
-        logHandlers = systemInterface.getAllLogHandlers()
+        val logHandlers = systemInterface.getAllLogHandlers()
+        loggingContext.logHandlers = logHandlers
     }
 
     /**
@@ -603,7 +586,7 @@ open class InternalInterpreter(
 
     private fun executeWithMute(statement: Statement) {
         val programName = getInterpretationContext().currentProgramName
-        renderLogInternal {
+        renderLog {
             val logSource = { LogSourceData(programName, statement.position.line()) }
             LazyLogEntry.produceLine(logSource)
         }
@@ -718,7 +701,7 @@ open class InternalInterpreter(
                         "Expected BooleanValue, but found $value"
                     }
 
-                    renderLogInternal {
+                    renderLog {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, value)
                     }
@@ -755,7 +738,7 @@ open class InternalInterpreter(
 
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
-                    renderLogInternal {
+                    renderLog {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, message)
                     }
@@ -908,7 +891,7 @@ open class InternalInterpreter(
         if (value is NumberValue) {
             val newValue = value.increment(amount)
             val programName = this.getInterpretationContext().currentProgramName
-            renderLogInternal {
+            renderLog {
                 val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
@@ -938,7 +921,7 @@ open class InternalInterpreter(
 
         val programName = this.getInterpretationContext().currentProgramName
         val sourceProvider = { LogSourceData(programName, expression.startLine()) }
-        renderLogInternal { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
+        renderLog { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
         return value
     }
@@ -1041,7 +1024,7 @@ open class InternalInterpreter(
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
 
-                renderLogInternal {
+                renderLog {
                     val logSource =
                         { LogSourceData(getInterpretationContext().currentProgramName, target.array.startLine()) }
                     LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value)
@@ -1308,26 +1291,24 @@ open class InternalInterpreter(
      */
     private inline fun execute(statement: Statement) {
         val programName = this.getInterpretationContext().currentProgramName
-        val sourceProducer = if (logsEnabled()) {
-            { LogSourceData(programName, statement.position.line()) }
-        } else null
-
         val callback = configuration.jarikoCallback
         val trace = statement.toTracePoint()
-        sourceProducer?.let { openLoggingScope(statement, it) }
 
         val internalExecute = {
+            val sourceProducer = if (loggingContext.logsEnabled) {
+                { LogSourceData(programName, statement.position.line()) }
+            } else null
+            sourceProducer?.let { loggingContext.openLoggingScope(statement, it) }
             val attachBeforeProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext }
             val attachAfterProfilingAnnotations = statement.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious }
 
             statement.executeProfiling(attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
-            sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            sourceProducer?.let { loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime) }
             statement.executeProfiling(attachAfterProfilingAnnotations)
         }
-        if (trace != null) {
-            callback.traceBlock(trace) { internalExecute() }
-        } else internalExecute()
+
+        trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
     }
 
     /**
@@ -1353,7 +1334,7 @@ open class InternalInterpreter(
                 val trace = RpgTrace(programName, description, line)
                 callback.startRpgTrace(trace)
 
-                renderLogInternal {
+                renderLog {
                     val logSource = { LogSourceData(programName, annotation.startLine()) }
                     LazyLogEntry.produceProfiling(annotation, logSource)
                 }
@@ -1362,7 +1343,7 @@ open class InternalInterpreter(
                 val callback = configuration.jarikoCallback
                 callback.finishRpgTrace()
 
-                renderLogInternal {
+                renderLog {
                     val logSource = { LogSourceData(programName, annotation.startLine()) }
                     LazyLogEntry.produceProfiling(annotation, logSource)
                 }
@@ -1371,8 +1352,8 @@ open class InternalInterpreter(
     }
 
     override fun onInterpretationEnd() {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
-        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
+        val analyticsContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
+        analyticsContext.generateCompleteReport().forEach { entry -> renderLog { entry } }
     }
 
     private fun Statement.toTracePoint(): JarikoTrace? {
@@ -1390,59 +1371,6 @@ open class InternalInterpreter(
                 description = this.loggableEntityName
             )
             else -> null
-        }
-    }
-
-    private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
-        renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
-        if (statement is CompositeStatement) {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
-        } else {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "EXEC") }
-        }
-
-        if (statement is LoopStatement) {
-            renderLogInternal {
-                LazyLogEntry.produceLoopStart(
-                    sourceProducer,
-                    statement.loggableEntityName,
-                    statement.loopSubject
-                )
-            }
-        }
-    }
-
-    private fun closeLoggingScope(
-        statement: Statement,
-        programName: String,
-        sourceProducer: LogSourceProvider,
-        executionTime: Duration
-    ) {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
-        loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
-
-        if (statement is LoopStatement) {
-            renderLogInternal {
-                LazyLogEntry.produceLoopEnd(
-                    sourceProducer,
-                    statement.loggableEntityName,
-                    statement.loopSubject,
-                    statement.iterations
-                )
-            }
-        }
-
-        if (statement is CompositeStatement) {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
-        }
-
-        renderLogInternal {
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                sourceProducer,
-                ProgramUsageType.Statement,
-                statement.loggableEntityName,
-                executionTime
-            )
         }
     }
 }

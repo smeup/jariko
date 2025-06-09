@@ -28,6 +28,7 @@ import java.util.*
  **/
 interface InterpreterCore {
     fun getStatus(): InterpreterStatus
+    fun getLoggingContext(): InterpreterLoggingContext
     fun getInterpretationContext(): InterpretationContext
     fun getSystemInterface(): SystemInterface
     fun getIndicators(): HashMap<IndicatorKey, BooleanValue>
