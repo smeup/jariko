@@ -24,6 +24,7 @@ import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.execution.SimpleReloadConfig
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.EvalStmt
+import com.smeup.rpgparser.parsing.ast.ProfilingAnnotationResolved
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanEndAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.allStatements
@@ -51,23 +52,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
             )
         )
         val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = connectionConfigs)
-        smeupConfig.reloadConfig = ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(connectionConfigs.map {
-                com.smeup.dbnative.ConnectionConfig(
-                    fileName = it.fileName,
-                    url = it.url,
-                    user = it.user,
-                    password = it.password,
-                    driver = it.driver,
-                    impl = it.impl
-                )
-            }),
-            metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+        smeupConfig.reloadConfig = ReloadConfig(nativeAccessConfig = DBNativeAccessConfig(connectionConfigs.map {
+            com.smeup.dbnative.ConnectionConfig(
+                fileName = it.fileName,
+                url = it.url,
+                user = it.user,
+                password = it.password,
+                driver = it.driver,
+                impl = it.impl
+            )
+        }), metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
         val dspfConfig = SimpleDspfConfig(displayFilePath = path)
         smeupConfig.dspfConfig = DspfConfig(
             metadataProducer = { displayFile -> dspfConfig.getMetadata(displayFile) },
-            dspfProducer = { displayFile -> dspfConfig.dspfProducer(displayFile) }
-        )
+            dspfProducer = { displayFile -> dspfConfig.dspfProducer(displayFile) })
         smeupConfig.options.profilingSupport = true
     }
 
@@ -78,18 +76,18 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         val openAnnotations = cu.getOpenAnnotations()
         val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
 
-        // Assert both are attached correctly
-        assertEquals(11, openAnnotations[0].profilingLine)
-        assertEquals(12, openAnnotations[0].statementLine)
-
-        assertEquals(13, closeAnnotations[0].profilingLine)
-        assertEquals(12, closeAnnotations[0].statementLine)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 11), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 12), LookupMode.Statement)
+        assertSpanEndPositions(cu, listOf(13), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(12), LookupMode.Statement)
     }
 
     @Test
@@ -99,32 +97,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(6, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         val openAnnotations = cu.getOpenAnnotations()
         val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(3, openAnnotations.size)
         assertEquals(3, closeAnnotations.size)
 
-        val (openSpan1, openSpan2, openSpan3) = openAnnotations
-        val (closeSpan1, closeSpan2, closeSpan3) = closeAnnotations
-
-        assertEquals(12, openSpan1.profilingLine)
-        assertEquals(13, openSpan1.statementLine)
-
-        assertEquals(14, openSpan2.profilingLine)
-        assertEquals(15, openSpan2.statementLine)
-
-        assertEquals(16, openSpan3.profilingLine)
-        assertEquals(17, openSpan3.statementLine)
-
-        assertEquals(21, closeSpan1.profilingLine)
-        assertEquals(15, closeSpan1.statementLine)
-
-        assertEquals(22, closeSpan2.profilingLine)
-        assertEquals(15, closeSpan2.statementLine)
-
-        assertEquals(18, closeSpan3.profilingLine)
-        assertEquals(17, closeSpan3.statementLine)
+        assertSpanStartPositions(
+            cu, listOf("_SPANID1" to 12, "_SPANID2" to 14, "_SPANID3" to 16), LookupMode.Annotation
+        )
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 13, "_SPANID2" to 15, "_SPANID3" to 17), LookupMode.Statement)
+        assertSpanEndPositions(cu, listOf(21, 22, 18), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(15, 15, 17), LookupMode.Statement)
     }
 
     @Test
@@ -134,14 +120,22 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         val openAnnotations = cu.getOpenAnnotations()
         val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(4, openAnnotations.size)
         assertEquals(4, closeAnnotations.size)
 
-        assertTrue(openAnnotations.all { it.statementLine == 15 })
-        assertTrue(closeAnnotations.all { it.statementLine == 15 })
+        assertSpanStartPositions(
+            cu, listOf("_SPANID1" to 11, "_SPANID2" to 12, "_SPANID3" to 13, "_SPANID4" to 14), LookupMode.Annotation
+        )
+        assertSpanStartPositions(
+            cu, listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(16, 17, 18, 19), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(15, 15, 15, 15), LookupMode.Statement)
     }
 
     @Test
@@ -151,15 +145,22 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         val openAnnotations = cu.getOpenAnnotations()
         val closeAnnotations = cu.getClosedAnnotations()
 
         assertEquals(4, openAnnotations.size)
         assertEquals(4, closeAnnotations.size)
 
-        assertTrue(openAnnotations.all { it.statementLine == 15 })
-        assertEquals(3, closeAnnotations.count { it.statementLine == 15 })
-        assertEquals(1, closeAnnotations.count { it.statementLine == 19 })
+        assertSpanStartPositions(
+            cu, listOf("_SPANID1" to 11, "_SPANID2" to 12, "_SPANID3" to 13, "_SPANID4" to 14), LookupMode.Annotation
+        )
+        assertSpanStartPositions(
+            cu, listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(16, 17, 18, 20), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(15, 15, 15, 19), LookupMode.Statement)
     }
 
     @Test
@@ -169,13 +170,19 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(4, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
         assertSpanStartPositions(
             cu, listOf(
-                "BEFOREFOR" to 13,
-                "FORBODYSTART" to 15
-            )
+                "BEFOREFOR" to 12, "FORBODYSTART" to 14
+            ), LookupMode.Annotation
         )
-        assertSpanEndPositions(cu, listOf(13, 15))
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFOREFOR" to 13, "FORBODYSTART" to 15
+            ), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(16, 18), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(13, 15), LookupMode.Statement)
     }
 
     @Test
@@ -185,13 +192,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(4, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         assertSpanStartPositions(
             cu, listOf(
-                "BEFOREDO" to 13,
-                "DOBODYSTART" to 15
-            )
+                "BEFOREDO" to 12, "DOBODYSTART" to 14
+            ), LookupMode.Annotation
         )
-        assertSpanEndPositions(cu, listOf(13, 15))
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFOREDO" to 13, "DOBODYSTART" to 15
+            ), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(16, 18), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(13, 15), LookupMode.Statement)
     }
 
     @Test
@@ -201,14 +215,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(6, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         assertSpanStartPositions(
             cu, listOf(
-                "BEFORESTMT" to 13,
-                "STMTBEGIN" to 15,
-                "STMTERROR" to 19
-            )
+                "BEFORESTMT" to 12, "STMTBEGIN" to 14, "STMTERROR" to 18
+            ), LookupMode.Annotation
         )
-        assertSpanEndPositions(cu, listOf(13, 15, 19))
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFORESTMT" to 13, "STMTBEGIN" to 15, "STMTERROR" to 19
+            ), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(16, 20, 22), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(13, 15, 19), LookupMode.Statement)
     }
 
     @Test
@@ -218,15 +238,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         assertSpanStartPositions(
             cu, listOf(
-                "BEFORESTMT" to 13,
-                "IFBODY" to 15,
-                "ELIFBODY" to 20,
-                "ELSEBODY" to 25
-            )
+                "BEFORESTMT" to 12, "IFBODY" to 14, "ELIFBODY" to 19, "ELSEBODY" to 24
+            ), LookupMode.Annotation
         )
-        assertSpanEndPositions(cu, listOf(16, 21, 26, 13))
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFORESTMT" to 13, "IFBODY" to 15, "ELIFBODY" to 20, "ELSEBODY" to 25
+            ), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(17, 22, 27, 29), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(16, 21, 26, 13), LookupMode.Statement)
     }
 
     @Test
@@ -236,15 +261,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(8, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         assertSpanStartPositions(
             cu, listOf(
-                "BEFORESELECT" to 13,
-                "CONTENT1" to 16,
-                "CONTENT2" to 20,
-                "CONTENT3" to 24
-            )
+                "BEFORESELECT" to 12, "CONTENT1" to 15, "CONTENT2" to 19, "CONTENT3" to 23
+            ), LookupMode.Annotation
         )
-        assertSpanEndPositions(cu, listOf(13, 24, 20, 16))
+        assertSpanStartPositions(
+            cu, listOf(
+                "BEFORESELECT" to 13, "CONTENT1" to 16, "CONTENT2" to 20, "CONTENT3" to 24
+            ), LookupMode.Statement
+        )
+        assertSpanEndPositions(cu, listOf(17, 21, 25, 27), LookupMode.Annotation)
+        assertSpanEndPositionsExhaustive(cu, listOf(13, 24, 20, 16), LookupMode.Statement)
     }
 
     @Test
@@ -254,6 +284,8 @@ open class ProfilingAnnotationTest : AbstractTest() {
         execute(cu, emptyMap())
 
         assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
         val openAnnotations = cu.getOpenAnnotations()
         val closeAnnotations = cu.getClosedAnnotations()
 
@@ -262,27 +294,67 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
         // Annotations will result moved from the original expected position but will be attached to the same statement
         val eval = cu.allStatements().firstOrNull { stmt -> stmt is EvalStmt }
-        assertEquals(openAnnotations[0].profilingLine + 1, openAnnotations[0].statementLine)
-        assertEquals(closeAnnotations[0].profilingLine - 1, closeAnnotations[0].statementLine)
-        assertEquals(closeAnnotations[0].statementLine, openAnnotations[0].statementLine)
-        assertEquals(closeAnnotations[0].statementLine, eval!!.position!!.start.line)
+        val evalLine = eval!!.position!!.start.line
+
+        val (open) = openAnnotations
+        val (close) = closeAnnotations
+
+        assertEquals(open.profilingLine + 1, open.statementLine)
+        assertEquals(close.profilingLine - 1, close.statementLine)
+        assertEquals(open.statementLine, close.statementLine)
+        assertEquals(open.statementLine, evalLine)
+        assertEquals(close.statementLine, evalLine)
     }
 
-    private fun assertSpanStartPositions(cu: CompilationUnit, spans: List<Pair<String, Int>>) {
+    private enum class LookupMode {
+        Statement, Annotation
+    }
+
+    private fun assertSpanStartPositions(cu: CompilationUnit, spans: List<Pair<String, Int>>, mode: LookupMode) {
         val openAnnotations = cu.getOpenAnnotations()
         spans.forEach {
             val (name, line) = it
             val span =
                 openAnnotations.find { annotation -> (annotation.source as ProfilingSpanStartAnnotation).name == name }
-            assertEquals(line, span?.statementLine, "cannot find span '$name' at line '$line'")
+            assertEquals(
+                line, when (mode) {
+                    LookupMode.Statement -> span?.statementLine
+                    LookupMode.Annotation -> span?.profilingLine
+                }, "cannot find span '$name' at line '$line'"
+            )
         }
     }
 
-    private fun assertSpanEndPositions(cu: CompilationUnit, spans: List<Int>) {
+    private fun assertSpanEndPositions(cu: CompilationUnit, spans: List<Int>, mode: LookupMode) {
         val closedAnnotations = cu.getClosedAnnotations()
         spans.forEach { span ->
-            assertTrue(closedAnnotations.any { it.statementLine == span })
+            assertTrue(
+                closedAnnotations.any {
+                    when (mode) {
+                        LookupMode.Statement -> it.statementLine == span
+                        LookupMode.Annotation -> it.profilingLine == span
+                    }
+                }, "could not find span at line $span"
+            )
         }
+    }
+
+    private fun assertSpanEndPositionsExhaustive(cu: CompilationUnit, spans: List<Int>, mode: LookupMode) {
+        val closedAnnotations = cu.getClosedAnnotations()
+        val toProcess = closedAnnotations.toMutableList()
+        spans.forEach { span ->
+            val annotation = toProcess.firstOrNull {
+                when (mode) {
+                    LookupMode.Statement -> it.statementLine == span
+                    LookupMode.Annotation -> it.profilingLine == span
+                }
+            }
+
+            assertNotNull(annotation)
+            toProcess.remove(annotation)
+        }
+
+        assertEquals(0, toProcess.size)
     }
 
     private fun CompilationUnit.getOpenAnnotations() = this.resolvedProfilingAnnotations.filter {
@@ -292,4 +364,9 @@ open class ProfilingAnnotationTest : AbstractTest() {
     private fun CompilationUnit.getClosedAnnotations() = this.resolvedProfilingAnnotations.filter {
         it.source is ProfilingSpanEndAnnotation
     }
+
+    private fun ProfilingAnnotationResolved.sourceLine() = this.source.position?.start?.line
+
+    private fun assertSourceLineEquivalence(annotations: List<ProfilingAnnotationResolved>): Boolean =
+        annotations.all { it.sourceLine() == it.profilingLine }
 }
