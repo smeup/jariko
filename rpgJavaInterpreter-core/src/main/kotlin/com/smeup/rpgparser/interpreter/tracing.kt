@@ -55,7 +55,7 @@ data class RpgTrace(
         } else ""
     }
 
-    override fun toString() = fullName + "at line $line"
+    override fun toString() = "$fullName at line $line"
 }
 
 internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
