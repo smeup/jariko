@@ -114,6 +114,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
     }
 
     @Test
+    fun executeFailingTelemetrySpan() {
+        assertFails {
+            assertASTCanBeProduced("profiling/FAILING_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        }
+    }
+
+    @Test
     fun executeMultipleSpanSameStatement() {
         val cu = assertASTCanBeProduced("profiling/MULTISPAN_SAME_STATEMENT", true, withProfilingSupport = true)
         cu.resolveAndValidate()

@@ -63,6 +63,8 @@ fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List
  * @param profiling The profiling annotations to inject.
  */
 fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
+    val toResolve = profiling.map { it.key }.toMutableList()
+
     // Process the main body statements
     // There is an issue when annotations appear just above the first statement
     // so we want to expand the research area to cover preceding annotations
@@ -72,6 +74,14 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
         val start = position.start.line.expandStartLineWithAnnotations(profiling)
         injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, profiling)
     } ?: emptyList()
+
+    resolved.forEach {
+        toResolve.remove(it.profilingLine)
+    }
+
+    if (toResolve.isNotEmpty()) {
+        throw RuntimeException("Could not resolve annotations at lines: ${toResolve.joinToString()}")
+    }
 
     return resolved
 }
