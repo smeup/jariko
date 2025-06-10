@@ -9,8 +9,8 @@
     O *   `OCCUR not supported. Q£ORAR must be a DS defined
     O *    with OCCURS keyword`
      V* ==============================================================
-     D SIZE_OCCUR      C                   CONST(2)
-     D DS1             DS                  OCCURS(SIZE_OCCUR) INZ
+     D SIZE_OCCURS     C                   CONST(2)
+     D DS1             DS                  OCCURS(SIZE_OCCURS) INZ
      D  DS1_FL1                       2  0
      D  DS1_FL2                       2  1
      D TMP             S              5
