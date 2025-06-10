@@ -1063,4 +1063,13 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
         assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
     }
+
+    /**
+     * Using `OCCURS` by passing a variable as argument.
+     */
+    @Test
+    fun executeMUDRNRAPU001125() {
+        val expected = listOf("0", ".0", "1", "1.1", "0", ".0", "2", "2.2")
+        assertEquals(expected, "smeup/MUDRNRAPU001125".outputOf())
+    }
 }

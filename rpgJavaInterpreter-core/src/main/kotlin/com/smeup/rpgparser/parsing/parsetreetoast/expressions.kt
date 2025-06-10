@@ -57,6 +57,18 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
     }
 }
 
+fun RpgParser.OccurExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    return when {
+        this.number() != null -> this.number()!!.toAst(conf)
+        this.identifier() != null -> this.identifier().toAst(conf)
+        this.bif() != null -> this.bif().toAst(conf)
+        this.literal() != null -> this.literal().toAst(conf)
+        this.function() != null -> this.function().toAst(conf)
+        this.indicator() != null -> this.indicator().toAst(conf)
+        else -> todo(conf = conf)
+    }
+}
+
 internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     if (this.children.isEmpty()) {
         todo(conf = conf)
