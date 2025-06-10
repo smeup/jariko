@@ -2,7 +2,7 @@
      V* 09/06/2025 APU001 Creation
      V* ==============================================================
     O * PROGRAM GOAL
-    O * Using `OCCUR` by passing a variable as argument.
+    O * Using `OCCURS` by passing a variable as argument.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:

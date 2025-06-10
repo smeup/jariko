@@ -1065,7 +1065,7 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     }
 
     /**
-     * Using `OCCUR` by passing a variable as argument.
+     * Using `OCCURS` by passing a variable as argument.
      */
     @Test
     fun executeMUDRNRAPU001125() {
