@@ -34,6 +34,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.*
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.injectProfilingAnnotations
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
@@ -180,8 +181,8 @@ fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false
     }
 }
 
-fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
-    return assertCanBeParsedResult(exampleName, withMuteSupport, printTree).root!!.rContext
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, withProfilingSupport: Boolean = false, printTree: Boolean = false): RContext {
+    return assertCanBeParsedResult(exampleName, withMuteSupport, withProfilingSupport, printTree).root!!.rContext
 }
 
 private class TestJavaSystemInterface : JavaSystemInterface() {
@@ -211,12 +212,16 @@ private fun createJavaSystemInterface(): JavaSystemInterface {
 fun assertCanBeParsedResult(
     exampleName: String,
     withMuteSupport: Boolean = false,
+    withProfilingSupport: Boolean = false,
     printTree: Boolean = false
 ): RpgParserResult {
     val result = MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
         it.executionProgramName = exampleName
         RpgParserFacade()
-            .apply { this.muteSupport = withMuteSupport }
+            .apply {
+                this.muteSupport = withMuteSupport
+                this.profilingSupport = withProfilingSupport
+            }
             .parse(inputStreamFor(exampleName))
     }
 
@@ -243,6 +248,7 @@ fun assertASTCanBeProduced(
     exampleName: String,
     considerPosition: Boolean = false,
     withMuteSupport: Boolean = false,
+    withProfilingSupport: Boolean = false,
     printTree: Boolean = false,
     compiledProgramsDir: File?,
     afterAstCreation: (ast: CompilationUnit) -> Unit = {},
@@ -258,7 +264,7 @@ fun assertASTCanBeProduced(
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
     if (printTree) {
-        val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
+        val result = assertCanBeParsedResult(exampleName, withMuteSupport, withProfilingSupport, printTree)
         val parseTreeRoot = result.root!!.rContext
         ast = parseTreeRoot.toAst(
             ToAstConfiguration(
@@ -271,11 +277,18 @@ fun assertASTCanBeProduced(
             }
             ast.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
+        if (withProfilingSupport) {
+            if (!considerPosition) {
+                throw IllegalStateException("Profiling annotations can be injected only when retaining the position")
+            }
+            ast.injectProfilingAnnotations(result.root.profilingContexts!!)
+        }
         afterAstCreation.invoke(ast)
     } else {
         val configuration =
             Configuration(options = Options(
                 muteSupport = withMuteSupport,
+                profilingSupport = withProfilingSupport,
                 compiledProgramsDir = compiledProgramsDir,
                 toAstConfiguration = ToAstConfiguration(considerPosition)),
                 jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation),

@@ -17,18 +17,14 @@
 
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
-import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
-import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -45,7 +41,6 @@ import java.math.RoundingMode
 import java.util.*
 import kotlin.math.min
 import kotlin.system.measureNanoTime
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 object InterpreterConfiguration {
@@ -57,42 +52,14 @@ object InterpreterConfiguration {
 
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
-private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.prevStmtExecLine"
-
-typealias StatementReference = Pair<Int, SourceReference>
-
-class InterpreterStatus(
-    val symbolTable: ISymbolTable,
-    val indicators: HashMap<IndicatorKey, BooleanValue>,
-    var returnValue: Value? = null,
-    var params: Int = 0,
-    var callerParams: Int = params
-) {
-    var inzsrExecuted = false
-    var lastFound = false
-    var lastDBFile: DBFile? = null
-    val dbFileMap = DBFileMap()
-    var displayFiles: Map<String, DSPF>? = null
-    fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
-    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
-        val tmpValue = symbolTable[abstractDataDefinition]
-        if (tmpValue is NullValue) {
-            throw IllegalArgumentException("Void value for ${abstractDataDefinition.name}")
-        }
-        return tmpValue
-    }
-    fun getReferences(pointer: DataRefExpr) = symbolTable.getValues().filter {
-        val target = it.key.basedOn as? DataRefExpr
-        target?.variable == pointer.variable
-    }
-}
 
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
     private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
     private val configuration = MainExecutionContext.getConfiguration()
+    override fun getConfiguration() = configuration
 
     override fun getSystemInterface(): SystemInterface {
         return systemInterface
@@ -129,34 +96,16 @@ open class InternalInterpreter(
         return klists
     }
 
-    private var logHandlers: List<InterpreterLogHandler> = emptyList()
-
-    private fun logsEnabled() = logHandlers.isNotEmpty()
-
     private val status = InterpreterStatus(globalSymbolTable, indicators)
     override fun getStatus(): InterpreterStatus {
         return status
     }
 
+    private val loggingContext = InterpreterLoggingContext()
+
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override fun renderLog(producer: () -> LazyLogEntry?) = renderLogInternal(producer)
-
-    /**
-     * Internal implementation of the renderLog method
-     * This allows to inline when used internally, saving a lot of execution time
-     */
-    private inline fun renderLogInternal(producer: () -> LazyLogEntry?) {
-        if (!logsEnabled()) return
-
-        val entry = producer()
-        entry ?: return
-        doLog(entry)
-    }
-
-    private fun doLog(renderer: LazyLogEntry) {
-        logHandlers.renderLog(renderer)
-    }
+    override fun renderLog(producer: () -> LazyLogEntry?) = loggingContext.renderLog(producer)
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
@@ -172,7 +121,7 @@ open class InternalInterpreter(
 
         val programName = getInterpretationContext().currentProgramName
 
-        renderLogInternal {
+        renderLog {
             val logSource = { LogSourceData(programName, data.startLine()) }
             val previous = if (data.name in globalSymbolTable) {
                 globalSymbolTable[data.name]
@@ -238,7 +187,7 @@ open class InternalInterpreter(
                 }
             }
             else -> {
-                renderLogInternal {
+                renderLog {
                     val logSource = { LogSourceData(programName, data.startLine()) }
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
@@ -263,8 +212,8 @@ open class InternalInterpreter(
         callback.traceBlock(initTrace) {
             val start = System.nanoTime()
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
 
             // TODO verify if these values should be reinitialised or not
             compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
@@ -320,8 +269,8 @@ open class InternalInterpreter(
                                     if (field.initializationValue != null) {
                                         val fieldValue = coerce(eval(field.initializationValue), field.type)
                                         when (value) {
-                                            is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
-                                            is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                            is DataStructValue -> value.set(field, fieldValue)
+                                            is OccurableDataStructValue -> value.initializeField(field, fieldValue)
                                             else -> throw RuntimeException("Expected value to be a DataStructure")
                                         }
                                     }
@@ -388,21 +337,21 @@ open class InternalInterpreter(
 
             val initElapsed = (System.nanoTime() - start).nanoseconds
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
+            renderLog { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
         }
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
         callback.traceBlock(loadTrace) {
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
             val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLog { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
         }
     }
 
@@ -473,7 +422,8 @@ open class InternalInterpreter(
     }
 
     private fun configureLogHandlers() {
-        logHandlers = systemInterface.getAllLogHandlers()
+        val logHandlers = systemInterface.getAllLogHandlers()
+        loggingContext.logHandlers = logHandlers
     }
 
     /**
@@ -609,7 +559,7 @@ open class InternalInterpreter(
 
     private fun executeWithMute(statement: Statement) {
         val programName = getInterpretationContext().currentProgramName
-        renderLogInternal {
+        renderLog {
             val logSource = { LogSourceData(programName, statement.position.line()) }
             LazyLogEntry.produceLine(logSource)
         }
@@ -649,7 +599,7 @@ open class InternalInterpreter(
         } catch (t: Throwable) {
             throw RuntimeException(errorDescription(statement, t), t).fireErrorEvent(statement.position)
         } finally {
-            if (statement.muteAnnotations.size > 0) {
+            if (statement.muteAnnotations.isNotEmpty()) {
                 executeMutes(
                     statement.muteAnnotations,
                     statement.ancestor(CompilationUnit::class.java)!!,
@@ -724,7 +674,7 @@ open class InternalInterpreter(
                         "Expected BooleanValue, but found $value"
                     }
 
-                    renderLogInternal {
+                    renderLog {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, value)
                     }
@@ -761,7 +711,7 @@ open class InternalInterpreter(
 
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
-                    renderLogInternal {
+                    renderLog {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, message)
                     }
@@ -774,7 +724,6 @@ open class InternalInterpreter(
                         )
                     )
                 }
-
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
         }
@@ -915,7 +864,7 @@ open class InternalInterpreter(
         if (value is NumberValue) {
             val newValue = value.increment(amount)
             val programName = this.getInterpretationContext().currentProgramName
-            renderLogInternal {
+            renderLog {
                 val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
@@ -945,7 +894,7 @@ open class InternalInterpreter(
 
         val programName = this.getInterpretationContext().currentProgramName
         val sourceProvider = { LogSourceData(programName, expression.startLine()) }
-        renderLogInternal { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
+        renderLog { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
         return value
     }
@@ -1048,7 +997,7 @@ open class InternalInterpreter(
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
 
-                renderLogInternal {
+                renderLog {
                     val logSource =
                         { LogSourceData(getInterpretationContext().currentProgramName, target.array.startLine()) }
                     LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value)
@@ -1315,149 +1264,27 @@ open class InternalInterpreter(
      */
     private inline fun execute(statement: Statement) {
         val programName = this.getInterpretationContext().currentProgramName
-        val sourceProducer = if (logsEnabled()) {
-            { LogSourceData(programName, statement.position.line()) }
-        } else null
-
         val callback = configuration.jarikoCallback
-        val trace = statement.toTracePoint()
-        sourceProducer?.let { openLoggingScope(statement, it) }
+        val trace = toTracePoint(statement)
 
         val internalExecute = {
+            val sourceProducer = if (loggingContext.logsEnabled) {
+                { LogSourceData(programName, statement.position.line()) }
+            } else null
+            sourceProducer?.let { loggingContext.openLoggingScope(statement, it) }
+            val attachBeforeProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToNext)
+            val attachAfterProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToPrevious)
+
+            executeProfiling(attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
-            sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            sourceProducer?.let { loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            executeProfiling(attachAfterProfilingAnnotations)
         }
-        if (trace != null) {
-            callback.traceBlock(trace) { internalExecute() }
-        } else internalExecute()
+
+        trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
     }
 
     override fun onInterpretationEnd() {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
-        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
-    }
-
-    private fun Statement.toTracePoint(): JarikoTrace? {
-        return when (this) {
-            is CallStmt -> JarikoTrace(
-                kind = JarikoTraceKind.CallStmt,
-                description = eval(this.expression).asString().value.trim()
-            )
-            is ExecuteSubroutine -> JarikoTrace(
-                kind = JarikoTraceKind.ExecuteSubroutine,
-                description = this.subroutine.name
-            )
-            is CompositeStatement -> JarikoTrace(
-                kind = JarikoTraceKind.CompositeStatement,
-                description = this.loggableEntityName
-            )
-            else -> null
-        }
-    }
-
-    private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
-        renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
-        if (statement is CompositeStatement) {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
-        } else {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "EXEC") }
-        }
-
-        if (statement is LoopStatement) {
-            renderLogInternal {
-                LazyLogEntry.produceLoopStart(
-                    sourceProducer,
-                    statement.loggableEntityName,
-                    statement.loopSubject
-                )
-            }
-        }
-    }
-
-    private fun closeLoggingScope(
-        statement: Statement,
-        programName: String,
-        sourceProducer: LogSourceProvider,
-        executionTime: Duration
-    ) {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
-        loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
-
-        if (statement is LoopStatement) {
-            renderLogInternal {
-                LazyLogEntry.produceLoopEnd(
-                    sourceProducer,
-                    statement.loggableEntityName,
-                    statement.loopSubject,
-                    statement.iterations
-                )
-            }
-        }
-
-        if (statement is CompositeStatement) {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
-        }
-
-        renderLogInternal {
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                sourceProducer,
-                ProgramUsageType.Statement,
-                statement.loggableEntityName,
-                executionTime
-            )
-        }
-    }
-}
-
-fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
-    IndicatorType.STATELESS_INDICATORS.forEach {
-        this.remove(it)
-    }
-}
-
-/**
- * @return An instance of StatementReference related to position.
- * */
-internal fun Position.relative(): StatementReference {
-    val programName =
-        if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
-    return this.relative(programName, copyBlocks)
-}
-
-/**
- * Memory slice context attribute name must to be also string representation of MemorySliceId
- * */
-internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
-
-/**
- * Restores the symbol table from a memory slice.
- *
- * This function is used to restore the state of the symbol table from a previously saved memory slice.
- * This is useful in scenarios where the state of the symbol table needs to be preserved across different
- * executions of the same program, for example in case of stateful programs.
- *
- * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
- * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
- * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
- */
-internal fun ISymbolTable.restoreFromMemorySlice(
-    memorySliceId: MemorySliceId?,
-    memorySliceMgr: MemorySliceMgr?,
-    initialValues: Map<String, Value> = emptyMap()
-) {
-    memorySliceId?.let { myMemorySliceId ->
-        memorySliceMgr?.let {
-            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
-                memorySliceId = memorySliceId,
-                symbolTable = this,
-                initSymbolTableEntry = { dataDefinition, storedValue ->
-                    // initial values have not to be overwritten
-                    if (!initialValues.containsKey(dataDefinition.name)) {
-                        this[dataDefinition] = storedValue
-                    }
-                }
-            )
-        }
+        loggingContext.emitAnalyticsReport()
     }
 }

@@ -104,6 +104,11 @@ The following list shows all the implemented features:
 
 Jariko supports configurable logging, described in a [separate document](docs/logging.md).
 
+## RPG Profiling and Tracing
+
+Jariko provides a powerful profiling system that allows you to monitor RPG program execution and create custom telemetry spans using profiling annotations directly in your RPG source code.
+For more details, see [this document](docs/rpg_profiling.md).
+
 ## RPG Unit tests: the MUTE mechanism
 
 Special annotations can be used to write unit tests in RPG.

@@ -25,11 +25,13 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.logging.ILoggableStatement
 import com.smeup.rpgparser.logging.LogChannel
+import com.smeup.rpgparser.parsing.facade.ProfilingMap
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.acceptProfilingBody
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
@@ -59,7 +61,8 @@ enum class AssignmentOperator(val text: String) {
 @Serializable
 abstract class Statement(
     @Transient override val position: Position? = null,
-    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
+    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf(),
+    var profilingAnnotations: MutableList<ProfilingAnnotation> = mutableListOf()
 ) : Node(position), ILoggableStatement {
 
     open fun accept(
@@ -86,6 +89,61 @@ abstract class Statement(
         }
 
         return mutesAttached
+    }
+
+    /**
+     * Accept and bind relevant profiling annotations to this statement.
+     *
+     * @param candidates A map containing the candidate annotations to attach to this statement.
+     * @param startLine The line from which we should accept annotations.
+     * @param endLine The line at which we should stop accepting annotations.
+     */
+    open fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val statementStart = this.position!!.start
+        val statementEnd = this.position!!.end
+
+        val resolvedAnnotations = candidates.map { it ->
+            val position = pos(it.key, statementStart.column, it.key, statementEnd.column)
+            it.key to it.value.toAst(position = position)
+        }.toMap()
+
+        val attachBeforeCandidates = resolvedAnnotations.filter { it ->
+            val isBeforeStatement = it.key < statementStart.line
+            val isAfterUpperBound = it.key >= startLine
+            val matchesStrategy = it.value.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext
+            isBeforeStatement && isAfterUpperBound && matchesStrategy
+        }
+        val attachAfterCandidates = resolvedAnnotations.filter { it ->
+            val isAfterStatement = it.key > statementEnd.line
+            val isBeforeLowerBound = it.key <= endLine
+            val matchesStrategy = it.value.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious
+            isAfterStatement && isBeforeLowerBound && matchesStrategy
+        }
+
+        // Bind accepted profiling annotations with this statement
+        this.profilingAnnotations.addAll(attachBeforeCandidates.values)
+        this.profilingAnnotations.addAll(attachAfterCandidates.values)
+
+        // Build resolved list
+        val before = attachBeforeCandidates.map { (_, profiling) ->
+            ProfilingAnnotationResolved(
+                profiling,
+                profiling.position!!.start.line,
+                statementStart.line
+            )
+        }
+        val after = attachAfterCandidates.map { (_, profiling) ->
+            ProfilingAnnotationResolved(
+                profiling,
+                profiling.position!!.start.line,
+                statementStart.line
+            )
+        }
+        return (before + after).toMutableList()
     }
 
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
@@ -146,6 +204,7 @@ fun List<Statement>.unwrap(parent: UnwrappedStatementData? = null): List<Unwrapp
                 result.add(current)
                 result.addAll(body)
             }
+
             else -> {
                 val unwrapped = UnwrappedStatementData(it, 0, parent)
                 result.add(unwrapped)
@@ -281,6 +340,17 @@ data class SelectStmt(
         }
 
         return muteAttached
+    }
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val casesAnnotations = cases.map { acceptProfilingBody(it.body, candidates) }.flatten()
+        val otherAnnotations = other?.let { acceptProfilingBody(it.body, candidates) } ?: emptyList()
+        return (self + casesAnnotations + otherAnnotations).toMutableList()
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
@@ -1155,6 +1225,9 @@ data class MonitorStmt(
     override val loggableEntityName: String
         get() = "MONITOR"
 
+    // These annotations are kept for cleanup purposes.
+    private var closingProfilingAnnotations = emptyList<ProfilingAnnotation>()
+
     // Since this property is a collection built up from multiple parts, this annotation
     // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
     // ErrorEvent is fired more times
@@ -1188,14 +1261,39 @@ data class MonitorStmt(
         return muteAttached
     }
 
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val body = acceptProfilingBody(monitorBody, candidates)
+        val errors = onErrorClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
+
+        // Setup cleanup hooks
+        closingProfilingAnnotations = body.map { it.source }.filterIsInstance<ProfilingSpanEndAnnotation>()
+
+        return (self + body + errors).toMutableList()
+    }
+
     override fun execute(interpreter: InterpreterCore) {
         try {
             interpreter.execute(this.monitorBody)
         } catch (e: InterpreterProgramStatusErrorException) {
+            interpreter.cleanupBodyAnnotations(e)
             val errorClause = onErrorClauses.firstOrNull { it.codes.any { code -> e.statusCode.matches(code) } }
             errorClause ?: throw e
             interpreter.execute(errorClause.body)
         }
+    }
+
+    /**
+     * Close annotations that remained open when the error occurred.
+     */
+    private fun InterpreterCore.cleanupBodyAnnotations(e: InterpreterProgramStatusErrorException) {
+        val errorLine = e.position!!.start.line
+        val closingAnnotationsToCleanup = closingProfilingAnnotations.filter { it.position!!.start.line > errorLine }
+        this.executeProfiling(closingAnnotationsToCleanup)
     }
 }
 
@@ -1250,6 +1348,18 @@ data class IfStmt(
         }
 
         return muteAttached
+    }
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val thenAnnotations = acceptProfilingBody(thenBody, candidates)
+        val elseIfAnnotations = elseIfClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
+        val elseAnnotations = elseClause?.let { acceptProfilingBody(it.body, candidates) } ?: emptyList()
+        return (self + thenAnnotations + elseIfAnnotations + elseAnnotations).toMutableList()
     }
 
     override fun execute(interpreter: InterpreterCore) {
@@ -1917,6 +2027,16 @@ data class DOWxxStmt(
     override val loopSubject: String
         get() = ""
 
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates)
+        return (self + children).toMutableList()
+    }
+
     override fun execute(interpreter: InterpreterCore) {
         try {
             while (comparisonOperator.verify(
@@ -1968,6 +2088,16 @@ data class DoStmt(
     ): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
         return acceptBody(body, mutes, start, end)
+    }
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates)
+        return (self + children).toMutableList()
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
@@ -2034,6 +2164,16 @@ data class DowStmt(
     override val iterations: Long
         get() = _iterations
 
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates, position!!.start.line + 1, position.end.line - 1)
+        return (self + children).toMutableList()
+    }
+
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
         try {
@@ -2071,6 +2211,16 @@ data class DOUxxStmt(
 
     override val loopSubject: String
         get() = ""
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates)
+        return (self + children).toMutableList()
+    }
 
     override fun execute(interpreter: InterpreterCore) {
         try {
@@ -2112,6 +2262,16 @@ data class DouStmt(
     private var _iterations: Long = 0
     override val iterations: Long
         get() = _iterations
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates)
+        return (self + children).toMutableList()
+    }
 
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
@@ -2266,6 +2426,16 @@ data class ForStmt(
     ): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
         return acceptBody(body, mutes, start, end)
+    }
+
+    override fun acceptProfiling(
+        candidates: ProfilingMap,
+        startLine: Int,
+        endLine: Int
+    ): MutableList<ProfilingAnnotationResolved> {
+        val self = super.acceptProfiling(candidates, startLine, endLine)
+        val children = acceptProfilingBody(body, candidates)
+        return (self + children).toMutableList()
     }
 
     override fun execute(interpreter: InterpreterCore) {

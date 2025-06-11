@@ -961,6 +961,373 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(rpgProgramTraces.filter { it.description == "TRACETST2" }.size, 1)
     }
 
+    /**
+     * Executing a program with profiling annotations when profiling is disabled should produce nothing.
+     */
+    @Test
+    fun executeSimpleSpanWithoutProfilingProducesNothing() {
+        var openTraces = 0
+        var closedTraces = 0
+        val executedTraces = mutableListOf<RpgTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = false
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                openTraces += 1
+                executedTraces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(0, openTraces)
+        assertEquals(0, closedTraces)
+        assertTrue(executedTraces.isEmpty())
+    }
+
+    /**
+     * Executing a simple program with span traces correctly reports open and close traces.
+     */
+    @Test
+    fun executeSimpleSpanOpenAlsoCloses() {
+        val openTraces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                openTraces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(1, openTraces.size)
+        assertEquals(1, closedTraces)
+
+        // assert line of executed traces
+        openTraces.assertExecuted(11)
+    }
+
+    /**
+     * Executing a program with multiple span traces correctly reports open and close traces.
+     */
+    @Test
+    fun executeMultipleSpanOpenAlsoCloses() {
+        val openTraces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                openTraces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(12, openTraces.size)
+        assertEquals(12, closedTraces)
+
+        // assert line of executed traces
+        openTraces.assertExecuted(12)
+        openTraces.assertExecuted(14)
+        openTraces.assertExecuted(16, 10)
+    }
+
+    /**
+     * Test that close spans in MULTIPLE_TELEMETRY_SPAN.rpgle never exceed open ones.
+     * See [executeMultipleSpanOpenAlsoCloses] for assertions on their position.
+     * @see [executeMultipleSpanOpenAlsoCloses].
+     */
+    @Test
+    fun executeMultipleSpanCloseNeverExceedOpen() {
+        val traces = Stack<RpgTrace>()
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.push(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                traces.pop()
+            }
+        }
+        executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(0, traces.size)
+    }
+
+    /**
+     * Executing a simple program with multiple spans attached to the same statement works as expected.
+     */
+    @Test
+    fun executeMultipleSpanSameStatementTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MULTISPAN_SAME_STATEMENT", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(4, traces.size)
+        assertEquals(4, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(11)
+        traces.assertExecuted(12)
+        traces.assertExecuted(13)
+        traces.assertExecuted(14)
+    }
+
+    /**
+     * Executing a simple program with multiple spans attached to the same statement works as expected.
+     * One of them closes in a different line from the others.
+     */
+    @Test
+    fun executeMultipleSpanSameStatement2Traces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MULTISPAN_SAME_STATEMENT_2", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(4, traces.size)
+        assertEquals(4, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(11)
+        traces.assertExecuted(12)
+        traces.assertExecuted(13)
+        traces.assertExecuted(14)
+    }
+
+    /**
+     * Executing a program with spans attached to a FOR statement behaves as expected.
+     */
+    @Test
+    fun executeForTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/FOR_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(11, traces.size)
+        assertEquals(11, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(14, 10)
+    }
+
+    /**
+     * Executing a program with spans attached to a DO statement behaves as expected.
+     */
+    @Test
+    fun executeDoTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/DO_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(101, traces.size)
+        assertEquals(101, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(14, 100)
+    }
+
+    /**
+     * Executing a program with spans attached to a MONITOR statement behaves as expected.
+     */
+    @Test
+    fun executeMonitorTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MONITOR_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(3, traces.size)
+        assertEquals(3, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(14)
+        traces.assertExecuted(18)
+    }
+
+    /**
+     * Executing a program with spans attached to a MONITOR statement behaves as expected
+     * ensuring already cleaned up spans are not reported twice.
+     */
+    @Test
+    fun executeMonitorCleanupTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MONITOR_TELEMETRY_SPAN_CLEANUP", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(4, traces.size)
+        assertEquals(4, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(14)
+        traces.assertExecuted(17)
+        traces.assertExecuted(21)
+    }
+
+    /**
+     * Executing a program with spans attached to an IF statement behaves as expected.
+     */
+    @Test
+    fun executeIfTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/IF_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(2, traces.size)
+        assertEquals(2, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(14)
+    }
+
+    /**
+     * Executing a program with spans attached to a SELECT statement behaves as expected.
+     */
+    @Test
+    fun executeSelectTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/SELECT_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(2, traces.size)
+        assertEquals(2, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(23)
+    }
+
+    /**
+     * Executing a program with spans in a copy behaves as expected.
+     */
+    @Test
+    fun executeCopySpanTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/COPY_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(1, traces.size)
+        assertEquals(1, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecutedInSource("TELSPAN", 5)
+    }
+
     @Test
     fun executeERROR45CallBackTest() {
         executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
@@ -1259,5 +1626,27 @@ class JarikoCallbackTest : AbstractTest() {
         )
         val metadataProducer = { file: String -> metadata[file]!! }
         return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
+    }
+
+    /**
+     * Assert that the trace at specified [line] was executed [executions] times.
+     *
+     * @param line The line of the trace.
+     * @param executions The number of executions of the trace.
+     */
+    private fun List<RpgTrace>.assertExecuted(line: Int, executions: Int = 1) {
+        val actual = this.count { it.line == line }
+        assertEquals(executions, actual, "expected $executions executions but got $actual instead")
+    }
+
+    /**
+     * Assert that a trace has been executed in a source.
+     *
+     * @param sourceId The name of the source.
+     * @param line The line in which we expect the trace to be executed.
+     */
+    private fun List<RpgTrace>.assertExecutedInSource(sourceId: String, line: Int) {
+        val candidate = this.find { it.program == sourceId && it.line == line }
+        assertNotNull(candidate, "could not find a trace at line $line executed in $sourceId")
     }
 }
