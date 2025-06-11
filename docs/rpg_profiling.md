@@ -60,19 +60,17 @@ PROF* SPANEND
 ### Basic Example
 
 ```rpgle
-V* ==============================================================
-V* Basic RPG Profiling Example
-V* ==============================================================
-D A               S              8  0 INZ(5)
-D B               S              8  0 INZ(8)
-D RESULT          S              8  0 INZ(0)
- *
-
-PROF* SPANSTART CALCULATION "Simple addition operation"
-C                   EVAL      RESULT = A + B
-PROF* SPANEND
-
-C                   SETON                                        LR
+     V* ==============================================================
+     V* Basic RPG Profiling Example
+     V* ==============================================================
+     D A               S              8  0 INZ(5)
+     D B               S              8  0 INZ(8)
+     D RESULT          S              8  0 INZ(0)
+      *
+  PROF* SPANSTART CALCULATION "Simple addition operation"
+     C                   EVAL      RESULT = A + B
+  PROF* SPANEND
+     C                   SETON                                        LR
 ```
 
 ### Advanced Examples
@@ -80,138 +78,114 @@ C                   SETON                                        LR
 #### Multiple Nested Spans
 
 ```rpgle
-V* ==============================================================
-V* Nested Profiling Spans Example
-V* ==============================================================
-D COUNTER         S              3  0
-D RESULT          S              8  0 INZ(0)
-D A               S              8  0 INZ(5)
-D B               S              8  0 INZ(8)
- *
-
-PROF* SPANSTART MAIN_LOOP "Main processing loop"
-C                   FOR       COUNTER = 1 TO 10
-
-PROF* SPANSTART CALCULATION "Inner calculation"
-C                   EVAL      RESULT = A + B * COUNTER
-PROF* SPANEND
-
-PROF* SPANSTART DISPLAY "Display result"
-C     RESULT        DSPLY
-PROF* SPANEND
-
-C                   ENDFOR
-PROF* SPANEND
-
-C                   SETON                                        LR
+     V* ==============================================================
+     V* Nested Profiling Spans Example
+     V* ==============================================================
+     D COUNTER         S              3  0
+     D RESULT          S              8  0 INZ(0)
+     D A               S              8  0 INZ(5)
+     D B               S              8  0 INZ(8)
+      *
+  PROF* SPANSTART MAIN_LOOP "Main processing loop"
+     C                   FOR       COUNTER = 1 TO 10
+  PROF* SPANSTART CALCULATION "Inner calculation"
+     C                   EVAL      RESULT = A + B * COUNTER
+  PROF* SPANEND
+  PROF* SPANSTART DISPLAY "Display result"
+     C     RESULT        DSPLY
+  PROF* SPANEND
+     C                   ENDFOR
+  PROF* SPANEND
+     C                   SETON                                        LR
 ```
 
 #### Conditional Processing with Profiling
 
 ```rpgle
-V* ==============================================================
-V* Conditional Processing with Profiling
-V* ==============================================================
-D STATUS          S              1A INZ('A')
-D AMOUNT          S             10  2 INZ(100.50)
-D RESULT          S             10  2
- *
-
-PROF* SPANSTART VALIDATION "Input validation"
-C                   SELECT
-
-C                   WHEN      STATUS = 'A'
-PROF* SPANSTART ACTIVE_PROCESSING "Process active records"
-C                   EVAL      RESULT = AMOUNT * 1.1
-PROF* SPANEND
-
-C                   WHEN      STATUS = 'I'
-PROF* SPANSTART INACTIVE_PROCESSING "Process inactive records"
-C                   EVAL      RESULT = AMOUNT * 0.9
-PROF* SPANEND
-
-C                   OTHER
-PROF* SPANSTART ERROR_PROCESSING "Handle error cases"
-C                   EVAL      RESULT = 0
-PROF* SPANEND
-
-C                   ENDSL
-PROF* SPANEND
-
-C                   SETON                                        LR
+     V* ==============================================================
+     V* Conditional Processing with Profiling
+     V* ==============================================================
+     D STATUS          S              1A INZ('A')
+     D AMOUNT          S             10  2 INZ(100.50)
+     D RESULT          S             10  2
+      *
+  PROF* SPANSTART VALIDATION "Input validation"
+     C                   SELECT
+     C                   WHEN      STATUS = 'A'
+  PROF* SPANSTART ACTIVE_PROCESSING "Process active records"
+     C                   EVAL      RESULT = AMOUNT * 1.1
+  PROF* SPANEND
+     C                   WHEN      STATUS = 'I'
+  PROF* SPANSTART INACTIVE_PROCESSING "Process inactive records"
+     C                   EVAL      RESULT = AMOUNT * 0.9
+  PROF* SPANEND
+     C                   OTHER
+  PROF* SPANSTART ERROR_PROCESSING "Handle error cases"
+     C                   EVAL      RESULT = 0
+  PROF* SPANEND
+     C                   ENDSL
+  PROF* SPANEND
+     C                   SETON                                        LR
 ```
 
 #### Database Operations Profiling
 
 ```rpgle
-V* ==============================================================
-V* Database Operations Profiling Example
-V* ==============================================================
-D CUSTOMER_ID     S             10A
-D CUSTOMER_NAME   S             30A
-D ORDER_COUNT     S              5  0
- *
-
-PROF* SPANSTART DB_SETUP "Database connection setup"
-// Database setup code here
-PROF* SPANEND
-
-PROF* SPANSTART CUSTOMER_READ "Read customer data"
-// Read customer record
-C                   EVAL      CUSTOMER_ID = 'CUST001'
-C                   EVAL      CUSTOMER_NAME = 'John Doe'
-PROF* SPANEND
-
-PROF* SPANSTART ORDER_COUNT "Count customer orders"
-// Count orders for customer
-C                   EVAL      ORDER_COUNT = 5
-PROF* SPANEND
-
-PROF* SPANSTART REPORT_GEN "Generate customer report"
-C                   EVAL      %SUBST(CUSTOMER_NAME:1:10) = 'Report for'
-PROF* SPANEND
-
-C                   SETON                                        LR
+     V* ==============================================================
+     V* Database Operations Profiling Example
+     V* ==============================================================
+     D CUSTOMER_ID     S             10A
+     D CUSTOMER_NAME   S             30A
+     D ORDER_COUNT     S              5  0
+      *
+  PROF* SPANSTART DB_SETUP "Database connection setup"
+      // Database setup code here
+  PROF* SPANEND
+  PROF* SPANSTART CUSTOMER_READ "Read customer data"
+      // Read customer record
+     C                   EVAL      CUSTOMER_ID = 'CUST001'
+     C                   EVAL      CUSTOMER_NAME = 'John Doe'
+  PROF* SPANEND
+  PROF* SPANSTART ORDER_COUNT "Count customer orders"
+      // Count orders for customer
+     C                   EVAL      ORDER_COUNT = 5
+  PROF* SPANEND
+  PROF* SPANSTART REPORT_GEN "Generate customer report"
+     C                   EVAL      %SUBST(CUSTOMER_NAME:1:10) = 'Report for'
+  PROF* SPANEND
+     C                   SETON                                        LR
 ```
 
 #### Performance Testing with Timing
 
 ```rpgle
-V* ==============================================================
-V* Performance Testing Example
-V* ==============================================================
-D LOOP_COUNT      S              7  0
-D COUNTER         S              7  0
-D RESULT          S             15  5
-D START_TIME      S               Z
-D END_TIME        S               Z
-D ELAPSED_MS      S             10  0
- *
-
-C                   EVAL      LOOP_COUNT = 100000
-
-PROF* SPANSTART PERFORMANCE_TEST "Large loop performance test"
-
-C                   TIME                    START_TIME
-
-PROF* SPANSTART CALCULATION_LOOP "Main calculation loop"
-C     1             DO        LOOP_COUNT    COUNTER
-C                   EVAL      RESULT = %SQRT(COUNTER * 3.14159)
-C                   ENDDO
-PROF* SPANEND
-
-C                   TIME                    END_TIME
-C     END_TIME      SUBDUR    START_TIME    ELAPSED_MS:*MS
-
-PROF* SPANSTART RESULT_DISPLAY "Display performance results"
-C                   EVAL      ELAPSED_MS = ELAPSED_MS / 1000
-C     'Performance test completed'  DSPLY
-C     ELAPSED_MS    DSPLY
-PROF* SPANEND
-
-PROF* SPANEND
-
-C                   SETON                                        LR
+     V* ==============================================================
+     V* Performance Testing Example
+     V* ==============================================================
+     D LOOP_COUNT      S              7  0
+     D COUNTER         S              7  0
+     D RESULT          S             15  5
+     D START_TIME      S               Z
+     D END_TIME        S               Z
+     D ELAPSED_MS      S             10  0
+      *
+     C                   EVAL      LOOP_COUNT = 100000
+  PROF* SPANSTART PERFORMANCE_TEST "Large loop performance test"
+     C                   TIME                    START_TIME
+  PROF* SPANSTART CALCULATION_LOOP "Main calculation loop"
+     C     1             DO        LOOP_COUNT    COUNTER
+     C                   EVAL      RESULT = %SQRT(COUNTER * 3.14159)
+     C                   ENDDO
+  PROF* SPANEND
+     C                   TIME                    END_TIME
+     C     END_TIME      SUBDUR    START_TIME    ELAPSED_MS:*MS
+  PROF* SPANSTART RESULT_DISPLAY "Display performance results"
+     C                   EVAL      ELAPSED_MS = ELAPSED_MS / 1000
+     C     'Performance test completed'  DSPLY
+     C     ELAPSED_MS    DSPLY
+  PROF* SPANEND
+  PROF* SPANEND
+     C                   SETON                                        LR
 ```
 
 ## Best Practices
@@ -219,38 +193,37 @@ C                   SETON                                        LR
 ### 1. Meaningful Span Names
 Use descriptive names that clearly indicate what the span is measuring:
 ```rpgle
-PROF* SPANSTART CUSTOMER_VALIDATION "Validate customer data integrity"
-PROF* SPANSTART DB_CUSTOMER_READ "Read customer from database"
-PROF* SPANSTART CALC_DISCOUNT "Calculate customer discount percentage"
+  PROF* SPANSTART CUSTOMER_VALIDATION "Validate customer data integrity"
+  PROF* SPANSTART DB_CUSTOMER_READ "Read customer from database"
+  PROF* SPANSTART CALC_DISCOUNT "Calculate customer discount percentage"
 ```
 
 ### 2. Proper Nesting
 Ensure spans are properly nested and closed:
 ```rpgle
-PROF* SPANSTART OUTER "Outer operation"
-PROF* SPANSTART INNER "Inner operation"
-// code here
-PROF* SPANEND
-PROF* SPANEND
+  PROF* SPANSTART OUTER "Outer operation"
+  PROF* SPANSTART INNER "Inner operation"
+      // code here
+  PROF* SPANEND
+  PROF* SPANEND
 ```
 
 ### 3. Granular Measurement
 Use spans to isolate specific operations for performance analysis:
 ```rpgle
-PROF* SPANSTART FILE_IO "File input/output operations"
-// File operations
-PROF* SPANEND
-
-PROF* SPANSTART CALCULATIONS "Business logic calculations"
-// Calculation code
-PROF* SPANEND
+  PROF* SPANSTART FILE_IO "File input/output operations"
+      // File operations
+  PROF* SPANEND
+  PROF* SPANSTART CALCULATIONS "Business logic calculations"
+      // Calculation code
+  PROF* SPANEND
 ```
 
 ### 4. Include Comments
 Add meaningful comments to provide context:
 ```rpgle
-PROF* SPANSTART BATCH_PROCESS "Process 10,000 customer records in batch"
-PROF* SPANSTART VALIDATION "Validate customer data against business rules"
+  PROF* SPANSTART BATCH_PROCESS "Process 10,000 customer records in batch"
+  PROF* SPANSTART VALIDATION "Validate customer data against business rules"
 ```
 
 ## Integration with Copy Members
@@ -259,21 +232,20 @@ Profiling annotations can be used in copy members that are included in your prog
 
 **COPY_WITH_PROFILING.rpgle**:
 ```rpgle
-PROF* SPANSTART COPY_OPERATION "Shared business logic from copy member"
-C                   EVAL      RESULT = INPUT_VALUE * 2
-PROF* SPANEND
+  PROF* SPANSTART COPY_OPERATION "Shared business logic from copy member"
+     C                   EVAL      RESULT = INPUT_VALUE * 2
+  PROF* SPANEND
 ```
 
 **Main Program**:
 ```rpgle
-D INPUT_VALUE     S             10  2 INZ(50.25)
-D RESULT          S             10  2
- *
-PROF* SPANSTART MAIN_PROCESSING "Main program processing"
-/COPY COPY_WITH_PROFILING
-PROF* SPANEND
-
-C                   SETON                                        LR
+     D INPUT_VALUE     S             10  2 INZ(50.25)
+     D RESULT          S             10  2
+      *
+  PROF* SPANSTART MAIN_PROCESSING "Main program processing"
+      /COPY COPY_WITH_PROFILING
+  PROF* SPANEND
+     C                   SETON                                        LR
 ```
 
 ## Troubleshooting
