@@ -1090,4 +1090,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("1.00", "1.00", "1.00", "1.00", "1.00", "1.00", "2.00", "2.00", "2.00", "2.00", "2.00", "2.00", "3.00", "")
         assertEquals(expected, "smeup/MUDRNRAPU001127".outputOf())
     }
+
+    /**
+     * Using `Z-ADD` with the fields declared by using offsets. Also, uses `OCCURS` keyword.
+     */
+    @Test
+    fun executeMUDRNRAPU001128() {
+        val expected = listOf(
+            "1.00", "1.00", "1.00", "1.00", "1.00", "1.00", "2.00", "2.00", "2.00", "2.00", "2.00", "2.00", "3.00", "",
+            "4.00", "4.00", "4.00", "4.00", "4.00", "4.00", "5.00", "5.00", "5.00", "5.00", "5.00", "5.00", "6.00", "",
+            "1.00", "1.00", "1.00", "1.00", "1.00", "1.00", "2.00", "2.00", "2.00", "2.00", "2.00", "2.00", "3.00", ""
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001128".outputOf())
+    }
 }
