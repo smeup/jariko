@@ -961,10 +961,14 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(rpgProgramTraces.filter { it.description == "TRACETST2" }.size, 1)
     }
 
+    /**
+     * Executing a program with profiling annotations when profiling is disabled should produce nothing.
+     */
     @Test
     fun executeSimpleSpanWithoutProfilingProducesNothing() {
         var openTraces = 0
         var closedTraces = 0
+        val executedTraces = mutableListOf<RpgTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
         val configuration = Configuration().apply {
             options = Options().apply {
@@ -972,6 +976,7 @@ class JarikoCallbackTest : AbstractTest() {
             }
             jarikoCallback.startRpgTrace = { trace ->
                 openTraces += 1
+                executedTraces.add(trace)
             }
             jarikoCallback.finishRpgTrace = {
                 closedTraces += 1
@@ -980,6 +985,7 @@ class JarikoCallbackTest : AbstractTest() {
         executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(0, openTraces)
         assertEquals(0, closedTraces)
+        assertTrue(executedTraces.isEmpty())
     }
 
     @Test
@@ -1001,6 +1007,9 @@ class JarikoCallbackTest : AbstractTest() {
         executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(1, openTraces.size)
         assertEquals(1, closedTraces)
+
+        // assert line of executed traces
+        openTraces.assertExecuted(11)
     }
 
     @Test
@@ -1022,8 +1031,18 @@ class JarikoCallbackTest : AbstractTest() {
         executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(12, openTraces.size)
         assertEquals(12, closedTraces)
+
+        // assert line of executed traces
+        openTraces.assertExecuted(12)
+        openTraces.assertExecuted(14)
+        openTraces.assertExecuted(16, 10)
     }
 
+    /**
+     * Test that close spans in MULTIPLE_TELEMETRY_SPAN.rpgle never exceed open ones.
+     * See [executeMultipleSpanOpenAlsoCloses] for assertions on their position.
+     * @see [executeMultipleSpanOpenAlsoCloses].
+     */
     @Test
     fun executeMultipleSpanCloseNeverExceedOpen() {
         val traces = Stack<RpgTrace>()
@@ -1341,5 +1360,16 @@ class JarikoCallbackTest : AbstractTest() {
         )
         val metadataProducer = { file: String -> metadata[file]!! }
         return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
+    }
+
+    /**
+     * Assert that the trace at specified [line] was executed [executions] times.
+     *
+     * @param line The line of the trace.
+     * @param executions The number of executions of the trace.
+     */
+    private fun List<RpgTrace>.assertExecuted(line: Int, executions: Int = 1) {
+        val actual = this.count { it.line == line }
+        assertEquals(executions, actual, "expected $executions executions but got $actual instead")
     }
 }
