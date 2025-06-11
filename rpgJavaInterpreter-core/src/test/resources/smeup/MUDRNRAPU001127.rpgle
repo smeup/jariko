@@ -7,7 +7,7 @@
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:
     O *   `Issue executing ZAddStmt at line 21.
-    O *    Asked startOffset=24, endOffset=42 on string of length 41
+    O *    Asked startOffset=24, endOffset=42 on string of length 41`
      V* ==============================================================
      D DS1             DS
      D  DS1_FL1                1     18P 2 DIM(6)
