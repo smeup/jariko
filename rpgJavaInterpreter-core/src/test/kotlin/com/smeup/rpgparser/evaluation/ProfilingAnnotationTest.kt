@@ -69,6 +69,9 @@ open class ProfilingAnnotationTest : AbstractTest() {
         smeupConfig.options.profilingSupport = true
     }
 
+    /**
+     * Test the injection of telemetry spans in a simple use case (1 OPEN, 1 CLOSE).
+     */
     @Test
     fun executeSimpleTelemetrySpan() {
         val cu = assertASTCanBeProduced("profiling/SIMPLE_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -86,10 +89,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
         assertSpanStartPositions(cu, listOf("_SPANID1" to 11), LookupMode.Annotation)
         assertSpanStartPositions(cu, listOf("_SPANID1" to 12), LookupMode.Statement)
-        assertSpanEndPositions(cu, listOf(13), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(12), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(13))
+        assertSpanEndStatementPosition(cu, listOf(12))
     }
 
+    /**
+     * Test the injection of multiple telemetry spans (attach to both simple and composite statements).
+     */
     @Test
     fun executeMultipleTelemetrySpan() {
         val cu = assertASTCanBeProduced("profiling/MULTIPLE_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -109,10 +115,14 @@ open class ProfilingAnnotationTest : AbstractTest() {
             cu, listOf("_SPANID1" to 12, "_SPANID2" to 14, "_SPANID3" to 16), LookupMode.Annotation
         )
         assertSpanStartPositions(cu, listOf("_SPANID1" to 13, "_SPANID2" to 15, "_SPANID3" to 17), LookupMode.Statement)
-        assertSpanEndPositions(cu, listOf(21, 22, 18), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(15, 15, 17), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(21, 22, 18))
+        assertSpanEndStatementPosition(cu, listOf(15, 15, 17))
     }
 
+    /**
+     * Test the injection of telemetry spans in cases where we cannot actually perform the injection (annotation in invalid place).
+     * In these cases we expect to fail with an exception.
+     */
     @Test
     fun executeFailingTelemetrySpan() {
         assertFails {
@@ -120,6 +130,9 @@ open class ProfilingAnnotationTest : AbstractTest() {
         }
     }
 
+    /**
+     * Test the execution of multiple annotations attached to the same statement.
+     */
     @Test
     fun executeMultipleSpanSameStatement() {
         val cu = assertASTCanBeProduced("profiling/MULTISPAN_SAME_STATEMENT", true, withProfilingSupport = true)
@@ -141,10 +154,14 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu, listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(16, 17, 18, 19), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(15, 15, 15, 15), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(16, 17, 18, 19))
+        assertSpanEndStatementPosition(cu, listOf(15, 15, 15, 15))
     }
 
+    /**
+     * Test the execution of multiple annotations attached to the same statement in cases where
+     * their closing annotation is not in the same position for all them.
+     */
     @Test
     fun executeMultipleSpanSameStatement2() {
         val cu = assertASTCanBeProduced("profiling/MULTISPAN_SAME_STATEMENT_2", true, withProfilingSupport = true)
@@ -166,10 +183,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu, listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(16, 17, 18, 20), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(15, 15, 15, 19), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(16, 17, 18, 20))
+        assertSpanEndStatementPosition(cu, listOf(15, 15, 15, 19))
     }
 
+    /**
+     * Test the injection of telemetry spans in FOR statements.
+     */
     @Test
     fun executeForSpan() {
         val cu = assertASTCanBeProduced("profiling/FOR_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -188,10 +208,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
                 "BEFOREFOR" to 13, "FORBODYSTART" to 15
             ), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(16, 18), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(13, 15), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(16, 18))
+        assertSpanEndStatementPosition(cu, listOf(13, 15))
     }
 
+    /**
+     * Test the injection of telemetry spans in DO statements.
+     */
     @Test
     fun executeDoSpan() {
         val cu = assertASTCanBeProduced("profiling/DO_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -211,10 +234,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
                 "BEFOREDO" to 13, "DOBODYSTART" to 15
             ), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(16, 18), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(13, 15), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(16, 18))
+        assertSpanEndStatementPosition(cu, listOf(13, 15))
     }
 
+    /**
+     * Test the injection of telemetry spans in MONITOR statements.
+     */
     @Test
     fun executeMonitorSpan() {
         val cu = assertASTCanBeProduced("profiling/MONITOR_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -234,10 +260,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
                 "BEFORESTMT" to 13, "STMTBEGIN" to 15, "STMTERROR" to 19
             ), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(16, 20, 22), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(13, 15, 19), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(16, 20, 22))
+        assertSpanEndStatementPosition(cu, listOf(13, 15, 19))
     }
 
+    /**
+     * Test the injection of telemetry spans in IF statements.
+     */
     @Test
     fun executeIfSpan() {
         val cu = assertASTCanBeProduced("profiling/IF_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -257,10 +286,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
                 "BEFORESTMT" to 13, "IFBODY" to 15, "ELIFBODY" to 20, "ELSEBODY" to 25
             ), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(17, 22, 27, 29), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(16, 21, 26, 13), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(17, 22, 27, 29))
+        assertSpanEndStatementPosition(cu, listOf(16, 21, 26, 13))
     }
 
+    /**
+     * Test the injection of telemetry spans in SELECT statements.
+     */
     @Test
     fun executeSelectSpan() {
         val cu = assertASTCanBeProduced("profiling/SELECT_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -280,10 +312,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
                 "BEFORESELECT" to 13, "CONTENT1" to 16, "CONTENT2" to 20, "CONTENT3" to 24
             ), LookupMode.Statement
         )
-        assertSpanEndPositions(cu, listOf(17, 21, 25, 27), LookupMode.Annotation)
-        assertSpanEndPositionsExhaustive(cu, listOf(13, 24, 20, 16), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(17, 21, 25, 27))
+        assertSpanEndStatementPosition(cu, listOf(13, 24, 20, 16))
     }
 
+    /**
+     * Test the injection of telemetry spans in /COPY.
+     */
     @Test
     fun executeCopyTelemetrySpan() {
         val cu = assertASTCanBeProduced("profiling/COPY_TELEMETRY_SPAN", true, withProfilingSupport = true)
@@ -313,10 +348,20 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(close.statementLine, evalLine)
     }
 
+    /**
+     * Lookup strategy for annotation lines.
+     */
     private enum class LookupMode {
         Statement, Annotation
     }
 
+    /**
+     * Assert that the provided telemetry open spans are resolved in the correct position.
+     *
+     * @param cu The compilation unit in which the annotations are resolved.
+     * @param spans The list of pairs in the form (SPAN_NAME, EXPECTED_LINE) we want to test.
+     * @param mode Determine if line check has to be done relative to the line of the statement or the annotation.
+     */
     private fun assertSpanStartPositions(cu: CompilationUnit, spans: List<Pair<String, Int>>, mode: LookupMode) {
         val openAnnotations = cu.getOpenAnnotations()
         spans.forEach {
@@ -332,30 +377,37 @@ open class ProfilingAnnotationTest : AbstractTest() {
         }
     }
 
-    private fun assertSpanEndPositions(cu: CompilationUnit, spans: List<Int>, mode: LookupMode) {
+    /**
+     * Assert that the provided telemetry close spans are resolved in the correct position.
+     *
+     * @param cu The compilation unit in which the annotations are resolved.
+     * @param spans The list of the lines (referred to the annotation) we expect to find a closing annotation.
+     */
+    private fun assertSpanEndAnnotationPositions(cu: CompilationUnit, spans: List<Int>) {
         val closedAnnotations = cu.getClosedAnnotations()
         spans.forEach { span ->
             assertTrue(
                 closedAnnotations.any {
-                    when (mode) {
-                        LookupMode.Statement -> it.statementLine == span
-                        LookupMode.Annotation -> it.profilingLine == span
-                    }
+                    it.profilingLine == span
                 }, "could not find span at line $span"
             )
         }
     }
 
-    private fun assertSpanEndPositionsExhaustive(cu: CompilationUnit, spans: List<Int>, mode: LookupMode) {
+    /**
+     * Assert that all the provided spans correspond to all the resolved close span annotations.
+     * Differently to what [assertSpanEndAnnotationPositions] this performs an exhaustive check and therefore:
+     * - Duplicates must be reported multiple times.
+     * - It will fail if some annotations in [cu] are not expected in [spans].
+     *
+     * @param cu The compilation unit in which the annotations are resolved.
+     * @param spans The list of the lines (referred to the statement) we expect to find a closing annotation.
+     */
+    private fun assertSpanEndStatementPosition(cu: CompilationUnit, spans: List<Int>) {
         val closedAnnotations = cu.getClosedAnnotations()
         val toProcess = closedAnnotations.toMutableList()
         spans.forEach { span ->
-            val annotation = toProcess.firstOrNull {
-                when (mode) {
-                    LookupMode.Statement -> it.statementLine == span
-                    LookupMode.Annotation -> it.profilingLine == span
-                }
-            }
+            val annotation = toProcess.firstOrNull { it.statementLine == span }
 
             assertNotNull(annotation)
             toProcess.remove(annotation)
@@ -364,16 +416,30 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(0, toProcess.size)
     }
 
+    /**
+     * Get all the span opening [ProfilingAnnotationResolved] in the provided compilation unit.
+     */
     private fun CompilationUnit.getOpenAnnotations() = this.resolvedProfilingAnnotations.filter {
         it.source is ProfilingSpanStartAnnotation
     }
 
+    /**
+     * Get all the span closing [ProfilingAnnotationResolved] in the provided compilation unit.
+     */
     private fun CompilationUnit.getClosedAnnotations() = this.resolvedProfilingAnnotations.filter {
         it.source is ProfilingSpanEndAnnotation
     }
 
+    /**
+     * Get the source line of a [ProfilingAnnotationResolved].
+     */
     private fun ProfilingAnnotationResolved.sourceLine() = this.source.position?.start?.line
 
+    /**
+     * Assert that all the provided annotations are positioned at their raw source line.
+     *
+     * @param annotations The annotations to test.
+     */
     private fun assertSourceLineEquivalence(annotations: List<ProfilingAnnotationResolved>): Boolean =
         annotations.all { it.sourceLine() == it.profilingLine }
 }
