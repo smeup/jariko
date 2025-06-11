@@ -1,5 +1,6 @@
      V* ==============================================================
-     V* 09/06/2025 APU001 Creation
+     V* 10/06/2025 APU001 Creation
+     V* 11/06/2025 APU001 Improvements
      V* ==============================================================
     O * PROGRAM GOAL
     O * Using `Z-ADD` with a field of occurable DS declared as array.
@@ -15,16 +16,19 @@
      D  DS1_FL1                       2  0 DIM(3)
      D TMP             S              5
 
-     C                   Z-ADD     1             I                 4 0
-     C     I             OCCUR     DS1
+     C     1             OCCUR     DS1
      C                   EXSR      SHOW
      C                   Z-ADD     1             DS1_FL1
      C                   EXSR      SHOW
 
-     C                   Z-ADD     2             I                 4 0
-     C     I             OCCUR     DS1
+     C     2             OCCUR     DS1
      C                   EXSR      SHOW
      C                   Z-ADD     2             DS1_FL1
+     C                   EXSR      SHOW
+
+     C     1             OCCUR     DS1
+     C                   EXSR      SHOW
+     C     2             OCCUR     DS1
      C                   EXSR      SHOW
 
      C                   SETON                                          LR
