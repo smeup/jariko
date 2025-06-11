@@ -92,13 +92,13 @@ D B               S              8  0 INZ(8)
 PROF* SPANSTART MAIN_LOOP "Main processing loop"
 C                   FOR       COUNTER = 1 TO 10
 
-  PROF* SPANSTART CALCULATION "Inner calculation"
-  C                   EVAL      RESULT = A + B * COUNTER
-  PROF* SPANEND
+PROF* SPANSTART CALCULATION "Inner calculation"
+C                   EVAL      RESULT = A + B * COUNTER
+PROF* SPANEND
 
-  PROF* SPANSTART DISPLAY "Display result"
-  C     RESULT        DSPLY
-  PROF* SPANEND
+PROF* SPANSTART DISPLAY "Display result"
+C     RESULT        DSPLY
+PROF* SPANEND
 
 C                   ENDFOR
 PROF* SPANEND
@@ -121,19 +121,19 @@ PROF* SPANSTART VALIDATION "Input validation"
 C                   SELECT
 
 C                   WHEN      STATUS = 'A'
-  PROF* SPANSTART ACTIVE_PROCESSING "Process active records"
-  C                   EVAL      RESULT = AMOUNT * 1.1
-  PROF* SPANEND
+PROF* SPANSTART ACTIVE_PROCESSING "Process active records"
+C                   EVAL      RESULT = AMOUNT * 1.1
+PROF* SPANEND
 
 C                   WHEN      STATUS = 'I'
-  PROF* SPANSTART INACTIVE_PROCESSING "Process inactive records"
-  C                   EVAL      RESULT = AMOUNT * 0.9
-  PROF* SPANEND
+PROF* SPANSTART INACTIVE_PROCESSING "Process inactive records"
+C                   EVAL      RESULT = AMOUNT * 0.9
+PROF* SPANEND
 
 C                   OTHER
-  PROF* SPANSTART ERROR_PROCESSING "Handle error cases"
-  C                   EVAL      RESULT = 0
-  PROF* SPANEND
+PROF* SPANSTART ERROR_PROCESSING "Handle error cases"
+C                   EVAL      RESULT = 0
+PROF* SPANEND
 
 C                   ENDSL
 PROF* SPANEND
@@ -228,9 +228,9 @@ PROF* SPANSTART CALC_DISCOUNT "Calculate customer discount percentage"
 Ensure spans are properly nested and closed:
 ```rpgle
 PROF* SPANSTART OUTER "Outer operation"
-  PROF* SPANSTART INNER "Inner operation"
-  // code here
-  PROF* SPANEND
+PROF* SPANSTART INNER "Inner operation"
+// code here
+PROF* SPANEND
 PROF* SPANEND
 ```
 
