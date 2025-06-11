@@ -185,7 +185,13 @@ open class InternalInterpreter(
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
                 if (data.declaredArrayInLine != null) {
-                    val dataStructValue = get(ds.name) as DataStructValue
+                    val dataStructValue: DataStructValue = get(ds.name).let {
+                        if (it is OccurableDataStructValue) {
+                            return@let it.get(it.occurrence)
+                        }
+
+                        return@let it as DataStructValue
+                    }
                     var startOffset = data.startOffset
                     val size = data.endOffset - data.startOffset
 
