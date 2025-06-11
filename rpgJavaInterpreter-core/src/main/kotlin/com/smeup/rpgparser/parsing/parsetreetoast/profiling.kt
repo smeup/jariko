@@ -44,17 +44,14 @@ fun ProfilingParser.ProfilingLineContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
+fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
     // Process the main body statements
-    val statements = listOf(this)
-    val resolved = injectProfilingAnnotationsToStatements(
-        statements,
+    injectProfilingAnnotationsToStatements(
+        listOf(this),
         this.position!!.start.line,
         this.position!!.end.line,
         profiling
     )
-
-    return resolved
 }
 
 /**
@@ -62,7 +59,7 @@ fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List
  *
  * @param profiling The profiling annotations to inject.
  */
-fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap): List<ProfilingAnnotationResolved> {
+fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
     val toResolve = profiling.map { it.key }.toMutableList()
 
     // Process the main body statements
@@ -82,8 +79,6 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
     if (toResolve.isNotEmpty()) {
         throw RuntimeException("Could not resolve annotations at lines: ${toResolve.joinToString()}")
     }
-
-    return resolved
 }
 
 /**
