@@ -30,7 +30,6 @@ import java.util.*
 interface InterpreterCore {
     fun getConfiguration(): Configuration
     fun getStatus(): InterpreterStatus
-    fun getLoggingContext(): InterpreterLoggingContext
     fun getInterpretationContext(): InterpretationContext
     fun getSystemInterface(): SystemInterface
     fun getIndicators(): HashMap<IndicatorKey, BooleanValue>

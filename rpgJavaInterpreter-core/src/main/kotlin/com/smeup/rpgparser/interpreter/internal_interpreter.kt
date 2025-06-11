@@ -102,7 +102,6 @@ open class InternalInterpreter(
     }
 
     private val loggingContext = InterpreterLoggingContext()
-    override fun getLoggingContext() = loggingContext
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
