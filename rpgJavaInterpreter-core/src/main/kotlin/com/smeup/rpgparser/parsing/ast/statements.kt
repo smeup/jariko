@@ -1225,6 +1225,9 @@ data class MonitorStmt(
     override val loggableEntityName: String
         get() = "MONITOR"
 
+    // These annotations are kept for cleanup purposes.
+    private var closingProfilingAnnotations = emptyList<ProfilingAnnotation>()
+
     // Since this property is a collection built up from multiple parts, this annotation
     // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
     // ErrorEvent is fired more times
@@ -1266,6 +1269,10 @@ data class MonitorStmt(
         val self = super.acceptProfiling(candidates, startLine, endLine)
         val body = acceptProfilingBody(monitorBody, candidates)
         val errors = onErrorClauses.map { acceptProfilingBody(it.body, candidates) }.flatten()
+
+        // Setup cleanup hooks
+        closingProfilingAnnotations = body.map { it.source }.filterIsInstance<ProfilingSpanEndAnnotation>()
+
         return (self + body + errors).toMutableList()
     }
 
@@ -1273,10 +1280,20 @@ data class MonitorStmt(
         try {
             interpreter.execute(this.monitorBody)
         } catch (e: InterpreterProgramStatusErrorException) {
+            interpreter.cleanupBodyAnnotations(e)
             val errorClause = onErrorClauses.firstOrNull { it.codes.any { code -> e.statusCode.matches(code) } }
             errorClause ?: throw e
             interpreter.execute(errorClause.body)
         }
+    }
+
+    /**
+     * Close annotations that remained open when the error occurred.
+     */
+    private fun InterpreterCore.cleanupBodyAnnotations(e: InterpreterProgramStatusErrorException) {
+        val errorLine = e.position!!.start.line
+        val closingAnnotationsToCleanup = closingProfilingAnnotations.filter { it.position!!.start.line > errorLine }
+        this.executeProfiling(closingAnnotationsToCleanup)
     }
 }
 

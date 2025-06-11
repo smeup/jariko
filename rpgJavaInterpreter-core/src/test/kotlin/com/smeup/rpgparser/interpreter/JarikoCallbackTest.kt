@@ -1206,13 +1206,43 @@ class JarikoCallbackTest : AbstractTest() {
         }
         executePgm("profiling/MONITOR_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(3, traces.size)
-        // TODO: Fix
-        //assertEquals(3, closedTraces)
+        assertEquals(3, closedTraces)
 
         // assert line of executed traces
         traces.assertExecuted(12)
         traces.assertExecuted(14)
         traces.assertExecuted(18)
+    }
+
+    /**
+     * Executing a program with spans attached to a MONITOR statement behaves as expected
+     * ensuring already cleaned up spans are not reported twice.
+     */
+    @Test
+    fun executeMonitorCleanupTraces() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/MONITOR_TELEMETRY_SPAN_CLEANUP", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(4, traces.size)
+        assertEquals(4, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecuted(12)
+        traces.assertExecuted(14)
+        traces.assertExecuted(17)
+        traces.assertExecuted(21)
     }
 
     /**
