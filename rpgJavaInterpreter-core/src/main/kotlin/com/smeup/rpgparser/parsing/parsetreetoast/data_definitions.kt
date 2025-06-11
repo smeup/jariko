@@ -610,16 +610,14 @@ internal fun RpgParser.Dcl_dsContext.type(
  * Evaluates the OCCURS keyword between a number or an expression to evaluate at runtime.
  */
 internal fun RpgParser.Keyword_occursContext.evaluate(conf: ToAstConfiguration = ToAstConfiguration()): Int? {
-    return when {
-        this.numeric_constant != null -> numeric_constant?.getChild(0)?.text?.toInt()
-        this.expr != null -> {
-            val injectableCompileTimeInterpreter = InjectableCompileTimeInterpreter(
-                knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
-                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-            )
-            injectableCompileTimeInterpreter.evaluate(rContext(), this.expr.toAst(conf)).asInt().value.toInt()
-        }
-        else -> null
+    return if (this.expr != null) {
+        val injectableCompileTimeInterpreter = InjectableCompileTimeInterpreter(
+            knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
+            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
+        )
+        injectableCompileTimeInterpreter.evaluate(rContext(), this.expr.toAst(conf)).asInt().value.toInt()
+    } else {
+        null
     }
 }
 
