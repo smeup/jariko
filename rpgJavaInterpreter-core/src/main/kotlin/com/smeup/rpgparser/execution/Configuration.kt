@@ -91,7 +91,8 @@ data class DspfConfig(
  * This property is necessary to enable some features useful when jariko must be debugged, for example some callback functions
  * such as onEnter and onExit copies or statements, just for performance reasons, will be invoked only when this property
  * is true.
- * @param profilingSupport Used to enable/disable scan execution of profiling annotations into rpg sources
+ * @param profilingSupport Used to enable/disable scan execution of profiling annotations into rpg sources.
+ * This is used to enable the [JarikoCallback.startRpgTrace] and [JarikoCallback.finishRpgTrace] callbacks.
  * */
 data class Options(
     var muteSupport: Boolean = false,
@@ -104,7 +105,7 @@ data class Options(
     var profilingSupport: Boolean = false
 ) {
     internal fun mustDumpSource() = dumpSourceOnExecutionError == true
-    internal fun mustCreateCopyBlocks() = debuggingInformation == true
+    internal fun mustCreateCopyBlocks() = debuggingInformation == true || profilingSupport
     internal fun mustInvokeOnStatementCallback() = debuggingInformation == true
 }
 
@@ -322,7 +323,11 @@ data class JarikoCallback(
 
     /**
      * It is invoked whenever we start a telemetry trace defined as annotation in an RPG program.
+     * Enabled when the [Options.profilingSupport] flag is enabled.
+     *
      * @param trace The object containing all the information about this trace.
+     *
+     * @see Options.profilingSupport
      */
     var startRpgTrace: ((trace: RpgTrace) -> Unit) = {
         // Defaults to a no-op
@@ -330,6 +335,9 @@ data class JarikoCallback(
 
     /**
      * It is invoked whenever we finish a telemetry trace defined as annotation in an RPG program.
+     * Enabled when the [Options.profilingSupport] flag is enabled.
+     *
+     * @see Options.profilingSupport
      */
     var finishRpgTrace: (() -> Unit) = {
         // Defaults to a no-op

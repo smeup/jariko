@@ -17,6 +17,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CallStmt
 import com.smeup.rpgparser.parsing.ast.CompositeStatement
 import com.smeup.rpgparser.parsing.ast.ExecuteSubroutine
@@ -25,6 +26,8 @@ import com.smeup.rpgparser.parsing.ast.ProfilingAnnotationAttachStrategy
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanEndAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
 import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.facade.relative
+import com.smeup.rpgparser.utils.peekOrNull
 
 /**
  * Get profiling annotations attached to the following statement.
@@ -67,7 +70,9 @@ internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation) {
         is ProfilingSpanStartAnnotation -> {
             val callback = configuration.jarikoCallback
             val description = annotation.description
-            val trace = RpgTrace(programName, description, annotation.position!!.start.line)
+            val program = MainExecutionContext.getProgramStack().peekOrNull()
+            val (_, sourceReference) = annotation.position!!.relative(programName, program?.cu?.copyBlocks)
+            val trace = RpgTrace(sourceReference.sourceId, description, sourceReference.relativeLine)
             callback.startRpgTrace(trace)
 
             renderLog {

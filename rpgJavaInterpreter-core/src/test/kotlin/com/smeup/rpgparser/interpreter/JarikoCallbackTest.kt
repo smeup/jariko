@@ -1063,6 +1063,30 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeCopySpan() {
+        val traces = mutableListOf<RpgTrace>()
+        var closedTraces = 0
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            options = Options().apply {
+                profilingSupport = true
+            }
+            jarikoCallback.startRpgTrace = { trace ->
+                traces.add(trace)
+            }
+            jarikoCallback.finishRpgTrace = {
+                closedTraces += 1
+            }
+        }
+        executePgm("profiling/COPY_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
+        assertEquals(1, traces.size)
+        assertEquals(1, closedTraces)
+
+        // assert line of executed traces
+        traces.assertExecutedInSource("TELSPAN", 5)
+    }
+
+    @Test
     fun executeERROR45CallBackTest() {
         executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
             18 to "Factor 2 and Result with different type and size."
@@ -1371,5 +1395,16 @@ class JarikoCallbackTest : AbstractTest() {
     private fun List<RpgTrace>.assertExecuted(line: Int, executions: Int = 1) {
         val actual = this.count { it.line == line }
         assertEquals(executions, actual, "expected $executions executions but got $actual instead")
+    }
+
+    /**
+     * Assert that a trace has been executed in a source.
+     *
+     * @param sourceId The name of the source.
+     * @param line The line in which we expect the trace to be executed.
+     */
+    private fun List<RpgTrace>.assertExecutedInSource(sourceId: String, line: Int) {
+        val candidate = this.find { it.program == sourceId && it.line == line }
+        assertNotNull(candidate, "could not find a trace at line $line executed in $sourceId")
     }
 }
