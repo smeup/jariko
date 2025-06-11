@@ -90,7 +90,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(cu, listOf("_SPANID1" to 11), LookupMode.Annotation)
         assertSpanStartPositions(cu, listOf("_SPANID1" to 12), LookupMode.Statement)
         assertSpanEndAnnotationPositions(cu, listOf(13))
-        assertSpanEndStatementPosition(cu, listOf(12))
+        assertSpanEndStatementPositions(cu, listOf(12))
     }
 
     /**
@@ -116,7 +116,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
         )
         assertSpanStartPositions(cu, listOf("_SPANID1" to 13, "_SPANID2" to 15, "_SPANID3" to 17), LookupMode.Statement)
         assertSpanEndAnnotationPositions(cu, listOf(21, 22, 18))
-        assertSpanEndStatementPosition(cu, listOf(15, 15, 17))
+        assertSpanEndStatementPositions(cu, listOf(15, 15, 17))
     }
 
     /**
@@ -155,7 +155,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             cu, listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(16, 17, 18, 19))
-        assertSpanEndStatementPosition(cu, listOf(15, 15, 15, 15))
+        assertSpanEndStatementPositions(cu, listOf(15, 15, 15, 15))
     }
 
     /**
@@ -184,7 +184,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             cu, listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(16, 17, 18, 20))
-        assertSpanEndStatementPosition(cu, listOf(15, 15, 15, 19))
+        assertSpanEndStatementPositions(cu, listOf(15, 15, 15, 19))
     }
 
     /**
@@ -209,7 +209,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             ), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(16, 18))
-        assertSpanEndStatementPosition(cu, listOf(13, 15))
+        assertSpanEndStatementPositions(cu, listOf(13, 15))
     }
 
     /**
@@ -235,7 +235,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             ), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(16, 18))
-        assertSpanEndStatementPosition(cu, listOf(13, 15))
+        assertSpanEndStatementPositions(cu, listOf(13, 15))
     }
 
     /**
@@ -261,7 +261,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             ), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(16, 20, 22))
-        assertSpanEndStatementPosition(cu, listOf(13, 15, 19))
+        assertSpanEndStatementPositions(cu, listOf(13, 15, 19))
     }
 
     /**
@@ -287,7 +287,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             ), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(17, 22, 27, 29))
-        assertSpanEndStatementPosition(cu, listOf(16, 21, 26, 13))
+        assertSpanEndStatementPositions(cu, listOf(16, 21, 26, 13))
     }
 
     /**
@@ -313,7 +313,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
             ), LookupMode.Statement
         )
         assertSpanEndAnnotationPositions(cu, listOf(17, 21, 25, 27))
-        assertSpanEndStatementPosition(cu, listOf(13, 24, 20, 16))
+        assertSpanEndStatementPositions(cu, listOf(13, 24, 20, 16))
     }
 
     /**
@@ -341,11 +341,22 @@ open class ProfilingAnnotationTest : AbstractTest() {
         val (open) = openAnnotations
         val (close) = closeAnnotations
 
+        // Assert relative positioning
         assertEquals(open.profilingLine + 1, open.statementLine)
         assertEquals(close.profilingLine - 1, close.statementLine)
         assertEquals(open.statementLine, close.statementLine)
         assertEquals(open.statementLine, evalLine)
         assertEquals(close.statementLine, evalLine)
+
+        // /COPY is at line 7, in TELSPAN the start annotation is at line 5 and the close annotation is at line 7
+        assertSpanStartPositions(cu, listOf(
+            "_SPANID1" to 12
+        ), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf(
+            "_SPANID1" to 13
+        ), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(14))
+        assertSpanEndStatementPositions(cu, listOf(13))
     }
 
     /**
@@ -403,7 +414,7 @@ open class ProfilingAnnotationTest : AbstractTest() {
      * @param cu The compilation unit in which the annotations are resolved.
      * @param spans The list of the lines (referred to the statement) we expect to find a closing annotation.
      */
-    private fun assertSpanEndStatementPosition(cu: CompilationUnit, spans: List<Int>) {
+    private fun assertSpanEndStatementPositions(cu: CompilationUnit, spans: List<Int>) {
         val closedAnnotations = cu.getClosedAnnotations()
         val toProcess = closedAnnotations.toMutableList()
         spans.forEach { span ->
