@@ -47,13 +47,12 @@ internal fun Statement.getProfilingAnnotations(strategy: ProfilingAnnotationAtta
 }
 
 /**
- * Execute a set of [ProfilingAnnotation]s attached to a statement.
+ * Execute a set of [ProfilingAnnotation]s.
  *
- * @param statement The statement.
  * @param annotations The annotations to execute.
  */
-internal fun InterpreterCore.executeProfiling(statement: Statement, annotations: List<ProfilingAnnotation>) {
-    annotations.forEach { executeProfiling(it, statement.position?.start?.line ?: 0) }
+internal fun InterpreterCore.executeProfiling(annotations: List<ProfilingAnnotation>) {
+    annotations.forEach { executeProfiling(it) }
 }
 
 /**
@@ -61,14 +60,14 @@ internal fun InterpreterCore.executeProfiling(statement: Statement, annotations:
  *
  * @param annotation The profiling annotation to execute.
  */
-internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation, line: Int) {
+internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation) {
     val configuration = getConfiguration()
     val programName = getInterpretationContext().currentProgramName
     when (annotation) {
         is ProfilingSpanStartAnnotation -> {
             val callback = configuration.jarikoCallback
             val description = annotation.description
-            val trace = RpgTrace(programName, description, line)
+            val trace = RpgTrace(programName, description, annotation.position!!.start.line)
             callback.startRpgTrace(trace)
 
             renderLog {

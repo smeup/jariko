@@ -1270,10 +1270,10 @@ open class InternalInterpreter(
             val attachBeforeProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToNext)
             val attachAfterProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToPrevious)
 
-            executeProfiling(statement, attachBeforeProfilingAnnotations)
+            executeProfiling(attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
             sourceProducer?.let { loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime) }
-            executeProfiling(statement, attachAfterProfilingAnnotations)
+            executeProfiling(attachAfterProfilingAnnotations)
         }
 
         trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
