@@ -18,6 +18,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.Record
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
@@ -27,6 +28,7 @@ import java.util.*
  * Expose interpreter core method that could be useful in statements logic implementation
  **/
 interface InterpreterCore {
+    fun getConfiguration(): Configuration
     fun getStatus(): InterpreterStatus
     fun getInterpretationContext(): InterpretationContext
     fun getSystemInterface(): SystemInterface

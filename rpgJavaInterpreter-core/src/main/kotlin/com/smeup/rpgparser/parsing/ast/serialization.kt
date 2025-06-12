@@ -229,6 +229,10 @@ private val modules = SerializersModule {
         subclass(MuteTimeoutAnnotation::class)
         subclass(MuteTypeAnnotation::class)
     }
+    polymorphic(ProfilingAnnotation::class) {
+        subclass(ProfilingSpanStartAnnotation::class)
+        subclass(ProfilingSpanEndAnnotation::class)
+    }
     contextual(BigDecimal::class, BigDecimalSerializer)
     contextual(LocalDateTime::class, LocalDateTimeSerializer)
     polymorphic(DSPFValue::class) {

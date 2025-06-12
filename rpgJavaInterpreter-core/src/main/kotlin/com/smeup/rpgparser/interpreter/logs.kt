@@ -182,6 +182,26 @@ class LazyLogEntry(val entry: LogEntry, val renderContent: (sep: String) -> Stri
         }
 
         /**
+         * Create a new LazyLogEntry for RPG profiling
+         * @see ProfilingAnnotation
+         */
+        fun produceProfiling(
+            annotation: ProfilingAnnotation,
+            source: LogSourceProvider
+        ): LazyLogEntry {
+            val message: String by lazy {
+                when (annotation) {
+                    is ProfilingSpanStartAnnotation -> "opening RPG trace: ${annotation.name}"
+                    is ProfilingSpanEndAnnotation -> "closing RPG trace"
+                    else -> this.toString()
+                }
+            }
+
+            val entry = LogEntry(source, "PROF")
+            return produceMessage(entry, message)
+        }
+
+        /**
          * Create a new LazyLogEntry for the AssignmentsLogHandler
          * @see AssignmentsLogHandler
          */
