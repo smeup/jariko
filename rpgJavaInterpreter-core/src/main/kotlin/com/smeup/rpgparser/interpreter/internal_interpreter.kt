@@ -148,7 +148,7 @@ open class InternalInterpreter(
                         // Added coerce
                         val valueToAssign = coerce(value, data.type.asArray().element)
                         dataStructValue.setSubstring(
-                            startOffset, startOffset + size,
+                            startOffset, startOffset + data.type.elementSize(),
                             data.type.asArray().element.toDataStructureValue(valueToAssign)
                         )
                         startOffset += data.stepSize
