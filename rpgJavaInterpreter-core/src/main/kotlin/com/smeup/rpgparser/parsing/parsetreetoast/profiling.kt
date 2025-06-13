@@ -18,6 +18,9 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.ProfilingParser
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.LazyLogEntry
+import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.lineBounds
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.ProfilingAnnotation
@@ -27,8 +30,13 @@ import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
 import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.facade.ProfilingImmutableMap
 import com.smeup.rpgparser.parsing.facade.ProfilingMap
+import com.smeup.rpgparser.utils.peekOrNull
 import com.strumenta.kolasu.model.Position
+import java.util.Stack
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.collections.forEach
+import kotlin.collections.iterator
 
 fun ProfilingParser.ProfilingLineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), position: Position? = null): ProfilingAnnotation {
     return when (val annotation = this.profilingAnnotation()) {
@@ -60,7 +68,8 @@ fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
  * @param profiling The profiling annotations to inject.
  */
 fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
-    val toResolve = profiling.map { it.key }.toMutableList()
+    val optimized = profiling.removeEmptySpans()
+    val toResolve = optimized.map { it.key }.toMutableList()
 
     // Process the main body statements
     // There is an issue when annotations appear just above the first statement
@@ -69,7 +78,7 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
     // D SPEC, the function stmts.position() returns null and then this fragments raises error
     val resolved = this.main.stmts.position()?.let { position ->
         val start = position.start.line.expandStartLineWithAnnotations(profiling)
-        injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, profiling)
+        injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, optimized, profiling)
     } ?: emptyList()
 
     resolved.forEach {
@@ -88,24 +97,27 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
  * @param start Start line to consider an annotation valid.
  * @param end End line to consider an annotation valid.
  * @param candidates The set of candidate profiling annotations to inject.
+ * @param annotations The complete set of annotations. By default, it is equivalent to [candidates].
  */
 fun injectProfilingAnnotationsToStatements(
     statements: List<Statement>,
     start: Int,
     end: Int,
-    candidates: ProfilingImmutableMap
+    candidates: ProfilingImmutableMap,
+    annotations: ProfilingImmutableMap = candidates
 ): List<ProfilingAnnotationResolved> {
     // Consider only the annotation in the scope
-    val filtered: ProfilingImmutableMap = candidates.filterKeys { it in start..end }
+    val filteredCandidates: ProfilingImmutableMap = candidates.filterKeys { it in start..end }.toSortedMap()
+    val filteredAnnotations: ProfilingImmutableMap = annotations.filterKeys { it in start..end }.toSortedMap()
 
     // makes a consumable list of annotation
-    val profilingAnnotationsToProcess: ProfilingMap = filtered.toSortedMap()
+    val profilingAnnotationsToProcess: ProfilingMap = filteredCandidates.toMutableMap()
     val profilingAnnotationsResolved: MutableList<ProfilingAnnotationResolved> = mutableListOf()
 
     // Visit each statement
     statements.forEach {
-        val candidateStartForStatement = it.position!!.start.line.expandStartLineWithAnnotations(profilingAnnotationsToProcess)
-        val candidateEndForStatement = it.position!!.end.line.expandEndLineWithAnnotations(profilingAnnotationsToProcess)
+        val candidateStartForStatement = it.position!!.start.line.expandStartLineWithAnnotations(filteredAnnotations)
+        val candidateEndForStatement = it.position!!.end.line.expandEndLineWithAnnotations(filteredAnnotations)
         val resolved = it.acceptProfiling(profilingAnnotationsToProcess, candidateStartForStatement, candidateEndForStatement)
         profilingAnnotationsResolved.addAll(resolved)
 
@@ -204,4 +216,49 @@ internal fun Statement.boundsIncludingProfiling(profiling: ProfilingMap): Pair<I
     val end = this.position!!.end.line.expandEndLineWithAnnotations(profiling)
 
     return start to end
+}
+
+/**
+ * Remove empty spans in a profiling map.
+ */
+internal fun ProfilingImmutableMap.removeEmptySpans(): ProfilingImmutableMap {
+    val candidates = this.toSortedMap()
+    val openScopes = Stack<Pair<Int, ProfilingParser.ProfilingLineContext>>()
+    val emptySpans = mutableListOf<Pair<Int, Int>>()
+
+    for ((line, annotation) in candidates) {
+        when (annotation.profilingAnnotation()) {
+            is ProfilingParser.ProfilingSpanStartAnnotationContext -> {
+                openScopes.add(line to annotation)
+                continue
+            }
+            is ProfilingParser.ProfilingSpanEndAnnotationContext -> {
+                val matching = openScopes.peekOrNull() ?: continue
+
+                // If we had consecutive empty spans, we must ignore the space in between them
+                var matchLine = line - 1
+                while (emptySpans.any { it.first == matchLine || it.second == matchLine }) {
+                    --matchLine
+                }
+
+                if (matching.first != matchLine) continue
+
+                openScopes.pop()
+                emptySpans.add(matching.first to line)
+            }
+        }
+    }
+
+    // Log warning
+    val programName = MainExecutionContext.getExecutionProgramName()
+    val provider = { LogSourceData(programName, "") }
+    emptySpans.forEach { (from, to) ->
+        val entry = LazyLogEntry.produceInformational(provider, "PROF", "Ignored empty telemetry scope [$from, $to]")
+        val rendered = entry.renderScoped()
+        System.err.println(rendered)
+    }
+
+    // Filter out empty pairs
+    val keysToRemove = emptySpans.flatMap { (a, b) -> listOf(a, b) }.toSet()
+    return this.filterKeys { it -> !keysToRemove.contains(it) }.toSortedMap()
 }
