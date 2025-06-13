@@ -408,6 +408,54 @@ open class ProfilingAnnotationTest : AbstractTest() {
     }
 
     /**
+     * Test the injection of telemetry spans in a simple use case (1 OPEN, 1 CLOSE) with nested adjacent empty telemetry scopes.
+     */
+    @Test
+    fun executeEmptyAdjacentTelemetrySpan() {
+        val cu = assertASTCanBeProduced("profiling/EMPTY_ADJACENT_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
+
+        assertEquals(1, openAnnotations.size)
+        assertEquals(1, closeAnnotations.size)
+
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 17), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(19))
+        assertSpanEndStatementPositions(cu, listOf(18))
+    }
+
+    /**
+     * Test injection of a composite case of empty annotations.
+     */
+    @Test
+    fun executeMultipleEmptyTelemetrySpan() {
+        val cu = assertASTCanBeProduced("profiling/MULTIPLE_EMPTY_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
+
+        assertEquals(1, openAnnotations.size)
+        assertEquals(1, closeAnnotations.size)
+
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 17), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 26), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(29))
+        assertSpanEndStatementPositions(cu, listOf(26))
+    }
+
+    /**
      * Lookup strategy for annotation lines.
      */
     private enum class LookupMode {

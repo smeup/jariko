@@ -77,8 +77,8 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
     // In a mute with no statements, as can happen for program with only
     // D SPEC, the function stmts.position() returns null and then this fragments raises error
     val resolved = this.main.stmts.position()?.let { position ->
-        val start = position.start.line.expandStartLineWithAnnotations(optimized)
-        injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, optimized)
+        val start = position.start.line.expandStartLineWithAnnotations(profiling)
+        injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, optimized, profiling)
     } ?: emptyList()
 
     resolved.forEach {
@@ -97,24 +97,27 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
  * @param start Start line to consider an annotation valid.
  * @param end End line to consider an annotation valid.
  * @param candidates The set of candidate profiling annotations to inject.
+ * @param annotations The complete set of annotations. By default, it is equivalent to [candidates].
  */
 fun injectProfilingAnnotationsToStatements(
     statements: List<Statement>,
     start: Int,
     end: Int,
-    candidates: ProfilingImmutableMap
+    candidates: ProfilingImmutableMap,
+    annotations: ProfilingImmutableMap = candidates
 ): List<ProfilingAnnotationResolved> {
     // Consider only the annotation in the scope
-    val filtered: ProfilingImmutableMap = candidates.filterKeys { it in start..end }.toSortedMap()
+    val filteredCandidates: ProfilingImmutableMap = candidates.filterKeys { it in start..end }.toSortedMap()
+    val filteredAnnotations: ProfilingImmutableMap = annotations.filterKeys { it in start..end }.toSortedMap()
 
     // makes a consumable list of annotation
-    val profilingAnnotationsToProcess: ProfilingMap = filtered.toMutableMap()
+    val profilingAnnotationsToProcess: ProfilingMap = filteredCandidates.toMutableMap()
     val profilingAnnotationsResolved: MutableList<ProfilingAnnotationResolved> = mutableListOf()
 
     // Visit each statement
     statements.forEach {
-        val candidateStartForStatement = it.position!!.start.line.expandStartLineWithAnnotations(profilingAnnotationsToProcess)
-        val candidateEndForStatement = it.position!!.end.line.expandEndLineWithAnnotations(profilingAnnotationsToProcess)
+        val candidateStartForStatement = it.position!!.start.line.expandStartLineWithAnnotations(filteredAnnotations)
+        val candidateEndForStatement = it.position!!.end.line.expandEndLineWithAnnotations(filteredAnnotations)
         val resolved = it.acceptProfiling(profilingAnnotationsToProcess, candidateStartForStatement, candidateEndForStatement)
         profilingAnnotationsResolved.addAll(resolved)
 
@@ -233,15 +236,11 @@ internal fun ProfilingImmutableMap.removeEmptySpans(): ProfilingImmutableMap {
                 val matching = openScopes.peekOrNull() ?: continue
 
                 // If we had consecutive empty spans, we must ignore the space in between them
-                var adjacentClose = line - 1
-                while (emptySpans.any { it.second == adjacentClose }) {
-                    --adjacentClose
+                var matchLine = line - 1
+                while (emptySpans.any { it.first == matchLine || it.second == matchLine }) {
+                    --matchLine
                 }
 
-                // This offset is the amount of consecutive nested empty spans
-                val offset = line - adjacentClose - 1
-
-                val matchLine = line - offset * 2 - 1
                 if (matching.first != matchLine) continue
 
                 openScopes.pop()
