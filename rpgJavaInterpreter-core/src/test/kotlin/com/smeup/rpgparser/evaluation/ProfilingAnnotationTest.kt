@@ -360,6 +360,54 @@ open class ProfilingAnnotationTest : AbstractTest() {
     }
 
     /**
+     * Test the injection of telemetry spans in a simple use case (1 OPEN, 1 CLOSE) with an empty telemetry scope.
+     */
+    @Test
+    fun executeEmptyTelemetrySpan() {
+        val cu = assertASTCanBeProduced("profiling/EMPTY_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
+
+        assertEquals(1, openAnnotations.size)
+        assertEquals(1, closeAnnotations.size)
+
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 13), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 14), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(15))
+        assertSpanEndStatementPositions(cu, listOf(14))
+    }
+
+    /**
+     * Test the injection of telemetry spans in a simple use case (1 OPEN, 1 CLOSE) with nested empty telemetry scopes.
+     */
+    @Test
+    fun executeEmptyNestedTelemetrySpan() {
+        val cu = assertASTCanBeProduced("profiling/EMPTY_NESTED_TELEMETRY_SPAN", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(2, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
+
+        val openAnnotations = cu.getOpenAnnotations()
+        val closeAnnotations = cu.getClosedAnnotations()
+
+        assertEquals(1, openAnnotations.size)
+        assertEquals(1, closeAnnotations.size)
+
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 17), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(19))
+        assertSpanEndStatementPositions(cu, listOf(18))
+    }
+
+    /**
      * Lookup strategy for annotation lines.
      */
     private enum class LookupMode {
