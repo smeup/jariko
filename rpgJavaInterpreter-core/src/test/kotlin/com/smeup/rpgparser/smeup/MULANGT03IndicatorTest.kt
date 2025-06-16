@@ -73,4 +73,14 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
         val expected = listOf("10", "10")
         assertEquals(expected, "smeup/MUDRNRAPU00130".outputOf())
     }
+
+    /**
+     * Execute a CALL with error state bound to an indicator where the error is originated externally
+     * @see #LS25002734
+     */
+    @Test
+    fun executeMUDRNRAPU00292() {
+        val expected = listOf("ok")
+        assertEquals(expected, "smeup/MUDRNRAPU00292".outputOf())
+    }
 }
