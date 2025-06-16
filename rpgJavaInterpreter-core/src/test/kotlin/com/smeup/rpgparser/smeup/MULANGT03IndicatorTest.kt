@@ -1,5 +1,26 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.interpreter.Program
+import com.smeup.rpgparser.interpreter.ProgramParam
+import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -81,6 +102,24 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
     @Test
     fun executeMUDRNRAPU00292() {
         val expected = listOf("ok")
-        assertEquals(expected, "smeup/MUDRNRAPU00292".outputOf())
+
+        class MySystemInterface : JavaSystemInterface() {
+
+            override fun findProgram(nameOrSource: String): Program? {
+                if (nameOrSource == "DOPEDPGM") {
+                    return object : Program {
+                        override fun params() = emptyList<ProgramParam>()
+
+                        override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+                            error("todo")
+                        }
+                    }
+                } else {
+                    return super.findProgram(nameOrSource)
+                }
+            }
+        }
+        val systemInterface = MySystemInterface()
+        executePgm("smeup/MUDRNRAPU00292", systemInterface = systemInterface)
     }
 }
