@@ -16,13 +16,12 @@
 
 package com.smeup.rpgparser.smeup
 
-import com.smeup.rpgparser.interpreter.Program
-import com.smeup.rpgparser.interpreter.ProgramParam
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import org.junit.Test
-import java.util.LinkedList
+import org.junit.jupiter.api.Assertions.assertTrue
+import java.util.*
 import kotlin.test.assertEquals
 
 open class MULANGT03IndicatorTest : MULANGTTest() {
@@ -112,7 +111,10 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
                     object : Program {
                         override fun params() = emptyList<ProgramParam>()
 
-                        override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+                        override fun execute(
+                            systemInterface: SystemInterface,
+                            params: LinkedHashMap<String, Value>
+                        ): List<Value> {
                             error("todo")
                         }
                     }
@@ -126,8 +128,22 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
                 println(value)
             }
         }
+
         val systemInterface = MySystemInterface()
-        executePgm("smeup/MUDRNRAPU00292", systemInterface = systemInterface)
+        var myInterpreter: InterpreterCore? = null
+        val configuration = Configuration().apply {
+            jarikoCallback.onInterpreterCreation = { interpreter ->
+                myInterpreter = interpreter
+            }
+        }
+        executePgm(
+            programName = "smeup/MUDRNRAPU00292",
+            systemInterface = systemInterface,
+            configuration = configuration
+        )
         assertEquals(expected, systemInterface.displayed)
+        assertTrue(myInterpreter!!.getIndicators()[37]?.value == true) {
+            "Indicator 37 should be set to true, but it is ${myInterpreter.getIndicators()[37]?.value}"
+        }
     }
 }
