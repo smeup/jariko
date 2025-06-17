@@ -22,6 +22,7 @@ import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import org.junit.Test
+import java.util.LinkedList
 import kotlin.test.assertEquals
 
 open class MULANGT03IndicatorTest : MULANGTTest() {
@@ -104,10 +105,11 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
         val expected = listOf("ok")
 
         class MySystemInterface : JavaSystemInterface() {
+            val displayed = LinkedList<String>()
 
-            override fun findProgram(nameOrSource: String): Program? {
-                if (nameOrSource == "DOPEDPGM") {
-                    return object : Program {
+            override fun findProgram(name: String): Program? {
+                return if (name == "DOPEDPGM") {
+                    object : Program {
                         override fun params() = emptyList<ProgramParam>()
 
                         override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
@@ -115,11 +117,17 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
                         }
                     }
                 } else {
-                    return super.findProgram(nameOrSource)
+                    super.findProgram(name)
                 }
+            }
+
+            override fun display(value: String) {
+                displayed.add(value)
+                println(value)
             }
         }
         val systemInterface = MySystemInterface()
         executePgm("smeup/MUDRNRAPU00292", systemInterface = systemInterface)
+        assertEquals(expected, systemInterface.displayed)
     }
 }
