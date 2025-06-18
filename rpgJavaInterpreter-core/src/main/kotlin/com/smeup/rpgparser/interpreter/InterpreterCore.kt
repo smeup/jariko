@@ -22,6 +22,8 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.utils.peekOrNull
+import com.strumenta.kolasu.model.Position
 import java.util.*
 
 /**
@@ -71,6 +73,7 @@ interface InterpreterCore {
     fun optimizedIntExpression(expression: Expression): () -> Long
     fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean
     fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value
+    fun fireErrorEvent(throwable: Throwable, position: Position?)
     /***
      * This method is called when the interpretation of the first program of the stack is ended
      * There is no warranty that this method is called unless you use:
@@ -85,5 +88,10 @@ internal fun ErrorEvent.pushRuntimeErrorEvent() {
 }
 
 internal fun popRuntimeErrorEvent() = getErrorEventStack().pop()
+internal fun popRuntimeErrorIfMatches(throwable: Throwable): ErrorEvent? {
+    val eventStack = getErrorEventStack()
+    val event = eventStack.peekOrNull() ?: return null
+    return event.takeIf { it.error == throwable }.apply { eventStack.pop() }
+}
 
-private fun getErrorEventStack() = MainExecutionContext.getAttributes().computeIfAbsent("errorEventStack") { Stack<ErrorEvent>() } as Stack<ErrorEvent>
+private fun getErrorEventStack(): Stack<ErrorEvent> = MainExecutionContext.getAttributes().computeIfAbsent("errorEventStack") { Stack<ErrorEvent>() } as Stack<ErrorEvent>

@@ -1111,7 +1111,15 @@ data class CallStmt(
                     }
 
                     interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
-                    MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
+
+                    // If event is not in jariko runtime error stack it means the error originated externally
+                    // In this case we need to report it first.
+                    val errorEvent = popRuntimeErrorIfMatches(e) ?: run {
+                        interpreter.fireErrorEvent(e, position)
+                        popRuntimeErrorEvent()
+                    }
+
+                    MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(errorEvent)
                     null
                 }
             paramValuesAtTheEnd?.forEachIndexed { index, value ->
