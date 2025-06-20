@@ -195,4 +195,14 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
         val expected = listOf("19700101000000000000", "19700101")
         assertEquals(expected, "smeup/MUDRNRAPU00229".outputOf())
     }
+
+    /**
+     * Incrementing a packed field in a DS by 1
+     * @see #LS25002902
+     */
+    @Test
+    fun executeMUDRNRAPU00293() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/MUDRNRAPU00293".outputOf())
+    }
 }
