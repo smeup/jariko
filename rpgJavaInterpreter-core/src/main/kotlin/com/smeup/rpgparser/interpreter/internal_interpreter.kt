@@ -553,6 +553,10 @@ open class InternalInterpreter(
         }
     }
 
+    override fun fireErrorEvent(throwable: Throwable, position: Position?) {
+        throwable.fireErrorEvent(position)
+    }
+
     @Deprecated(message = "No longer used")
     open fun fireOnEnterPgmCallBackFunction() {
     }
