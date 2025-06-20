@@ -1,5 +1,8 @@
 package com.smeup.rpgparser.smeup
 
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.logging.LogChannel
+import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.smeup.dbmock.C5ADFF9LDbMock
 import org.junit.Test
 import kotlin.test.assertEquals
