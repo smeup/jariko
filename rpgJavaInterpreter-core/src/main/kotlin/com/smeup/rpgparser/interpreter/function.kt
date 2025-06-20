@@ -77,7 +77,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
         val interpreter = FunctionInterpreter(
             systemInterface = systemInterface,
             procedureName = compilationUnit.procedureName!!).apply {
-            getGlobalSymbolTable().parentSymbolTable = symbolTable
+            getGlobalSymbolTable().parentSymbolTable = symbolTable.parentSymbolTable ?: symbolTable
         }
 
         // values passed to function in format argumentName to argumentValue
