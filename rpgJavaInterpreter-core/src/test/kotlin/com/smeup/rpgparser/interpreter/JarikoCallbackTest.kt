@@ -1451,7 +1451,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR55SourceLineTest() {
-        executeSourceLineTest("ERROR54")
+        executeSourceLineTest("ERROR55")
     }
 
     @Test
