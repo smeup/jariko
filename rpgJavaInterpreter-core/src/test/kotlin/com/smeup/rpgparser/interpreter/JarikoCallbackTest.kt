@@ -1455,6 +1455,20 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR56CallBackTest() {
+        executePgmCallBackTest("ERROR56", SourceReferenceType.Program, "ERROR56", mapOf(
+            19 to "Program FunctionInterpreter.PR2.static - Issue executing EvalStmt at line 32. Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)",
+            32 to "Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)",
+            41 to "Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)"
+        ))
+    }
+
+    @Test
+    fun executeERROR56SourceLineTest() {
+        executeSourceLineTest("ERROR56")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
