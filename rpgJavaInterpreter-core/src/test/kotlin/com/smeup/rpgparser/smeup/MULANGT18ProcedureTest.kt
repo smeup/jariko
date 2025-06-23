@@ -50,4 +50,21 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
         val expected = listOf("11")
         assertEquals(expected, messages.map { it.trimEnd() })
     }
+
+    /**
+     * This program calls the procedure `PR2` which calls `PR1`; this one calls `PR0`. All procedures are defined in main.
+     * In this case a variable of main is defined into the first two called procedures.
+     */
+    @Test
+    fun executeMUDRNRAPU001131() {
+        val messages = mutableListOf<String>()
+        val systemInterface = JavaSystemInterface().apply {
+            onDisplay = { message, _ -> messages.add(message) }
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+        }
+        executePgm(programName = "smeup/MUDRNRAPU001131", systemInterface = systemInterface)
+
+        val expected = listOf("73")
+        assertEquals(expected, messages.map { it.trimEnd() })
+    }
 }
