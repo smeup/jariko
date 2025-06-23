@@ -123,7 +123,7 @@ open class InternalInterpreter(
 
         renderLog {
             val logSource = { LogSourceData(programName, data.startLine()) }
-            val previous = if (data.name in globalSymbolTable) {
+            val previous = if (data in globalSymbolTable) {
                 globalSymbolTable[data]
             } else null
             LazyLogEntry.produceData(logSource, data, value, previous)
