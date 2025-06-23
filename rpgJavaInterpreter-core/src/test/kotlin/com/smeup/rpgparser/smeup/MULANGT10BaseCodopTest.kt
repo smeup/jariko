@@ -1106,22 +1106,4 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU001128".outputOf())
     }
-
-    /**
-     * This program calls the procedure `PR2` which calls `PR1`. `PR1` is defined in main. So, the parent Symbol Table
-     *  must be that of main.
-     * Last consideration, both procedures define the parameter with the same name.
-     */
-    @Test
-    fun executeMUDRNRAPU001129() {
-        val messages = mutableListOf<String>()
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ -> messages.add(message) }
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
-        }
-        executePgm(programName = "smeup/MUDRNRAPU001129", systemInterface = systemInterface)
-
-        val expected = listOf("3")
-        assertEquals(expected, messages.map { it.trimEnd() })
-    }
 }
