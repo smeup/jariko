@@ -62,7 +62,7 @@ interface JavaFunction : Function {
  * This class models a generic function, "generic" because could be a procedure if return a VoidValue else
  * a function if return something else.
  * */
-open class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
+open class (private val compilationUnit: CompilationUnit) : Function {
 
     override fun params(): List<FunctionParam> {
         return compilationUnit.getFunctionParams()
@@ -77,7 +77,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
         val interpreter = FunctionInterpreter(
             systemInterface = systemInterface,
             procedureName = compilationUnit.procedureName!!).apply {
-            getGlobalSymbolTable().parentSymbolTable = symbolTable.parentSymbolTable ?: symbolTable
+            getGlobalSymbolTable().parentSymbolTable = symbolTable
         }
 
         // values passed to function in format argumentName to argumentValue
