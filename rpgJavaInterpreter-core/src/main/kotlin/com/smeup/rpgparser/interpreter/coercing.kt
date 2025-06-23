@@ -135,13 +135,13 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         }
                     }
                     else -> {
-                        if (!value.isBlank()) {
-                            val intValue = value.value.trim()
-                            if (intValue.isNumber()) {
-                                IntValue(intValue.toLong())
+                        val withoutPadding = value.value.trimEnd(' ')
+                        if (withoutPadding.isNotEmpty()) {
+                            if (withoutPadding.isNumber()) {
+                                IntValue(withoutPadding.toLong())
                             } else {
                                 // A Packed could end with a char. Consider MUDRNRAPU00115.
-                                val packedValue = decodeFromPacked(value.value.trimEnd(), type.numberOfDigits, type.decimalDigits)
+                                val packedValue = decodeFromPacked(withoutPadding, type.numberOfDigits, type.decimalDigits)
                                 IntValue(packedValue.longValueExact())
                             }
                         } else {
