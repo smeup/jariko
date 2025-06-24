@@ -9,6 +9,11 @@
     O * The stack of call  is Main -> PR2 -> PR1 -> PR0;
     O *  all procedures have the main as the parent Symbol Table.
      V* ==============================================================
+    O * JARIKO ANOMALY
+    O * Before the fix, the error occurred was:
+    O *   `Issue executing EvalStmt at line 41.
+    O *    Cannot find searched value for DataDefinition(name=PR_VAR...`
+     V* ==============================================================
      D MAIN_RESULT     S              2  0
      D MAIN_VAL        S              2  0
      D MAIN_CONST      C                   CONST(5)

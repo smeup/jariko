@@ -10,6 +10,11 @@
     O * Finally, the main tests its `MAIN_VAL` that must have been
     O *  untouched from procedures.
      V* ==============================================================
+    O * JARIKO ANOMALY
+    O * Before the fix, the error occurred was:
+    O *   `Issue executing EvalStmt at line 44.
+    O *    Cannot find searched value for DataDefinition(name=MAIN_VAL...`
+     V* ==============================================================
      D MAIN_RESULT     S              2  0
      D MAIN_VAL        S              2  0
      D MAIN_CONST      C                   CONST(5)
