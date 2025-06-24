@@ -5,9 +5,7 @@
      V* ==============================================================
     O * PROGRAM GOAL
     O * This program calls the procedure `PR2` which calls `PR1`.
-    O * Both have the same parameter name and are defined in the main.
-    O * So, the parent Symbol Table must be the main (where the
-    O *  procedure is defined) and not from the caller.
+    O * Both have the same parameter name.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:

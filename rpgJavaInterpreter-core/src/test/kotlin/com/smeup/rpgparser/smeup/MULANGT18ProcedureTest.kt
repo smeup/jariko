@@ -18,8 +18,7 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     }
 
     /**
-     * This program calls the procedure `PR2` which calls `PR1`. Both have the same parameter name and are defined in the main.
-     * So, the parent Symbol Table must be the main (where the procedure is defined) and not from the caller.
+     * This program calls the procedure `PR2` which calls `PR1`. Both have the same parameter name.
      */
     @Test
     fun executeMUDRNRAPU001129() {
@@ -36,8 +35,7 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
 
     /**
      * This program is like `MUDRNRAPU001129` with a 3rd procedure called from the 2nd. Tests the scope of main `MAIN_CONST`,
-     *  used from last `PR0` called. The stack of call is Main -> PR2 -> PR1 -> PR0; all procedures have the main
-     *  as the parent Symbol Table.
+     *  used from last `PR0` called. The stack of call is Main -> PR2 -> PR1 -> PR0.
      */
     @Test
     fun executeMUDRNRAPU001130() {

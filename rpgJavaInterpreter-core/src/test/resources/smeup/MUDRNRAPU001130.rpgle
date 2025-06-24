@@ -6,8 +6,7 @@
     O * This program is like `MUDRNRAPU001129` with a 3rd procedure
     O *  called from the 2nd. Tests the scope of main `MAIN_CONST`,
     O *  used from last `PR0` called.
-    O * The stack of call  is Main -> PR2 -> PR1 -> PR0;
-    O *  all procedures have the main as the parent Symbol Table.
+    O * The stack of call  is Main -> PR2 -> PR1 -> PR0.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:
