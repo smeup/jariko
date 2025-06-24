@@ -64,7 +64,7 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
         }
         executePgm(programName = "smeup/MUDRNRAPU001131", systemInterface = systemInterface)
 
-        val expected = listOf("73")
+        val expected = listOf("2", "73")
         assertEquals(expected, messages.map { it.trimEnd() })
     }
 }

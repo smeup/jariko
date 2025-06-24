@@ -21,6 +21,7 @@
       *
      C                   EVAL      MAIN_VAL=2
      C                   EVAL      MAIN_RESULT=PR2(MAIN_VAL)
+     C     MAIN_VAL      DSPLY
      C     MAIN_RESULT   DSPLY
      C                   SETON                                          LR
 
