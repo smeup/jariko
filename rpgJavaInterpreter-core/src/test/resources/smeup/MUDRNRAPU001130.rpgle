@@ -1,9 +1,13 @@
      V* ==============================================================
      V* 23/06/2025 APU001 Creation
+     V* 24/06/2025 APU001 Improved program goal
      V* ==============================================================
     O * PROGRAM GOAL
-    O * This program calls the procedure `PR2` which calls `PR1`.
-    O * This one calls `PR0`. All procedures are defined in main
+    O * This program is like `MUDRNRAPU001129` with a 3rd procedure
+    O *  called from the 2nd. Tests the scope of main `MAIN_CONST`,
+    O *  used from last `PR0` called.
+    O * The stack of call  is Main -> PR2 -> PR1 -> PR0;
+    O *  all procedures have the main as the parent Symbol Table.
      V* ==============================================================
      D MAIN_RESULT     S              2  0
      D MAIN_VAL        S              2  0

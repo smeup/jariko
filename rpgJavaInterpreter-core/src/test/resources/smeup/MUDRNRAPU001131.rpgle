@@ -1,11 +1,14 @@
      V* ==============================================================
      V* 23/06/2025 APU001 Creation
+     V* 24/06/2025 APU001 Improved program goal
      V* ==============================================================
     O * PROGRAM GOAL
-    O * This program calls the procedure `PR2` which calls `PR1`;
-    O *  this one calls `PR0`. All procedures are defined in main.
-    O * In this case a variable of main is defined into the first
-    O *  two called procedures.
+    O * This program is like `MUDRNRAPU001131` but `PR2` and `PR1`
+    O *  define `MAIN_VAL` already defined in main.
+    O * As for the other languages, RPGLE shadows the main
+    O *  definition too. `PR0` consider that defined in main.
+    O * Finally, the main tests its `MAIN_VAL` that must have been
+    O *  untouched from procedures.
      V* ==============================================================
      D MAIN_RESULT     S              2  0
      D MAIN_VAL        S              2  0

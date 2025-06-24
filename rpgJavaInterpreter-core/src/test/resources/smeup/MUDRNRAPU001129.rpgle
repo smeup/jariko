@@ -1,13 +1,13 @@
      V* ==============================================================
      V* 17/06/2025 APU001 Creation
      V* 20/06/2025 APU001 Editing by adding a final value
+     V* 24/06/2025 APU001 Improved program goal
      V* ==============================================================
     O * PROGRAM GOAL
     O * This program calls the procedure `PR2` which calls `PR1`.
-    O * `PR1` is defined in main. So, the parent Symbol Table
-    O *  must be that of main.
-    O * Last consideration, both procedures define the parameter
-    O *  with the same name.
+    O * Both have the same parameter name and are defined in the main.
+    O * So, the parent Symbol Table must be the main (where the
+    O *  procedure is defined) and not from the caller.
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:

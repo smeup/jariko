@@ -18,9 +18,8 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     }
 
     /**
-     * This program calls the procedure `PR2` which calls `PR1`. `PR1` is defined in main. So, the parent Symbol Table
-     *  must be that of main.
-     * Last consideration, both procedures define the parameter with the same name.
+     * This program calls the procedure `PR2` which calls `PR1`. Both have the same parameter name and are defined in the main.
+     * So, the parent Symbol Table must be the main (where the procedure is defined) and not from the caller.
      */
     @Test
     fun executeMUDRNRAPU001129() {
@@ -36,7 +35,9 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     }
 
     /**
-     * This program calls the procedure `PR2` which calls `PR1`; this one calls `PR0`. All procedures are defined in main.
+     * This program is like `MUDRNRAPU001129` with a 3rd procedure called from the 2nd. Tests the scope of main `MAIN_CONST`,
+     *  used from last `PR0` called. The stack of call is Main -> PR2 -> PR1 -> PR0; all procedures have the main
+     *  as the parent Symbol Table.
      */
     @Test
     fun executeMUDRNRAPU001130() {
@@ -52,8 +53,9 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     }
 
     /**
-     * This program calls the procedure `PR2` which calls `PR1`; this one calls `PR0`. All procedures are defined in main.
-     * In this case a variable of main is defined into the first two called procedures.
+     * This program is like `MUDRNRAPU001131` but `PR2` and `PR1` define `MAIN_VAL` already defined in main.
+     * As for the other languages, RPGLE shadows the main definition too. `PR0` consider that defined in main.
+     * Finally, the main tests its `MAIN_VAL` that must have been untouched from procedures.
      */
     @Test
     fun executeMUDRNRAPU001131() {
