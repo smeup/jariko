@@ -19,23 +19,33 @@ The `execute` method in the `RpgProgram` class shows several potential performan
 
 ### 1. Implement Caching Mechanisms
 
-**Issue**: The interpreter repeatedly accesses and validates parameters and program definitions.
+**Issue**: While Jariko already implements program lookup caching in `JavaSystemInterface`, there are several other areas in the execution path that lack caching and cause repeated work.
 
 **Solution**:
-- Implement a cache for frequently accessed program definitions and parameter profiles
-- Pre-compute parameter validation requirements and store them in a lookup structure
-- Cache compiled versions of frequently executed programs
+- Build on the existing program cache by implementing additional caching layers:
+  - Parameter profile caching to avoid repeated validation of parameter types
+  - Execution state caching to reuse initialized interpreter components
+  - Expression compilation caching for frequently evaluated expressions
 
 ```kotlin
-// Example implementation of a program cache
-class ProgramCache {
-    private val compiledPrograms = ConcurrentHashMap<String, CompiledProgram>()
+// Example implementation of a parameter profile cache
+class ParameterProfileCache {
+    private val profiles = ConcurrentHashMap<String, ProgramParameterProfile>()
     
-    fun getOrCompile(name: String, compileFunction: () -> CompiledProgram): CompiledProgram {
-        return compiledPrograms.computeIfAbsent(name) { compileFunction() }
+    fun getOrCreateProfile(program: Program): ProgramParameterProfile {
+        return profiles.computeIfAbsent(program.name) { 
+            buildParameterProfile(program) 
+        }
+    }
+    
+    private fun buildParameterProfile(program: Program): ProgramParameterProfile {
+        val paramTypes = program.params().associateBy({ it.name }, { it.type })
+        return ProgramParameterProfile(paramTypes)
     }
 }
 ```
+
+For a detailed analysis of existing caching mechanisms and proposed improvements, see the [Caching Mechanisms](caching_mechanisms.md) document.
 
 **Expected Impact**: 20-30% performance improvement for repeated program executions.
 
