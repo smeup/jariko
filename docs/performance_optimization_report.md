@@ -122,6 +122,6 @@ class OptimizedSymbolTable : ISymbolTable {
 - Convert hot spots in RPG code to optimized JVM bytecode during runtime
 - Implement profile-guided optimization to identify hot spots
 
-For a detailed implementation strategy of the JIT compilation system, see the [JIT Implementation Strategy](docs/jit_implementation_strategy.md) document.
+For a detailed implementation strategy of the JIT compilation system, see the [JIT Implementation Strategy](jit_implementation_strategy.md) document.
 
 **Expected Impact**: 30-50% performance improvement for hot code paths.

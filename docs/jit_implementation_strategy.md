@@ -1,6 +1,29 @@
 # JIT Compilation Implementation Strategy for Jariko
 
-This document outlines a detailed strategy for implementing Just-In-Time compilation in the Jariko RPG interpreter to improve performance for frequently executed code paths.
+## Executive Summary
+
+This document outlines a comprehensive strategy for implementing Just-In-Time (JIT) compilation in the Jariko RPG interpreter to improve performance. The JIT system will dynamically identify frequently executed code paths (hot spots) and compile them to JVM bytecode during runtime, leading to significant performance improvements.
+
+The implementation strategy consists of five key components:
+
+1. **Hot Spot Detection**: A system to track execution frequency of code blocks
+2. **JIT Compilation Architecture**: The core engine for transforming RPG AST to JVM bytecode
+3. **Interpreter Integration**: Seamless connection between interpreted and compiled code
+4. **AST-Based Bytecode Generation**: Direct bytecode generation using the existing AST structure
+5. **Automated Bytecode Generation**: A system to reduce code duplication through reflection and structural analysis
+
+This approach is designed to minimize code duplication, maintain consistency between interpreted and compiled code, and deliver performance improvements of 30-50% for hot code paths.
+
+## Implementation Roadmap
+
+The JIT implementation will follow this phased approach:
+
+1. Implement hot spot detection and basic JIT infrastructure
+2. Add support for simple expressions and statements
+3. Implement control flow structures (if/else, loops)
+4. Add optimizations for common patterns
+5. Integrate automated bytecode generation to reduce maintenance burden
+6. Add specialized optimizations for performance-critical code paths
 
 ## 1. Hot Spot Detection
 
@@ -20,11 +43,11 @@ class HotSpotTracker {
 }
 ```
 
-This tracker would be integrated into the interpreter's statement execution flow to count executions of each code block.
+This tracker is integrated into the interpreter's statement execution flow to count executions of each code block.
 
 ## 2. JIT Compilation Architecture
 
-JIT compilation for Jariko should follow these steps:
+JIT compilation for Jariko follows these steps:
 
 1. **IR Generation**: Convert RPG AST to an intermediate representation (IR)
 2. **Optimization**: Apply optimizations on the IR
@@ -62,28 +85,144 @@ class JITCompiler {
 
 ## 3. Integration with InternalInterpreter
 
-To integrate JIT compilation with the existing interpreter, modify the statement execution logic:
+To integrate JIT compilation with the existing interpreter, we need to modify the statement execution logic in `InternalInterpreter`. The actual Statement class in Jariko has a `void execute(InterpreterCore)` method that may throw various exceptions, so our JIT integration needs to handle this pattern:
 
 ```kotlin
-override fun executeStatement(statement: Statement): Value {
-    val statementId = getStatementId(statement)
+/**
+ * Enhancement to the InterpreterCore to support JIT compilation
+ */
+class JitEnhancedInterpreter(private val delegate: InterpreterCore) : InterpreterCore by delegate {
     
-    // Check if statement is already compiled
-    JITCompiler.getCompiledStatement(statementId)?.let { compiledStatement ->
-        return executeCompiled(compiledStatement, getCurrentContext())
+    private val hotSpotTracker = HotSpotTracker()
+    
+    /**
+     * Override the statement execution to add JIT compilation support
+     */
+    fun executeWithJit(statement: Statement) {
+        val statementId = getStatementId(statement)
+        
+        // Record execution for hot spot detection
+        hotSpotTracker.recordExecution(statementId)
+        
+        // Check if statement is already compiled
+        val compiledStatement = JITCompiler.getCompiledStatement(statementId)
+        
+        if (compiledStatement != null) {
+            // Execute compiled version
+            executeCompiled(compiledStatement, statement)
+        } else {
+            // Fall back to interpreted execution
+            statement.execute(this)
+        }
     }
     
-    // Record execution for hot spot detection
-    HotSpotTracker.recordExecution(statementId)
-    
-    // Fall back to interpreted execution
-    return interpretStatement(statement)
+    /**
+     * Execute a compiled statement
+     */
+    private fun executeCompiled(compiledClass: Class<*>, originalStatement: Statement) {
+        try {
+            // Create an instance of our compiled statement wrapper
+            val instance = compiledClass.getDeclaredConstructor().newInstance()
+            
+            // Get the execute method that follows the same contract as Statement.execute
+            val executeMethod = compiledClass.getMethod("execute", InterpreterCore::class.java)
+            
+            // Execute the compiled code, passing this interpreter as the context
+            executeMethod.invoke(instance, this)
+        } catch (e: InvocationTargetException) {
+            // Unwrap the exception thrown by the compiled code to preserve original behavior
+            val targetException = e.targetException
+            when (targetException) {
+                // Handle specific control flow exceptions that might be thrown by statements
+                is LeaveException, is IterException, is GotoException, 
+                is LeaveSrException, is ReturnException -> throw targetException
+                
+                // For other exceptions, rethrow but preserve the original statement's position
+                else -> {
+                    throw RuntimeException("Error in JIT compiled code: ${targetException.message}", 
+                        targetException).apply {
+                        // Attach position information from original statement if possible
+                        originalStatement.position?.let { position ->
+                            // You would need a mechanism to preserve source position in exceptions
+                            // This is a conceptual placeholder for that functionality
+                            attachSourcePosition(position)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+```
 
-private fun executeCompiled(compiledStatement: Class<*>, context: ExecutionContext): Value {
-    val instance = compiledStatement.getDeclaredConstructor().newInstance()
-    val executeMethod = compiledStatement.getMethod("execute", ExecutionContext::class.java)
-    return executeMethod.invoke(instance, context) as Value
+### Integration in the Statement Execution Workflow
+
+To integrate with the actual statement execution workflow in Jariko, we would modify the `execute` method in the `InternalInterpreter` class:
+
+```kotlin
+/**
+ * Modified execute method in InternalInterpreter
+ */
+fun execute(statements: List<Statement>) {
+    statements.forEach { statement ->
+        // Check if JIT is enabled in configuration
+        if (MainExecutionContext.getConfiguration().options.enableJit) {
+            executeWithJit(statement)
+        } else {
+            // Original execution path
+            statement.execute(this)
+        }
+    }
+}
+```
+
+### Compiled Statement Class Structure
+
+Each compiled statement would be a separate class that follows this structure:
+
+```kotlin
+/**
+ * Example of a compiled statement class generated by JIT
+ */
+class CompiledIfStatement {
+    // Fields for any captured values or state
+    private val conditionEvaluator: ConditionEvaluator
+    private val thenBodyExecutor: StatementExecutor
+    private val elseBodyExecutor: StatementExecutor?
+    
+    /**
+     * Execute method that follows the same contract as Statement.execute
+     */
+    fun execute(interpreter: InterpreterCore) {
+        // Evaluate the condition (compiled to efficient bytecode)
+        val condition = conditionEvaluator.evaluate(interpreter)
+        
+        if (condition) {
+            // Execute the 'then' branch
+            thenBodyExecutor.execute(interpreter)
+        } else if (elseBodyExecutor != null) {
+            // Execute the 'else' branch if present
+            elseBodyExecutor.execute(interpreter)
+        }
+    }
+    
+    /**
+     * Inner classes for condition evaluation and statement execution
+     */
+    private class ConditionEvaluator {
+        fun evaluate(interpreter: InterpreterCore): Boolean {
+            // Compiled bytecode for condition evaluation
+            // ...
+            return result
+        }
+    }
+    
+    private class StatementExecutor {
+        fun execute(interpreter: InterpreterCore) {
+            // Compiled bytecode for executing a sequence of statements
+            // ...
+        }
+    }
 }
 ```
 
@@ -151,6 +290,9 @@ class BytecodeGenerationContext(
     // Track local variable indices
     private val localVariables = mutableMapOf<String, Int>()
     private var nextLocalVariableIndex = 1  // 0 is reserved for 'this'
+    
+    // For compatibility with automated bytecode generators
+    val interpreterVarIndex = 1
     
     // Get or allocate a local variable slot
     fun getLocalVariableIndex(name: String): Int {
@@ -548,3 +690,312 @@ private fun generateStatementBytecode(statement: Statement, mv: MethodVisitor, c
     }
 }
 ```
+
+## 5. Automated Bytecode Generation via Reflection
+
+While the direct bytecode generation approach described in section 4.3 gives full control over the generated bytecode, it can lead to significant code duplication and maintenance issues. To address this concern, we can implement an automated bytecode generation system that uses reflection and statement structure analysis to minimize duplication.
+
+### 5.1 Statement Analysis Framework
+
+First, we'll create a framework to analyze statement classes and their `execute()` method:
+
+```kotlin
+/**
+ * Framework for automatically generating bytecode from Statement implementations
+ */
+class StatementAnalyzer {
+    /**
+     * Analyzes a statement class and identifies its essential operations
+     */
+    fun analyzeStatement(statementClass: Class<out Statement>): StatementOperations {
+        val operations = mutableListOf<Operation>()
+        
+        // Get the execute method
+        val executeMethod = statementClass.getDeclaredMethod("execute", InterpreterCore::class.java)
+        
+        // Use ASM or similar library to analyze method bytecode
+        val methodVisitor = MethodNode(Opcodes.ASM9)
+        // This would require a more complex implementation to actually read the bytecode
+        // of the execute method and convert it to an abstract representation
+        
+        return StatementOperations(statementClass, operations)
+    }
+}
+
+/**
+ * Represents a set of operations that a statement performs
+ */
+data class StatementOperations(
+    val statementClass: Class<out Statement>,
+    val operations: List<Operation>
+)
+
+/**
+ * Abstract representation of an operation that a statement performs
+ */
+sealed class Operation {
+    // Various operation types like variable access, assignment, method calls
+    class VariableAccess(val variableName: String, val isRead: Boolean) : Operation()
+    class MethodCall(val methodOwner: Class<*>, val methodName: String, val descriptor: String) : Operation()
+    class Assignment(val target: String, val expression: Expression) : Operation()
+    class ControlFlow(val type: ControlFlowType, val target: String? = null) : Operation()
+    // etc.
+}
+```
+
+### 5.2 Automated Bytecode Generation
+
+Based on the analyzed operations, we can automatically generate bytecode:
+
+```kotlin
+/**
+ * Generates bytecode for a statement based on analysis of its execute method
+ */
+class AutomaticBytecodeGenerator {
+    fun generateBytecode(
+        statement: Statement, 
+        methodVisitor: MethodVisitor, 
+        context: BytecodeGenerationContext
+    ) {
+        // 1. Analyze statement class if not already analyzed
+        val statementClass = statement.javaClass
+        val operations = statementAnalysisCache.getOrPut(statementClass) {
+            StatementAnalyzer().analyzeStatement(statementClass)
+        }
+        
+        // 2. Generate bytecode for each operation
+        operations.operations.forEach { operation ->
+            when (operation) {
+                is Operation.VariableAccess -> generateVariableAccessCode(operation, methodVisitor, context)
+                is Operation.MethodCall -> generateMethodCallCode(operation, methodVisitor, context)
+                is Operation.Assignment -> generateAssignmentCode(operation, methodVisitor, context)
+                is Operation.ControlFlow -> generateControlFlowCode(operation, methodVisitor, context)
+                // etc.
+            }
+        }
+    }
+    
+    private val statementAnalysisCache = ConcurrentHashMap<Class<out Statement>, StatementOperations>()
+    
+    // Implementation of code generation methods...
+}
+```
+
+### 5.3 Hybrid Approach for Special Cases
+
+For most statements, the automated approach will work well. For complex statements or those with special optimization opportunities, we can use a hybrid approach:
+
+```kotlin
+/**
+ * Decides the bytecode generation strategy for a statement
+ */
+class JitBytecodeGenerator {
+    fun generateBytecode(
+        statement: Statement, 
+        methodVisitor: MethodVisitor, 
+        context: BytecodeGenerationContext
+    ) {
+        // Check if we have a custom implementation for this statement type
+        customGenerators[statement.javaClass]?.let { customGenerator ->
+            return customGenerator.generateBytecode(statement, methodVisitor, context)
+        }
+        
+        // Otherwise use the automatic generator
+        automaticGenerator.generateBytecode(statement, methodVisitor, context)
+    }
+    
+    private val automaticGenerator = AutomaticBytecodeGenerator()
+    private val customGenerators = mapOf<Class<out Statement>, BytecodeGenerator>(
+        // Register custom generators for specific statement types
+        IfStmt::class.java to IfStatementBytecodeGenerator(),
+        ForStmt::class.java to ForStatementBytecodeGenerator()
+        // etc.
+    )
+}
+
+/**
+ * Interface for custom bytecode generators
+ */
+interface BytecodeGenerator {
+    fun generateBytecode(
+        statement: Statement, 
+        methodVisitor: MethodVisitor, 
+        context: BytecodeGenerationContext
+    )
+}
+```
+
+### 5.4 Generating Bytecode from Common Patterns
+
+Many statements follow similar patterns. We can create pattern-based generators for common operations:
+
+```kotlin
+/**
+ * Generators for common RPG operations and patterns
+ */
+object CommonPatternGenerator {
+    /**
+     * Generate bytecode for evaluation of an expression
+     */
+    fun generateExpressionEvaluation(
+        expression: Expression,
+        methodVisitor: MethodVisitor,
+        context: BytecodeGenerationContext
+    ) {
+        // Load interpreter reference
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, context.interpreterVarIndex)
+        
+        // Push expression onto stack
+        when (expression) {
+            is DataRefExpr -> generateDataRefExpr(expression, methodVisitor, context)
+            is StringLiteral -> generateStringLiteral(expression, methodVisitor)
+            is IntLiteral -> generateIntLiteral(expression, methodVisitor)
+            is BinaryExpression -> generateBinaryExpression(expression, methodVisitor, context)
+            // etc.
+        }
+        
+        // Call interpreter.eval()
+        methodVisitor.visitMethodInsn(
+            Opcodes.INVOKEINTERFACE,
+            "com/smeup/rpgparser/interpreter/InterpreterCore",
+            "eval",
+            "(Lcom/smeup/rpgparser/parsing/ast/Expression;)Lcom/smeup/rpgparser/interpreter/Value;",
+            true
+        )
+    }
+    
+    /**
+     * Generate bytecode for variable assignment
+     */
+    fun generateAssignment(
+        target: AssignableExpression,
+        value: Expression,
+        methodVisitor: MethodVisitor,
+        context: BytecodeGenerationContext
+    ) {
+        // Load interpreter reference
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, context.interpreterVarIndex)
+        
+        // Load target reference
+        when (target) {
+            is DataRefExpr -> generateDataRefExpr(target, methodVisitor, context)
+            // Other assignable expressions...
+        }
+        
+        // Generate value
+        generateExpressionEvaluation(value, methodVisitor, context)
+        
+        // Call interpreter.assign()
+        methodVisitor.visitMethodInsn(
+            Opcodes.INVOKEINTERFACE,
+            "com/smeup/rpgparser/interpreter/InterpreterCore",
+            "assign",
+            "(Lcom/smeup/rpgparser/parsing/ast/AssignableExpression;Lcom/smeup/rpgparser/interpreter/Value;)V",
+            true
+        )
+    }
+    
+    // Other common patterns...
+}
+```
+
+### 5.5 Bytecode Generation from Statement Structure
+
+Another approach is to generate bytecode based on the statement structure rather than the execute method implementation:
+
+```kotlin
+/**
+ * A bytecode generator that infers the code from statement structure
+ */
+class StructureBasedBytecodeGenerator {
+    fun generateForStatement(
+        forStmt: ForStmt, 
+        methodVisitor: MethodVisitor, 
+        context: BytecodeGenerationContext
+    ) {
+        // Create labels for loop control
+        val loopStart = Label()
+        val loopEnd = Label()
+        
+        // Generate init expression (typically assignment)
+        CommonPatternGenerator.generateExpressionEvaluation(forStmt.init, methodVisitor, context)
+        methodVisitor.visitInsn(Opcodes.POP) // Discard result value
+        
+        // Loop start
+        methodVisitor.visitLabel(loopStart)
+        
+        // Generate condition check
+        // Load interpreter
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, context.interpreterVarIndex)
+        
+        // Get iter variable (from init if it's an assignment)
+        val iterVar = (forStmt.init as? AssignmentExpr)?.target
+            ?: throw IllegalStateException("FOR init must be an assignment")
+        
+        // Generate code to evaluate iter variable
+        CommonPatternGenerator.generateExpressionEvaluation(iterVar, methodVisitor, context)
+        
+        // Generate code to evaluate end value
+        CommonPatternGenerator.generateExpressionEvaluation(forStmt.endValue, methodVisitor, context)
+        
+        // Check condition based on downward flag
+        generateConditionCheck(forStmt.downward, methodVisitor)
+        
+        // If condition is false, jump to end
+        methodVisitor.visitJumpInsn(Opcodes.IFEQ, loopEnd)
+        
+        // Generate loop body execution
+        generateStatementList(forStmt.body, methodVisitor, context)
+        
+        // Generate increment/decrement
+        generateIncrementCode(iterVar, forStmt.byValue, forStmt.downward, methodVisitor, context)
+        
+        // Jump back to start
+        methodVisitor.visitJumpInsn(Opcodes.GOTO, loopStart)
+        
+        // Loop end
+        methodVisitor.visitLabel(loopEnd)
+    }
+    
+    // Helper methods for generating specific parts of the bytecode...
+}
+```
+
+### 5.6 Benefits of Automated Bytecode Generation
+
+1. **Reduced Code Duplication**: No need to manually reimplement each statement's logic
+2. **Consistency**: Compiled code automatically matches interpreted behavior
+3. **Maintainability**: Changes to statement behavior are automatically reflected in compiled code
+4. **Coverage**: Can easily support all statement types without individual implementation effort
+5. **Future-Proofing**: New statements will automatically be supported by the JIT system
+
+### 5.7 Implementation Strategy
+
+1. Start with the structure-based approach for well-defined statement types (If, For, While, etc.)
+2. Implement reflection-based analysis for simple statements
+3. Gradually build pattern recognition for common RPG idioms
+4. Add custom optimized implementations for performance-critical statements
+5. Fall back to interpreter for complex or rarely used statements
+
+This hybrid approach gives us the best of both worlds: automated generation to ensure coverage and consistency, with optimization opportunities where they matter most.
+
+## 6. Performance Benchmarking and Testing
+
+To validate the JIT implementation, we'll need a comprehensive benchmarking and testing strategy:
+
+1. **Microbenchmarks**: Compare interpreted vs. JIT-compiled execution for individual statements
+2. **Function benchmarks**: Measure performance improvement for small functions with hot loops
+3. **Full program benchmarks**: Assess overall program execution time reduction
+4. **Correctness tests**: Ensure compiled code produces identical results to interpreted code
+
+Expected performance improvements:
+- Simple expressions: 50-80% faster
+- Control flow statements: 30-50% faster
+- Complex calculations: 40-60% faster
+- Overall program execution: 30-50% faster
+
+## 7. Conclusion
+
+The proposed JIT compilation system for Jariko combines the flexibility of interpretation with the performance benefits of compiled code. By focusing on hot spots, leveraging the existing AST structure, and employing automated bytecode generation techniques, we can achieve significant performance improvements while maintaining code maintainability.
+
+The hybrid approach of manual optimization for critical paths and automated generation for the rest of the codebase ensures both performance and completeness.
