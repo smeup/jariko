@@ -133,4 +133,22 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             )
         )
     }
+
+    /**
+     * This program reads a file through a procedure.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001132() {
+        ST02DbMock().usePopulated({
+                val expected = listOf("A003", "A003")
+                assertEquals(expected, "smeup/MUDRNRAPU001132".outputOf(configuration = smeupConfig))
+            },
+            listOf(
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
+            )
+        )
+    }
 }
