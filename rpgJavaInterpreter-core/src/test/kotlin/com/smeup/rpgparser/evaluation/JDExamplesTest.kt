@@ -572,7 +572,7 @@ open class JDExamplesTest : AbstractTest() {
                 FunctionParam("pos", StringType(50)),
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value {
                 assertEquals("Auto", params[0].value.asString().value)
                 assertEquals("POS", params[1].value.asString().value)
                 assertEquals(1, params[2].value.asInt().value)
@@ -583,7 +583,7 @@ open class JDExamplesTest : AbstractTest() {
         si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value {
                 assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].value.asString().value)
                 assertEquals("Targa", params[1].value.asString().value)
                 return StringValue("ZZ000AA")
@@ -640,14 +640,14 @@ open class JDExamplesTest : AbstractTest() {
                 FunctionParam("pos", StringType(50)),
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value {
                 return StringValue("<Auto Targa=\"AB123XX\"/>")
             }
         }
         si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value {
                 return StringValue("AB123XX")
             }
         }

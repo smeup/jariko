@@ -33,7 +33,7 @@ class JDP_TYPES() : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        symbolTable: ISymbolTable
+        status: InterpreterStatus
     ): Value {
         return IntValue.ONE
     }

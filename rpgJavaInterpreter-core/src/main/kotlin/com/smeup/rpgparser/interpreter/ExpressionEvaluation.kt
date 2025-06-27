@@ -553,7 +553,7 @@ class ExpressionEvaluation(
                     FunctionValue(value = it.evalWith(this))
                 }
             }
-            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus)
         }
     }
 
