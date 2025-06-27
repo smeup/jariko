@@ -1,5 +1,6 @@
      V* ==============================================================
      V* 26/06/2025 APU001 Creation
+     V* 27/06/2025 APU001 Fixed the utilization of `READ`
      V* ==============================================================
     O * PROGRAM GOAL
     O * This program reads a file through a procedure.
@@ -13,7 +14,7 @@
      D                                1  0
      D KST02F1         S                   LIKE(ST02F1)
      D KST02F2         S                   LIKE(ST02F2)
-     D PROC_VAL        C                   CONST(1)
+     DPROC_VAL         S              1  0 INZ(1)
 
      C     KST           KLIST
      C                   KFLD                    KST02F1
@@ -21,7 +22,7 @@
 
      C                   EVAL      KST02F1='CNFOR'
      C     KST           SETLL     ST
-     C     KST           READ      ST
+     C                   READ      ST
      C     ST02F2        DSPLY
      C                   CALLP     PR0(PROC_VAL)
 
@@ -35,7 +36,7 @@
       *
      C                   EVAL      KST02F1='CNFOR'
      C     KST           SETLL     ST
-     C     KST           READ      ST
+     C                   READ      ST
      C     ST02F2        DSPLY
      C                   RETURN    PR0_F1
       *
