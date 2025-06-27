@@ -395,7 +395,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
     var procedures = this.procedure().mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf, dataDefinitions, fileDefinitions.keys.toList()) }.getOrNull() }
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf, dataDefinitions) }.getOrNull() }
     }.let {
         if (it.isEmpty()) null
         else it
@@ -562,16 +562,11 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     )
 }
 
-internal fun ProcedureContext.toAst(
-    conf: ToAstConfiguration = ToAstConfiguration(),
-    parentDataDefinitions: List<DataDefinition>,
-    parentFileDefinitions: List<FileDefinition>
-): CompilationUnit {
+internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): CompilationUnit {
     val procedureName = this.beginProcedure().psBegin().ps_name().text
     MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
 
-    // FileDefinitions
-    val fileDefinitions = parentFileDefinitions
+    // TODO FileDefinitions
 
     // DataDefinitions
     val dataDefinitions = getDataDefinitions(
@@ -611,7 +606,7 @@ internal fun ProcedureContext.toAst(
     // TODO Procedures
 
     return CompilationUnit(
-        fileDefinitions = fileDefinitions,
+        fileDefinitions = emptyList(),
         dataDefinitions,
         main = MainBody(mainStmts, null),
         subroutines,
