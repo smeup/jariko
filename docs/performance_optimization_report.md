@@ -95,6 +95,8 @@ private inline fun conditionalLog(level: LogLevel, crossinline messageProducer: 
 }
 ```
 
+For a detailed implementation plan and concrete examples, see the [Logging Optimization](logging_optimization.md) document.
+
 **Expected Impact**: Up to 25% improvement in scenarios with extensive logging.
 
 ### 4. Optimize Symbol Table Operations
