@@ -5,24 +5,24 @@
     O * This program reads a file through a procedure, by avoiding
     O *  the use of `SETLL` from procedure.
      V* ==============================================================
-     FST02      IF   E           K DISK    RENAME(ST02RF:ST)
+     FST03      IF   E           K DISK    RENAME(ST03RF:ST)
      DPR0              PR             1  0
      D                                1  0
-     D KST02F1         S                   LIKE(ST02F1)
-     D KST02F2         S                   LIKE(ST02F2)
+     D KST03F1         S                   LIKE(ST03F1)
+     D KST03F2         S                   LIKE(ST03F2)
      DPROC_VAL         S              1  0 INZ(1)
 
      C     KST           KLIST
-     C                   KFLD                    KST02F1
-     C                   KFLD                    KST02F2
+     C                   KFLD                    KST03F1
+     C                   KFLD                    KST03F2
 
-     C                   EVAL      KST02F1='CNFOR'
+     C                   EVAL      KST03F1='CNFOR'
      C     KST           SETLL     ST
      C                   READ      ST
-     C     ST02F2        DSPLY
+     C     ST03F2        DSPLY
      C                   CALLP     PR0(PROC_VAL)
      C                   READ      ST
-     C     ST02F2        DSPLY
+     C     ST03F2        DSPLY
 
      C                   SETON                                          LR
 
@@ -33,7 +33,7 @@
      DPR0_F1                          1  0
       *
      C                   READ      ST
-     C     ST02F2        DSPLY
+     C     ST03F2        DSPLY
      C                   RETURN    PR0_F1
       *
      PPR0              E
