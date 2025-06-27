@@ -545,7 +545,7 @@ class ExpressionEvaluation(
             MainExecutionContext.log(logRenderer)
             val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
                 ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
+            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, functionNode = expression)
             val paramsValues = expression.args.map {
                 if (it is DataRefExpr) {
                     FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
