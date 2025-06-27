@@ -72,6 +72,8 @@ private fun batchProcessParameters(params: LinkedHashMap<String, Value>, expecte
 }
 ```
 
+For a detailed implementation plan and concrete examples, see the [Parameter Processing Optimization](parameter_processing_optimization.md) document.
+
 **Expected Impact**: 10-15% improvement in parameter processing time.
 
 ### 3. Reduce Logging Overhead
