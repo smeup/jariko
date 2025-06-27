@@ -33,7 +33,7 @@ class InterpreterStatus(
     var inzsrExecuted = false
     var lastFound = false
     var lastDBFile: DBFile? = null
-    val dbFileMap = DBFileMap()
+    var dbFileMap = DBFileMap()
     var displayFiles: Map<String, DSPF>? = null
     var klists: HashMap<String, List<String>> = HashMap<String, List<String>>()
 
