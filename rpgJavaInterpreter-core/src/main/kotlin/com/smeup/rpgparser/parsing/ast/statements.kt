@@ -1219,7 +1219,7 @@ data class KListStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.getKlists()[normalizedName] = fields
+        interpreter.getStatus().klists[normalizedName] = fields
     }
 }
 

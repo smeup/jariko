@@ -35,6 +35,8 @@ class InterpreterStatus(
     var lastDBFile: DBFile? = null
     val dbFileMap = DBFileMap()
     var displayFiles: Map<String, DSPF>? = null
+    var klists: HashMap<String, List<String>> = HashMap<String, List<String>>()
+
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
 
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {

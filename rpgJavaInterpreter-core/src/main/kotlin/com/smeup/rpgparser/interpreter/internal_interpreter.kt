@@ -91,11 +91,6 @@ open class InternalInterpreter(
         this._interpretationContext = interpretationContext
     }
 
-    private val klists = HashMap<String, List<String>>()
-    override fun getKlists(): HashMap<String, List<String>> {
-        return klists
-    }
-
     private val status = InterpreterStatus(globalSymbolTable, indicators)
     override fun getStatus(): InterpreterStatus {
         return status
@@ -851,7 +846,7 @@ open class InternalInterpreter(
 
     override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
         val kListName = searchArgExpression.render().uppercase(Locale.getDefault())
-        return klists[kListName]!!.mapIndexed { index, name ->
+        return getStatus().klists[kListName]!!.mapIndexed { index, name ->
             get(name).asString(fileMetadata.accessFieldsType[index])
         }
     }

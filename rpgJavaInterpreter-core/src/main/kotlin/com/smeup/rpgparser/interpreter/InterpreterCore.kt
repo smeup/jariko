@@ -35,7 +35,6 @@ interface InterpreterCore {
     fun getInterpretationContext(): InterpretationContext
     fun getSystemInterface(): SystemInterface
     fun getIndicators(): HashMap<IndicatorKey, BooleanValue>
-    fun getKlists(): HashMap<String, List<String>>
     fun getGlobalSymbolTable(): ISymbolTable
     fun getLocalizationContext(): LocalizationContext
     fun renderLog(producer: () -> LazyLogEntry?)
