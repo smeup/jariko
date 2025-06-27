@@ -125,6 +125,8 @@ class OptimizedSymbolTable : ISymbolTable {
 }
 ```
 
+For a detailed implementation plan and concrete examples, see the [Symbol Table Optimization](symbol_table_optimization.md) document.
+
 **Expected Impact**: 15-20% improvement in symbol table operations.
 
 ### 5. Implement Just-In-Time Compilation
