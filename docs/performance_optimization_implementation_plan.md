@@ -7,19 +7,19 @@ The optimization plan follows a phased approach, with each phase delivering meas
 ### Phase 1: Quick Wins (1-2 months)
 Focus on optimizations with high impact-to-effort ratio that can be implemented relatively quickly:
 
-1. **Logging Optimization** (1-2 weeks)
+1. **Logging Optimization** (1-2 weeks) - [Details](logging_optimization.md)
    - Implement conditional logging with zero-cost disabling
    - Add log level filtering early in the execution path
    - Implement asynchronous logging
    - Add log message batching for high-volume scenarios
 
-2. **Symbol Table Optimization - Core Improvements** (2-3 weeks)
+2. **Symbol Table Optimization - Core Improvements** (2-3 weeks) - [Details](symbol_table_optimization.md)
    - Implement two-tier symbol table architecture
    - Add name resolution caching
    - Optimize field access for common patterns
    - Implement memory optimizations for static data
 
-3. **Parameter Processing Optimization** (2 weeks)
+3. **Parameter Processing Optimization** (2 weeks) - [Details](parameter_processing_optimization.md)
    - Create specialized parameter container
    - Implement batch parameter processing
    - Add parameter type caching
@@ -28,19 +28,19 @@ Focus on optimizations with high impact-to-effort ratio that can be implemented 
 ### Phase 2: Medium-Complexity Optimizations (2-3 months)
 Tackle optimizations with medium complexity that build on Phase 1 improvements:
 
-1. **Caching Mechanisms** (3-4 weeks)
+1. **Caching Mechanisms** (3-4 weeks) - [Details](caching_mechanisms.md)
    - Implement parameter profile caching
    - Add execution state caching
    - Create compiled expression cache
    - Develop cache invalidation strategy
 
-2. **Symbol Table Optimization - Advanced Features** (2-3 weeks)
+2. **Symbol Table Optimization - Advanced Features** (2-3 weeks) - [Details](symbol_table_optimization.md)
    - Add value object pooling
    - Implement batch operations for symbol table
    - Add conditional logging for symbol table operations
    - Optimize hierarchical lookups
 
-3. **Initial JIT Framework** (3-4 weeks)
+3. **Initial JIT Framework** (3-4 weeks) - [Details](jit_implementation_strategy.md)
    - Create hot spot detection system
    - Implement basic JIT infrastructure
    - Add support for simple expression compilation
@@ -49,19 +49,19 @@ Tackle optimizations with medium complexity that build on Phase 1 improvements:
 ### Phase 3: Complex Optimizations (3-6 months)
 Implement the most complex but highest-impact optimizations:
 
-1. **JIT Compilation - Core Features** (2-3 months)
+1. **JIT Compilation - Core Features** (2-3 months) - [Details](jit_implementation_strategy.md)
    - Implement AST-based bytecode generation
    - Add support for common control flow structures
    - Create automated bytecode generation system
    - Integrate with symbol table and caching optimizations
 
-2. **JIT Compilation - Advanced Features** (2-3 months)
+2. **JIT Compilation - Advanced Features** (2-3 months) - [Details](jit_implementation_strategy.md)
    - Add specialized optimizations for hot code paths
    - Implement profile-guided optimization
    - Create pattern-based optimization for RPG idioms
    - Add fine-grained optimization for arithmetic operations
 
-3. **Integration and Finalization** (1-2 months)
+3. **Integration and Finalization** (1-2 months) - [Details](performance_optimization_report.md)
    - Comprehensive integration testing
    - Performance benchmarking against baseline
    - Fine-tuning based on real-world workloads
