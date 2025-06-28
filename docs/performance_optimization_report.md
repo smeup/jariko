@@ -186,6 +186,8 @@ For optimal results, we recommend implementing these optimizations in the follow
    - Profile-guided optimization integration
    - Fine-tuning and benchmarking
 
+For a comprehensive, week-by-week implementation roadmap, see the detailed [Performance Optimization Implementation Plan](performance_optimization_implementation_plan.md).
+
 ### Measuring Success
 
 To validate the effectiveness of these optimizations, we recommend:
