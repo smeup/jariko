@@ -197,3 +197,9 @@ To validate the effectiveness of these optimizations, we recommend:
 5. Production environment validation with real-world workloads
 
 With systematic implementation of these optimizations, Jariko can achieve performance characteristics that make it a compelling alternative to traditional RPG interpreters, while maintaining its flexibility and integration capabilities.
+
+## Further Reading
+
+For a detailed analysis of real-world performance data from Java Flight Recorder (JFR) profiling and an assessment of how well the proposed optimization strategies align with the actual performance bottlenecks identified in Jariko, see the [Performance Optimization Conclusions](performance_optimization_conclusions.md) document. 
+
+This follow-up document analyzes JFR profiling data collected from a production scenario where Jariko was approximately 30 times slower than native AS400 execution. The analysis validates that the optimization proposals in this report directly address the most significant bottlenecks identified in the profiling data and provides realistic estimates for the expected performance improvements.
