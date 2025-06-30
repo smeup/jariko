@@ -49,7 +49,32 @@ interface DbMock : AutoCloseable {
         testExecution: (DbMock) -> R,
         values: List<Map<String, Any>> = emptyList()
     ) = this.use {
-        val queries = listOf(it.createTable(), it.populateTable(values))
+        /*
+         * Avoid row duplication.
+         * This is extremely useful when the same test is executed in same time. For example, `executeMUDRNRAPU001134`
+         *  executed both from `MULANGT50FileAccess1Test` and `MULANGT50FileAccess1TestCompiled`.
+         */
+        val valuesCopy = values.toMutableList()
+        valuesCopy.iterator().let {
+            while (it.hasNext()) {
+                val value = it.next()
+                val where: List<String> = value.map { cell -> "${cell.key} = '${cell.value}'" }
+
+                val result = try {
+                    execute("SELECT COUNT(*) AS recordCount FROM ${metadata.name} WHERE ${where.joinToString(" AND ")}")
+                } catch (t: Throwable) {
+                    null
+                }
+
+                if (result != null && result.next()) {
+                    if (result.getInt("recordCount") > 0) {
+                        it.remove()
+                    }
+                }
+            }
+        }
+
+        val queries = listOf(it.createTable(), it.populateTable(valuesCopy))
         execute(queries)
         testExecution(it)
     }
