@@ -140,7 +140,7 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      * @see #LS25002732
      */
     @Test
-    fun executeMUDRNRAPU001134() {
+    open fun executeMUDRNRAPU001134() {
         ST03DbMock().usePopulated({
             val expected = listOf("A003", "A547", "A634")
             assertEquals(expected, "smeup/MUDRNRAPU001134".outputOf(configuration = smeupConfig))
