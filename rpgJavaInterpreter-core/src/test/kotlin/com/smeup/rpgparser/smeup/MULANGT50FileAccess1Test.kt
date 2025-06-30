@@ -133,4 +133,18 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             )
         )
     }
+
+    /**
+     * Packed numbers in floating point notation from DB
+     * @see #LS25003001
+     */
+    @Test
+    fun executeMUDRNRAPU00294() {
+        MULANGTLDbMock().usePopulated({
+            val expected = listOf(".000000000")
+            assertEquals(expected, "smeup/MUDRNRAPU00294".outputOf(configuration = smeupConfig))
+        }, listOf(
+            mapOf<String, Any>("MLNNAT" to "0E-09")
+        ))
+    }
 }
