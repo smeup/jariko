@@ -7,6 +7,8 @@ import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.interpreter.*
 import kotlin.test.todo
 
+const val DB_ITEM_SEPARATOR = ", "
+
 interface DbMock : AutoCloseable {
     val metadata: FileMetadata
 
@@ -64,8 +66,8 @@ interface DbMock : AutoCloseable {
                 is StringType -> "\"${it.fieldName}\" VARCHAR(${it.type.size}) DEFAULT '' NOT NULL".plus(if (fields.lastIndex != i) ",\n" else "\n")
                 is NumberType -> buildString {
                     append("\"${it.fieldName}\"")
-                    val defaultValue = if ((it.type as NumberType).decimal) {
-                        val type = it.type as NumberType
+                    val defaultValue = if (it.type.decimal) {
+                        val type = it.type
                         val totalSize = type.entireDigits + type.decimalDigits
                         " DECIMAL($totalSize, ${type.decimalDigits}) DEFAULT 0.0"
                     } else {
@@ -122,30 +124,19 @@ interface DbMock : AutoCloseable {
      * @return a string representing the formatted values, each row enclosed in parentheses and separated by commas
      */
     private fun List<Map<String, Any>>.getFromValues(values: List<DbField>): String {
-        var result = ""
-        this.forEachIndexed { index, value ->
-            result += "("
-            result += values.joinToString(", ") { field ->
-                var valueSearched = value[field.fieldName]
-                valueSearched ?: return@joinToString field.type.getDefault()
+        val result = this.joinToString(DB_ITEM_SEPARATOR) { value ->
+            val formattedValue = values.joinToString(DB_ITEM_SEPARATOR) formatter@{ field ->
+                val valueSearched = value[field.fieldName] ?: return@formatter field.type.getDefault()
                 when (field.type) {
-                    is StringType -> {
-                        valueSearched = "'$valueSearched'"
-                        valueSearched
-                    }
-                    is NumberType -> {
-                        valueSearched = "$valueSearched"
-                        valueSearched
-                    }
+                    is StringType -> "'$valueSearched'"
+                    is NumberType -> "$valueSearched"
                     else -> field.type.getDefault()
                 }
             }
-            result += ")"
 
-            if (index < this.size - 1) {
-                result += ", "
-            }
+            "($formattedValue)"
         }
+
         return result
     }
 }
