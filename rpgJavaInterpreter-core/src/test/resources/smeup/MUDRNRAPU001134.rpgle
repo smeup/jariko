@@ -5,10 +5,6 @@
     O * This program reads a file by using `SETLL` and `READ`; then
     O *  two `READ` without `SETLL`.
      V* ==============================================================
-    O * JARIKO ANOMALY
-    O * Before the fix there are duplication of rows during the
-    O *  parallel execution with compiled version and not.
-     V* ==============================================================
      FST02      IF   E           K DISK    RENAME(ST02RF:ST)
      D KST02F1         S                   LIKE(ST02F1)
      D KST02F2         S                   LIKE(ST02F2)
