@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.isFloatingPointNumber
 import com.smeup.rpgparser.parsing.parsetreetoast.isNumber
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
@@ -169,9 +170,10 @@ private fun coerceString(value: StringValue, type: Type): Value {
                              *   StringValue[11](1.000000000)
                              */
                             val decimalValue = value.value.trim()
-                            if (decimalValue.isNumber()) {
+                            val isFloatWithNotation = decimalValue.isFloatingPointNumber() && decimalValue.contains("e", ignoreCase = true)
+                            if (decimalValue.isNumber() || isFloatWithNotation) {
                                 val isDecimal = decimalValue.lastIndexOf('.') != -1
-                                if (isDecimal) {
+                                if (isDecimal || isFloatWithNotation) {
                                     return DecimalValue(decimalValue.toBigDecimal())
                                 }
 

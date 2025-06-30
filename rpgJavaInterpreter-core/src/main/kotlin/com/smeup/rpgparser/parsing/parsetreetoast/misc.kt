@@ -741,6 +741,8 @@ internal fun String.isInt() = this.matches(Regex("^-?[0-9]+$"))
 
 internal fun String.isDecimal() = this.matches(Regex("^-?[0-9]*.[0-9]+$"))
 
+internal fun String.isFloatingPointNumber() = this.matches(Regex("[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)"))
+
 internal fun String.toDecimal() = this.toDouble()
 
 internal fun String.isNumber() = this.isInt() || this.isDecimal()
