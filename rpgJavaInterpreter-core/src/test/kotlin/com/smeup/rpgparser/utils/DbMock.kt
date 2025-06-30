@@ -49,7 +49,7 @@ interface DbMock : AutoCloseable {
         testExecution: (DbMock) -> R,
         values: List<Map<String, Any>> = emptyList()
     ) = this.use {
-        val queries = listOf(it.createTable(), it.populateTable(values))
+        val queries = listOf(it.dropTable(), it.createTable(), it.populateTable(values))
         execute(queries)
         testExecution(it)
     }
@@ -125,17 +125,21 @@ interface DbMock : AutoCloseable {
         var result = ""
         this.forEachIndexed { index, value ->
             result += "("
-            result += values
-                .map { field ->
-                    var valueSearched = value.get(field.fieldName)
-                    if (valueSearched != null && field.type is StringType) {
+            result += values.joinToString(", ") { field ->
+                var valueSearched = value[field.fieldName]
+                valueSearched ?: return@joinToString field.type.getDefault()
+                when (field.type) {
+                    is StringType -> {
                         valueSearched = "'$valueSearched'"
                         valueSearched
-                    } else {
-                        field.type.getDefault()
                     }
+                    is NumberType -> {
+                        valueSearched = "$valueSearched"
+                        valueSearched
+                    }
+                    else -> field.type.getDefault()
                 }
-                .joinToString(", ")
+            }
             result += ")"
 
             if (index < this.size - 1) {
