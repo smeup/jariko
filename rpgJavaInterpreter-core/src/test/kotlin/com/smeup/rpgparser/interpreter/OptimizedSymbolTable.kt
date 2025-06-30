@@ -84,23 +84,8 @@ class OptimizedSymbolTable : ISymbolTable {
     }
 
     private fun getOptimized(dataName: String): Value {
-        // Fast path: check hot cache first for name-based lookups
-        val upperCaseName = dataName.uppercase()
-        val hotValue = hotCacheByName[upperCaseName]
-        if (hotValue != null) {
-            return hotValue
-        }
-
-        // Regular path
-        val value = getInternal(dataName)
-
-        // Track access and potentially promote to hot cache
-        val count = accessCountsByName.computeIfAbsent(upperCaseName) { AtomicInteger(0) }
-        if (count.incrementAndGet() >= HOT_THRESHOLD) {
-            hotCacheByName[upperCaseName] = value
-        }
-
-        return value
+        // Regular path - hot cache is handled in getInternal/findInFields
+        return getInternal(dataName)
     }
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
@@ -140,7 +125,6 @@ class OptimizedSymbolTable : ISymbolTable {
             hotCacheByName[upperCaseName] = value
         }
 
-        val elapsed = System.nanoTime() - start
         if (MainExecutionContext.isLoggingEnabled) {
             measureAndLog(SymbolTableAction.SET) { }
         }
@@ -163,7 +147,7 @@ class OptimizedSymbolTable : ISymbolTable {
                 throw IllegalStateException("We do not yet handle an array container")
             } else if (data.declaredArrayInLine != null) {
                 ProjectedArrayValue.forData(containerValue as DataStructValue, data).container.set(data, value.forType(data.type))
-                ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+                ProjectedArrayValue.forData(containerValue, data)
             } else {
                 when (containerValue) {
                     is DataStructValue -> {
@@ -227,11 +211,28 @@ class OptimizedSymbolTable : ISymbolTable {
     }
 
     private fun getInternal(dataName: String): Value {
-        val data = dataDefinitionByName(dataName)
-        if (data != null) {
-            return get(data)
+        val upperCaseName = dataName.uppercase()
+
+        // Fast path: check hot cache first for name-based lookups
+        val hotValue = hotCacheByName[upperCaseName]
+        if (hotValue != null) {
+            return hotValue
         }
-        return findInFields(dataName)
+
+        val data = dataDefinitionByName(dataName)
+        val value = if (data != null) {
+            get(data)
+        } else {
+            findInFields(dataName)
+        }
+
+        // Track access and potentially promote to hot cache for name-based access
+        val count = accessCountsByName.computeIfAbsent(upperCaseName) { AtomicInteger(0) }
+        if (count.incrementAndGet() >= HOT_THRESHOLD) {
+            hotCacheByName[upperCaseName] = value
+        }
+
+        return value
     }
 
     private fun getLocal(data: AbstractDataDefinition): Value {
@@ -270,22 +271,40 @@ class OptimizedSymbolTable : ISymbolTable {
     }
 
     private fun findInFields(dataName: String): Value {
-        values
-            .filterKeys { it is DataDefinition }
-            .forEach {
-                val field = (it.key as DataDefinition).fields.firstOrNull {
-                        field -> field.name.equals(dataName, ignoreCase = true) && field.canBeUsedUnqualified()
-                }
-                if (field != null) {
-                    return if (it.key.type is ArrayType) {
-                        TODO("We do not yet handle top level values of array type")
-                    } else {
-                        (it.value as DataStructValue)[field]
+        val upperCaseName = dataName.uppercase()
+
+        // Fast path: check hot cache first for name-based lookups
+        val hotValue = hotCacheByName[upperCaseName]
+        if (hotValue != null) {
+            return hotValue
+        }
+
+        val value = run {
+            values
+                .filterKeys { it is DataDefinition }
+                .forEach {
+                    val field = (it.key as DataDefinition).fields.firstOrNull {
+                            field -> field.name.equals(dataName, ignoreCase = true) && field.canBeUsedUnqualified()
+                    }
+                    if (field != null) {
+                        return@run if (it.key.type is ArrayType) {
+                            TODO("We do not yet handle top level values of array type")
+                        } else {
+                            (it.value as DataStructValue)[field]
+                        }
                     }
                 }
-            }
 
-        throw IllegalArgumentException("Cannot find searchedValued for $dataName")
+            throw IllegalArgumentException("Cannot find searchedValued for $dataName")
+        }
+
+        // Track access and potentially promote to hot cache
+        val count = accessCountsByName.computeIfAbsent(upperCaseName) { AtomicInteger(0) }
+        if (count.incrementAndGet() >= HOT_THRESHOLD) {
+            hotCacheByName[upperCaseName] = value
+        }
+
+        return value
     }
 
     private inline fun <T> measureAndLog(action: SymbolTableAction, block: () -> T): T {
