@@ -54,7 +54,7 @@ interface DbMock : AutoCloseable {
          * This is extremely useful when the same test is executed in same time. For example, `executeMUDRNRAPU001134`
          *  executed both from `MULANGT50FileAccess1Test` and `MULANGT50FileAccess1TestCompiled`.
          */
-        val valuesCopy = values.toMutableList()
+        val valuesCopy = values.map { value -> value.toMutableMap() }.toMutableList()
         valuesCopy.iterator().let {
             while (it.hasNext()) {
                 val value = it.next()
