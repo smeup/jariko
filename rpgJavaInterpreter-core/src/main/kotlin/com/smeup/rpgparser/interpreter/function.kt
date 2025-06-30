@@ -48,14 +48,14 @@ data class FunctionValue(
 
 interface Function {
     fun params(): List<FunctionParam>
-    fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value
+    fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, interpreterStatus: InterpreterStatus): Value
 }
 
 interface JavaFunction : Function {
     override fun params(): List<FunctionParam> {
         TODO("'JavaFunction.params' not yet implemented")
     }
-    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value
+    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, interpreterStatus: InterpreterStatus): Value
 }
 
 /**
@@ -71,15 +71,15 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        status: InterpreterStatus
+        interpreterStatus: InterpreterStatus
     ): Value {
         val interpreter = FunctionInterpreter(
             systemInterface = systemInterface,
             procedureName = compilationUnit.procedureName!!
         ).apply {
-                getGlobalSymbolTable().parentSymbolTable = status.symbolTable
-                getStatus().klists = status.klists
-                getStatus().dbFileMap = status.dbFileMap
+                getGlobalSymbolTable().parentSymbolTable = interpreterStatus.symbolTable
+                getStatus().klists = interpreterStatus.klists
+                getStatus().dbFileMap = interpreterStatus.dbFileMap
         }
 
         // values passed to function in format argumentName to argumentValue
@@ -158,7 +158,7 @@ class FunctionWrapper(private val function: Function, private val functionName: 
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, status: InterpreterStatus): Value {
+    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, interpreterStatus: InterpreterStatus): Value {
         checkParamsSize(params)
         params.forEachIndexed { index, functionValue ->
             val expectedType = expectedParams[index].type
@@ -168,12 +168,12 @@ class FunctionWrapper(private val function: Function, private val functionName: 
             }
         }
         val previousValues = params.map { it.value }
-        return function.execute(systemInterface, params, status).apply {
+        return function.execute(systemInterface, params, interpreterStatus).apply {
             params.forEachIndexed { index, functionValue ->
                 functionValue.variableName?.apply {
                     val functionParam = expectedParams[index]
                     if (functionParam.paramPassedBy == ParamPassedBy.Reference && functionValue.value != previousValues[index]) {
-                        status.symbolTable[status.symbolTable.dataDefinitionByName(this)!!] = functionValue.value
+                        interpreterStatus.symbolTable[interpreterStatus.symbolTable.dataDefinitionByName(this)!!] = functionValue.value
                     }
                 }
             }

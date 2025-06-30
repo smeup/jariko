@@ -31,7 +31,7 @@ class JDP_OPTIONAL() : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        status: InterpreterStatus
+        interpreterStatus: InterpreterStatus
     ): Value {
 
         val returnValue = when (params.size) {

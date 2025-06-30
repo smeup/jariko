@@ -31,7 +31,7 @@ class JDP_CALC() : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        status: InterpreterStatus
+        interpreterStatus: InterpreterStatus
     ): Value {
 
         // Create local variables from received parameters

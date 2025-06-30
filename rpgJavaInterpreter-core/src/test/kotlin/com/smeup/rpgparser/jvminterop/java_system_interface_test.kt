@@ -94,7 +94,7 @@ class SomeFunction() : Function {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        status: InterpreterStatus
+        interpreterStatus: InterpreterStatus
     ): Value {
         return VoidValue
     }
@@ -104,7 +104,7 @@ class DopedFunction() : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        status: InterpreterStatus
+        interpreterStatus: InterpreterStatus
     ): Value {
         return VoidValue
     }
