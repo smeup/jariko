@@ -29,7 +29,6 @@ import org.hsqldb.Server
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.ResultSet
 
 object DBServer : Server() {
     var running = false
@@ -75,13 +74,6 @@ private fun setSQLLog(on: Boolean) {
     }
 }
 
-/**
- * Executes a given list of SQL statements on the database. If the database server is not running,
- * it will start the server before executing the statements.
- *
- * @param sqlStatements A list of SQL statements to be executed in the database. Each statement must
- * be a valid SQL command and is added to a batch for execution.
- */
 fun execute(sqlStatements: List<String>) {
     if (DBServer.isRunning() == false) {
         DBServer.startDB()
@@ -92,22 +84,6 @@ fun execute(sqlStatements: List<String>) {
         sqlStatements.forEach { statement.addBatch(it) }
         statement.executeBatch()
     }
-}
-
-/**
- * Executes the given SQL query statement on the database. If the database server is not running,
- * it will start the database server before executing the query.
- *
- * @param sqlStatement the SQL query statement to be executed
- * @return the result set produced by the executed query, or null if an error occurs
- */
-fun execute(sqlStatement: String): ResultSet? {
-    if (DBServer.isRunning() == false) {
-        DBServer.startDB()
-    }
-
-    val statement = connection.createStatement()
-    return statement.executeQuery(sqlStatement)
 }
 
 /**
