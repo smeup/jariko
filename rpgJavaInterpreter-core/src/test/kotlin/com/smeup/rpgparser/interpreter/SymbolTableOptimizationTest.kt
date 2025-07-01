@@ -20,7 +20,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import org.junit.experimental.categories.Category
-import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.measureTime

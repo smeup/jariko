@@ -20,6 +20,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.iterator
 import kotlin.time.Duration.Companion.nanoseconds
 
 /**
