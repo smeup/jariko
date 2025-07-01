@@ -50,8 +50,8 @@ interface ISymbolTable {
         return MainExecutionContext.getAttributes().computeIfAbsent(
             "ISymbolTable.staticSymbolTable.${procedureName.uppercase()}"
         ) {
-            SymbolTable()
-        } as SymbolTable
+            MainExecutionContext.getSystemInterface()!!.getFeaturesFactory().createSymbolTable()
+        } as ISymbolTable
     }
 
     /**
