@@ -362,7 +362,7 @@ class SymbolTableOptimizationTest : AbstractTest() {
         val estimatedOverhead = (stats.hotCacheByNameSize + stats.hotCacheByDataSize +
                                 stats.definitionCacheSize) * 64 // Rough estimate in bytes
 
-        println("Memory overhead estimate: ${estimatedOverhead} bytes")
+        println("Memory overhead estimate: $estimatedOverhead bytes")
         println("Hot cache stats: $stats")
 
         // Ensure memory overhead is reasonable (less than 10KB for test data)
@@ -431,8 +431,8 @@ class SymbolTableOptimizationTest : AbstractTest() {
         override fun toString(): String {
             return """
                 $testName Results ($iterations iterations):
-                  Original:  ${originalTime}
-                  Optimized: ${optimizedTime}
+                  Original:  $originalTime
+                  Optimized: $optimizedTime
                   Improvement: ${String.format("%.1f", improvementPercentage)}%
             """.trimIndent()
         }

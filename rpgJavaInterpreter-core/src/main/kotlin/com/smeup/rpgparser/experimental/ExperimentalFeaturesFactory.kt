@@ -19,7 +19,8 @@
 package com.smeup.rpgparser.experimental
 
 import com.smeup.rpgparser.interpreter.IFeaturesFactory
+import com.smeup.rpgparser.interpreter.OptimizedSymbolTable
 
 class ExperimentalFeaturesFactory : IFeaturesFactory {
-    override fun createSymbolTable() = error("Not implemented yet")
+    override fun createSymbolTable() = OptimizedSymbolTable()
 }
