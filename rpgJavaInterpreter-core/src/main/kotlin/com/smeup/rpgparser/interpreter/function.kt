@@ -77,9 +77,15 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             systemInterface = systemInterface,
             procedureName = compilationUnit.procedureName!!
         ).apply {
-                getGlobalSymbolTable().parentSymbolTable = interpreterStatus.symbolTable
-                getStatus().klists = interpreterStatus.klists
-                getStatus().dbFileMap = interpreterStatus.dbFileMap
+            getStatus().indicators = interpreterStatus.indicators
+            getStatus().klists = interpreterStatus.klists
+            getStatus().dbFileMap = interpreterStatus.dbFileMap
+            getStatus().lastDBFile = interpreterStatus.lastDBFile
+            getStatus().inzsrExecuted = interpreterStatus.inzsrExecuted
+            getStatus().displayFiles = interpreterStatus.displayFiles
+
+            getGlobalSymbolTable().parentSymbolTable = interpreterStatus.symbolTable
+            setIndicators(interpreterStatus.indicators)
         }
 
         // values passed to function in format argumentName to argumentValue

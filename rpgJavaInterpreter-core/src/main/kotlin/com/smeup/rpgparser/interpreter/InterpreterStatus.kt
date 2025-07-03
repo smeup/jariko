@@ -25,7 +25,7 @@ import java.util.HashMap
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
-    val indicators: HashMap<IndicatorKey, BooleanValue>,
+    var indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
     var params: Int = 0,
     var callerParams: Int = params
