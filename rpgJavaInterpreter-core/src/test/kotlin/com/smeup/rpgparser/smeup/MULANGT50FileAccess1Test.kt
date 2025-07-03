@@ -185,6 +185,24 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
     }
 
     /**
+     * This program reads a file by using `SETLL` and `READ` from `ST02` for two times.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001134() {
+        ST02DbMock().usePopulated({
+            val expected = listOf("A003", "A547", "A634")
+            assertEquals(expected, "smeup/MUDRNRAPU001134".outputOf(configuration = smeupConfig))
+        },
+            listOf(
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
+            )
+        )
+    }
+
+    /**
      * This program reads a file through a nested procedure call.
      * @see #LS25002732
      */
