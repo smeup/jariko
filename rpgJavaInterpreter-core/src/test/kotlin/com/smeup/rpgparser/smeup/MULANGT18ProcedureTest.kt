@@ -67,4 +67,14 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
         val expected = listOf("2", "73")
         assertEquals(expected, messages.map { it.trimEnd() })
     }
+
+    /**
+     * This program tests the indicator evaluation between the main program and procedure.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001137() {
+        val expected = listOf("1", "1", "0", "0")
+        assertEquals(expected, "smeup/MUDRNRAPU001137".outputOf(configuration = smeupConfig))
+    }
 }
