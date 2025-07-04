@@ -74,13 +74,8 @@ open class InternalInterpreter(
         return globalSymbolTable
     }
 
-    private var indicators = HashMap<IndicatorKey, BooleanValue>()
     override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
-        return indicators
-    }
-
-    fun setIndicators(indicators: HashMap<IndicatorKey, BooleanValue>) {
-        this.indicators = indicators
+        return getStatus().indicators
     }
 
     /**
@@ -95,7 +90,7 @@ open class InternalInterpreter(
         this._interpretationContext = interpretationContext
     }
 
-    private val status = InterpreterStatus(globalSymbolTable, indicators)
+    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>())
     override fun getStatus(): InterpreterStatus {
         return status
     }
@@ -807,13 +802,13 @@ open class InternalInterpreter(
 
     override fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
         statement.hi?.let {
-            indicators[it] = hi
+            getIndicators()[it] = hi
         }
         statement.lo?.let {
-            indicators[it] = lo
+            getIndicators()[it] = lo
         }
         statement.eq?.let {
-            indicators[it] = eq
+            getIndicators()[it] = eq
         }
     }
 
@@ -1069,20 +1064,20 @@ open class InternalInterpreter(
             is IndicatorExpr -> {
                 val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
-                indicators[index] = coercedValue.asBoolean()
+                getIndicators()[index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        indicators[index] = coercedValue.asBoolean()
+                        getIndicators()[index] = coercedValue.asBoolean()
                     }
                     coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        indicators[index] = coercedValue.getElement(index).asBoolean()
+                        getIndicators()[index] = coercedValue.getElement(index).asBoolean()
                     }
                     coercedValue
                 }
@@ -1221,8 +1216,8 @@ open class InternalInterpreter(
         // LR indicator 'ON' means stateless, doesn't matter if RT is 'ON' too, LR wins!
         // RT indicator 'ON' means statefull (ONLY if LR indicator is 'OFF', as described above)
 
-        val isLROn = indicators[IndicatorType.LR.name.toIndicatorKey()]?.value
-        val isRTOn = indicators[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
+        val isLROn = getIndicators()[IndicatorType.LR.name.toIndicatorKey()]?.value
+        val isRTOn = getIndicators()[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
@@ -1244,7 +1239,7 @@ open class InternalInterpreter(
             // if I exit in LR have to mark inzsrExecuted to false
             status.inzsrExecuted.set(false)
         }
-        indicators.clearStatelessIndicators()
+        getIndicators().clearStatelessIndicators()
     }
 
     private fun execINZSR(compilationUnit: CompilationUnit) {

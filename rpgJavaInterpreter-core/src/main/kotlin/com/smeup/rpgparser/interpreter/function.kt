@@ -86,7 +86,6 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             getStatus().lastFound = interpreterStatus.lastFound
 
             getGlobalSymbolTable().parentSymbolTable = interpreterStatus.symbolTable
-            setIndicators(interpreterStatus.indicators)
         }
 
         // values passed to function in format argumentName to argumentValue
