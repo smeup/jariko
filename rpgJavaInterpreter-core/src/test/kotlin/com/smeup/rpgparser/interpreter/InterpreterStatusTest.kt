@@ -87,32 +87,32 @@ class InterpreterStatusTest {
             connection = connection
         )
         // If I set the last DB file in the interpreter status, it should be reflected in the function status
-        interpreterStatus.lastDBFile = lastDBFile
-        assertEquals(lastDBFile, functionStatus.lastDBFile)
+        interpreterStatus.lastDBFile.set(lastDBFile)
+        assertEquals(lastDBFile, functionStatus.lastDBFile.get())
 
-        functionStatus.lastDBFile = null
-        assertEquals(functionStatus.lastDBFile, interpreterStatus.lastDBFile)
+        functionStatus.lastDBFile.set(null)
+        assertEquals(functionStatus.lastDBFile.get(), interpreterStatus.lastDBFile.get())
     }
 
     @Test
     fun inzsrExecutedShouldBeShared() {
         // If I set inzsrExecuted in the interpreter status, it should be reflected in the function status
-        interpreterStatus.inzsrExecuted = true
-        assertEquals(interpreterStatus.inzsrExecuted, functionStatus.inzsrExecuted)
+        interpreterStatus.inzsrExecuted.set(true)
+        assertEquals(interpreterStatus.inzsrExecuted.get(), functionStatus.inzsrExecuted.get())
 
         // If I change inzsrExecuted in the function status, it should be reflected in the interpreter status
-        functionStatus.inzsrExecuted = false
-        assertEquals(functionStatus.inzsrExecuted, interpreterStatus.inzsrExecuted)
+        functionStatus.inzsrExecuted.set(false)
+        assertEquals(functionStatus.inzsrExecuted.get(), interpreterStatus.inzsrExecuted.get())
     }
 
     @Test
     fun lastFoundShouldBeShared() {
         // If I set lastFound in the interpreter status, it should be reflected in the function status
-        interpreterStatus.lastFound = true
+        interpreterStatus.lastFound.set(true)
         assertEquals(interpreterStatus.lastFound, functionStatus.lastFound)
 
         // If I change lastFound in the function status, it should be reflected in the interpreter status
-        functionStatus.lastFound = false
-        assertEquals(functionStatus.lastFound, interpreterStatus.lastFound)
+        functionStatus.lastFound.set(false)
+        assertEquals(functionStatus.lastFound.get(), interpreterStatus.lastFound.get())
     }
 }

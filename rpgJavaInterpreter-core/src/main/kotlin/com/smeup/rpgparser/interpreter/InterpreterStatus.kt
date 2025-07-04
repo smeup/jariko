@@ -22,6 +22,8 @@ import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.IndicatorKey
 import java.util.HashMap
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -30,9 +32,10 @@ class InterpreterStatus(
     var params: Int = 0,
     var callerParams: Int = params
 ) {
-    var inzsrExecuted = false
-    var lastFound = false
-    var lastDBFile: DBFile? = null
+    var inzsrExecuted: AtomicBoolean = AtomicBoolean(false)
+    var lastFound: AtomicBoolean = AtomicBoolean(false)
+    var lastDBFile: AtomicReference<DBFile?> = AtomicReference(null)
+
     var dbFileMap = DBFileMap()
     var displayFiles: Map<String, DSPF>? = null
     var klists: HashMap<String, List<String>> = HashMap<String, List<String>>()

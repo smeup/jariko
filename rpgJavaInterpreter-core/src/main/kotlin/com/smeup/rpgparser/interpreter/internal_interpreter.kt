@@ -822,7 +822,7 @@ open class InternalInterpreter(
 
     override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
         if (!record.isEmpty()) {
-            status.lastFound = true
+            status.lastFound.set(true)
             record.forEach { field ->
                 // dbFieldName could be different by dataDefinition name if file definition has a prefix property
                 dbFile.getDataDefinitionName(field.key)?.let { name ->
@@ -833,7 +833,7 @@ open class InternalInterpreter(
                     ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
         } else {
-            status.lastFound = false
+            status.lastFound.set(false)
         }
     }
 
@@ -844,7 +844,7 @@ open class InternalInterpreter(
             "Line: ${statement.position.line()} - File definition $name not found"
         }
 
-        status.lastDBFile = dbFile
+        status.lastDBFile.set(dbFile)
         return dbFile
     }
 
@@ -1242,15 +1242,15 @@ open class InternalInterpreter(
         if (!exitingRT) {
             globalSymbolTable.clear()
             // if I exit in LR have to mark inzsrExecuted to false
-            status.inzsrExecuted = false
+            status.inzsrExecuted.set(false)
         }
         indicators.clearStatelessIndicators()
     }
 
     private fun execINZSR(compilationUnit: CompilationUnit) {
-        if (!status.inzsrExecuted) {
+        if (!status.inzsrExecuted.get()) {
             val name = "*INZSR"
-            status.inzsrExecuted = true
+            status.inzsrExecuted.set(true)
             compilationUnit.subroutines.firstOrNull { subroutine ->
                 subroutine.name.equals(other = name, ignoreCase = true)
             }?.let { subroutine ->
