@@ -22,7 +22,6 @@ import com.smeup.dbnative.sql.SQLDBFile
 import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.db.utilities.DBServer
 import java.sql.DriverManager
-import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
 class InterpreterStatusTest {
@@ -34,7 +33,9 @@ class InterpreterStatusTest {
 
     @BeforeTest
     fun setup() {
-        DBServer.startDB()
+        if (!DBServer.isRunning()) {
+            DBServer.startDB()
+        }
         Class.forName("org.hsqldb.jdbc.JDBCDriver")
         connection = DriverManager.getConnection("jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb", "SA", "")
         mainSymbolTable = SymbolTable()
@@ -49,12 +50,6 @@ class InterpreterStatusTest {
             lastFound = interpreterStatus.lastFound
             mainSymbolTable.parentSymbolTable = interpreterStatus.symbolTable
         }
-    }
-
-    @AfterTest
-    fun tearDown() {
-        connection.close()
-        DBServer.stopDB()
     }
 
     @Test
