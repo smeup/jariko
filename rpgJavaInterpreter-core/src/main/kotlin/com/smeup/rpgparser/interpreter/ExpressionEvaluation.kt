@@ -545,7 +545,7 @@ class ExpressionEvaluation(
             MainExecutionContext.log(logRenderer)
             val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
                 ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, expression)
+            val functionWrapper = FunctionWrapper(function = function, functionName = functionToCall, functionNode = expression)
             val paramsValues = expression.args.map {
                 if (it is DataRefExpr) {
                     FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
@@ -553,7 +553,7 @@ class ExpressionEvaluation(
                     FunctionValue(value = it.evalWith(this))
                 }
             }
-            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus)
         }
     }
 
@@ -695,21 +695,21 @@ class ExpressionEvaluation(
     override fun eval(expression: FoundExpr): Value = proxyLogging(expression) {
         // TODO fix this bad implementation
         if (expression.name == null) {
-            return@proxyLogging BooleanValue(interpreterStatus.lastFound)
+            return@proxyLogging BooleanValue(interpreterStatus.lastFound.get())
         }
         TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
     }
 
     override fun eval(expression: EofExpr): Value = proxyLogging(expression) {
         if (expression.name == null) {
-            return@proxyLogging BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
+            return@proxyLogging BooleanValue(interpreterStatus.lastDBFile.get()?.eof() ?: false)
         }
         return@proxyLogging BooleanValue(interpreterStatus.dbFileMap[expression.name!!]?.eof() ?: false)
     }
 
     override fun eval(expression: EqualExpr): Value = proxyLogging(expression) {
         if (expression.name == null) {
-            return@proxyLogging BooleanValue(interpreterStatus.lastDBFile?.equal() ?: false)
+            return@proxyLogging BooleanValue(interpreterStatus.lastDBFile.get()?.equal() ?: false)
         }
         TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
     }

@@ -117,7 +117,7 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
     }
 
     // Lookup is relevant for %FOUND
-    interpreterCore.getStatus().lastFound = searchResult !is NotFound
+    interpreterCore.getStatus().lastFound.set(searchResult !is NotFound)
 }
 
 class FoundIndexes(var hi: Int, var lo: Int, var eq: Int) {

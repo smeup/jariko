@@ -55,6 +55,7 @@ class SymbolTable : ISymbolTable {
                 .flatMap { dataStructure -> (dataStructure as DataDefinition).fields }
                 .firstOrNull { field -> field.name.equals(key, ignoreCase = true) } as AbstractDataDefinition?
         } ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
+        ?: programSymbolTable.let { (programSymbolTable as SymbolTable).names[dataName.uppercase()] }
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
