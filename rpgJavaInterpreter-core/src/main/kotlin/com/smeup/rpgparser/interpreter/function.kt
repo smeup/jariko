@@ -83,6 +83,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             getStatus().lastDBFile = interpreterStatus.lastDBFile
             getStatus().inzsrExecuted = interpreterStatus.inzsrExecuted
             getStatus().displayFiles = interpreterStatus.displayFiles
+            getStatus().lastFound = interpreterStatus.lastFound
 
             getGlobalSymbolTable().parentSymbolTable = interpreterStatus.symbolTable
             setIndicators(interpreterStatus.indicators)
