@@ -4,6 +4,8 @@ import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.SymbolTableAction
+import kotlin.collections.getOrPut
+import kotlin.collections.set
 import kotlin.time.Duration
 
 /**
@@ -12,6 +14,8 @@ import kotlin.time.Duration
  */
 class AnalyticsLoggingContext {
     private val programUsageTable = ProgramUsageTable()
+    private val programCalls = mutableMapOf<String, UsageMeasurement>()
+    private val subroutineCalls = mutableMapOf<String, UsageMeasurement>()
     private var renderingTimeMeasurement = UsageMeasurement.new()
     private var interpretationTimeMeasurement = UsageMeasurement.new()
 
@@ -114,6 +118,22 @@ class AnalyticsLoggingContext {
 //        programUsageTable.recordNestedExpression(program, expressionScope, time)
 
     /**
+     * Records the execution of a call
+     */
+    fun recordCall(program: String, time: Duration) {
+        val measurement = programCalls.getOrPut(program) { UsageMeasurement.new() }
+        programCalls[program] = measurement.hit(time)
+    }
+
+    /**
+     * Records the execution of a subroutine
+     */
+    fun recordSubroutine(subroutine: String, time: Duration) {
+        val measurement = subroutineCalls.getOrPut(subroutine) { UsageMeasurement.new() }
+        subroutineCalls[subroutine] = measurement.hit(time)
+    }
+
+    /**
      * Generate an ANALYTICS report based on currently collected metadata in the form
      * of a list of LazyLogEntry.
      * @see LazyLogEntry
@@ -137,10 +157,12 @@ class AnalyticsLoggingContext {
             parsingEntries.addAll(parsing)
         }
 
+        val programCallEntries = generateProgramCallLogEntries()
+        val subroutineCallEntries = generateSubroutineCallLogEntries()
         val logTimeEntry = generateLogTimeReportEntry()
         val interpretationTimeEntry = generateInterpretationReportEntry()
 
-        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + logTimeEntry + interpretationTimeEntry
+        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + programCallEntries + subroutineCallEntries + logTimeEntry + interpretationTimeEntry
     }
 
     private fun generateLogTimeReportEntry(): LazyLogEntry {
@@ -160,6 +182,30 @@ class AnalyticsLoggingContext {
         val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "INTERPRETATION TIME")
         return LazyLogEntry(entry) { sep ->
             "$sep${duration.inWholeMicroseconds}$sep$hit"
+        }
+    }
+
+    private fun generateProgramCallLogEntries(): Sequence<LazyLogEntry> {
+        return programCalls.asSequence().map {
+            val programName = it.key
+            val hit = it.value
+
+            val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "PGM CALL")
+            LazyLogEntry(entry) { sep ->
+                "$programName$sep$sep$hit"
+            }
+        }
+    }
+
+    private fun generateSubroutineCallLogEntries(): Sequence<LazyLogEntry> {
+        return subroutineCalls.asSequence().map {
+            val subroutineName = it.key
+            val hit = it.value
+
+            val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "EXSR CALL")
+            LazyLogEntry(entry) { sep ->
+                "$subroutineName$sep$sep$hit"
+            }
         }
     }
 }
