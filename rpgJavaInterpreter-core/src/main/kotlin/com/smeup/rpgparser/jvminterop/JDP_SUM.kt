@@ -30,7 +30,7 @@ class JDP_SUM() : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        symbolTable: ISymbolTable
+        interpreterStatus: InterpreterStatus
     ): Value {
 
         var n1 = params.filter { fv -> fv.variableName == "N1" }.first().value as IntValue

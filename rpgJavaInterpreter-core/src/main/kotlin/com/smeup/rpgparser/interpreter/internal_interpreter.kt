@@ -74,9 +74,8 @@ open class InternalInterpreter(
         return globalSymbolTable
     }
 
-    private val indicators = HashMap<IndicatorKey, BooleanValue>()
     override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
-        return indicators
+        return getStatus().indicators
     }
 
     /**
@@ -91,12 +90,7 @@ open class InternalInterpreter(
         this._interpretationContext = interpretationContext
     }
 
-    private val klists = HashMap<String, List<String>>()
-    override fun getKlists(): HashMap<String, List<String>> {
-        return klists
-    }
-
-    private val status = InterpreterStatus(globalSymbolTable, indicators)
+    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>())
     override fun getStatus(): InterpreterStatus {
         return status
     }
@@ -808,13 +802,13 @@ open class InternalInterpreter(
 
     override fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
         statement.hi?.let {
-            indicators[it] = hi
+            getIndicators()[it] = hi
         }
         statement.lo?.let {
-            indicators[it] = lo
+            getIndicators()[it] = lo
         }
         statement.eq?.let {
-            indicators[it] = eq
+            getIndicators()[it] = eq
         }
     }
 
@@ -823,7 +817,7 @@ open class InternalInterpreter(
 
     override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
         if (!record.isEmpty()) {
-            status.lastFound = true
+            status.lastFound.set(true)
             record.forEach { field ->
                 // dbFieldName could be different by dataDefinition name if file definition has a prefix property
                 dbFile.getDataDefinitionName(field.key)?.let { name ->
@@ -834,7 +828,7 @@ open class InternalInterpreter(
                     ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
         } else {
-            status.lastFound = false
+            status.lastFound.set(false)
         }
     }
 
@@ -845,13 +839,13 @@ open class InternalInterpreter(
             "Line: ${statement.position.line()} - File definition $name not found"
         }
 
-        status.lastDBFile = dbFile
+        status.lastDBFile.set(dbFile)
         return dbFile
     }
 
     override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
         val kListName = searchArgExpression.render().uppercase(Locale.getDefault())
-        return klists[kListName]!!.mapIndexed { index, name ->
+        return getStatus().klists[kListName]!!.mapIndexed { index, name ->
             get(name).asString(fileMetadata.accessFieldsType[index])
         }
     }
@@ -1070,20 +1064,20 @@ open class InternalInterpreter(
             is IndicatorExpr -> {
                 val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
-                indicators[index] = coercedValue.asBoolean()
+                getIndicators()[index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        indicators[index] = coercedValue.asBoolean()
+                        getIndicators()[index] = coercedValue.asBoolean()
                     }
                     coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        indicators[index] = coercedValue.getElement(index).asBoolean()
+                        getIndicators()[index] = coercedValue.getElement(index).asBoolean()
                     }
                     coercedValue
                 }
@@ -1222,8 +1216,8 @@ open class InternalInterpreter(
         // LR indicator 'ON' means stateless, doesn't matter if RT is 'ON' too, LR wins!
         // RT indicator 'ON' means statefull (ONLY if LR indicator is 'OFF', as described above)
 
-        val isLROn = indicators[IndicatorType.LR.name.toIndicatorKey()]?.value
-        val isRTOn = indicators[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
+        val isLROn = getIndicators()[IndicatorType.LR.name.toIndicatorKey()]?.value
+        val isRTOn = getIndicators()[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
@@ -1243,15 +1237,15 @@ open class InternalInterpreter(
         if (!exitingRT) {
             globalSymbolTable.clear()
             // if I exit in LR have to mark inzsrExecuted to false
-            status.inzsrExecuted = false
+            status.inzsrExecuted.set(false)
         }
-        indicators.clearStatelessIndicators()
+        getIndicators().clearStatelessIndicators()
     }
 
     private fun execINZSR(compilationUnit: CompilationUnit) {
-        if (!status.inzsrExecuted) {
+        if (!status.inzsrExecuted.get()) {
             val name = "*INZSR"
-            status.inzsrExecuted = true
+            status.inzsrExecuted.set(true)
             compilationUnit.subroutines.firstOrNull { subroutine ->
                 subroutine.name.equals(other = name, ignoreCase = true)
             }?.let { subroutine ->

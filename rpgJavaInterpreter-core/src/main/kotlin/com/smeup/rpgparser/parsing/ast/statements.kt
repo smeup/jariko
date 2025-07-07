@@ -759,7 +759,7 @@ abstract class AbstractSetStmt(
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
         val kList: List<String> = searchArg.createKList(dbFile.jarikoMetadata, interpreter)
-        interpreter.getStatus().lastFound = set(dbFile, kList)
+        interpreter.getStatus().lastFound.set(set(dbFile, kList))
     }
 
     abstract fun set(dbFile: DBFile, kList: List<String>): Boolean
@@ -950,7 +950,7 @@ data class CheckStmt(
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
-        interpreter.getStatus().lastFound = false
+        interpreter.getStatus().lastFound.set(false)
         if (wrongIndex != null) {
             interpreter.assign(wrongIndex, IntValue.ZERO)
         }
@@ -959,7 +959,7 @@ data class CheckStmt(
                 if (wrongIndex != null) {
                     interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
                 }
-                interpreter.getStatus().lastFound = true
+                interpreter.getStatus().lastFound.set(true)
                 return
             }
         }
@@ -988,7 +988,7 @@ data class CheckrStmt(
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
-        interpreter.getStatus().lastFound = false
+        interpreter.getStatus().lastFound.set(false)
         if (wrongIndex != null) {
             interpreter.assign(wrongIndex, IntValue.ZERO)
         }
@@ -1000,7 +1000,7 @@ data class CheckrStmt(
                     if (wrongIndex != null) {
                         interpreter.assign(wrongIndex, IntValue((i + 1).toLong()))
                     }
-                    interpreter.getStatus().lastFound = true
+                    interpreter.getStatus().lastFound.set(true)
                     return
                 }
             }
@@ -1234,7 +1234,7 @@ data class KListStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.getKlists()[normalizedName] = fields
+        interpreter.getStatus().klists[normalizedName] = fields
     }
 }
 
@@ -2632,7 +2632,7 @@ data class ScanStmt(
         val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
 
         // SCAN is relevant for %FOUND calls
-        interpreter.getStatus().lastFound = false
+        interpreter.getStatus().lastFound.set(false)
 
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
         val searchInto = interpreter.eval(right).asString().value.substring(start - 1)
@@ -2658,7 +2658,7 @@ data class ScanStmt(
             }
 
             // Update found status
-            interpreter.getStatus().lastFound = true
+            interpreter.getStatus().lastFound.set(true)
         }
     }
 
