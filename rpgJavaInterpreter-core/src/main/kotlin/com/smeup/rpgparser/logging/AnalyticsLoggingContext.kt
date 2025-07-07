@@ -188,11 +188,12 @@ class AnalyticsLoggingContext {
     private fun generateProgramCallLogEntries(): Sequence<LazyLogEntry> {
         return programCalls.asSequence().map {
             val programName = it.key
-            val hit = it.value
+            val duration = it.value.duration
+            val hit = it.value.hit
 
             val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "PGM CALL")
             LazyLogEntry(entry) { sep ->
-                "$programName$sep$sep$hit"
+                "$programName$sep${duration.inWholeMicroseconds}${sep}$hit"
             }
         }
     }
@@ -200,11 +201,12 @@ class AnalyticsLoggingContext {
     private fun generateSubroutineCallLogEntries(): Sequence<LazyLogEntry> {
         return subroutineCalls.asSequence().map {
             val subroutineName = it.key
-            val hit = it.value
+            val duration = it.value.duration
+            val hit = it.value.hit
 
             val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "EXSR CALL")
             LazyLogEntry(entry) { sep ->
-                "$subroutineName$sep$sep$hit"
+                "$subroutineName$sep${duration.inWholeMicroseconds}${sep}$hit"
             }
         }
     }
