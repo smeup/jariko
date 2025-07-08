@@ -251,7 +251,7 @@ class RpgParserFacade {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val rpgLoadTrace = JarikoTrace(JarikoTraceKind.Parsing, "RPGLOAD")
         var charInput: CharStream? = null
-        callback.traceBlockIfEnabled(rpgLoadTrace) {
+        callback.traceBlock(rpgLoadTrace) {
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RPGLOAD", "START"))
             MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "RPGLOAD"))
             val elapsedLoad = measureNanoTime {
@@ -275,7 +275,7 @@ class RpgParserFacade {
         }
 
         val lexerTrace = JarikoTrace(JarikoTraceKind.Parsing, "LEXER")
-        val lexer = callback.traceBlockIfEnabled(lexerTrace) {
+        val lexer = callback.traceBlock(lexerTrace) {
             val lexer: Lexer
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "LEXER", "START"))
             MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "LEXER"))
@@ -316,7 +316,7 @@ class RpgParserFacade {
         }
 
         val parserTrace = JarikoTrace(JarikoTraceKind.Parsing, "PARSER")
-        val parser = callback.traceBlockIfEnabled(parserTrace) {
+        val parser = callback.traceBlock(parserTrace) {
             val parser: RpgParser
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "PARSER", "START"))
             MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "PARSER"))
@@ -360,7 +360,7 @@ class RpgParserFacade {
     private fun verifyParseTree(parser: Parser, errors: MutableList<Error>, root: ParserRuleContext) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.Parsing, "CHKPTREE")
-        callback.traceBlockIfEnabled(trace) {
+        callback.traceBlock(trace) {
             val logSource = { LogSourceData(executionProgramName, "") }
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "CHKPTREE", "START"))
             MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "CHKPTREE"))
@@ -557,7 +557,7 @@ class RpgParserFacade {
         val parser = createParser(code.byteInputStream(Charsets.UTF_8).bomInputStream(), errors, longLines = true)
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.Parsing, "RCONTEXT")
-        val root = callback.traceBlockIfEnabled(trace) {
+        val root = callback.traceBlock(trace) {
             val root: RContext
             MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "RCONTEXT", "START"))
             MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "RCONTEXT"))
@@ -595,7 +595,7 @@ class RpgParserFacade {
             if (compiledFile.exists()) {
                 val callback = MainExecutionContext.getConfiguration().jarikoCallback
                 val trace = JarikoTrace(JarikoTraceKind.Parsing, "AST")
-                callback.traceBlockIfEnabled(trace) {
+                callback.traceBlock(trace) {
                     val logSource = { LogSourceData(executionProgramName, "") }
                     MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
                     MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "AST"))
@@ -645,7 +645,7 @@ class RpgParserFacade {
             val logSource = { LogSourceData(executionProgramName, "") }
             val callback = MainExecutionContext.getConfiguration().jarikoCallback
             val trace = JarikoTrace(JarikoTraceKind.Parsing, "AST")
-            callback.traceBlockIfEnabled(trace) {
+            callback.traceBlock(trace) {
                 val compilationUnit: CompilationUnit
                 MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "AST", "START"))
                 MainExecutionContext.log(LazyLogEntry.produceParsingStart(logSource, "AST"))

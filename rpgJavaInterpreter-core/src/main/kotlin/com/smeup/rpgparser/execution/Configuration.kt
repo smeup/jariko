@@ -93,8 +93,7 @@ data class DspfConfig(
  * is true.
  * @param profilingSupport Used to enable/disable scan execution of profiling annotations into rpg sources.
  * This is used to enable the [JarikoCallback.startRpgTrace] and [JarikoCallback.finishRpgTrace] callbacks.
- * @param enabledJarikoTraces A whitelist of the enabled trace kinds to emit. All enabled if [null].
- * */
+ */
 data class Options(
     var muteSupport: Boolean = false,
     var compiledProgramsDir: File? = null,
@@ -103,33 +102,11 @@ data class Options(
     var callProgramHandler: CallProgramHandler? = null,
     var dumpSourceOnExecutionError: Boolean? = false,
     var debuggingInformation: Boolean? = false,
-    var profilingSupport: Boolean = false,
-    private var enabledJarikoTraces: List<JarikoTraceKind>? = null
+    var profilingSupport: Boolean = false
 ) {
     internal fun mustDumpSource() = dumpSourceOnExecutionError == true
     internal fun mustCreateCopyBlocks() = debuggingInformation == true || profilingSupport
     internal fun mustInvokeOnStatementCallback() = debuggingInformation == true
-
-    /**
-     * Enable all the Jariko traces.
-     */
-    fun enableAllJarikoTraces() {
-        enabledJarikoTraces = null
-    }
-
-    /**
-     * Get a list of the enabled Jariko traces.
-     */
-    fun getEnabledJarikoTraces(): List<JarikoTraceKind> {
-        return enabledJarikoTraces ?: JarikoTraceKind.entries
-    }
-
-    /**
-     * Set which Jariko traces are enabled.
-     */
-    fun setEnabledJarikoTraces(kinds: List<JarikoTraceKind>) {
-        this.enabledJarikoTraces = kinds
-    }
 }
 
 /**
@@ -328,6 +305,16 @@ data class JarikoCallback(
      * @see FeatureFlag.on
      * */
     var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on },
+
+    /**
+     * It is invoked before we start a telemetry trace to determine if it has to be accepted or not.
+     * Traces that are not accepted will not be reported from [startJarikoTrace] and [finishJarikoTrace].
+     * @param trace The object containing all the information about this trace.
+     */
+    var acceptJarikoTrace: ((trace: JarikoTrace) -> Boolean) = {
+        // Defaults to always allowing traces
+        true
+    },
 
     /**
      * It is invoked whenever we start a telemetry trace.

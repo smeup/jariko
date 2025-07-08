@@ -88,7 +88,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
         val callback = configuration.jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.RpgProgram, this.name)
-        return callback.traceBlockIfEnabled(trace) {
+        return callback.traceBlock(trace) {
             val expectedKeys = params().asSequence().map { it.name }.toSet()
 
             // Original params passed from the caller

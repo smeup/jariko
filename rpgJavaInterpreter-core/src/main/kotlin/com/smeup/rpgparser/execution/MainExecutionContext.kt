@@ -89,7 +89,7 @@ object MainExecutionContext {
                 val ctx = context.get()
                 val callback = ctx.configuration.jarikoCallback
                 val trace = JarikoTrace(JarikoTraceKind.MainExecutionContext)
-                callback.traceBlockIfEnabled(trace) { invoke(ctx) }
+                callback.traceBlock(trace) { invoke(ctx) }
             }.onFailure {
                 if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(false)
             }.onSuccess {
@@ -220,18 +220,6 @@ object MainExecutionContext {
      * @return true if error log channel is configured
      * */
     val isErrorChannelConfigured get() = context.get()?.logHandlers?.isErrorChannelConfigured() ?: false
-
-    /**
-     * Get a list of all the enabled Jariko Traces.
-     */
-    fun getEnabledJarikoTraces() = getConfiguration().options.getEnabledJarikoTraces()
-
-    /**
-     * Check if a [JarikoTraceKind] is enabled.
-     */
-    fun isJarikoTraceEnabled(kind: JarikoTraceKind): Boolean {
-        return getEnabledJarikoTraces().contains(kind)
-    }
 }
 
 data class Context(

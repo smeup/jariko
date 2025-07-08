@@ -813,9 +813,8 @@ class JarikoCallbackTest : AbstractTest() {
         // Test default behaviour -> all enabled
         val traces = mutableListOf<JarikoTrace>()
 
-        val options = Options()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration(options = options).apply {
+        val configuration = Configuration().apply {
             jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
         }
         executePgm(targetPgm, configuration = configuration, systemInterface = systemInterface)
@@ -1695,15 +1694,15 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
-     * Utility method to easily test trace configurations
+     * Utility method to easily test trace configurations based on [JarikoTraceKind].
      */
     private fun testTraceConfiguration(program: String, kinds: List<JarikoTraceKind>) {
         val traces = mutableListOf<JarikoTrace>()
         var closedCount = 0
 
-        val options = Options(enabledJarikoTraces = kinds)
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration(options = options).apply {
+        val configuration = Configuration().apply {
+            jarikoCallback.acceptJarikoTrace = { trace -> kinds.contains(trace.kind) }
             jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
             jarikoCallback.finishJarikoTrace = { ++closedCount }
         }
