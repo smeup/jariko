@@ -18,6 +18,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.JarikoCallback
+import com.smeup.rpgparser.execution.MainExecutionContext
 
 /**
  * Kind of a trace
@@ -58,6 +59,9 @@ data class RpgTrace(
     override fun toString() = "$fullName at line $line"
 }
 
+/**
+ * Open a trace block.
+ */
 internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
     startJarikoTrace(trace)
     try {
@@ -67,4 +71,14 @@ internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): 
     } finally {
         finishJarikoTrace()
     }
+}
+
+/**
+ * Open a trace block if the corresponding kind is enabled. Just run the block otherwise.
+ */
+internal fun <T> JarikoCallback.traceBlockIfEnabled(trace: JarikoTrace, block: () -> T): T {
+    val isEnabled = MainExecutionContext.isJarikoTraceEnabled(trace.kind)
+    if (!isEnabled) return block()
+
+    return traceBlock(trace, block)
 }
