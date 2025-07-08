@@ -203,7 +203,7 @@ open class InternalInterpreter(
         val programName = getInterpretationContext().currentProgramName
         val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
 
-        callback.traceBlock(initTrace) {
+        callback.traceBlockIfEnabled(initTrace) {
             val start = System.nanoTime()
 
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
@@ -337,7 +337,7 @@ open class InternalInterpreter(
         }
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
-        callback.traceBlock(loadTrace) {
+        callback.traceBlockIfEnabled(loadTrace) {
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
@@ -1279,7 +1279,7 @@ open class InternalInterpreter(
             executeProfiling(attachAfterProfilingAnnotations)
         }
 
-        trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
+        trace?.let { callback.traceBlockIfEnabled(it) { internalExecute() } } ?: internalExecute()
     }
 
     override fun onInterpretationEnd() {

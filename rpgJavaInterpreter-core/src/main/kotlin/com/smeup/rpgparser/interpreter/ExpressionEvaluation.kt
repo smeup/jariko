@@ -536,7 +536,7 @@ class ExpressionEvaluation(
         val functionToCall = expression.function.name
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
-        callback.traceBlock(trace) {
+        callback.traceBlockIfEnabled(trace) {
             val source: LogSourceProvider = {
                 LogSourceData(MainExecutionContext.getExecutionProgramName(), expression.startLine())
             }
