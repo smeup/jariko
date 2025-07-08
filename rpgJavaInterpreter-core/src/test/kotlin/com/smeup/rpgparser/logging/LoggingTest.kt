@@ -313,6 +313,37 @@ class LoggingTest : AbstractTest() {
     }
 
     /**
+     * Test if analytics are printed out in the appropriate format
+     * @see #LS25002960
+     */
+    @Test
+    fun analyticsFormat() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
+        }
+        executePgm(programName = "CALLSCOPE2", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tSTMT TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tEXPR TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tSYMTBL TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tPARS TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tPGM CALL\tCALLDEFV2") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tEXSR CALL\tCALLSR") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tLOG TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tINTERPRETATION TIME") } }
+
+        System.setOut(defaultOut)
+    }
+
+    /**
      * Test if mock statements are printed out in the appropriate format
      * @see #LS24004983
      */

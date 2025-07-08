@@ -274,7 +274,14 @@ Symbol table analytics provide the same information of other analytics but refer
 +---------- header ---------+------ prog ------+---------- entity ---------+- time -+- hit -+
 ```
 
-There are also other analytics which provide their own informational data. Here are some examples:
+Call analytics provide aggregated information about CALL and EXSR times.
+```
+14:37:03.552 	ANALYTICS			            PGM CALL	CALLDEFV2	    65933	 1
+14:37:03.552 	ANALYTICS			            EXSR CALL	CALLSR	        1800	 1
++---------- header ---------+------ prog ------+---------- entity ---------+- time -+- hit -+
+```
+
+There are also analytics which provide their own informational data. Here are some examples:
 ```
 12:42:44.070    ANALYTICS                       LOG TIME                     61886   1900103
 12:42:44.070    ANALYTICS                       INTERPRETATION TIME          4706819 1

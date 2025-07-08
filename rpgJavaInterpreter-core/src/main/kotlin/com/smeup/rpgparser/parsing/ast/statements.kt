@@ -39,6 +39,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.time.Duration.Companion.nanoseconds
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -238,6 +239,8 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
         val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
 
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
+
+        val start = System.nanoTime()
         try {
             // Setup subroutine context
             MainExecutionContext.getSubroutineStack().push(subroutine)
@@ -291,6 +294,12 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
         } finally {
             // Cleanup subroutine context
             MainExecutionContext.getSubroutineStack().pop()
+
+            // Record subroutine duration
+            MainExecutionContext.getAnalyticsLoggingContext()?.let {
+                val elapsed = System.nanoTime() - start
+                it.recordSubroutine(subroutine.name, elapsed.nanoseconds)
+            }
         }
     }
 
@@ -1020,6 +1029,8 @@ data class CallStmt(
         val callerProgramName = MainExecutionContext.getExecutionProgramName()
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
+
+        val start = System.nanoTime()
         try {
             val program: Program?
             val callIssueException =
@@ -1138,6 +1149,10 @@ data class CallStmt(
             throw e
         } finally {
             MainExecutionContext.setExecutionProgramName(callerProgramName)
+            MainExecutionContext.getAnalyticsLoggingContext()?.let {
+                val elapsed = System.nanoTime() - start
+                it.recordCall(programToCall, elapsed.nanoseconds)
+            }
         }
     }
 
