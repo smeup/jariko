@@ -794,6 +794,35 @@ class JarikoCallbackTest : AbstractTest() {
         assert(finishCount > 0)
     }
 
+    /**
+     * Test if trace configurations work as expected.
+     */
+    @Test
+    fun traceConfigurationTest() {
+        val targetPgm = "TRACETST1"
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.MainExecutionContext))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.Parsing))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.CompositeStatement))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.RpgProgram))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.SymbolTable))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.CallStmt))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.ExecuteSubroutine))
+        testTraceConfiguration(targetPgm, listOf(JarikoTraceKind.FunctionCall))
+        testTraceConfiguration(targetPgm, listOf())
+
+        // Test default behaviour -> all enabled
+        val traces = mutableListOf<JarikoTrace>()
+
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
+        }
+        executePgm(targetPgm, configuration = configuration, systemInterface = systemInterface)
+
+        // Kinds are reported at least once
+        JarikoTraceKind.entries.forEach { kind -> assert(traces.any { it.kind == kind }) }
+    }
+
     @Test
     fun traceOpenedAlsoClosedTest() {
         val startTraces = mutableListOf<JarikoTrace>()
@@ -1662,5 +1691,24 @@ class JarikoCallbackTest : AbstractTest() {
     private fun List<RpgTrace>.assertExecutedInSource(sourceId: String, line: Int) {
         val candidate = this.find { it.program == sourceId && it.line == line }
         assertNotNull(candidate, "could not find a trace at line $line executed in $sourceId")
+    }
+
+    /**
+     * Utility method to easily test trace configurations based on [JarikoTraceKind].
+     */
+    private fun testTraceConfiguration(program: String, kinds: List<JarikoTraceKind>) {
+        val traces = mutableListOf<JarikoTrace>()
+        var closedCount = 0
+
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        val configuration = Configuration().apply {
+            jarikoCallback.acceptJarikoTrace = { trace -> kinds.contains(trace.kind) }
+            jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
+            jarikoCallback.finishJarikoTrace = { ++closedCount }
+        }
+        executePgm(program, configuration = configuration, systemInterface = systemInterface)
+
+        assertEquals(traces.size, closedCount, "open traces do not match closed traces")
+        assert(traces.all { trace -> kinds.any { kind -> kind == trace.kind } }) { "got unexpected trace kind" }
     }
 }
