@@ -58,13 +58,17 @@ data class RpgTrace(
     override fun toString() = "$fullName at line $line"
 }
 
+/**
+ * Open a trace block.
+ */
 internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
-    startJarikoTrace(trace)
+    val accepted = acceptJarikoTrace(trace)
+    if (accepted) startJarikoTrace(trace)
     try {
         return block()
     } catch (e: Exception) {
         throw e
     } finally {
-        finishJarikoTrace()
+        if (accepted) finishJarikoTrace()
     }
 }

@@ -93,7 +93,7 @@ data class DspfConfig(
  * is true.
  * @param profilingSupport Used to enable/disable scan execution of profiling annotations into rpg sources.
  * This is used to enable the [JarikoCallback.startRpgTrace] and [JarikoCallback.finishRpgTrace] callbacks.
- * */
+ */
 data class Options(
     var muteSupport: Boolean = false,
     var compiledProgramsDir: File? = null,
@@ -305,6 +305,16 @@ data class JarikoCallback(
      * @see FeatureFlag.on
      * */
     var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on },
+
+    /**
+     * It is invoked before we start a telemetry trace to determine if it has to be accepted or not.
+     * Traces that are not accepted will not be reported from [startJarikoTrace] and [finishJarikoTrace].
+     * @param trace The object containing all the information about this trace.
+     */
+    var acceptJarikoTrace: ((trace: JarikoTrace) -> Boolean) = {
+        // Defaults to always allowing traces
+        true
+    },
 
     /**
      * It is invoked whenever we start a telemetry trace.
