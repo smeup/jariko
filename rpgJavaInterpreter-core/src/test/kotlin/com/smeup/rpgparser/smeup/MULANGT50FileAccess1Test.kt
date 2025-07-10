@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.smeup.dbmock.C5RREG1LDbMock
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import com.smeup.rpgparser.smeup.dbmock.ST02DbMock
 import org.junit.Test
@@ -236,5 +237,18 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
             )
         )
+    }
+
+    /**
+     * Executes DB operation from procedure by using a file with same Record Format name of another file imported with
+     *   `EXTNAME` for a DS.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001138() {
+        C5RREG1LDbMock().usePopulated({
+            val expected = listOf("4")
+            assertEquals(expected, "smeup/MUDRNRAPU001138".outputOf(configuration = smeupConfig))
+        })
     }
 }
