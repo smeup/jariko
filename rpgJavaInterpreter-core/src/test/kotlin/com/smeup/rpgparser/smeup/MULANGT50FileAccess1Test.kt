@@ -251,4 +251,19 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
             assertEquals(expected, "smeup/MUDRNRAPU001138".outputOf(configuration = smeupConfig))
         })
     }
+
+    /**
+     * Try to use KLIST by specifying the `recordFormat`. Also, there are two files with same `recordFormat` but with
+     *  `accessFields` with different size.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001139() {
+        C5RREG1LDbMock().usePopulated({
+            val expected = emptyList<String>()
+            assertEquals(expected, "smeup/MUDRNRAPU001139".outputOf(configuration = smeupConfig))
+        },
+            emptyList()
+        )
+    }
 }
