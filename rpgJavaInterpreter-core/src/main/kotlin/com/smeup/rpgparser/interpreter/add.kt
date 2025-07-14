@@ -23,23 +23,23 @@ import com.strumenta.kolasu.model.Position
 /**
  * Adds two numerical expressions and returns the resulting value.
  *
- * @param addendOneExpression the first expression to be evaluated and added
- * @param addendTwoExpression the second expression to be evaluated and added
+ * @param addendOneExpr the first expression to be evaluated and added
+ * @param addendTwoExpr the second expression to be evaluated and added
  * @param interpreterCore the interpreter core used to evaluate the expressions
  * @param position the position in the code where this operation occurs, can be null
  * @return the result of the addition as a Value; throws an exception if the addition cannot be performed
  */
 fun add(
-    addendOneExpression: Expression,
-    addendTwoExpression: Expression,
+    addendOneExpr: Expression,
+    addendTwoExpr: Expression,
     interpreterCore: InterpreterCore,
     position: Position? = null
 ): Value {
-    val addendOneValue: Value = interpreterCore.eval(addendOneExpression)
+    val addendOneValue: Value = interpreterCore.eval(addendOneExpr)
     require(addendOneValue is NumberValue || (addendOneValue is ArrayValue && addendOneValue.elementType is NumberType)) {
         "$addendOneValue should be a number"
     }
-    val addendTwoValue: Value = interpreterCore.eval(addendTwoExpression)
+    val addendTwoValue: Value = interpreterCore.eval(addendTwoExpr)
     require(addendTwoValue is NumberValue || (addendTwoValue is ArrayValue && addendTwoValue.elementType is NumberType)) {
         "$addendTwoValue should be a number"
     }
