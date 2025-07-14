@@ -897,32 +897,6 @@ open class InternalInterpreter(
         return value
     }
 
-    override fun div(statement: DivStmt): Value {
-        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        val dividend = BigDecimal(eval(statement.dividend).render())
-        val divisor = BigDecimal(eval(statement.divisor).render())
-        val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
-        val type = statement.target.type()
-        require(type is NumberType)
-        // calculation of rest
-        // NB. rest based on type of quotient
-        if (statement.mvrStatement != null) {
-            val restType = statement.mvrStatement.target?.type()
-            require(restType is NumberType)
-            val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
-            val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            assign(
-                statement.mvrStatement.target,
-                DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN))
-            )
-        }
-        return if (statement.halfAdjust) {
-            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
-        } else {
-            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.DOWN))
-        }
-    }
-
     override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
