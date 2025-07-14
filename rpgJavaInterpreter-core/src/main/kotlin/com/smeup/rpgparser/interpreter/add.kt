@@ -21,40 +21,34 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.strumenta.kolasu.model.Position
 
 /**
- * Performs addition of two numerical expressions. The method evaluates the provided expressions
- * and computes the sum based on their types.
+ * Adds two numerical expressions and returns the resulting value.
  *
- * @param value The first expression to be added. This should evaluate to either a single numerical value
- *              or an array of numerical values.
- * @param target The second expression to be added. This should evaluate to either a single numerical value
- *               or an array of numerical values.
- * @param interpreterCore The interpreter core responsible for evaluating the expressions.
- * @param position The position in the source code where this addition is invoked. Used for error reporting
- *                 and debugging. Nullable.
- * @return The result of the addition as a single numerical value.
- * @throws IllegalArgumentException If either of the evaluated expressions is not a number or an array of numbers.
- * @throws UnsupportedOperationException If the addition operation is not supported for the given evaluated types.
+ * @param addendOneExpression the first expression to be evaluated and added
+ * @param addendTwoExpression the second expression to be evaluated and added
+ * @param interpreterCore the interpreter core used to evaluate the expressions
+ * @param position the position in the code where this operation occurs, can be null
+ * @return the result of the addition as a Value; throws an exception if the addition cannot be performed
  */
 fun add(
-    value: Expression,
-    target: Expression,
+    addendOneExpression: Expression,
+    addendTwoExpression: Expression,
     interpreterCore: InterpreterCore,
     position: Position? = null
 ): Value {
-    val addend1: Value = interpreterCore.eval(value)
-    require(addend1 is NumberValue || (addend1 is ArrayValue && addend1.elementType is NumberType)) {
-        "$addend1 should be a number"
+    val addendOneValue: Value = interpreterCore.eval(addendOneExpression)
+    require(addendOneValue is NumberValue || (addendOneValue is ArrayValue && addendOneValue.elementType is NumberType)) {
+        "$addendOneValue should be a number"
     }
-    val addend2: Value = interpreterCore.eval(target)
-    require(addend2 is NumberValue || (addend2 is ArrayValue && addend2.elementType is NumberType)) {
-        "$addend2 should be a number"
+    val addendTwoValue: Value = interpreterCore.eval(addendTwoExpression)
+    require(addendTwoValue is NumberValue || (addendTwoValue is ArrayValue && addendTwoValue.elementType is NumberType)) {
+        "$addendTwoValue should be a number"
     }
 
     return when {
-        addend1 is IntValue && addend2 is IntValue -> IntValue(addend1.asInt().value.plus(addend2.asInt().value))
-        addend1 is IntValue && addend2 is DecimalValue -> DecimalValue(addend1.asDecimal().value.plus(addend2.value))
-        addend1 is DecimalValue && addend2 is IntValue -> DecimalValue(addend1.value.plus(addend2.asDecimal().value))
-        addend1 is DecimalValue && addend2 is DecimalValue -> DecimalValue(addend1.value.plus(addend2.value))
-        else -> throw UnsupportedOperationException("I do not know how to sum $addend1 and $addend2 at $position")
+        addendOneValue is IntValue && addendTwoValue is IntValue -> IntValue(addendOneValue.asInt().value.plus(addendTwoValue.asInt().value))
+        addendOneValue is IntValue && addendTwoValue is DecimalValue -> DecimalValue(addendOneValue.asDecimal().value.plus(addendTwoValue.value))
+        addendOneValue is DecimalValue && addendTwoValue is IntValue -> DecimalValue(addendOneValue.value.plus(addendTwoValue.asDecimal().value))
+        addendOneValue is DecimalValue && addendTwoValue is DecimalValue -> DecimalValue(addendOneValue.value.plus(addendTwoValue.value))
+        else -> throw UnsupportedOperationException("I do not know how to sum $addendOneValue and $addendTwoValue at $position")
     }
 }
