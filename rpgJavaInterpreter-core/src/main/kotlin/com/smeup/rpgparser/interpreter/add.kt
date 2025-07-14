@@ -44,6 +44,10 @@ fun add(
         "$addendTwoValue should be a number"
     }
 
+    if (addendOneValue is NumberValue && addendTwoValue is ArrayValue) {
+        throw UnsupportedOperationException("Cannot add an Array to a Standalone. At: $position")
+    }
+
     return when {
         addendOneValue is ArrayValue && addendTwoValue is ArrayValue -> makeArrayValue(addendOneValue, addendTwoValue, position)
         addendTwoValue is NumberValue && addendOneValue is ArrayValue -> makeArrayValue(addendTwoValue, addendOneValue, position)
