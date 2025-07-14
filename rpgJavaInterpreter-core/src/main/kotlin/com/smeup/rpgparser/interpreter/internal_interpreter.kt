@@ -35,9 +35,6 @@ import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
-import java.math.BigDecimal
-import java.math.MathContext
-import java.math.RoundingMode
 import java.util.*
 import kotlin.math.min
 import kotlin.system.measureNanoTime
