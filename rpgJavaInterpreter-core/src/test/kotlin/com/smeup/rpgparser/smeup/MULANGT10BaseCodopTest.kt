@@ -1145,4 +1145,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU001142".outputOf())
     }
+
+    /**
+     * This program executes `ADD` operator between a single value to an array.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001143() {
+        val expected = listOf(
+            "ARR ITEMS", "2.00", "2.00", "2.00",
+            "ARR ITEMS", "7.00", "7.00", "7.00",
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001143".outputOf())
+    }
 }

@@ -46,7 +46,7 @@ fun add(
 
     return when {
         addendOneValue is ArrayValue && addendTwoValue is ArrayValue -> makeArrayValue(addendOneValue, addendTwoValue, position)
-        addendOneValue is ArrayValue && addendTwoValue is NumberValue -> TODO()
+        addendTwoValue is NumberValue && addendOneValue is ArrayValue -> makeArrayValue(addendTwoValue, addendOneValue, position)
         else -> makeSingleValue(addendOneValue, addendTwoValue, position)
     }
 }
@@ -92,6 +92,28 @@ private fun makeArrayValue(addendOneValue: ArrayValue, addendTwoValue: ArrayValu
                 makeSingleValue(addendOneValue.getElement(index), newArrayValue.getElement(index), position)
             )
         }
+
+    return newArrayValue
+}
+
+/**
+ * Creates a new `ArrayValue` by applying an additive operation to each element of the provided array
+ * with the given `NumberValue`.
+ *
+ * @param addendOneValue the `NumberValue` to be added to each element of the `ArrayValue`
+ * @param addendTwoValue the `ArrayValue` whose elements will be modified
+ * @param position an optional `Position` used for contextual information during the operation, such as in exception messages
+ * @return an updated `ArrayValue` where each of its elements has been modified by adding `addendOneValue`
+ *         using the `makeSingleValue` operation
+ */
+private fun makeArrayValue(addendOneValue: NumberValue, addendTwoValue: ArrayValue, position: Position?): ArrayValue {
+    val newArrayValue = addendTwoValue.copy()
+
+    addendTwoValue.elements().forEachIndexed { index, _ ->
+        newArrayValue.setElement(
+            index + 1,
+        makeSingleValue(addendOneValue, newArrayValue.getElement(index + 1), position)
+    )}
 
     return newArrayValue
 }
