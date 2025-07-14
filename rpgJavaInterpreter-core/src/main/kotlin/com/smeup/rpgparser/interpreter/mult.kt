@@ -26,8 +26,8 @@ import java.math.RoundingMode
  * Multiplies the values of two expressions, formats the result according to the specified target type,
  * and applies optional half adjustment rounding.
  *
- * @param leftExpression the left-hand side expression to be evaluated and multiplied.
- * @param rightExpression the right-hand side expression to be evaluated and multiplied.
+ * @param leftExpr the left-hand side expression to be evaluated and multiplied.
+ * @param rightExpr the right-hand side expression to be evaluated and multiplied.
  * @param targetType the numeric type that dictates how the result should be formatted.
  * @param isHalfAdjust a flag specifying whether to apply half adjustment (rounding mode HALF_UP) or truncate (rounding mode DOWN).
  * @param interpreterCore the core interpreter used to evaluate the expressions.
@@ -35,16 +35,16 @@ import java.math.RoundingMode
  * @return a Value containing the result of the multiplication formatted according to the specified target type.
  */
 fun mult(
-    leftExpression: Expression,
-    rightExpression: Expression,
+    leftExpr: Expression,
+    rightExpr: Expression,
     targetType: Type,
     isHalfAdjust: Boolean,
     interpreterCore: InterpreterCore,
     position: Position? = null
 ): Value {
     // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-    val leftValue = BigDecimal(interpreterCore.eval(leftExpression).render())
-    val rightValue = BigDecimal(interpreterCore.eval(rightExpression).render())
+    val leftValue = BigDecimal(interpreterCore.eval(leftExpr).render())
+    val rightValue = BigDecimal(interpreterCore.eval(rightExpr).render())
     val result = rightValue.multiply(leftValue)
 
     require(targetType is NumberType)
