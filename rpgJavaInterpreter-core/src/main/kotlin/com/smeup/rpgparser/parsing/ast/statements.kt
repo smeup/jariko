@@ -1850,7 +1850,7 @@ data class MultStmt(
         get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.mult(this))
+        interpreter.assign(target, mult(left, right, target.type(), halfAdjust, interpreter, position))
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()

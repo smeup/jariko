@@ -897,20 +897,6 @@ open class InternalInterpreter(
         return value
     }
 
-    override fun mult(statement: MultStmt): Value {
-        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        val rightValue = BigDecimal(eval(statement.left).render())
-        val leftValue = BigDecimal(eval(statement.right).render())
-        val result = rightValue.multiply(leftValue)
-        val type = statement.target.type()
-        require(type is NumberType)
-        return if (statement.halfAdjust) {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
-        } else {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.DOWN))
-        }
-    }
-
     override fun div(statement: DivStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         val dividend = BigDecimal(eval(statement.dividend).render())
