@@ -117,7 +117,7 @@ private fun makeArrayValue(addendOneValue: NumberValue, addendTwoValue: ArrayVal
         newArrayValue.setElement(
             index + 1,
         makeSingleValue(addendOneValue, newArrayValue.getElement(index + 1), position)
-    )}
+    ) }
 
     return newArrayValue
 }
