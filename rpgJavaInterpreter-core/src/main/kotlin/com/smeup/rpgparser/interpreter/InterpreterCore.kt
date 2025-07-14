@@ -66,7 +66,6 @@ interface InterpreterCore {
     fun dataDefinitionByName(name: String): AbstractDataDefinition?
     fun mult(statement: MultStmt): Value
     fun div(statement: DivStmt): Value
-    fun sub(statement: SubStmt): Value
     fun rawRender(values: List<Value>): String
     fun optimizedIntExpression(expression: Expression): () -> Long
     fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean

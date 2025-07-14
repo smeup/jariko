@@ -1977,7 +1977,7 @@ data class SubStmt(
         get() = left ?: result
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(result, interpreter.sub(this))
+        interpreter.assign(result, sub(minuend, right, interpreter, position))
     }
 }
 
