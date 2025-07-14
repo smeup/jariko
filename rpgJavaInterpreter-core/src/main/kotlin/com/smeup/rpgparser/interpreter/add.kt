@@ -51,7 +51,7 @@ fun add(
     return when {
         addendOneValue is ArrayValue && addendTwoValue is ArrayValue -> makeArrayValue(addendOneValue, addendTwoValue, position)
         addendTwoValue is NumberValue && addendOneValue is ArrayValue -> makeArrayValue(addendTwoValue, addendOneValue, position)
-        else -> makeSingleValue(addendOneValue, addendTwoValue, position)
+        else -> makeStandaloneValue(addendOneValue, addendTwoValue, position)
     }
 }
 
@@ -66,7 +66,7 @@ fun add(
  *         which will be either an `IntValue` or a `DecimalValue` depending on the input types
  * @throws UnsupportedOperationException if the provided `Value` types cannot be summed or are unsupported
  */
-private fun makeSingleValue(addendOneValue: Value, addendTwoValue: Value, position: Position?): Value {
+private fun makeStandaloneValue(addendOneValue: Value, addendTwoValue: Value, position: Position?): Value {
     return when {
         addendOneValue is IntValue && addendTwoValue is IntValue -> IntValue(addendOneValue.asInt().value.plus(addendTwoValue.asInt().value))
         addendOneValue is IntValue && addendTwoValue is DecimalValue -> DecimalValue(addendOneValue.asDecimal().value.plus(addendTwoValue.value))
@@ -93,7 +93,7 @@ private fun makeArrayValue(addendOneValue: ArrayValue, addendTwoValue: ArrayValu
         .forEach { index ->
             newArrayValue.setElement(
                 index,
-                makeSingleValue(addendOneValue.getElement(index), newArrayValue.getElement(index), position)
+                makeStandaloneValue(addendOneValue.getElement(index), newArrayValue.getElement(index), position)
             )
         }
 
@@ -116,7 +116,7 @@ private fun makeArrayValue(addendOneValue: NumberValue, addendTwoValue: ArrayVal
     addendTwoValue.elements().forEachIndexed { index, _ ->
         newArrayValue.setElement(
             index + 1,
-        makeSingleValue(addendOneValue, newArrayValue.getElement(index + 1), position)
+        makeStandaloneValue(addendOneValue, newArrayValue.getElement(index + 1), position)
     ) }
 
     return newArrayValue
