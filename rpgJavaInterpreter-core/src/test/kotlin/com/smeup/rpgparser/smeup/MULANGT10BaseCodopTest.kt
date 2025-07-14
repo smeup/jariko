@@ -1117,4 +1117,18 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU001140".outputOf())
     }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the left greater than right.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001141() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00", "3.00",
+            "ARR2 ITEMS", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001141".outputOf())
+    }
 }
