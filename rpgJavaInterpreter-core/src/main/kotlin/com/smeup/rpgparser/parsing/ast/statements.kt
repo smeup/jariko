@@ -1924,7 +1924,7 @@ data class AddStmt(
         get() = left ?: result
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(result, interpreter.add(this))
+        interpreter.assign(result, add(this.addend1, this.right, interpreter, position))
     }
 }
 
