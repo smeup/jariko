@@ -1128,24 +1128,6 @@ open class InternalInterpreter(
         }
     }
 
-    override fun sub(statement: SubStmt): Value {
-        val minuend = eval(statement.minuend)
-        require(minuend is NumberValue) {
-            "$minuend should be a number"
-        }
-        val subtrahend = eval(statement.right)
-        require(subtrahend is NumberValue) {
-            "$subtrahend should be a number"
-        }
-        return when {
-            minuend is IntValue && subtrahend is IntValue -> IntValue(minuend.asInt().value.minus(subtrahend.asInt().value))
-            minuend is IntValue && subtrahend is DecimalValue -> DecimalValue(minuend.asDecimal().value.minus(subtrahend.value))
-            minuend is DecimalValue && subtrahend is IntValue -> DecimalValue(minuend.value.minus(subtrahend.asDecimal().value))
-            minuend is DecimalValue && subtrahend is DecimalValue -> DecimalValue(minuend.value.minus(subtrahend.value))
-            else -> throw UnsupportedOperationException("I do not know how to sum $minuend and $subtrahend at ${statement.position}")
-        }
-    }
-
     private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
