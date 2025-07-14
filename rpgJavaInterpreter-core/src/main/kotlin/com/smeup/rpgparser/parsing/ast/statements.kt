@@ -1878,7 +1878,7 @@ data class DivStmt(
         get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.div(this))
+        interpreter.assign(target, div(dividend, divisor, target.type(), halfAdjust, interpreter, position, mvrStatement?.target))
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()

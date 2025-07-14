@@ -64,7 +64,6 @@ interface InterpreterCore {
     fun fillDataFrom(dbFile: EnrichedDBFile, record: Record)
     fun exists(dataName: String): Boolean
     fun dataDefinitionByName(name: String): AbstractDataDefinition?
-    fun div(statement: DivStmt): Value
     fun rawRender(values: List<Value>): String
     fun optimizedIntExpression(expression: Expression): () -> Long
     fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean
