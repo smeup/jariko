@@ -1103,4 +1103,87 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU001128".outputOf())
     }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001140() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00", "3.00",
+            "ARR2 ITEMS", "2.00", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00", "5.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001140".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the left greater than right.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001141() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00", "3.00",
+            "ARR2 ITEMS", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001141".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the right greater than left.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001142() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00",
+            "ARR2 ITEMS", "2.00", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00", "2.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001142".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between a single value to an array.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001143() {
+        val expected = listOf(
+            "ARR ITEMS", "2.00", "2.00", "2.00",
+            "ARR ITEMS", "7.00", "7.00", "7.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001143".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size but different type. The first is
+     *  decimal and the second is integer.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001144() {
+        val expected = listOf(
+            "ARR2 ITEMS", "2", "2",
+            "ARR2 ITEMS", "3", "3"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001144".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size but different type. The first is
+     *  integer and the second is decimal.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001145() {
+        val expected = listOf(
+            "ARR2 ITEMS", "2.50", "2.50",
+            "ARR2 ITEMS", "3.50", "3.50"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001145".outputOf())
+    }
 }

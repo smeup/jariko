@@ -35,9 +35,6 @@ import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
-import java.math.BigDecimal
-import java.math.MathContext
-import java.math.RoundingMode
 import java.util.*
 import kotlin.math.min
 import kotlin.system.measureNanoTime
@@ -897,46 +894,6 @@ open class InternalInterpreter(
         return value
     }
 
-    override fun mult(statement: MultStmt): Value {
-        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        val rightValue = BigDecimal(eval(statement.left).render())
-        val leftValue = BigDecimal(eval(statement.right).render())
-        val result = rightValue.multiply(leftValue)
-        val type = statement.target.type()
-        require(type is NumberType)
-        return if (statement.halfAdjust) {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
-        } else {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.DOWN))
-        }
-    }
-
-    override fun div(statement: DivStmt): Value {
-        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        val dividend = BigDecimal(eval(statement.dividend).render())
-        val divisor = BigDecimal(eval(statement.divisor).render())
-        val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
-        val type = statement.target.type()
-        require(type is NumberType)
-        // calculation of rest
-        // NB. rest based on type of quotient
-        if (statement.mvrStatement != null) {
-            val restType = statement.mvrStatement.target?.type()
-            require(restType is NumberType)
-            val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
-            val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            assign(
-                statement.mvrStatement.target,
-                DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN))
-            )
-        }
-        return if (statement.halfAdjust) {
-            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
-        } else {
-            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.DOWN))
-        }
-    }
-
     override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
@@ -1125,42 +1082,6 @@ open class InternalInterpreter(
             MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value, target.position)))
             DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value, target.position)))
             EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value, target.position)))
-        }
-    }
-
-    override fun add(statement: AddStmt): Value {
-        val addend1 = eval(statement.addend1)
-        require(addend1 is NumberValue) {
-            "$addend1 should be a number"
-        }
-        val addend2 = eval(statement.right)
-        require(addend2 is NumberValue) {
-            "$addend2 should be a number"
-        }
-        return when {
-            addend1 is IntValue && addend2 is IntValue -> IntValue(addend1.asInt().value.plus(addend2.asInt().value))
-            addend1 is IntValue && addend2 is DecimalValue -> DecimalValue(addend1.asDecimal().value.plus(addend2.value))
-            addend1 is DecimalValue && addend2 is IntValue -> DecimalValue(addend1.value.plus(addend2.asDecimal().value))
-            addend1 is DecimalValue && addend2 is DecimalValue -> DecimalValue(addend1.value.plus(addend2.value))
-            else -> throw UnsupportedOperationException("I do not know how to sum $addend1 and $addend2 at ${statement.position}")
-        }
-    }
-
-    override fun sub(statement: SubStmt): Value {
-        val minuend = eval(statement.minuend)
-        require(minuend is NumberValue) {
-            "$minuend should be a number"
-        }
-        val subtrahend = eval(statement.right)
-        require(subtrahend is NumberValue) {
-            "$subtrahend should be a number"
-        }
-        return when {
-            minuend is IntValue && subtrahend is IntValue -> IntValue(minuend.asInt().value.minus(subtrahend.asInt().value))
-            minuend is IntValue && subtrahend is DecimalValue -> DecimalValue(minuend.asDecimal().value.minus(subtrahend.value))
-            minuend is DecimalValue && subtrahend is IntValue -> DecimalValue(minuend.value.minus(subtrahend.asDecimal().value))
-            minuend is DecimalValue && subtrahend is DecimalValue -> DecimalValue(minuend.value.minus(subtrahend.value))
-            else -> throw UnsupportedOperationException("I do not know how to sum $minuend and $subtrahend at ${statement.position}")
         }
     }
 

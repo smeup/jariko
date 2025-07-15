@@ -1850,7 +1850,7 @@ data class MultStmt(
         get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.mult(this))
+        interpreter.assign(target, mult(left, right, target.type(), halfAdjust, interpreter, position))
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
@@ -1878,7 +1878,7 @@ data class DivStmt(
         get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(target, interpreter.div(this))
+        interpreter.assign(target, div(dividend, divisor, target.type(), halfAdjust, interpreter, position, mvrStatement?.target))
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
@@ -1924,7 +1924,7 @@ data class AddStmt(
         get() = left ?: result
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(result, interpreter.add(this))
+        interpreter.assign(result, add(this.addend1, this.right, interpreter, position))
     }
 }
 
@@ -1977,7 +1977,7 @@ data class SubStmt(
         get() = left ?: result
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.assign(result, interpreter.sub(this))
+        interpreter.assign(result, sub(minuend, right, interpreter, position))
     }
 }
 
