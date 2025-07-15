@@ -56,7 +56,7 @@ class DBFileMap {
             }
         }
     }
-    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat] ?: byInternalFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byInternalFormatName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
 /**

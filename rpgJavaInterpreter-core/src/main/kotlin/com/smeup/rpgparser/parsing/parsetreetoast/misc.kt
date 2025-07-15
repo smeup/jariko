@@ -395,7 +395,11 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
     var procedures = this.procedure().mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf, dataDefinitions, fileDefinitions.keys.toList()) }.getOrNull() }
+        it.runParserRuleContext(conf) {
+            context -> kotlin.runCatching {
+                context.toAst(conf, dataDefinitions, fileDefinitions.keys.filter { !it.justExtName }.toList())
+            }.getOrNull()
+        }
     }.let {
         if (it.isEmpty()) null
         else it

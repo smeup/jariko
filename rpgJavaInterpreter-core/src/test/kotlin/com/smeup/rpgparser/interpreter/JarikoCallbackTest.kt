@@ -986,8 +986,8 @@ class JarikoCallbackTest : AbstractTest() {
         // TRACETST1, TRACETST2
         assertEquals(rpgProgramTraces.size, 2)
 
-        assertEquals(rpgProgramTraces.filter { it.description == "TRACETST1" }.size, 1)
-        assertEquals(rpgProgramTraces.filter { it.description == "TRACETST2" }.size, 1)
+        assertEquals(rpgProgramTraces.filter { it.description == "Execute TRACETST1" }.size, 1)
+        assertEquals(rpgProgramTraces.filter { it.description == "Execute TRACETST2" }.size, 1)
     }
 
     /**
