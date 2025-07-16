@@ -474,7 +474,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
      * @return A BigDecimal object representing zero with the scale derived
      *         from the "value" field of the DecimalValue instance.
      */
-    private fun getZero(): BigDecimal = "0.".plus("0".repeat(this.value.scale())).toBigDecimal()
+    fun getZero(): BigDecimal = "0.".plus("0".repeat(this.value.scale())).toBigDecimal()
 }
 
 @Serializable
