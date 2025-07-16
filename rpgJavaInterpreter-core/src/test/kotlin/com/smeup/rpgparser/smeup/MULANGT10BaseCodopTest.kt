@@ -1236,4 +1236,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("GE VAL", "GE ZERO")
         assertEquals(expected, "smeup/MUDRNRAPU001150".outputOf())
     }
+
+    /**
+     * This program shows the message on a true case of `IFLE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001151() {
+        val expected = listOf("LE VAL", "LE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001151".outputOf())
+    }
 }
