@@ -465,6 +465,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
 
     override fun equals(other: Any?): Boolean =
         when (other) {
+            is DecimalValue -> this.value == other.value
             is ZeroValue -> this.value == getZero()
             else -> super.equals(other)
         }
