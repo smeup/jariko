@@ -459,13 +459,22 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
         when (other) {
             is IntValue -> compareTo(other.asDecimal())
             is DecimalValue -> this.value.compareTo(other.value)
-            is ZeroValue -> this.value.compareTo(0.toBigDecimal())
+            is ZeroValue -> this.value.compareTo(getZero())
             else -> super.compareTo(other)
         }
 
     override fun asString(): StringValue {
         return StringValue(value.toPlainString())
     }
+
+    /**
+     * Generates a BigDecimal representation of zero with the same scale
+     * as the current DecimalValue instance.
+     *
+     * @return A BigDecimal object representing zero with the scale derived
+     *         from the "value" field of the DecimalValue instance.
+     */
+    private fun getZero(): BigDecimal = "0.".plus("0".repeat(this.value.scale())).toBigDecimal()
 }
 
 @Serializable
