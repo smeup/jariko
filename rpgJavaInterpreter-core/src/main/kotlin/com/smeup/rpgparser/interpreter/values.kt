@@ -459,6 +459,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
         when (other) {
             is IntValue -> compareTo(other.asDecimal())
             is DecimalValue -> this.value.compareTo(other.value)
+            is ZeroValue -> this.value.compareTo(0.toBigDecimal())
             else -> super.compareTo(other)
         }
 
@@ -928,6 +929,12 @@ object ZeroValue : Value {
 
     // FIXME: Check if it also applies to booleans and if that is the case uncomment line below
     // override fun asBoolean() = BooleanValue.FALSE
+
+    override operator fun compareTo(other: Value): Int =
+        when (other) {
+            is DecimalValue -> DecimalValue.ZERO.compareTo(other.asDecimal())
+            else -> super.compareTo(other)
+        }
 }
 
 @Serializable
