@@ -463,6 +463,12 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
             else -> super.compareTo(other)
         }
 
+    override fun equals(other: Any?): Boolean =
+        when (other) {
+            is ZeroValue -> this.value == getZero()
+            else -> super.equals(other)
+        }
+
     override fun asString(): StringValue {
         return StringValue(value.toPlainString())
     }
@@ -943,6 +949,12 @@ object ZeroValue : Value {
         when (other) {
             is DecimalValue -> other.getZero().compareTo(other.asDecimal().value)
             else -> super.compareTo(other)
+        }
+
+    override fun equals(other: Any?): Boolean =
+        when (other) {
+            is DecimalValue -> other.getZero() == other.asDecimal().value
+            else -> super.equals(other)
         }
 }
 
