@@ -941,7 +941,7 @@ object ZeroValue : Value {
 
     override operator fun compareTo(other: Value): Int =
         when (other) {
-            is DecimalValue -> DecimalValue.ZERO.compareTo(other.asDecimal())
+            is DecimalValue -> other.getZero().compareTo(other.asDecimal().value)
             else -> super.compareTo(other)
         }
 }
