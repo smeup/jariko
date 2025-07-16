@@ -948,12 +948,14 @@ object ZeroValue : Value {
 
     override operator fun compareTo(other: Value): Int =
         when (other) {
+            is ZeroValue -> 0
             is DecimalValue -> other.getZero().compareTo(other.asDecimal().value)
             else -> super.compareTo(other)
         }
 
     override fun equals(other: Any?): Boolean =
         when (other) {
+            is ZeroValue -> true
             is DecimalValue -> other.getZero() == other.asDecimal().value
             else -> super.equals(other)
         }
