@@ -7,9 +7,12 @@
      V* ==============================================================
     O * JARIKO ANOMALY
     O * Before the fix, the error occurred was:
-    O *  Program CMPZERO1 - Issue executing IfStmt at line 16.
-    O *   An operation is not implemented: Cannot compare
+    O *  Program MUDRNRAPU001146 - Issue executing IfStmt at line 19.
+    O *  An operation is not implemented: Cannot compare
     O *   DecimalValue(value=1.0) to ZeroValue
+    O *  Program MUDRNRAPU001146 - Issue executing IfStmt at line 23.
+    O *  An operation is not implemented: Cannot compare ZeroValue to
+    O *   DecimalValue(value=-1.0)
      V* ==============================================================
      D VAL             S              2  1 INZ(1.0)
 
