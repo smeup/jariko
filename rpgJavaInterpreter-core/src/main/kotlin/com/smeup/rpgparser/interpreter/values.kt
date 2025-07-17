@@ -459,12 +459,29 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
         when (other) {
             is IntValue -> compareTo(other.asDecimal())
             is DecimalValue -> this.value.compareTo(other.value)
+            is ZeroValue -> this.value.compareTo(getZero())
             else -> super.compareTo(other)
+        }
+
+    override fun equals(other: Any?): Boolean =
+        when (other) {
+            is DecimalValue -> this.value == other.value
+            is ZeroValue -> this.value == getZero()
+            else -> super.equals(other)
         }
 
     override fun asString(): StringValue {
         return StringValue(value.toPlainString())
     }
+
+    /**
+     * Generates a BigDecimal representation of zero with the same scale
+     * as the current DecimalValue instance.
+     *
+     * @return A BigDecimal object representing zero with the scale derived
+     *         from the "value" field of the DecimalValue instance.
+     */
+    fun getZero(): BigDecimal = "0.".plus("0".repeat(this.value.scale())).toBigDecimal()
 }
 
 @Serializable
@@ -928,6 +945,20 @@ object ZeroValue : Value {
 
     // FIXME: Check if it also applies to booleans and if that is the case uncomment line below
     // override fun asBoolean() = BooleanValue.FALSE
+
+    override operator fun compareTo(other: Value): Int =
+        when (other) {
+            is ZeroValue -> 0
+            is DecimalValue -> other.getZero().compareTo(other.asDecimal().value)
+            else -> super.compareTo(other)
+        }
+
+    override fun equals(other: Any?): Boolean =
+        when (other) {
+            is ZeroValue -> true
+            is DecimalValue -> other.getZero() == other.asDecimal().value
+            else -> super.equals(other)
+        }
 }
 
 @Serializable

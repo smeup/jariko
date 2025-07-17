@@ -1103,4 +1103,147 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU001128".outputOf())
     }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001140() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00", "3.00",
+            "ARR2 ITEMS", "2.00", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00", "5.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001140".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the left greater than right.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001141() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00", "3.00",
+            "ARR2 ITEMS", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001141".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the right greater than left.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001142() {
+        val expected = listOf(
+            "ARR1 ITEMS", "1.00", "2.00",
+            "ARR2 ITEMS", "2.00", "2.00", "2.00",
+            "ARR2 ITEMS", "3.00", "4.00", "2.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001142".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between a single value to an array.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001143() {
+        val expected = listOf(
+            "ARR ITEMS", "2.00", "2.00", "2.00",
+            "ARR ITEMS", "7.00", "7.00", "7.00"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001143".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size but different type. The first is
+     *  decimal and the second is integer.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001144() {
+        val expected = listOf(
+            "ARR2 ITEMS", "2", "2",
+            "ARR2 ITEMS", "3", "3"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001144".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size but different type. The first is
+     *  integer and the second is decimal.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001145() {
+        val expected = listOf(
+            "ARR2 ITEMS", "2.50", "2.50",
+            "ARR2 ITEMS", "3.50", "3.50"
+        )
+        assertEquals(expected, "smeup/MUDRNRAPU001145".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFGT` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001146() {
+        val expected = listOf("GT VAL", "GT ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001146".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFLT` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001147() {
+        val expected = listOf("LT VAL", "LT ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001147".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFEQ` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001148() {
+        val expected = listOf("EQ VAL", "EQ ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001148".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFNE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001149() {
+        val expected = listOf("NE VAL", "NE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001149".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFGE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001150() {
+        val expected = listOf("GE VAL", "GE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001150".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFLE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001151() {
+        val expected = listOf("LE VAL", "LE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001151".outputOf())
+    }
 }
