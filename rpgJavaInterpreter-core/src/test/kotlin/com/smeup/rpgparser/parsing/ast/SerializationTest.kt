@@ -1,16 +1,12 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.DBPerformanceTest
-import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.utils.measured
-import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
-import org.junit.experimental.categories.Category
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -18,7 +14,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.system.measureTimeMillis
 import kotlin.test.assertEquals
-import kotlin.time.Duration
 import kotlin.time.measureTime
 
 class SerializationTest {

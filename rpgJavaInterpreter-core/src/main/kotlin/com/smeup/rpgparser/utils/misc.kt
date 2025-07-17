@@ -31,7 +31,7 @@ import kotlin.time.measureTime
 /**
  * Measure the execution of a code block and extract its output
  */
-fun<T> measured(block: () -> T): Pair<Duration, T> {
+fun <T> measured(block: () -> T): Pair<Duration, T> {
     val output: T
     val duration = measureTime { output = block() }
     return duration to output
