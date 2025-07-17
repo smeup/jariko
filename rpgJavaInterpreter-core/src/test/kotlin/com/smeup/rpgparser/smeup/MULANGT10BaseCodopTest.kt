@@ -1186,4 +1186,64 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         )
         assertEquals(expected, "smeup/MUDRNRAPU001145".outputOf())
     }
+
+    /**
+     * This program shows the message on a true case of `IFGT` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001146() {
+        val expected = listOf("GT VAL", "GT ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001146".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFLT` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001147() {
+        val expected = listOf("LT VAL", "LT ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001147".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFEQ` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001148() {
+        val expected = listOf("EQ VAL", "EQ ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001148".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFNE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001149() {
+        val expected = listOf("NE VAL", "NE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001149".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFGE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001150() {
+        val expected = listOf("GE VAL", "GE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001150".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFLE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001151() {
+        val expected = listOf("LE VAL", "LE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001151".outputOf())
+    }
 }
