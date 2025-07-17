@@ -34,7 +34,7 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:8.2.0"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:13.0.0"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
     }
 }
