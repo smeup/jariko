@@ -1498,6 +1498,18 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR57CallBackTest() {
+        executePgmCallBackTest("ERROR57", SourceReferenceType.Program, "ERROR57", mapOf(
+            14 to "Cannot add an Array to a Standalone at: Position(start=Line 14, Column 35, end=Line 14, Column 41))"
+        ))
+    }
+
+    @Test
+    fun executeERROR57SourceLineTest() {
+        executeSourceLineTest("ERROR57")
+    }
+
+    @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
             options = Options().apply {
