@@ -25,6 +25,17 @@ import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.util.*
 import kotlin.system.measureTimeMillis
+import kotlin.time.Duration
+import kotlin.time.measureTime
+
+/**
+ * Measure the execution of a code block and extract its output
+ */
+fun <T> measured(block: () -> T): Pair<Duration, T> {
+    val output: T
+    val duration = measureTime { output = block() }
+    return duration to output
+}
 
 fun measureAndPrint(block: () -> Unit) {
     val timeElapsed = measureAndCatch(block)
