@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -7,6 +8,7 @@ import com.smeup.rpgparser.utils.measured
 import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -88,6 +90,7 @@ class SerializationTest {
      * Test the performance of big files serialization
      */
     @Test
+    @Category(PerformanceTest::class)
     fun testLargeBinPerformance() {
         val dec = File(javaClass.getResource("/performance-bin")!!.path + "/B£DEC0.rpgle")
         FileInputStream(dec).use {
