@@ -30,11 +30,13 @@ import com.smeup.rpgparser.utils.getRootCause
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.io.File
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.io.path.Path
 import kotlin.test.*
 
 open class InterpreterTest : AbstractTest() {
@@ -2724,5 +2726,56 @@ Test 6
 
         val (callee1, callee2) = calleeCUs
         assertEquals(callee1, callee2)
+    }
+
+    /**
+     * Test that we always produce the same CU when calling the same PGM multiple times for all the meaningful programs in resources.
+     */
+    @Test
+    fun testResourcesCUCreationIdempotence() {
+        val resourcesDir = File("src/test/resources")
+        val erroringPrograms = mutableListOf<String>()
+
+        var matched = 0
+        resourcesDir.listFiles()!!
+            .filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") }
+            .forEach { file ->
+                println("Testing CUs idempotence for ${file.name}")
+
+                val name = file.nameWithoutExtension
+                val firstRun = mutableListOf<CompilationUnit>()
+                val secondRun = mutableListOf<CompilationUnit>()
+
+                val firstRunConfig = Configuration().apply {
+                    jarikoCallback.onEnterPgm = { name, st ->
+                        val pgm = MainExecutionContext.getProgramStack().peek()
+                        firstRun.add(pgm.cu)
+                    }
+                }
+
+                val secondRunConfig = Configuration().apply {
+                    jarikoCallback.onEnterPgm = { name, st ->
+                        val pgm = MainExecutionContext.getProgramStack().peek()
+                        secondRun.add(pgm.cu)
+                    }
+                }
+
+                // Execute first time
+                try {
+                    executePgm(name, configuration = firstRunConfig)
+                } catch (_: Exception) {
+                    erroringPrograms.add(name)
+                    return@forEach
+                }
+
+                // Execute second time, we can assume we won't get any error
+                executePgm(file.nameWithoutExtension, configuration = secondRunConfig)
+
+                assertEquals(firstRun, secondRun)
+                ++matched
+        }
+
+        println("Finished with ${erroringPrograms.size} erroring programs: ${erroringPrograms.joinToString()}")
+        println("Successfully matched $matched programs")
     }
 }
