@@ -2736,42 +2736,44 @@ Test 6
         val erroringPrograms = mutableListOf<String>()
 
         var matched = 0
-        resourcesDir.listFiles()!!
-            .filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") }
-            .forEach { file ->
-                println("Testing CUs idempotence for ${file.name}")
+        val candidates = resourcesDir.listFiles()!!.filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") }
+        candidates.forEachIndexed { index, file ->
+            val oneBasedIndex = index + 1
+            val progress = oneBasedIndex.toDouble() / candidates.size.toDouble() * 100
+            val percentage = String.format("%.2f", progress) + '%'
+            println("Testing CUs idempotence for program ${file.name} - $oneBasedIndex of ${candidates.size} ($percentage) ")
 
-                val name = file.nameWithoutExtension
-                val firstRun = mutableListOf<CompilationUnit>()
-                val secondRun = mutableListOf<CompilationUnit>()
+            val name = file.nameWithoutExtension
+            val firstRun = mutableListOf<CompilationUnit>()
+            val secondRun = mutableListOf<CompilationUnit>()
 
-                val firstRunConfig = Configuration().apply {
-                    jarikoCallback.onEnterPgm = { name, st ->
-                        val pgm = MainExecutionContext.getProgramStack().peek()
-                        firstRun.add(pgm.cu)
-                    }
+            val firstRunConfig = Configuration().apply {
+                jarikoCallback.onEnterPgm = { name, st ->
+                    val pgm = MainExecutionContext.getProgramStack().peek()
+                    firstRun.add(pgm.cu)
                 }
+            }
 
-                val secondRunConfig = Configuration().apply {
-                    jarikoCallback.onEnterPgm = { name, st ->
-                        val pgm = MainExecutionContext.getProgramStack().peek()
-                        secondRun.add(pgm.cu)
-                    }
+            val secondRunConfig = Configuration().apply {
+                jarikoCallback.onEnterPgm = { name, st ->
+                    val pgm = MainExecutionContext.getProgramStack().peek()
+                    secondRun.add(pgm.cu)
                 }
+            }
 
-                // Execute first time
-                try {
-                    executePgm(name, configuration = firstRunConfig)
-                } catch (_: Exception) {
-                    erroringPrograms.add(name)
-                    return@forEach
-                }
+            // Execute first time
+            try {
+                executePgm(name, configuration = firstRunConfig)
+            } catch (_: Exception) {
+                erroringPrograms.add(name)
+                return@forEachIndexed
+            }
 
-                // Execute second time, we can assume we won't get any error
-                executePgm(file.nameWithoutExtension, configuration = secondRunConfig)
+            // Execute second time, we can assume we won't get any error
+            executePgm(file.nameWithoutExtension, configuration = secondRunConfig)
 
-                assertEquals(firstRun, secondRun)
-                ++matched
+            assertEquals(firstRun, secondRun)
+            ++matched
         }
 
         println("Finished with ${erroringPrograms.size} erroring programs: ${erroringPrograms.joinToString()}")
