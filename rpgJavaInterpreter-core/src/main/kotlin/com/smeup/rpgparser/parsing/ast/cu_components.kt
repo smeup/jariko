@@ -95,24 +95,16 @@ data class CompilationUnit(
         inStatementsDataDefinitions.addAll(dataDefinitions)
     }
 
-    private var _allDataDefinitions = mutableListOf<AbstractDataDefinition>()
-
     @Derived
-    val allDataDefinitions: List<AbstractDataDefinition>
-        get() {
-            if (_allDataDefinitions.isEmpty()) {
-                _allDataDefinitions.addAll(dataDefinitions)
-                // Adds unqualified DS sub-fields
-                dataDefinitions.forEach { dataDefinition ->
-                    if (dataDefinition.type is AbstractDataStructureType && !(dataDefinition.type as AbstractDataStructureType).isQualified) {
-                        dataDefinition.fields.let { _allDataDefinitions.addAll(it) }
-                    }
-                }
-                _allDataDefinitions.addAll(inStatementsDataDefinitions)
-                _allDataDefinitions = _allDataDefinitions.removeDuplicatedDataDefinition().toMutableList()
-            }
-            return _allDataDefinitions
-        }
+    val allDataDefinitions: List<AbstractDataDefinition> by lazy {
+        // Unqualified DS sub-fields
+        val unqualified = dataDefinitions
+            .filter { it.type is AbstractDataStructureType && !(it.type as AbstractDataStructureType).isQualified }
+            .flatMap { it.fields }
+
+        val bucket = dataDefinitions + unqualified + inStatementsDataDefinitions
+        bucket.removeDuplicatedDataDefinition()
+    }
 
     internal val allDataDefinitionsByName: Map<String, AbstractDataDefinition> by lazy {
         allDataDefinitions.associateBy { it.name.uppercase() }
