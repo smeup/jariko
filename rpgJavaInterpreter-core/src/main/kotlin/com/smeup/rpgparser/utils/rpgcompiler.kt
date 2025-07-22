@@ -105,10 +105,10 @@ private fun compileFile(
                 // I cannot resolve and validate the cu before serializing elsewhere
                 // I have unexpected behaviours when I try to use it
                 runCatching {
-                    cu!!.resolveAndValidate()
-                }.onFailure {
+                    cu.resolveAndValidate()
+                }.onFailure { error ->
                     compiledFile.delete()
-                    return CompilationResult(file, null, null, it)
+                    return CompilationResult(file, null, null, error)
                 }
                 println("Compiled in $compiledFile")
             }
@@ -258,8 +258,7 @@ fun doCompilationAtRuntime(
         "This method can be used just for runtime compilations"
     }
     println("Compiling inputstream to outputstream... ")
-    val cu: CompilationUnit?
-    cu = RpgParserFacade().apply {
+    val cu = RpgParserFacade().apply {
         this.muteSupport = muteSupport!!
     }.parseAndProduceAst(src)
     out?.let { stream ->

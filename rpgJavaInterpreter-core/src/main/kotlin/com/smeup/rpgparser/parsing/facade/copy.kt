@@ -192,7 +192,6 @@ data class CopyBlock(val copyId: CopyId, val start: Int, var end: Int) {
  * */
 @Serializable
 class CopyBlocks : Iterable<CopyBlock> {
-
     private val copyBlocks = mutableListOf<CopyBlock>()
 
     private val revertOrderedCopyBlocks = mutableListOf<CopyBlock>()
@@ -314,4 +313,17 @@ class CopyBlocks : Iterable<CopyBlock> {
     private fun getChildren(copyBlock: CopyBlock) = copyBlocks.filter { it.parent == copyBlock }
 
     private fun getCopyBlocksBefore(line: Int) = firstLevelBlocks.filter { copyBlock -> copyBlock.end <= line }
+
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+        if (other !is CopyBlocks) return false
+        return this.hashCode() == other.hashCode()
+    }
+
+    override fun hashCode(): Int {
+        var result = copyBlocks.hashCode()
+        result = 31 * result + revertOrderedCopyBlocks.hashCode()
+        result = 31 * result + blocksStack.hashCode()
+        return result
+    }
 }

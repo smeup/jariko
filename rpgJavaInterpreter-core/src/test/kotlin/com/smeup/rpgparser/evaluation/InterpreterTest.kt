@@ -30,6 +30,7 @@ import com.smeup.rpgparser.utils.getRootCause
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.io.File
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -2696,5 +2697,86 @@ Test 6
         val doStmt = cu.main.stmts.first()
         assertEquals(4, doStmt.position?.start?.line)
         assertEquals(6, doStmt.position?.end?.line)
+    }
+
+    /**
+     * Test that we always produce the same CU when calling the same PGM multiple times.
+     */
+    @Test
+    fun testCUCreationIdempotence() {
+        val callerCUs = mutableListOf<CompilationUnit>()
+        val calleeCUs = mutableListOf<CompilationUnit>()
+        val configuration = Configuration().apply {
+            jarikoCallback.onEnterPgm = { name, st ->
+                val pgm = MainExecutionContext.getProgramStack().peek()
+                val targetPool = if (pgm.name == "CALLDEF01") callerCUs else calleeCUs
+                targetPool.add(pgm.cu)
+            }
+        }
+
+        executePgm("CALLDEF01", configuration = configuration)
+        executePgm("CALLDEF01", configuration = configuration)
+
+        assertEquals(2, callerCUs.size)
+        assertEquals(2, calleeCUs.size)
+
+        val (caller1, caller2) = callerCUs
+        assertEquals(caller1, caller2)
+
+        val (callee1, callee2) = calleeCUs
+        assertEquals(callee1, callee2)
+    }
+
+    /**
+     * Test that we always produce the same CU when calling the same PGM multiple times for all the meaningful programs in resources.
+     */
+    @Test
+    fun testResourcesCUCreationIdempotence() {
+        val resourcesDir = File("src/test/resources")
+        val erroringPrograms = mutableListOf<String>()
+
+        var matched = 0
+        val candidates = resourcesDir.listFiles()!!.filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") }
+        candidates.forEachIndexed { index, file ->
+            val oneBasedIndex = index + 1
+            val progress = oneBasedIndex.toDouble() / candidates.size.toDouble() * 100
+            val percentage = String.format("%.2f", progress) + '%'
+            println("Testing CUs idempotence for program ${file.name} - $oneBasedIndex of ${candidates.size} ($percentage) ")
+
+            val name = file.nameWithoutExtension
+            val firstRun = mutableListOf<CompilationUnit>()
+            val secondRun = mutableListOf<CompilationUnit>()
+
+            val firstRunConfig = Configuration().apply {
+                jarikoCallback.onEnterPgm = { name, st ->
+                    val pgm = MainExecutionContext.getProgramStack().peek()
+                    firstRun.add(pgm.cu)
+                }
+            }
+
+            val secondRunConfig = Configuration().apply {
+                jarikoCallback.onEnterPgm = { name, st ->
+                    val pgm = MainExecutionContext.getProgramStack().peek()
+                    secondRun.add(pgm.cu)
+                }
+            }
+
+            // Execute first time
+            try {
+                executePgm(name, configuration = firstRunConfig)
+            } catch (_: Exception) {
+                erroringPrograms.add(name)
+                return@forEachIndexed
+            }
+
+            // Execute second time, we can assume we won't get any error
+            executePgm(file.nameWithoutExtension, configuration = secondRunConfig)
+
+            assertEquals(firstRun, secondRun)
+            ++matched
+        }
+
+        println("Finished with ${erroringPrograms.size} erroring programs: ${erroringPrograms.joinToString()}")
+        println("Successfully matched $matched programs")
     }
 }
