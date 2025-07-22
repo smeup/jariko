@@ -2697,4 +2697,32 @@ Test 6
         assertEquals(4, doStmt.position?.start?.line)
         assertEquals(6, doStmt.position?.end?.line)
     }
+
+    /**
+     * Test that we always produce the same CU when calling the same PGM multiple times.
+     */
+    @Test
+    fun testCUCreationIdempotence() {
+        val callerCUs = mutableListOf<CompilationUnit>()
+        val calleeCUs = mutableListOf<CompilationUnit>()
+        val configuration = Configuration().apply {
+            jarikoCallback.onEnterPgm = { name, st ->
+                val pgm = MainExecutionContext.getProgramStack().peek()
+                val targetPool = if (pgm.name == "CALLDEF01") callerCUs else calleeCUs
+                targetPool.add(pgm.cu)
+            }
+        }
+
+        executePgm("CALLDEF01", configuration = configuration)
+        executePgm("CALLDEF01", configuration = configuration)
+
+        assertEquals(2, callerCUs.size)
+        assertEquals(2, calleeCUs.size)
+
+        val (caller1, caller2) = callerCUs
+        assertEquals(caller1, caller2)
+
+        val (callee1, callee2) = calleeCUs
+        assertEquals(callee1, callee2)
+    }
 }
