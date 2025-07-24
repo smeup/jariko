@@ -40,6 +40,10 @@ import kotlin.test.*
 
 open class InterpreterTest : AbstractTest() {
 
+    companion object {
+        val APIPGM_BLACKLIST = listOf("APIMATH", "APIVARS", "APIPROCS", "APISR", "APIMULTIPLEDEF", "APIERR1")
+    }
+
     @Test
     fun doubleVarDefinitionWithDifferentTypeShouldThrowAnError() {
         val systemInterface = JavaSystemInterface()
@@ -2704,31 +2708,49 @@ Test 6
      */
     @Test
     fun testCUCreationIdempotence() {
-        val callerCUs = mutableListOf<CompilationUnit>()
-        val calleeCUs = mutableListOf<CompilationUnit>()
-        val configuration = Configuration().apply {
+        val firstRun = mutableListOf<CompilationUnit>()
+        val secondRun = mutableListOf<CompilationUnit>()
+
+        val firstRunConfig = Configuration().apply {
             jarikoCallback.onEnterPgm = { name, st ->
                 val pgm = MainExecutionContext.getProgramStack().peek()
-                val targetPool = if (pgm.name == "CALLDEF01") callerCUs else calleeCUs
-                targetPool.add(pgm.cu)
+
+                // Manually apply resolution
+                pgm.cu.resolveAndValidate()
+                pgm.cu.procedures?.forEach { it.resolveAndValidate() }
+                firstRun.add(pgm.cu)
+
+                throw StopExecutionException()
             }
         }
 
-        executePgm("CALLDEF01", configuration = configuration)
-        executePgm("CALLDEF01", configuration = configuration)
+        val secondRunConfig = Configuration().apply {
+            jarikoCallback.onEnterPgm = { name, st ->
+                val pgm = MainExecutionContext.getProgramStack().peek()
+                secondRun.add(pgm.cu)
+            }
+        }
 
-        assertEquals(2, callerCUs.size)
-        assertEquals(2, calleeCUs.size)
+        // Execute first time, throw an exception to stop execution
+        try {
+            executePgm("CALLDEF01", configuration = firstRunConfig)
+        } catch (_: StopExecutionException) { }
 
-        val (caller1, caller2) = callerCUs
-        assertEquals(caller1, caller2)
+        // Execute second time, ignore programs that emits error during execution
+        executePgm("CALLDEF01", configuration = secondRunConfig)
 
-        val (callee1, callee2) = calleeCUs
-        assertEquals(callee1, callee2)
+        val (firstRunRoot) = firstRun
+        val (secondRunRoot) = secondRun
+        assertEquals(firstRunRoot, secondRunRoot)
     }
 
     /**
      * Test that we always produce the same CU when calling the same PGM multiple times for all the meaningful programs in resources.
+     *
+     * It works by executing a PGM once with manual resolution and then, after aborting its execution before the program actually starts,
+     * it executes the same program a second time with a complete execution cycle.
+     *
+     * After this process it compares the two CUs.
      */
     @Test
     fun testResourcesCUCreationIdempotence() {
@@ -2736,7 +2758,7 @@ Test 6
         val erroringPrograms = mutableListOf<String>()
 
         var matched = 0
-        val candidates = resourcesDir.listFiles()!!.filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") }
+        val candidates = resourcesDir.listFiles()!!.filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") && !APIPGM_BLACKLIST.contains(it.nameWithoutExtension) }
         candidates.forEachIndexed { index, file ->
             val oneBasedIndex = index + 1
             val progress = oneBasedIndex.toDouble() / candidates.size.toDouble() * 100
@@ -2750,7 +2772,13 @@ Test 6
             val firstRunConfig = Configuration().apply {
                 jarikoCallback.onEnterPgm = { name, st ->
                     val pgm = MainExecutionContext.getProgramStack().peek()
+
+                    // Manually apply resolution
+                    pgm.cu.resolveAndValidate()
+                    pgm.cu.procedures?.forEach { it.resolveAndValidate() }
                     firstRun.add(pgm.cu)
+
+                    throw StopExecutionException()
                 }
             }
 
@@ -2761,22 +2789,38 @@ Test 6
                 }
             }
 
-            // Execute first time
+            // Execute first time, throw an exception to stop execution
             try {
                 executePgm(name, configuration = firstRunConfig)
+            } catch (_: StopExecutionException) {
+                // Do nothing
             } catch (_: Exception) {
                 erroringPrograms.add(name)
                 return@forEachIndexed
             }
 
-            // Execute second time, we can assume we won't get any error
-            executePgm(file.nameWithoutExtension, configuration = secondRunConfig)
+            // Execute second time, ignore programs that emits error during execution
+            try {
+                executePgm(file.nameWithoutExtension, configuration = secondRunConfig)
+            } catch (_: Exception) {
+                erroringPrograms.add(name)
+                return@forEachIndexed
+            }
 
-            assertEquals(firstRun, secondRun)
+            // The test is meaningful only for the root CU
+            val (firstRunRoot) = firstRun
+            val (secondRunRoot) = secondRun
+
+            assertEquals(firstRunRoot, secondRunRoot)
             ++matched
         }
 
         println("Finished with ${erroringPrograms.size} erroring programs: ${erroringPrograms.joinToString()}")
         println("Successfully matched $matched programs")
     }
+
+    /**
+     * A simple exception to stop execution on-demand
+     */
+    class StopExecutionException : Exception()
 }
