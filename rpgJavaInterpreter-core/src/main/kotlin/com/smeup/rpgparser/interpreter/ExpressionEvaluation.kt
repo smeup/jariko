@@ -151,7 +151,10 @@ class ExpressionEvaluation(
         val decDigits = expression.decDigits.evalWith(this).asInt().value
         val valueAsString = expression.value.evalWith(this).asString().value
         val valueAsBigDecimal = valueAsString.asBigDecimal()
-        valueAsBigDecimal ?: throw ProgramStatusCode.INVALID_CHARACTERS.toThrowable("value: $valueAsString", expression.position)
+        valueAsBigDecimal ?: throw ProgramStatusCode.INVALID_CHARACTERS.toThrowable(
+            additionalInformation = "value: $valueAsString",
+            position = expression.position
+        )
 
         return@proxyLogging if (decDigits == 0L) {
             IntValue(valueAsBigDecimal.toLong())
@@ -623,8 +626,12 @@ class ExpressionEvaluation(
         val v2 = expression.right.evalWith(this)
         require(v1 is NumberValue && v2 is NumberValue)
 
-        if (v2.bigDecimal.isZero())
-            throw ProgramStatusCode.DIVIDE_BY_ZERO.toThrowable("v1: $v1, v2: $v2", expression.position)
+        if (v2.bigDecimal.isZero()) {
+            throw ProgramStatusCode.DIVIDE_BY_ZERO.toThrowable(
+                additionalInformation = "v1: $v1, v2: $v2",
+                position = expression.position
+            )
+        }
 
         // Detects what kind of eval must be evaluated
         val res = if (expression.parent is EvalStmt) {
@@ -816,7 +823,10 @@ class ExpressionEvaluation(
         val value = evalAsDecimal(expression.value)
         val sqrt = sqrt(value.toDouble())
         if (sqrt.isNaN()) {
-            ProgramStatusCode.NEGATIVE_SQUARE_ROOT.toThrowable("value: $value", expression.position)
+            ProgramStatusCode.NEGATIVE_SQUARE_ROOT.toThrowable(
+                additionalInformation = "value: $value",
+                position = expression.position
+            )
         }
         BigDecimal.valueOf(sqrt).asValue()
     }
