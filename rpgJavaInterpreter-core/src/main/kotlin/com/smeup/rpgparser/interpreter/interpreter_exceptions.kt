@@ -17,6 +17,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.ast.Statement
 import com.strumenta.kolasu.model.Position
 
 // TODO: Convert current thrown exception to ProgramStatusCode based ones
@@ -104,7 +105,7 @@ enum class ProgramStatusCode(val code: String, val description: String) {
     INTERNAL_COMPILER_FAILURE("09998", "Internal failure in ILE RPG compiler or in run-time subroutines"),
     EXCEPTION_MESSAGE_RECEIVED("09999", "Exception message received by procedure");
 
-    fun toThrowable(additionalInformation: String? = null, position: Position? = null) = InterpreterProgramStatusErrorException(this, position, additionalInformation)
+    fun toThrowable(additionalInformation: String? = null, statement: Statement? = null, position: Position? = null) = InterpreterProgramStatusErrorException(this, statement, position, additionalInformation)
 
     fun matches(status: String): Boolean {
         val codeValue = code.toInt()
@@ -117,6 +118,19 @@ enum class ProgramStatusCode(val code: String, val description: String) {
     }
 }
 
-class InterpreterProgramStatusErrorException(val statusCode: ProgramStatusCode, var position: Position?, additionalInformation: String? = null) : RuntimeException(
+/**
+ * RPGLE interpreter errors.
+ * Can be caught by [com.smeup.rpgparser.parsing.ast.MonitorStmt]s.
+ */
+data class InterpreterProgramStatusErrorException(
+    /** Status code of the error. */
+    val statusCode: ProgramStatusCode,
+    /** The statement in which the error occurred. */
+    var statement: Statement?,
+    /** The source position in which the error occurred. */
+    var position: Position?,
+    /** Additional information about the error. */
+    val additionalInformation: String? = null
+) : RuntimeException(
     additionalInformation?.let { "${statusCode.description} - $it" } ?: statusCode.description
 )
