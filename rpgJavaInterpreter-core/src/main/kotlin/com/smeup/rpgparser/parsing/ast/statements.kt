@@ -1033,20 +1033,18 @@ data class CallStmt(
         val start = System.nanoTime()
         try {
             val program: Program?
-            val callIssueException =
-                ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable("Could not find program $programToCall", position)
             try {
                 program = interpreter.getSystemInterface().findProgram(programToCall)
                 if (errorIndicator != null) {
                     interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
                 }
             } catch (e: Exception) {
-                errorIndicator ?: throw callIssueException
+                errorIndicator ?: throw buildProgramNotFoundException(programToCall)
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 return
             }
 
-            program ?: throw callIssueException
+            program ?: throw buildProgramNotFoundException(programToCall)
             if (program is RpgProgram) {
                 MainExecutionContext.getProgramStack().push(program)
             }
@@ -1169,6 +1167,16 @@ data class CallStmt(
                 sep -> "${this.loggableEntityName}$sep${expression.render()}"
         }
     }
+
+    /**
+     * Build a program not found exception for a called program.
+     * @param programName The name of the program we are attempting to call.
+     */
+    private fun buildProgramNotFoundException(programName: String) = ProgramStatusCode.ERROR_CALLING_PROGRAM.toThrowable(
+        additionalInformation = "Could not find program $programName",
+        statement = this,
+        position = position
+    )
 }
 
 @Serializable

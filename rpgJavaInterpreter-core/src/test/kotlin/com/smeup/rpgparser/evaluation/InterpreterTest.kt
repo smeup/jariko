@@ -2820,6 +2820,21 @@ Test 6
     }
 
     /**
+     * Test the format of an uncaught error arose by a not found program.
+     */
+    @Test
+    fun testUncaughtMonitorErrorFormat() {
+        try {
+            executePgm("CALLMISSING")
+        } catch (e: RuntimeException) {
+            assertIs<InterpreterProgramStatusErrorException>(e.cause)
+            assertEquals(e.message, "Program CALLMISSING - Issue executing CallStmt at line 7. Error calling program or procedure - Could not find program MISSING")
+        } catch (e: Exception) {
+            fail("got unexpected exception: $e")
+        }
+    }
+
+    /**
      * A simple exception to stop execution on-demand
      */
     class StopExecutionException : Exception()

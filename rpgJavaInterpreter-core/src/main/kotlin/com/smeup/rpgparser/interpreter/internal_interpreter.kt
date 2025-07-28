@@ -444,8 +444,16 @@ open class InternalInterpreter(
             }.exceptionOrNull()
         }
 
-        // If the GOTO-flow threw a different exception, dispatch it to the parent flow
-        throwable?.let { throw it }
+        // Deal with non GOTO exceptions
+        throwable?.let {
+            when (it) {
+                // If we got a non-caught interpreter error (missing MONITOR), convert it to a RuntimeException
+                is InterpreterProgramStatusErrorException ->
+                    throw RuntimeException(errorDescription(it.statement!!, it), it).fireErrorEvent(it.position)
+                // If the GOTO-flow threw a different exception, dispatch it to the parent flow
+                else -> throw it
+            }
+        }
     }
 
     fun execute(
@@ -526,7 +534,7 @@ open class InternalInterpreter(
              * Program status error not caught from MONITOR statements should end up here
              * We should treat these cases as common Jariko runtime errors
              */
-            throw e.fireErrorEvent(e.position)
+            throw e
         }
     }
 
@@ -578,7 +586,8 @@ open class InternalInterpreter(
         } catch (e: ControlFlowException) {
             throw e
         } catch (e: InterpreterProgramStatusErrorException) {
-            // If position is not set, consider it to be the statement position
+            // If statement information are unknown, inject them here
+            if (e.statement == null) e.statement = statement
             if (e.position == null) e.position = statement.position
             throw e
         } catch (e: IllegalArgumentException) {
