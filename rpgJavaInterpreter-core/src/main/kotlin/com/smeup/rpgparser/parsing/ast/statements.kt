@@ -147,8 +147,6 @@ abstract class Statement(
         return (before + after).toMutableList()
     }
 
-    open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
-
     var indicatorCondition: IndicatorCondition? = null
     var continuedIndicators: HashMap<IndicatorKey, ContinuedIndicator> = HashMap<IndicatorKey, ContinuedIndicator>()
 
