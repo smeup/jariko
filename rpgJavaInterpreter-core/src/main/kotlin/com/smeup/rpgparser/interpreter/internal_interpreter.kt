@@ -449,7 +449,7 @@ open class InternalInterpreter(
             when (it) {
                 // If we got a non-caught interpreter error (missing MONITOR), convert it to a RuntimeException
                 is InterpreterProgramStatusErrorException ->
-                    throw RuntimeException(errorDescription(it.statement!!, it), it).fireErrorEvent(it.position)
+                    throw RuntimeException(it.statement!!.errorDescription(it), it).fireErrorEvent(it.position)
                 // If the GOTO-flow threw a different exception, dispatch it to the parent flow
                 else -> throw it
             }
@@ -593,15 +593,15 @@ open class InternalInterpreter(
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
             if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+                throw IllegalArgumentException(statement.errorDescription(e), e).fireErrorEvent(statement.position)
             }
             throw e
         } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+            throw RuntimeException(statement.errorDescription(e), e).fireErrorEvent(statement.position)
         } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+            throw RuntimeException(statement.errorDescription(e), e).fireErrorEvent(statement.position)
         } catch (t: Throwable) {
-            throw RuntimeException(errorDescription(statement, t), t).fireErrorEvent(statement.position)
+            throw RuntimeException(statement.errorDescription(t), t).fireErrorEvent(statement.position)
         } finally {
             if (statement.muteAnnotations.isNotEmpty()) {
                 executeMutes(
@@ -817,9 +817,6 @@ open class InternalInterpreter(
             getIndicators()[it] = eq
         }
     }
-
-    private fun errorDescription(statement: Statement, throwable: Throwable) =
-        "Program ${getInterpretationContext().currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
     override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
         if (!record.isEmpty()) {
@@ -1210,6 +1207,14 @@ open class InternalInterpreter(
         }
 
         trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
+    }
+
+    /**
+     * Produce the error description associated to this statement
+     */
+    private fun Statement.errorDescription(throwable: Throwable): String {
+        val source = this.position!!.relative().second
+        return "Program ${getInterpretationContext().currentProgramName} - Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} of $source.\n${throwable.message}"
     }
 
     override fun onInterpretationEnd() {
