@@ -2828,7 +2828,32 @@ Test 6
             executePgm("CALLMISSING")
         } catch (e: RuntimeException) {
             assertIs<InterpreterProgramStatusErrorException>(e.cause)
-            assertEquals(e.message, "Program CALLMISSING - Issue executing CallStmt at line 7. Error calling program or procedure - Could not find program MISSING")
+            val expected = buildString {
+                appendLine("Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).")
+                append("Error calling program or procedure - Could not find program MISSING")
+            }
+            assertEquals(expected, e.message)
+        } catch (e: Exception) {
+            fail("got unexpected exception: $e")
+        }
+    }
+
+    /**
+     * Test the format of an uncaught error arose by a not found program in a complete stack.
+     */
+    @Test
+    fun testUncaughtMonitorErrorFormatWithCopy() {
+        // Without debuggingInformation relative lines are reported as absolute lines
+        val options = Options(debuggingInformation = true)
+        try {
+            executePgm("CMISSROOT", configuration = Configuration(options = options))
+        } catch (e: RuntimeException) {
+            val expected = buildString {
+                appendLine("Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).")
+                appendLine("Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, Column 25, end=Line 8, Column 81)).")
+                append("Error calling program or procedure - Could not find program MISSING")
+            }
+            assertEquals(expected, e.message)
         } catch (e: Exception) {
             fail("got unexpected exception: $e")
         }

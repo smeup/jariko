@@ -360,7 +360,8 @@ open class RpgParserDataStruct : AbstractTest() {
     @Test
     fun executeSTRUCT_09MustFail() {
         val expectedErrors = listOf(
-            "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be a DS defined with OCCURS keyword"
+            "Program STRUCT_09 - Issue executing OccurStmt at absolute line 10 of SourceReference(sourceReferenceType=Program, sourceId=STRUCT_09, relativeLine=10, position=Position(start=Line 10, Column 25, end=Line 10, Column 81)).\n" +
+                    "OCCUR not supported. DS2 must be a DS defined with OCCURS keyword"
         )
         testError(exampleName = "struct/STRUCT_09", expectedErrors = expectedErrors)
     }
@@ -379,7 +380,8 @@ open class RpgParserDataStruct : AbstractTest() {
     @Test
     fun executeSTRUCT_1BMustFail() {
         val expectedErrors = listOf(
-            "Program STRUCT_1B - Issue executing OccurStmt at line 12. occurrence value: 11 cannot be greater than occurs: 10"
+            "Program STRUCT_1B - Issue executing OccurStmt at absolute line 12 of SourceReference(sourceReferenceType=Program, sourceId=STRUCT_1B, relativeLine=12, position=Position(start=Line 12, Column 25, end=Line 12, Column 85)).\n" +
+                    "occurrence value: 11 cannot be greater than occurs: 10"
         )
         testError(exampleName = "struct/STRUCT_1B", expectedErrors = expectedErrors)
     }
