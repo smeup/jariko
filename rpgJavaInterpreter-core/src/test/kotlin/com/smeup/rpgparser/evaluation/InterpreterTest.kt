@@ -2860,6 +2860,24 @@ Test 6
     }
 
     /**
+     * Execute a custom initialization for [RpgProgram].
+     */
+    @Test
+    fun executeCustomRpgProgramInit() {
+        val si = CollectorSystemInterface()
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolveAndValidate()
+
+        var customExecution = false
+        val init = { _: CompilationUnit -> customExecution = true }
+        val rpgProgram = RpgProgram(cu, "CALCFIB", init)
+        val params = linkedMapOf<String, Value>("ppdat" to StringValue("10"))
+        rpgProgram.execute(si, params)
+
+        assertTrue(customExecution)
+    }
+
+    /**
      * A simple exception to stop execution on-demand
      */
     class StopExecutionException : Exception()
