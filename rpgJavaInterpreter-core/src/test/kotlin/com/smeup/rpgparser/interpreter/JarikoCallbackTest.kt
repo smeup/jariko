@@ -28,6 +28,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.smeup.dbmock.TABDS01LDbMock
+import com.smeup.rpgparser.utils.DataAreaException
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
@@ -561,20 +562,6 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR23SourceLineTest() {
         executeSourceLineTest("ERROR23")
-    }
-
-    @Test
-    fun executeERROR27CallBackTest() {
-        executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-            10 to "No element of the collection was transformed to a non-null value.",
-            11 to "An operation is not implemented: IN£UDLDA                           \n" +
-                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
-        ))
-    }
-
-    @Test
-    fun executeERROR27SourceLineTest() {
-        executeSourceLineTest("ERROR27")
     }
 
     @Test
@@ -1655,6 +1642,74 @@ class JarikoCallbackTest : AbstractTest() {
         // Assert that both encoding and general error callbacks were triggered
         Assert.assertTrue(enteredInOnCompilationUnitEncodingError)
         Assert.assertTrue(enteredInOnError)
+    }
+
+    /**
+     * Test data area read callback.
+     */
+    @Test
+    fun testDataAreaRead() {
+        var match = ""
+        var current = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { external, value ->
+                match = external
+                current = value
+                "READ"
+            }
+        }
+
+        val expected = listOf("READ")
+        val actual = "DTAREAREAD".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+
+        assertEquals("C£C£E00D", match)
+        assertEquals("CURRENT", current.trim())
+    }
+
+    /**
+     * Test data area read callback with indicators.
+     */
+    @Test
+    fun testDataAreaReadIndicator() {
+        var match = ""
+        var current = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { external, value ->
+                match = external
+                current = value
+                throw DataAreaException("Could not find data area")
+            }
+        }
+
+        val expected = listOf("CURRENT", "1")
+        val actual = "DTAREAREADIND".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+
+        assertEquals("C£C£E00D", match)
+        assertEquals("CURRENT", current.trim())
+    }
+
+    /**
+     * Test data area write callback.
+     */
+    @Test
+    fun testDataAreaWrite() {
+        var match = ""
+        var written = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.writeDataArea = { external, value ->
+                match = external
+                written = value
+            }
+        }
+
+        val expected = listOf("WRITTEN")
+        val actual = "DTAREAWRITE".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+
+        assertEquals("C£C£E00D", match)
+        assertEquals("WRITTEN", written.trim())
     }
 
     private fun createMockReloadConfig(): ReloadConfig {
