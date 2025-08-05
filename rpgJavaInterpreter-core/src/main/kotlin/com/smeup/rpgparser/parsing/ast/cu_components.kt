@@ -39,6 +39,7 @@ data class CompilationUnit(
     val subroutines: List<Subroutine>,
     val compileTimeArrays: List<CompileTimeArray>,
     val directives: List<Directive>,
+    val dataAreas: Map<String, String>,
     override val position: Position?,
     val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
     // This way we say to not consider these nodes as part of compilation unit, this annotation is
@@ -78,6 +79,7 @@ data class CompilationUnit(
             subroutines = emptyList(),
             compileTimeArrays = emptyList(),
             directives = emptyList(),
+            dataAreas = mapOf(),
             position = null,
             procedures = emptyList()
         )
