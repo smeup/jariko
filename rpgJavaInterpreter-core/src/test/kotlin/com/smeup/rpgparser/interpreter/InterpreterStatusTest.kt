@@ -39,8 +39,8 @@ class InterpreterStatusTest {
         Class.forName("org.hsqldb.jdbc.JDBCDriver")
         connection = DriverManager.getConnection("jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb", "SA", "")
         mainSymbolTable = SymbolTable()
-        interpreterStatus = InterpreterStatus(symbolTable = mainSymbolTable, indicators = HashMap())
-        functionStatus = InterpreterStatus(symbolTable = SymbolTable(), indicators = HashMap()).apply {
+        interpreterStatus = InterpreterStatus(symbolTable = mainSymbolTable, indicators = HashMap(), mapOf())
+        functionStatus = InterpreterStatus(symbolTable = SymbolTable(), indicators = HashMap(), mapOf()).apply {
             indicators = interpreterStatus.indicators
             klists = interpreterStatus.klists
             dbFileMap = interpreterStatus.dbFileMap
