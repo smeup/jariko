@@ -87,7 +87,7 @@ open class InternalInterpreter(
         this._interpretationContext = interpretationContext
     }
 
-    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>())
+    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>(), mapOf())
     override fun getStatus(): InterpreterStatus {
         return status
     }
@@ -465,7 +465,8 @@ open class InternalInterpreter(
         kotlin.runCatching {
             configureLogHandlers()
 
-            this.status.displayFiles = compilationUnit.displayFiles
+            status.dataAreas = compilationUnit.dataAreas
+            status.displayFiles = compilationUnit.displayFiles
             status.callerParams = callerParams.size
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
