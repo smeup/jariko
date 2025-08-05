@@ -354,6 +354,27 @@ data class JarikoCallback(
     },
 
     /**
+     * It is invoked whenever we want to read a data area.
+     * Returns the value that was read from the data area.
+     *
+     * @param dataAreaName The name of the data area to read.
+     * @param value The current value associated with the data reference.
+     *
+     * @see InStmt
+     */
+    var readDataArea: ((dataAreaName: String, value: String) -> String) = { _, value -> value },
+
+    /**
+     * It is invoked whenever we want to write to a data area.
+     *
+     * @param dataAreaName The name of the data area to which we want to write.
+     * @param value The value we want to write to the data area.
+     *
+     * @see OutStmt
+     */
+    var writeDataArea: ((dataAreaName: String, value: String) -> Unit) = { _, _ -> },
+
+    /**
      * Creates a `DataStructValueBuilder` based on the provided value and data structure type.
      * The default implementation creates an `IndexedStringBuilder` for data structures with 100 or more fields
      * and all fields are arrays, elsewhere it creates a `StringBuilderWrapper`.
