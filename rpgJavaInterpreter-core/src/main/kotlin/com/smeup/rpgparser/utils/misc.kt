@@ -22,6 +22,7 @@ import com.smeup.rpgparser.parsing.ast.TagStmt
 import com.smeup.rpgparser.parsing.ast.UnwrappedStatementData
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ancestor
+import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.util.*
 import kotlin.system.measureTimeMillis
@@ -207,4 +208,11 @@ internal fun getRootCause(t: Throwable): Throwable {
         return getRootCause(t.cause!!)
     }
     return t
+}
+
+/**
+ * Exception thrown when something is wrong with data area related operations.
+ */
+data class DataAreaException(override val message: String) : RuntimeException(message) {
+    override fun fillInStackTrace(): Throwable = this
 }
