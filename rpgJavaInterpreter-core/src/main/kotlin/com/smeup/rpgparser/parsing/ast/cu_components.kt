@@ -69,6 +69,7 @@ data class CompilationUnit(
     /** The display files associated with this CU. */
     val displayFiles: Map<String, DSPF>? = null
 ) : Node(position) {
+    val isProcedure get() = procedureName != null
 
     val resolvedProfilingAnnotations: List<ProfilingAnnotationResolved> by lazy {
         val statements = main.stmts.explode(true)

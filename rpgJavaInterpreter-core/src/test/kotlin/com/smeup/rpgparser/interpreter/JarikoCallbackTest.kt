@@ -1668,6 +1668,49 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
+     * Test data area read and write callback on procedures.
+     */
+    @Test
+    fun testDataAreaProcedures() {
+        var matchRead = ""
+        var currentRead = ""
+
+        var matchWrite = ""
+        var currentWrite = ""
+
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { external, value ->
+                matchRead = external
+                currentRead = value
+                "READ"
+            }
+
+            jarikoCallback.writeDataArea = { external, value ->
+                matchWrite = external
+                currentWrite = value
+                "WRITE"
+            }
+        }
+
+        executePgm("DTAREAPROC", configuration = configuration)
+        assertEquals(matchRead, "APU001D1")
+        assertEquals(matchWrite, "APU001D1")
+        assert(currentRead.isBlank())
+        assert(currentWrite.startsWith("Bar "))
+    }
+
+    /**
+     * Test data area define inside procedures.
+     * It should fail at runtime time when trying to read
+     */
+    @Test
+    fun testDataAreaWithDefineInProcedures() {
+        assertFails {
+            executePgm("DTAREAINPROC")
+        }
+    }
+
+    /**
      * Test data area read callback with indicators.
      */
     @Test
