@@ -3126,3 +3126,81 @@ data class CsqlEndStmt(
 
     override fun execute(interpreter: InterpreterCore) {}
 }
+
+/**
+ * The IN operation code copies data from an external source into internal indicators.
+ * It is typically used to load indicator values from an external data structure 
+ * into the system's internal *IN indicator array.
+ * 
+ * @param factor1 Optional factor 1 - typically a device name or qualifier (currently not used)
+ * @param factor2 Required factor 2 - the data structure or array name to copy from
+ */
+@Serializable
+data class InStmt(
+    val factor1: Expression? = null,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "IN"
+
+    override fun execute(interpreter: InterpreterCore) {
+        // Get the source array/data structure from factor2
+        val sourceValue = interpreter.eval(factor2)
+        
+        // Convert to array if needed
+        val sourceArray = when {
+            sourceValue.isArray() -> sourceValue.asArray()
+            else -> {
+                // If it's not an array, treat it as a single element array
+                ConcreteArrayValue(listOf(sourceValue), sourceValue.type())
+            }
+        }
+        
+        // Copy the values to the internal indicators
+        val indicators = interpreter.getIndicators()
+        val maxIndex = minOf(sourceArray.arrayLength(), 99) // *IN01 to *IN99
+        
+        for (i in 1..maxIndex) {
+            val indicatorKey = i
+            val value = sourceArray.getElement(i)
+            indicators[indicatorKey] = value.asBoolean()
+        }
+    }
+}
+
+/**
+ * The OUT operation code copies data from internal indicators to an external destination.
+ * It is typically used to store indicator values from the system's internal *IN 
+ * indicator array into an external data structure.
+ * 
+ * @param factor1 Optional factor 1 - typically a device name or qualifier (currently not used)
+ * @param factor2 Required factor 2 - the data structure or array name to copy to
+ */
+@Serializable
+data class OutStmt(
+    val factor1: Expression? = null,
+    val factor2: AssignableExpression,
+    override val position: Position? = null
+) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "OUT"
+
+    override fun execute(interpreter: InterpreterCore) {
+        // Get the current indicator values
+        val indicators = interpreter.getIndicators()
+        
+        // Create an array with the indicator values (*IN01 to *IN99)
+        val indicatorValues = mutableListOf<Value>()
+        for (i in 1..99) {
+            val indicatorValue = indicators[i] ?: BooleanValue.FALSE
+            indicatorValues.add(indicatorValue)
+        }
+        
+        // Create the array value
+        val targetArray = ConcreteArrayValue(indicatorValues, BooleanType)
+        
+        // Assign to the target
+        interpreter.assign(factor2, targetArray)
+    }
+}

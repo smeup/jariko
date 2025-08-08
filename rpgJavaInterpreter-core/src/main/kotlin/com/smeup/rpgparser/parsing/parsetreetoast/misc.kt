@@ -1060,6 +1060,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csDEALLOC() != null -> this.csDEALLOC()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csIN() != null -> this.csIN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csOUT() != null -> this.csOUT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -2230,6 +2236,45 @@ internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 internal fun CsDEALLOCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return DeallocStmt(position = position)
+}
+
+internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InStmt {
+    val position = toPosition(conf.considerPosition)
+    
+    // Factor1 is optional (device name or qualifier)
+    val factor1 = if (this.cspec_fixed_standard_parts().factor1.text.isNotBlank()) {
+        this.cspec_fixed_standard_parts().factor1Expression(conf)
+    } else {
+        null
+    }
+    
+    // Factor2 is required (data structure or array name)  
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) 
+        ?: this.todo(message = "IN operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    
+    return InStmt(factor1, factor2, position)
+}
+
+internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OutStmt {
+    val position = toPosition(conf.considerPosition)
+    
+    // Factor1 is optional (device name or qualifier)
+    val factor1 = if (this.cspec_fixed_standard_parts().factor1.text.isNotBlank()) {
+        this.cspec_fixed_standard_parts().factor1Expression(conf)
+    } else {
+        null
+    }
+    
+    // Factor2 is required (data structure or array name)  
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) 
+        ?: this.todo(message = "OUT operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    
+    // Factor2 must be assignable for OUT operation
+    require(factor2 is AssignableExpression) {
+        "OUT operation factor 2 must be assignable: ${this.text} - ${position.atLine()}"
+    }
+    
+    return OutStmt(factor1, factor2, position)
 }
 
 /**
