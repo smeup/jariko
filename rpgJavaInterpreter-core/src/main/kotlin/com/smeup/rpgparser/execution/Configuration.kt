@@ -368,7 +368,23 @@ data class JarikoCallback(
         } else {
             StringBuilderWrapper(value)
         }
-    }
+    },
+
+    /**
+     * It is invoked to read data from a data area.
+     * This callback is used by the IN opcode.
+     * @param dataAreaName The name of the data area to read from
+     * @return The data read from the data area, or null if not found
+     */
+    var readDataArea: ((dataAreaName: String) -> String?) = { _ -> null },
+
+    /**
+     * It is invoked to write data to a data area.
+     * This callback is used by the OUT opcode.
+     * @param dataAreaName The name of the data area to write to
+     * @param value The value to write to the data area
+     */
+    var writeDataArea: ((dataAreaName: String, value: String) -> Unit) = { _, _ -> }
 )
 
 /**

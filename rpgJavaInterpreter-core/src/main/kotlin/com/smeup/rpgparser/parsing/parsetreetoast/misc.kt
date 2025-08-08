@@ -1060,6 +1060,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csDEALLOC() != null -> this.csDEALLOC()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csIN() != null -> this.csIN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csOUT() != null -> this.csOUT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -2230,6 +2236,40 @@ internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 internal fun CsDEALLOCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return DeallocStmt(position = position)
+}
+
+internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InStmt {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = leftExpr(conf)
+    val dataAreaName = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: 
+        throw UnsupportedOperationException("IN operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val target = this.cspec_fixed_standard_parts().result.toAst(conf)
+    val errorIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    
+    return InStmt(
+        factor1 = factor1,
+        dataAreaName = dataAreaName,
+        target = target,
+        errorIndicator = errorIndicator,
+        position = position
+    )
+}
+
+internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OutStmt {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = leftExpr(conf)
+    val dataAreaName = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: 
+        throw UnsupportedOperationException("OUT operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val source = this.cspec_fixed_standard_parts().resultExpression(conf)
+    val errorIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
+    
+    return OutStmt(
+        factor1 = factor1,
+        dataAreaName = dataAreaName,
+        source = source,
+        errorIndicator = errorIndicator,
+        position = position
+    )
 }
 
 /**

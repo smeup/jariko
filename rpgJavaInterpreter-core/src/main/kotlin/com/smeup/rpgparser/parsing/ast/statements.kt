@@ -2039,6 +2039,86 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
 }
 
 @Serializable
+data class InStmt(
+    val factor1: Expression?,
+    val dataAreaName: Expression,
+    val target: AssignableExpression,
+    val errorIndicator: IndicatorKey? = null,
+    override val position: Position? = null
+) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "IN"
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataAreaNameStr = interpreter.eval(dataAreaName).asString().valueWithoutPadding
+        
+        // Check for *LOCK factor 1
+        val isLock = factor1?.let { 
+            interpreter.eval(it).asString().valueWithoutPadding.uppercase() == "*LOCK"
+        } ?: false
+        
+        try {
+            val data = MainExecutionContext.getConfiguration().jarikoCallback.readDataArea(dataAreaNameStr)
+            if (data != null) {
+                val value = StringValue(data)
+                interpreter.assign(target, value)
+                // Success - clear error indicator if present
+                errorIndicator?.let { 
+                    interpreter.getIndicators()[it] = BooleanValue.FALSE
+                }
+            } else {
+                // Data area not found - set error indicator
+                errorIndicator?.let {
+                    interpreter.getIndicators()[it] = BooleanValue.TRUE
+                }
+            }
+        } catch (e: Exception) {
+            // Error occurred - set error indicator
+            errorIndicator?.let {
+                interpreter.getIndicators()[it] = BooleanValue.TRUE
+            }
+            throw e
+        }
+    }
+}
+
+@Serializable  
+data class OutStmt(
+    val factor1: Expression?,
+    val dataAreaName: Expression,
+    val source: Expression,
+    val errorIndicator: IndicatorKey? = null,
+    override val position: Position? = null
+) : Statement(position) {
+    override val loggableEntityName: String
+        get() = "OUT"
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataAreaNameStr = interpreter.eval(dataAreaName).asString().valueWithoutPadding
+        val sourceValue = interpreter.eval(source).asString().valueWithoutPadding
+        
+        // Check for *LOCK factor 1  
+        val isLock = factor1?.let {
+            interpreter.eval(it).asString().valueWithoutPadding.uppercase() == "*LOCK"
+        } ?: false
+        
+        try {
+            MainExecutionContext.getConfiguration().jarikoCallback.writeDataArea(dataAreaNameStr, sourceValue)
+            // Success - clear error indicator if present
+            errorIndicator?.let {
+                interpreter.getIndicators()[it] = BooleanValue.FALSE
+            }
+        } catch (e: Exception) {
+            // Error occurred - set error indicator
+            errorIndicator?.let {
+                interpreter.getIndicators()[it] = BooleanValue.TRUE
+            }
+            throw e
+        }
+    }
+}
+
+@Serializable
 data class DOWxxStmt(
     val comparisonOperator: ComparisonOperator,
     val factor1: Expression,
