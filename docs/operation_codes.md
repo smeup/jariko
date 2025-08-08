@@ -93,3 +93,5 @@ In this document, we are going to list which **Operation Codes** are so far impl
 | CABGE | Full |
 | SQRT | Full |
 | DSPLY | Partial |
+| IN | Full |
+| OUT | Full |
