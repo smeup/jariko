@@ -2051,19 +2051,19 @@ data class InStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val dataAreaNameStr = interpreter.eval(dataAreaName).asString().valueWithoutPadding
-        
+
         // Check for *LOCK factor 1
-        val isLock = factor1?.let { 
+        val isLock = factor1?.let {
             interpreter.eval(it).asString().valueWithoutPadding.uppercase() == "*LOCK"
         } ?: false
-        
+
         try {
             val data = MainExecutionContext.getConfiguration().jarikoCallback.readDataArea(dataAreaNameStr)
             if (data != null) {
                 val value = StringValue(data)
                 interpreter.assign(target, value)
                 // Success - clear error indicator if present
-                errorIndicator?.let { 
+                errorIndicator?.let {
                     interpreter.getIndicators()[it] = BooleanValue.FALSE
                 }
             } else {
@@ -2082,7 +2082,7 @@ data class InStmt(
     }
 }
 
-@Serializable  
+@Serializable
 data class OutStmt(
     val factor1: Expression?,
     val dataAreaName: Expression,
@@ -2096,12 +2096,12 @@ data class OutStmt(
     override fun execute(interpreter: InterpreterCore) {
         val dataAreaNameStr = interpreter.eval(dataAreaName).asString().valueWithoutPadding
         val sourceValue = interpreter.eval(source).asString().valueWithoutPadding
-        
-        // Check for *LOCK factor 1  
+
+        // Check for *LOCK factor 1
         val isLock = factor1?.let {
             interpreter.eval(it).asString().valueWithoutPadding.uppercase() == "*LOCK"
         } ?: false
-        
+
         try {
             MainExecutionContext.getConfiguration().jarikoCallback.writeDataArea(dataAreaNameStr, sourceValue)
             // Success - clear error indicator if present

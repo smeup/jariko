@@ -2241,11 +2241,11 @@ internal fun CsDEALLOCContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InStmt {
     val position = toPosition(conf.considerPosition)
     val factor1 = leftExpr(conf)
-    val dataAreaName = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: 
-        throw UnsupportedOperationException("IN operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val dataAreaName = this.cspec_fixed_standard_parts().factor2Expression(conf)
+        ?: throw UnsupportedOperationException("IN operation requires factor 2: ${this.text} - ${position.atLine()}")
     val target = this.cspec_fixed_standard_parts().result.toAst(conf)
     val errorIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
-    
+
     return InStmt(
         factor1 = factor1,
         dataAreaName = dataAreaName,
@@ -2258,11 +2258,11 @@ internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()):
 internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OutStmt {
     val position = toPosition(conf.considerPosition)
     val factor1 = leftExpr(conf)
-    val dataAreaName = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: 
-        throw UnsupportedOperationException("OUT operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val dataAreaName = this.cspec_fixed_standard_parts().factor2Expression(conf)
+        ?: throw UnsupportedOperationException("OUT operation requires factor 2: ${this.text} - ${position.atLine()}")
     val source = this.cspec_fixed_standard_parts().resultExpression(conf)
     val errorIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
-    
+
     return OutStmt(
         factor1 = factor1,
         dataAreaName = dataAreaName,
