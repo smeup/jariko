@@ -1871,15 +1871,16 @@ internal fun CsDEFINEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 
 internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InStmt {
     val dataReference = this.cspec_fixed_standard_parts().factor2.text
-    val position = toPosition(conf.considerPosition)
     val indicators = this.cspec_fixed_standard_parts().rightIndicators()
+    val position = toPosition(conf.considerPosition)
     return InStmt(dataReference, indicators, position)
 }
 
 internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OutStmt {
     val dataReference = this.cspec_fixed_standard_parts().factor2.text
+    val indicators = this.cspec_fixed_standard_parts().rightIndicators()
     val position = toPosition(conf.considerPosition)
-    return OutStmt(dataReference, position)
+    return OutStmt(dataReference, indicators, position)
 }
 
 private fun QualifiedTargetContext.getFieldName(): String {

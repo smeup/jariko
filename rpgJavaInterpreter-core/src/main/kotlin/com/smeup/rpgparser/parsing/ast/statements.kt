@@ -1645,12 +1645,11 @@ data class InStmt(
         // Send read request
         val dataDefinition = interpreter.dataDefinitionByName(dataReference)!!
         val dataArea = interpreter.getStatus().getDataArea(dataReference)!!
-        val currentValue = interpreter[dataReference].asString().value
         try {
             // Update the value
-            val newValue = callback.readDataArea(dataArea, currentValue).asValue()
+            val newValue = callback.readDataArea(dataArea).asValue()
             interpreter.assign(dataDefinition, newValue)
-        } catch (e: DataAreaException) {
+        } catch (e: Exception) {
             // Turn on error indicator if present
             val errorIndicator = rightIndicators.lo
             errorIndicator ?: throw e
@@ -1667,15 +1666,24 @@ data class InStmt(
 @Serializable
 data class OutStmt(
     val dataReference: String,
+    val rightIndicators: WithRightIndicators,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), WithRightIndicators by rightIndicators {
     override val loggableEntityName = "OUT"
 
     override fun execute(interpreter: InterpreterCore) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val dataArea = interpreter.getStatus().getDataArea(dataReference)
         val value = interpreter[dataReference].asString().value
-        callback.writeDataArea(dataArea!!, value)
+        try {
+            // Write data to data area
+            callback.writeDataArea(dataArea!!, value)
+        } catch (e: Exception) {
+            // Turn on error indicator if present
+            val errorIndicator = rightIndicators.lo
+            errorIndicator ?: throw e
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+        }
     }
 
     override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {

@@ -362,7 +362,7 @@ data class JarikoCallback(
      *
      * @see InStmt
      */
-    var readDataArea: ((dataAreaName: String, value: String) -> String) = { _, value -> value },
+    var readDataArea: ((dataAreaName: String) -> String) = { throw IllegalStateException("Not implemented yet") },
 
     /**
      * It is invoked whenever we want to write to a data area.

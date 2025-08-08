@@ -28,9 +28,9 @@ import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.smeup.dbmock.TABDS01LDbMock
-import com.smeup.rpgparser.utils.DataAreaException
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
+import javassist.NotFoundException
 import org.junit.Assert
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -1649,12 +1649,10 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun testDataAreaRead() {
-        var match = ""
-        var current = ""
+        var readDataArea = ""
         val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { external, value ->
-                match = external
-                current = value
+            jarikoCallback.readDataArea = { dataArea ->
+                readDataArea = dataArea
                 "READ"
             }
         }
@@ -1663,8 +1661,7 @@ class JarikoCallbackTest : AbstractTest() {
         val actual = "DTAREAREAD".outputOf(configuration = configuration)
         assertEquals(expected, actual)
 
-        assertEquals("C£C£E00D", match)
-        assertEquals("CURRENT", current.trim())
+        assertEquals("C£C£E00D", readDataArea)
     }
 
     /**
@@ -1672,31 +1669,25 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun testDataAreaProcedures() {
-        var matchRead = ""
-        var currentRead = ""
-
-        var matchWrite = ""
-        var currentWrite = ""
-
+        var readDataArea = ""
+        var writeDataArea = ""
+        var writeNewValue = ""
         val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { external, value ->
-                matchRead = external
-                currentRead = value
+            jarikoCallback.readDataArea = { dataArea ->
+                readDataArea = dataArea
                 "READ"
             }
 
-            jarikoCallback.writeDataArea = { external, value ->
-                matchWrite = external
-                currentWrite = value
-                "WRITE"
+            jarikoCallback.writeDataArea = { dataArea, value ->
+                writeDataArea = dataArea
+                writeNewValue = value
             }
         }
 
         executePgm("DTAREAPROC", configuration = configuration)
-        assertEquals(matchRead, "APU001D1")
-        assertEquals(matchWrite, "APU001D1")
-        assert(currentRead.isBlank())
-        assert(currentWrite.startsWith("Bar "))
+        assertEquals(readDataArea, "APU001D1")
+        assertEquals(writeDataArea, "APU001D1")
+        assert(writeNewValue.startsWith("Bar "))
     }
 
     /**
@@ -1715,13 +1706,11 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun testDataAreaReadIndicator() {
-        var match = ""
-        var current = ""
+        var readDataArea = ""
         val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { external, value ->
-                match = external
-                current = value
-                throw DataAreaException("Could not find data area")
+            jarikoCallback.readDataArea = { dataArea ->
+                readDataArea = dataArea
+                throw NotFoundException("Could not find data area")
             }
         }
 
@@ -1729,8 +1718,7 @@ class JarikoCallbackTest : AbstractTest() {
         val actual = "DTAREAREADIND".outputOf(configuration = configuration)
         assertEquals(expected, actual)
 
-        assertEquals("C£C£E00D", match)
-        assertEquals("CURRENT", current.trim())
+        assertEquals("C£C£E00D", readDataArea)
     }
 
     /**
@@ -1738,12 +1726,12 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun testDataAreaWrite() {
-        var match = ""
-        var written = ""
+        var writeDataArea = ""
+        var writeNewValue = ""
         val configuration = Configuration().apply {
-            jarikoCallback.writeDataArea = { external, value ->
-                match = external
-                written = value
+            jarikoCallback.writeDataArea = { dataArea, value ->
+                writeDataArea = dataArea
+                writeNewValue = value
             }
         }
 
@@ -1751,8 +1739,8 @@ class JarikoCallbackTest : AbstractTest() {
         val actual = "DTAREAWRITE".outputOf(configuration = configuration)
         assertEquals(expected, actual)
 
-        assertEquals("C£C£E00D", match)
-        assertEquals("WRITTEN", written.trim())
+        assertEquals("C£C£E00D", writeDataArea)
+        assertEquals("WRITTEN", writeNewValue.trim())
     }
 
     private fun createMockReloadConfig(): ReloadConfig {
