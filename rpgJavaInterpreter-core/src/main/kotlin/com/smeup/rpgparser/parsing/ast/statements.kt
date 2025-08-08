@@ -3164,7 +3164,16 @@ data class InStmt(
         for (i in 1..maxIndex) {
             val indicatorKey = i
             val value = sourceArray.getElement(i)
-            indicators[indicatorKey] = value.asBoolean()
+            // Convert character values ('0'/'1') to boolean
+            val booleanValue = when {
+                value is StringValue -> {
+                    val stringVal = value.value.trim()
+                    BooleanValue(stringVal == "1" || stringVal.uppercase() == "TRUE" || stringVal == "*ON")
+                }
+                value is BooleanValue -> value
+                else -> value.asBoolean()
+            }
+            indicators[indicatorKey] = booleanValue
         }
     }
 }
@@ -3194,11 +3203,13 @@ data class OutStmt(
         val indicatorValues = mutableListOf<Value>()
         for (i in 1..99) {
             val indicatorValue = indicators[i] ?: BooleanValue.FALSE
-            indicatorValues.add(indicatorValue)
+            // Convert boolean to character ('1' for true, '0' for false)
+            val charValue = if (indicatorValue.value) StringValue("1") else StringValue("0")
+            indicatorValues.add(charValue)
         }
         
-        // Create the array value
-        val targetArray = ConcreteArrayValue(indicatorValues, BooleanType)
+        // Create the array value with character type
+        val targetArray = ConcreteArrayValue(indicatorValues, StringType.createInstance(1))
         
         // Assign to the target
         interpreter.assign(factor2, targetArray)
