@@ -37,7 +37,7 @@ class DataAreaIssueExamplesTest : AbstractTest() {
     @Test
     fun testDataAreaInProc() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -54,28 +54,28 @@ class DataAreaIssueExamplesTest : AbstractTest() {
                 }
             }
         }
-        
+
         // Pre-populate the data area that will be read by the DEFINE operation
         dataStore["APU001D1"] = "          " // 10 spaces for the DS
-        
+
         val cu = assertASTCanBeProduced("DTAREAINPROC")
         cu.resolveAndValidate()
-        
+
         // This should execute without errors
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Verify that the data area was written to
         assertTrue(dataStore.containsKey("APU001D1"))
         println("Data area contents after execution: ${dataStore["APU001D1"]}")
     }
 
     /**
-     * Test for DTAREAPROC.rpgle - data areas with procedures (different variant)  
+     * Test for DTAREAPROC.rpgle - data areas with procedures (different variant)
      */
     @Test
     fun testDataAreaProc() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -92,16 +92,16 @@ class DataAreaIssueExamplesTest : AbstractTest() {
                 }
             }
         }
-        
+
         // Pre-populate the data area
         dataStore["APU001D1"] = "          " // 10 spaces for the DS
-        
+
         val cu = assertASTCanBeProduced("DTAREAPROC")
         cu.resolveAndValidate()
-        
+
         // This should execute without errors
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Verify that the data area was written to
         assertTrue(dataStore.containsKey("APU001D1"))
         println("Data area contents after execution: ${dataStore["APU001D1"]}")
@@ -113,7 +113,7 @@ class DataAreaIssueExamplesTest : AbstractTest() {
     @Test
     fun testBasicDataAreaRead() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -128,14 +128,14 @@ class DataAreaIssueExamplesTest : AbstractTest() {
                 }
             }
         }
-        
+
         // Pre-populate data area with test value
         dataStore["C£C£E00D"] = "TEST_CURRENT_VALUE"
-        
+
         val cu = assertASTCanBeProduced("DTAREAREAD")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Should display the value that was read from data area
         assertTrue(systemInterface.displayed.any { it.contains("TEST_CURRENT_VALUE") })
     }
@@ -146,7 +146,7 @@ class DataAreaIssueExamplesTest : AbstractTest() {
     @Test
     fun testBasicDataAreaWrite() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -161,11 +161,11 @@ class DataAreaIssueExamplesTest : AbstractTest() {
                 }
             }
         }
-        
+
         val cu = assertASTCanBeProduced("DTAREAWRITE")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Should have written "WRITTEN" to the data area
         assertEquals("WRITTEN", dataStore["C£C£E00D"])
         assertTrue(systemInterface.displayed.any { it.contains("WRITTEN") })
@@ -177,7 +177,7 @@ class DataAreaIssueExamplesTest : AbstractTest() {
     @Test
     fun testDataAreaWithIndicators() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -192,14 +192,14 @@ class DataAreaIssueExamplesTest : AbstractTest() {
                 }
             }
         }
-        
+
         // Pre-populate data area
         dataStore["C£C£E00D"] = "INDICATOR_TEST_VALUE"
-        
+
         val cu = assertASTCanBeProduced("DTAREAREADIND")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Should display the value and indicator status (0 = success)
         assertTrue(systemInterface.displayed.any { it.contains("INDICATOR_TEST_VALUE") })
         assertTrue(systemInterface.displayed.any { it.contains("0") })
@@ -211,7 +211,7 @@ class DataAreaIssueExamplesTest : AbstractTest() {
     @Test
     fun testDataAreaNotFound() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -227,11 +227,11 @@ class DataAreaIssueExamplesTest : AbstractTest() {
                 }
             }
         }
-        
+
         val cu = assertASTCanBeProduced("DTAREAREADIND")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // When data area is not found, indicator should be set (1 = error)
         assertTrue(systemInterface.displayed.any { it.contains("1") })
     }

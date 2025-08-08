@@ -34,15 +34,15 @@ class DataAreaParsingTest : AbstractTest() {
     fun testInStatementParsing() {
         val cu = assertASTCanBeProduced("DTAREAREAD")
         cu.resolveAndValidate()
-        
+
         // Find IN statements in the AST
         val inStatements = cu.main?.stmts?.filterIsInstance<InStmt>() ?: emptyList()
         assertTrue(inStatements.isNotEmpty(), "Should have found at least one IN statement")
-        
+
         val inStmt = inStatements.first()
         assertNotNull(inStmt.dataAreaName, "IN statement should have data area name")
         assertNotNull(inStmt.target, "IN statement should have target field")
-        
+
         println("Successfully parsed IN statement with data area and target")
     }
 
@@ -50,15 +50,15 @@ class DataAreaParsingTest : AbstractTest() {
     fun testOutStatementParsing() {
         val cu = assertASTCanBeProduced("DTAREAWRITE")
         cu.resolveAndValidate()
-        
+
         // Find OUT statements in the AST
         val outStatements = cu.main?.stmts?.filterIsInstance<OutStmt>() ?: emptyList()
         assertTrue(outStatements.isNotEmpty(), "Should have found at least one OUT statement")
-        
+
         val outStmt = outStatements.first()
         assertNotNull(outStmt.dataAreaName, "OUT statement should have data area name")
         assertNotNull(outStmt.source, "OUT statement should have source field")
-        
+
         println("Successfully parsed OUT statement with data area and source")
     }
 
@@ -66,27 +66,27 @@ class DataAreaParsingTest : AbstractTest() {
     fun testInStatementWithIndicator() {
         val cu = assertASTCanBeProduced("DTAREAREADIND")
         cu.resolveAndValidate()
-        
+
         // Find IN statements with indicators
         val inStatements = cu.main?.stmts?.filterIsInstance<InStmt>() ?: emptyList()
         assertTrue(inStatements.isNotEmpty(), "Should have found at least one IN statement")
-        
+
         val inStmt = inStatements.first()
         assertNotNull(inStmt.errorIndicator, "IN statement should have error indicator")
         assertEquals("50", inStmt.errorIndicator.toString(), "Error indicator should be 50")
-        
+
         println("Successfully parsed IN statement with error indicator")
     }
-    
+
     @Test
     fun testBasicInOutSyntax() {
         // Test that our implementation can handle the basic RPG syntax
         val testPrograms = listOf("DTAREAREAD", "DTAREAWRITE", "DTAREAREADIND")
-        
+
         testPrograms.forEach { programName ->
             val cu = assertASTCanBeProduced(programName)
             cu.resolveAndValidate()
-            
+
             println("Successfully parsed and validated $programName")
         }
     }

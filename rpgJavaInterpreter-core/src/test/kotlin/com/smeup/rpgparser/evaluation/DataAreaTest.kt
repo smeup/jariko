@@ -20,12 +20,7 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.interpreter.BooleanValue
 import com.smeup.rpgparser.interpreter.CollectorSystemInterface
-import com.smeup.rpgparser.interpreter.DummySystemInterface
-import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.interpreter.Value
-import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -39,7 +34,7 @@ class DataAreaTest : AbstractTest() {
     @Test
     fun testDataAreaRead() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -54,14 +49,14 @@ class DataAreaTest : AbstractTest() {
                 }
             }
         }
-        
+
         // Pre-populate data area for read test
         dataStore["C£C£E00D"] = "TEST_VALUE"
-        
+
         val cu = assertASTCanBeProduced("DTAREAREAD")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Should display the value that was read from data area
         assertTrue(systemInterface.displayed.any { it.contains("TEST_VALUE") })
     }
@@ -69,7 +64,7 @@ class DataAreaTest : AbstractTest() {
     @Test
     fun testDataAreaWrite() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -84,11 +79,11 @@ class DataAreaTest : AbstractTest() {
                 }
             }
         }
-        
+
         val cu = assertASTCanBeProduced("DTAREAWRITE")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Should have written "WRITTEN" to the data area
         assertEquals("WRITTEN", dataStore["C£C£E00D"])
         assertTrue(systemInterface.displayed.any { it.contains("WRITTEN") })
@@ -97,7 +92,7 @@ class DataAreaTest : AbstractTest() {
     @Test
     fun testDataAreaReadWithIndicator() {
         var dataStore = mutableMapOf<String, String>()
-        
+
         val systemInterface = object : CollectorSystemInterface() {
             override fun getConfiguration(): Configuration {
                 return Configuration().apply {
@@ -112,17 +107,17 @@ class DataAreaTest : AbstractTest() {
                 }
             }
         }
-        
+
         // Pre-populate data area
         dataStore["C£C£E00D"] = "INDICATOR_TEST"
-        
+
         val cu = assertASTCanBeProduced("DTAREAREADIND")
         cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf(), systemInterface)
-        
+
         // Should display the value that was read and the indicator status
         assertTrue(systemInterface.displayed.any { it.contains("INDICATOR_TEST") })
-        // Indicator 50 should be OFF (0) since read was successful  
+        // Indicator 50 should be OFF (0) since read was successful
         assertTrue(systemInterface.displayed.any { it.contains("0") })
     }
 }
