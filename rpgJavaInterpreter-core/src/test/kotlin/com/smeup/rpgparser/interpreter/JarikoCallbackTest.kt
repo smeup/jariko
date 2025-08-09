@@ -567,8 +567,7 @@ class JarikoCallbackTest : AbstractTest() {
     fun executeERROR27CallBackTest() {
         executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
             10 to "No element of the collection was transformed to a non-null value.",
-            11 to "An operation is not implemented: IN£UDLDA                           \n" +
-                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
+            11 to "The variable name should not blank - line 11 "
         ))
     }
 
