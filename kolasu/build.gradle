@@ -118,6 +118,12 @@ signing {
 }
 
 java {
+    sourceCompatibility = "$jvmVersion"
+    targetCompatibility = "$jvmVersion"
     withJavadocJar()
     withSourcesJar()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "$jvmVersion"
 }
