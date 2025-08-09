@@ -2045,7 +2045,7 @@ data class InStmt(
     val target: AssignableExpression,
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override val loggableEntityName: String
         get() = "IN"
 
@@ -2080,6 +2080,8 @@ data class InStmt(
             throw e
         }
     }
+    
+    override fun dataDefinition(): List<InStatementDataDefinition> = emptyList()
 }
 
 @Serializable
@@ -2089,7 +2091,7 @@ data class OutStmt(
     val source: Expression,
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
     override val loggableEntityName: String
         get() = "OUT"
 
@@ -2116,6 +2118,8 @@ data class OutStmt(
             throw e
         }
     }
+    
+    override fun dataDefinition(): List<InStatementDataDefinition> = emptyList()
 }
 
 @Serializable

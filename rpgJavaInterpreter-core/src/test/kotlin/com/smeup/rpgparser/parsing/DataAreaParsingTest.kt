@@ -20,7 +20,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.parsing.ast.InStmt
 import com.smeup.rpgparser.parsing.ast.OutStmt
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import org.junit.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -32,13 +31,7 @@ class DataAreaParsingTest : AbstractTest() {
 
     @Test
     fun testInStatementParsing() {
-        val code = """
-            D TARGET          S             50A
-            D DATAAREA        S             50A   INZ('TESTAREA')
-            C     *LOCK         IN        DATAAREA      TARGET            50
-        """.trimIndent()
-
-        val cu = parseFragmentToCompilationUnit(code)
+        val cu = assertASTCanBeProduced("DTAREAREAD")
         cu.resolveAndValidate()
 
         // Find IN statements in the AST
@@ -52,13 +45,7 @@ class DataAreaParsingTest : AbstractTest() {
 
     @Test
     fun testOutStatementParsing() {
-        val code = """
-            D SOURCE          S             50A   INZ('TESTVALUE')
-            D DATAAREA        S             50A   INZ('TESTAREA')
-            C                   OUT       DATAAREA      SOURCE            50
-        """.trimIndent()
-
-        val cu = parseFragmentToCompilationUnit(code)
+        val cu = assertASTCanBeProduced("DTAREAWRITE")
         cu.resolveAndValidate()
 
         // Find OUT statements in the AST
@@ -72,13 +59,7 @@ class DataAreaParsingTest : AbstractTest() {
 
     @Test
     fun testInStatementWithIndicator() {
-        val code = """
-            D TARGET          S             50A
-            D DATAAREA        S             50A   INZ('TESTAREA')
-            C                   IN        DATAAREA      TARGET            50
-        """.trimIndent()
-
-        val cu = parseFragmentToCompilationUnit(code)
+        val cu = assertASTCanBeProduced("DTAREAREADIND")
         cu.resolveAndValidate()
 
         // Find IN statements with indicators
