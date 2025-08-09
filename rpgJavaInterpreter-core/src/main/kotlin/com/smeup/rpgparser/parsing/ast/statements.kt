@@ -2050,11 +2050,11 @@ data class InStmt(
         get() = "IN"
 
     override fun execute(interpreter: InterpreterCore) {
-        val dataAreaNameStr = interpreter.eval(dataAreaName).asString().valueWithoutPadding
+        val dataAreaNameStr = interpreter.eval(dataAreaName).asString().value.trimEnd()
 
         // Check for *LOCK factor 1
         val isLock = factor1?.let {
-            interpreter.eval(it).asString().valueWithoutPadding.uppercase() == "*LOCK"
+            interpreter.eval(it).asString().value.trimEnd().uppercase() == "*LOCK"
         } ?: false
 
         try {
@@ -2094,12 +2094,12 @@ data class OutStmt(
         get() = "OUT"
 
     override fun execute(interpreter: InterpreterCore) {
-        val dataAreaNameStr = interpreter.eval(dataAreaName).asString().valueWithoutPadding
-        val sourceValue = interpreter.eval(source).asString().valueWithoutPadding
+        val dataAreaNameStr = interpreter.eval(dataAreaName).asString().value.trimEnd()
+        val sourceValue = interpreter.eval(source).asString().value.trimEnd()
 
         // Check for *LOCK factor 1
         val isLock = factor1?.let {
-            interpreter.eval(it).asString().valueWithoutPadding.uppercase() == "*LOCK"
+            interpreter.eval(it).asString().value.trimEnd().uppercase() == "*LOCK"
         } ?: false
 
         try {

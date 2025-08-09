@@ -63,6 +63,18 @@ dependencies {
 
 }
 
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "$jvmVersion"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "$jvmVersion"
+    }
+}
+
 task version {
     doLast {
         print "Version ${version}"
@@ -118,6 +130,8 @@ signing {
 }
 
 java {
+    sourceCompatibility = JavaVersion.toVersion("$jvmVersion")
+    targetCompatibility = JavaVersion.toVersion("$jvmVersion")
     withJavadocJar()
     withSourcesJar()
 }
