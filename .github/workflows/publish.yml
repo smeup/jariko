@@ -27,5 +27,12 @@ jobs:
           echo "centralPassword=${{ secrets.CENTRAL_PASSWORD }}" >> ~/.gradle/gradle.properties
           echo "sonatypeUsername=${{ secrets.OSSRH_USERNAME }}" >> ~/.gradle/gradle.properties
           echo "sonatypePassword=${{ secrets.OSSRH_PASSWORD }}" >> ~/.gradle/gradle.properties
-      # deploy
-      - run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+      # deploy to Central Portal with fallback to OSSRH
+      - run: |
+          if [ -n "${{ secrets.CENTRAL_USERNAME }}" ]; then
+            echo "Publishing to Central Portal..."
+            ./gradlew publishToCentralPortal
+          else
+            echo "Falling back to OSSRH..."
+            ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+          fi
