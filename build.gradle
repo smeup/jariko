@@ -92,11 +92,17 @@ nexusPublishing {
     // however take in account that this flag in the other cases must be true or false depending on the version name
     useStaging = !(project.gradle.startParameter.taskNames.contains("publishToSmeup") || jarikoVersion.endsWith("SNAPSHOT"))
     repositories {
+        // Primary: Central Portal (new Sonatype publishing system)
+        centralPortal {
+            username = findProperty("centralUsername")
+            password = findProperty("centralPassword")
+        }
+        // Fallback: Legacy OSSRH (for backward compatibility)
         sonatype {
             nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
             snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            username = findProperty("centralUsername") ?: findProperty("sonatypeUsername")
-            password = findProperty("centralPassword") ?: findProperty("sonatypePassword")
+            username = findProperty("sonatypeUsername")
+            password = findProperty("sonatypePassword")
         }
         smeup {
             nexusUrl = uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
