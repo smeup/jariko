@@ -35,7 +35,22 @@ interface Program {
     fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
 }
 
-class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
+class RpgProgram(
+    val cu: CompilationUnit,
+    val name: String = "<UNNAMED RPG PROGRAM>",
+    val init: (CompilationUnit) -> Unit = { cu -> cu.resolveAndValidate() } // default init calls resolveAndValidate
+) : Program {
+    // Java constructor for interoperability
+    @JvmOverloads
+    constructor(cu: CompilationUnit, name: String = "<UNNAMED RPG PROGRAM>") : this(
+        cu,
+        name,
+        { cu -> cu.resolveAndValidate() }
+    )
+
+    init {
+        this.init(cu)
+    }
 
     private var systemInterface: SystemInterface? = null
 
@@ -70,10 +85,6 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             ProgramParam(it.result.name, type)
         }
             ?: emptyList()
-    }
-
-    init {
-        cu.resolveAndValidate()
     }
 
     companion object {
