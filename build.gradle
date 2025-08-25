@@ -95,8 +95,8 @@ nexusPublishing {
         sonatype {
             nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
             snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            username = findProperty("sonatypeUsername")
-            password = findProperty("sonatypePassword")
+            username = findProperty("centralUsername") ?: findProperty("sonatypeUsername")
+            password = findProperty("centralPassword") ?: findProperty("sonatypePassword")
         }
         smeup {
             nexusUrl = uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
