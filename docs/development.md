@@ -97,7 +97,7 @@ If you want to force the execution of all checks:
  _try to clean the .gradle directory_)
 
 ## Dependency from develop-SNAPSHOT
-This snapshot is published in sonatype, if you want to work with this version you can:
+This snapshot is published in Central Portal (migrated from Sonatype OSSRH), if you want to work with this version you can:
  - cloning jariko repo and to deploy in maven local by using ./gradlew deploy
  - or adding this maven repository url https://s01.oss.sonatype.org/content/repositories/snapshots/ to your pom or gradle script
 
