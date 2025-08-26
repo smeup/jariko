@@ -63,8 +63,8 @@ subprojects {
             url 'https://repo.smeup.cloud/nexus/repository/public/'
         }
         maven { url 'https://jitpack.io' }
-        // the sonatype repo inclusion allows to work with the reload snapshot version
-        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        // the repo inclusion allows to work with the reload snapshot version
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
         jcenter()
     }
@@ -91,19 +91,11 @@ nexusPublishing {
     // however take in account that this flag in the other cases must be true or false depending on the version name
     useStaging = !(project.gradle.startParameter.taskNames.contains("publishToSmeup") || jarikoVersion.endsWith("SNAPSHOT"))
     repositories {
-        // Primary: Central Portal (new Sonatype publishing system)
         centralPortal {
             nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
             snapshotRepositoryUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
             username = findProperty("centralUsername")
             password = findProperty("centralPassword")
-        }
-        // Fallback: Legacy OSSRH (for backward compatibility)
-        sonatype {
-            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
-            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            username = findProperty("sonatypeUsername")
-            password = findProperty("sonatypePassword")
         }
         smeup {
             nexusUrl = uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
