@@ -1643,8 +1643,12 @@ data class InStmt(
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
 
         // Send read request
-        val dataDefinition = interpreter.dataDefinitionByName(dataReference)!!
-        val dataArea = interpreter.getStatus().getDataArea(dataReference)!!
+        val dataDefinition = interpreter.dataDefinitionByName(dataReference)
+            ?: throw Error("Data definition $dataReference not found")
+
+        val dataArea = interpreter.getStatus().getDataArea(dataReference)
+            ?: throw Error("Data area for definition $dataReference not found")
+
         try {
             // Update the value
             val newValue = callback.readDataArea(dataArea).asValue()
@@ -1674,6 +1678,7 @@ data class OutStmt(
     override fun execute(interpreter: InterpreterCore) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
         val dataArea = interpreter.getStatus().getDataArea(dataReference)
+            ?: throw Error("Data area for definition $dataReference not found")
         val value = interpreter[dataReference].asString().value
         try {
             // Write data to data area

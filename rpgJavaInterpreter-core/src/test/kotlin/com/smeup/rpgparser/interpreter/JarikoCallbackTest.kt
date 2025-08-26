@@ -1665,6 +1665,44 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
+     * Test data area read callback without define.
+     * We expect it to fail with a meaningful error.
+     */
+    @Test
+    fun testDataAreaReadWithoutDefine() {
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { "READ" }
+        }
+
+        try {
+            "DTAREAMISSIN".outputOf(configuration = configuration)
+        } catch (e: RuntimeException) {
+            assertContains(e.message ?: "", "Data area for definition SCAATTDS not found")
+        } catch (e: Exception) {
+            fail("Got unexpected exception $e")
+        }
+    }
+
+    /**
+     * Test data area write callback without define.
+     * We expect it to fail with a meaningful error.
+     */
+    @Test
+    fun testDataAreaWriteWithoutDefine() {
+        val configuration = Configuration().apply {
+            jarikoCallback.writeDataArea = { _, _ -> }
+        }
+
+        try {
+            "DTAREAMISSOUT".outputOf(configuration = configuration)
+        } catch (e: RuntimeException) {
+            assertContains(e.message ?: "", "Data area for definition SCAATTDS not found")
+        } catch (e: Exception) {
+            fail("Got unexpected exception $e")
+        }
+    }
+
+    /**
      * Test data area read and write callback on procedures.
      */
     @Test
