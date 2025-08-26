@@ -32,7 +32,6 @@ buildscript {
             url  'https://oss.jfrog.org/oss-snapshot-localrun/'
         }
         maven { url 'https://jitpack.io' }
-        jcenter()
     }
 
     dependencies {
