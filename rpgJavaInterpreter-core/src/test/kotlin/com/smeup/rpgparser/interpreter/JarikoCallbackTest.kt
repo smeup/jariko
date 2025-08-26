@@ -30,7 +30,6 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.smeup.dbmock.TABDS01LDbMock
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
-import javassist.NotFoundException
 import org.junit.Assert
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -1748,7 +1747,7 @@ class JarikoCallbackTest : AbstractTest() {
         val configuration = Configuration().apply {
             jarikoCallback.readDataArea = { dataArea ->
                 readDataArea = dataArea
-                throw NotFoundException("Could not find data area")
+                throw RuntimeException("Could not find data area")
             }
         }
 
