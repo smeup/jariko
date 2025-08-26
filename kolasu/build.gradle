@@ -63,6 +63,22 @@ dependencies {
 
 }
 
+compileTestKotlin {
+    sourceCompatibility = "$jvmVersion"
+    targetCompatibility = "$jvmVersion"
+}
+
+compileKotlin {
+    sourceCompatibility = "$jvmVersion"
+    targetCompatibility = "$jvmVersion"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$jvmVersion"))
+    }
+}
+
 task version {
     doLast {
         print "Version ${version}"
