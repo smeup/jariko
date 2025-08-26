@@ -1499,6 +1499,38 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR57")
     }
 
+    /**
+     * Test data area read callback without define.
+     * We expect it to fail with a meaningful error.
+     */
+    @Test
+    fun executeERROR58CallBackTest() {
+        executePgmCallBackTest("ERROR58", SourceReferenceType.Program, "ERROR58", mapOf(
+            13 to "Data area for definition SCAATTDS not found"
+        ))
+    }
+
+    @Test
+    fun executeERROR58SourceLineTest() {
+        executeSourceLineTest("ERROR58")
+    }
+
+    /**
+     * Test data area write callback without define.
+     * We expect it to fail with a meaningful error.
+     */
+    @Test
+    fun executeERROR59CallBackTest() {
+        executePgmCallBackTest("ERROR59", SourceReferenceType.Program, "ERROR59", mapOf(
+            13 to "Data area for definition SCAATTDS not found"
+        ))
+    }
+
+    @Test
+    fun executeERROR59SourceLineTest() {
+        executeSourceLineTest("ERROR59")
+    }
+
     @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
@@ -1661,44 +1693,6 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(expected, actual)
 
         assertEquals("C£C£E00D", readDataArea)
-    }
-
-    /**
-     * Test data area read callback without define.
-     * We expect it to fail with a meaningful error.
-     */
-    @Test
-    fun testDataAreaReadWithoutDefine() {
-        val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { "READ" }
-        }
-
-        try {
-            "DTAREAMISSIN".outputOf(configuration = configuration)
-        } catch (e: RuntimeException) {
-            assertContains(e.message ?: "", "Data area for definition SCAATTDS not found")
-        } catch (e: Exception) {
-            fail("Got unexpected exception $e")
-        }
-    }
-
-    /**
-     * Test data area write callback without define.
-     * We expect it to fail with a meaningful error.
-     */
-    @Test
-    fun testDataAreaWriteWithoutDefine() {
-        val configuration = Configuration().apply {
-            jarikoCallback.writeDataArea = { _, _ -> }
-        }
-
-        try {
-            "DTAREAMISSOUT".outputOf(configuration = configuration)
-        } catch (e: RuntimeException) {
-            assertContains(e.message ?: "", "Data area for definition SCAATTDS not found")
-        } catch (e: Exception) {
-            fail("Got unexpected exception $e")
-        }
     }
 
     /**
