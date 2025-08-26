@@ -32,7 +32,6 @@ buildscript {
             url  'https://oss.jfrog.org/oss-snapshot-localrun/'
         }
         maven { url 'https://jitpack.io' }
-        jcenter()
     }
 
     dependencies {
@@ -110,7 +109,6 @@ compileJava {
 compileTestKotlin {
     sourceCompatibility = "$jvmVersion"
     targetCompatibility = "$jvmVersion"
-    kotlinOptions.jvmTarget = "$jvmVersion"
     dependsOn generateTestGrammarSource
 }
 
@@ -118,8 +116,13 @@ compileKotlin {
     sourceCompatibility = "$jvmVersion"
     targetCompatibility = "$jvmVersion"
     source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
-    kotlinOptions.jvmTarget = "$jvmVersion"
     dependsOn generateGrammarSource
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$jvmVersion"))
+    }
 }
 
 ktlintTestSourceSetCheck {
