@@ -5,14 +5,13 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 //-----------------
@@ -64,8 +63,8 @@ subprojects {
             url 'https://repo.smeup.cloud/nexus/repository/public/'
         }
         maven { url 'https://jitpack.io' }
-        // the sonatype repo inclusion allows to work with the reload snapshot version
-        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        // the repo inclusion allows to work with the reload snapshot version
+        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
         jcenter()
     }
@@ -92,11 +91,11 @@ nexusPublishing {
     // however take in account that this flag in the other cases must be true or false depending on the version name
     useStaging = !(project.gradle.startParameter.taskNames.contains("publishToSmeup") || jarikoVersion.endsWith("SNAPSHOT"))
     repositories {
-        sonatype {
-            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
-            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            username = findProperty("sonatypeUsername")
-            password = findProperty("sonatypePassword")
+        centralPortal {
+            nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+            snapshotRepositoryUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            username = findProperty("centralUsername")
+            password = findProperty("centralPassword")
         }
         smeup {
             nexusUrl = uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
