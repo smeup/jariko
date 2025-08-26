@@ -23,7 +23,14 @@ jobs:
           echo "signing.keyId=${{ secrets.GPG_KEY_ID }}" >> ~/.gradle/gradle.properties
           echo "signing.password=${{ secrets.GPG_PASSPHRASE }}" >> ~/.gradle/gradle.properties
           echo "signing.secretKeyRingFile=${HOME}/private.gpg" >> ~/.gradle/gradle.properties
-          echo "sonatypeUsername=${{ secrets.OSSRH_USERNAME }}" >> ~/.gradle/gradle.properties
-          echo "sonatypePassword=${{ secrets.OSSRH_PASSWORD }}" >> ~/.gradle/gradle.properties
-      # deploy
-      - run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+          echo "centralUsername=${{ secrets.CENTRAL_USERNAME }}" >> ~/.gradle/gradle.properties
+          echo "centralPassword=${{ secrets.CENTRAL_PASSWORD }}" >> ~/.gradle/gradle.properties
+      # deploy to Central Portal, throw error if CENTRAL_USERNAME is not set
+      - run: |
+          if [ -n "${{ secrets.CENTRAL_USERNAME }}" ]; then
+            echo "Publishing to Central Portal..."
+            ./gradlew publishToCentralPortal
+          else
+            echo "Error: CENTRAL_USERNAME is not set. Publishing to Central Portal requires this secret."
+            exit 1
+          fi
