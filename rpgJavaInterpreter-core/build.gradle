@@ -61,7 +61,7 @@ dependencies {
     implementation "org.apache.logging.log4j:log4j-api:2.25.1"
     implementation 'org.apache.logging.log4j:log4j-core:2.25.1'
 
-    implementation 'commons-io:commons-io:2.19.0'
+    implementation 'commons-io:commons-io:2.20.0'
     implementation("com.github.ajalt:clikt:3.5.2") {
         exclude group: 'com.github.ajalt.clikt', module: 'clikt-linuxx64'
         exclude group: 'com.github.ajalt.clikt', module: 'clikt-mingwx64'
@@ -84,7 +84,7 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation 'org.hsqldb:hsqldb:2.7.4'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:6.0.0'
 }
 
 configurations.all() {

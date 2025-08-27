@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
     var indicators: HashMap<IndicatorKey, BooleanValue>,
+    var dataAreas: Map<String, String>,
     var returnValue: Value? = null,
     var params: Int = 0,
     var callerParams: Int = params
@@ -54,4 +55,11 @@ class InterpreterStatus(
         val target = it.key.basedOn as? DataRefExpr
         target?.variable == pointer.variable
     }
+
+    /**
+     * Get the data area associated with a data reference.
+     *
+     * @param dataReference The data reference.
+     */
+    fun getDataArea(dataReference: String) = dataAreas[dataReference]
 }

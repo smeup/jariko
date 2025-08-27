@@ -31,6 +31,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.getContainingCompilationUnit
 import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -87,7 +88,7 @@ open class InternalInterpreter(
         this._interpretationContext = interpretationContext
     }
 
-    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>())
+    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>(), mapOf())
     override fun getStatus(): InterpreterStatus {
         return status
     }
@@ -465,7 +466,8 @@ open class InternalInterpreter(
         kotlin.runCatching {
             configureLogHandlers()
 
-            this.status.displayFiles = compilationUnit.displayFiles
+            status.dataAreas = compilationUnit.getRelevantDataAreas()
+            status.displayFiles = compilationUnit.displayFiles
             status.callerParams = callerParams.size
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
@@ -1215,6 +1217,11 @@ open class InternalInterpreter(
     private fun Statement.errorDescription(throwable: Throwable): String {
         val source = this.position!!.relative().second
         return "Program ${getInterpretationContext().currentProgramName} - Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} of $source.\n${throwable.message}"
+    }
+
+    private fun CompilationUnit.getRelevantDataAreas(): Map<String, String> {
+        if (this.isProcedure) return this.getContainingCompilationUnit()!!.getRelevantDataAreas()
+        return this.dataAreas
     }
 
     override fun onInterpretationEnd() {

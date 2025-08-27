@@ -299,6 +299,7 @@ open class BaseCompileTimeInterpreter(
             .mapNotNull { it.cspec_fixed_standard() }
             .mapNotNull { it.csDEFINE() }
             .map { it.toAst(conf) }
+            .filterIsInstance<DefineStmt>()
         val match = define.firstOrNull { it.newVarName.equals(declName, ignoreCase = true) } ?: return null
 
         return findType(statements, match.originalName, conf)
