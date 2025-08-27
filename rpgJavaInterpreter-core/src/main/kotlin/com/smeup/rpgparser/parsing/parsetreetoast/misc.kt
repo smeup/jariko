@@ -406,19 +406,21 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
     checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
-    val procerurePrototypes = getProcerurePrototypes(rContext = this,
+    val procedurePrototypes = getProcedurePrototypes(rContext = this,
         conf = conf,
         dataDefinitions = dataDefinitions,
         procedures = procedures
     )
 
     if (null == procedures) {
-        if (procerurePrototypes.isNotEmpty()) {
-            procedures = procerurePrototypes
+        if (procedurePrototypes.isNotEmpty()) {
+            procedures = procedurePrototypes
         }
     } else {
-        (procedures as ArrayList).addAll(procerurePrototypes)
+        (procedures as ArrayList).addAll(procedurePrototypes)
     }
+
+    val dataAreas = mainStmts.explode(false).filterIsInstance<DefineDataAreaStmt>().associate { stmt -> stmt.internalName to stmt.externalName }
 
     return CompilationUnit(
         // in fileDefinitions must go only FileDefinition related to F specs
@@ -433,7 +435,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         procedures = procedures,
         source = source,
         copyBlocks = copyBlocks,
-        displayFiles = displayFiles
+        displayFiles = displayFiles,
+        dataAreas = dataAreas
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
@@ -444,7 +447,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }.postProcess()
 }
 
-private fun getProcerurePrototypes(
+private fun getProcedurePrototypes(
     rContext: RContext,
     conf: ToAstConfiguration,
     dataDefinitions: List<DataDefinition>,
@@ -481,6 +484,7 @@ private fun getProcerurePrototypes(
             subroutines = emptyList(),
             compileTimeArrays = emptyList(),
             directives = emptyList(),
+            dataAreas = mapOf(),
             position = null,
             apiDescriptors = null,
             procedureName = it.key,
@@ -608,6 +612,8 @@ internal fun ProcedureContext.toAst(
         }
     }
 
+    // TODO Data areas
+
     // TODO CompileTimeArrays
 
     // TODO Directives
@@ -616,16 +622,17 @@ internal fun ProcedureContext.toAst(
 
     return CompilationUnit(
         fileDefinitions = fileDefinitions,
-        dataDefinitions,
+        dataDefinitions = dataDefinitions,
         main = MainBody(mainStmts, null),
-        subroutines,
+        subroutines = subroutines,
+        dataAreas = mapOf(),
         compileTimeArrays = mutableListOf(),
         directives = mutableListOf(),
         position = toPosition(conf.considerPosition),
         apiDescriptors = null,
         procedures = null,
         procedureName = procedureName,
-        proceduresParamsDataDefinitions
+        proceduresParamsDataDefinitions = proceduresParamsDataDefinitions
     ).apply { MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.pop() }
 }
 
@@ -1059,6 +1066,10 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
 
         this.csDEALLOC() != null -> this.csDEALLOC()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csIN() != null -> this.csIN().let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csOUT() != null -> this.csOUT().let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         else -> todo(conf = conf)
     }
@@ -1845,11 +1856,31 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     )
 }
 
-internal fun CsDEFINEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DefineStmt {
+internal fun CsDEFINEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AbstractDefineStmt {
+    val rawMode = this.factor1Context().text
+    val mode = AbstractDefineStmt.DefineMode.parse(rawMode)
+
     val originalVarName = this.cspec_fixed_standard_parts().factor2.text
     val newVarName = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return DefineStmt(originalVarName, newVarName, position)
+    return when (mode) {
+        AbstractDefineStmt.DefineMode.DataReference -> DefineStmt(originalVarName, newVarName, position)
+        AbstractDefineStmt.DefineMode.DataArea -> DefineDataAreaStmt(originalVarName, newVarName, position)
+    }
+}
+
+internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InStmt {
+    val dataReference = this.cspec_fixed_standard_parts().factor2.text
+    val indicators = this.cspec_fixed_standard_parts().rightIndicators()
+    val position = toPosition(conf.considerPosition)
+    return InStmt(dataReference, indicators, position)
+}
+
+internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OutStmt {
+    val dataReference = this.cspec_fixed_standard_parts().factor2.text
+    val indicators = this.cspec_fixed_standard_parts().rightIndicators()
+    val position = toPosition(conf.considerPosition)
+    return OutStmt(dataReference, indicators, position)
 }
 
 private fun QualifiedTargetContext.getFieldName(): String {
