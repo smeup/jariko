@@ -564,20 +564,6 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
-    fun executeERROR27CallBackTest() {
-        executePgmCallBackTest("ERROR27", SourceReferenceType.Program, "ERROR27", mapOf(
-            10 to "No element of the collection was transformed to a non-null value.",
-            11 to "An operation is not implemented: IN£UDLDA                           \n" +
-                    " at Position(start=Line 11, Column 25, end=Line 11, Column 81) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
-        ))
-    }
-
-    @Test
-    fun executeERROR27SourceLineTest() {
-        executeSourceLineTest("ERROR27")
-    }
-
-    @Test
     fun executeERROR29CallBackTest() {
         executePgmCallBackTest("ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
             11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
@@ -1513,6 +1499,38 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR57")
     }
 
+    /**
+     * Test data area read callback without define.
+     * We expect it to fail with a meaningful error.
+     */
+    @Test
+    fun executeERROR58CallBackTest() {
+        executePgmCallBackTest("ERROR58", SourceReferenceType.Program, "ERROR58", mapOf(
+            13 to "Data area for definition SCAATTDS not found"
+        ))
+    }
+
+    @Test
+    fun executeERROR58SourceLineTest() {
+        executeSourceLineTest("ERROR58")
+    }
+
+    /**
+     * Test data area write callback without define.
+     * We expect it to fail with a meaningful error.
+     */
+    @Test
+    fun executeERROR59CallBackTest() {
+        executePgmCallBackTest("ERROR59", SourceReferenceType.Program, "ERROR59", mapOf(
+            13 to "Data area for definition SCAATTDS not found"
+        ))
+    }
+
+    @Test
+    fun executeERROR59SourceLineTest() {
+        executeSourceLineTest("ERROR59")
+    }
+
     @Test
     fun bypassSyntaxErrorTest() {
         val configuration = Configuration().apply {
@@ -1655,6 +1673,105 @@ class JarikoCallbackTest : AbstractTest() {
         // Assert that both encoding and general error callbacks were triggered
         Assert.assertTrue(enteredInOnCompilationUnitEncodingError)
         Assert.assertTrue(enteredInOnError)
+    }
+
+    /**
+     * Test data area read callback.
+     */
+    @Test
+    fun testDataAreaRead() {
+        var readDataArea = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { dataArea ->
+                readDataArea = dataArea
+                "READ"
+            }
+        }
+
+        val expected = listOf("READ")
+        val actual = "DTAREAREAD".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+
+        assertEquals("C£C£E00D", readDataArea)
+    }
+
+    /**
+     * Test data area read and write callback on procedures.
+     */
+    @Test
+    fun testDataAreaProcedures() {
+        var readDataArea = ""
+        var writeDataArea = ""
+        var writeNewValue = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { dataArea ->
+                readDataArea = dataArea
+                "READ"
+            }
+
+            jarikoCallback.writeDataArea = { dataArea, value ->
+                writeDataArea = dataArea
+                writeNewValue = value
+            }
+        }
+
+        executePgm("DTAREAPROC", configuration = configuration)
+        assertEquals(readDataArea, "APU001D1")
+        assertEquals(writeDataArea, "APU001D1")
+        assert(writeNewValue.startsWith("Bar "))
+    }
+
+    /**
+     * Test data area define inside procedures.
+     * It should fail at runtime time when trying to read
+     */
+    @Test
+    fun testDataAreaWithDefineInProcedures() {
+        assertFails {
+            executePgm("DTAREAINPROC")
+        }
+    }
+
+    /**
+     * Test data area read callback with indicators.
+     */
+    @Test
+    fun testDataAreaReadIndicator() {
+        var readDataArea = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.readDataArea = { dataArea ->
+                readDataArea = dataArea
+                throw RuntimeException("Could not find data area")
+            }
+        }
+
+        val expected = listOf("CURRENT", "1")
+        val actual = "DTAREAREADIND".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+
+        assertEquals("C£C£E00D", readDataArea)
+    }
+
+    /**
+     * Test data area write callback.
+     */
+    @Test
+    fun testDataAreaWrite() {
+        var writeDataArea = ""
+        var writeNewValue = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.writeDataArea = { dataArea, value ->
+                writeDataArea = dataArea
+                writeNewValue = value
+            }
+        }
+
+        val expected = listOf("WRITTEN")
+        val actual = "DTAREAWRITE".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+
+        assertEquals("C£C£E00D", writeDataArea)
+        assertEquals("WRITTEN", writeNewValue.trim())
     }
 
     private fun createMockReloadConfig(): ReloadConfig {

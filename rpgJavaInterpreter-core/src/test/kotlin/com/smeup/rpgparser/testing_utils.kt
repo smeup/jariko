@@ -729,7 +729,6 @@ fun compileAllMutes(
                 }
             }
         }
-        val notInWhitList = mutableListOf<String>()
         val compiled = compile(
             src = srcDir,
             compiledProgramsDir = testCompiledDir,
@@ -747,17 +746,12 @@ fun compileAllMutes(
             // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
             allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") },
             configuration = configuration,
-            allowCompilationError = { file, _ ->
-                whiteListRegexp.matches(file.name).apply {
-                    if (!this) {
-                        notInWhitList.add(file.name)
-                    }
-                }
-            }
+            allowCompilationError = { file, _ -> whiteListRegexp.matches(file.name) }
         )
         // now errors are displayed during the compilation
-        if (compiled.any { it.error != null }) {
-            error("Errors during compilation for these programs: ${notInWhitList.joinToString()}")
+        val withErrors = compiled.filter { it.error != null }.map { it.srcFile.name }
+        if (withErrors.isNotEmpty()) {
+            error("Errors during compilation for these programs: ${withErrors.joinToString()}")
         }
     }
 }

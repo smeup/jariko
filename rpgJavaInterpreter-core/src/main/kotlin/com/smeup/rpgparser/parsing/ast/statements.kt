@@ -1632,11 +1632,107 @@ data class ClearStmt(
 }
 
 @Serializable
+data class InStmt(
+    val dataReference: String,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators {
+    override val loggableEntityName = "IN"
+
+    override fun execute(interpreter: InterpreterCore) {
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+
+        // Send read request
+        val dataDefinition = interpreter.dataDefinitionByName(dataReference)
+            ?: throw Error("Data definition $dataReference not found")
+
+        val dataArea = interpreter.getStatus().getDataArea(dataReference)
+            ?: throw Error("Data area for definition $dataReference not found")
+
+        try {
+            // Update the value
+            val newValue = callback.readDataArea(dataArea).asValue()
+            interpreter.assign(dataDefinition, newValue)
+        } catch (e: Exception) {
+            // Turn on error indicator if present
+            val errorIndicator = rightIndicators.lo
+            errorIndicator ?: throw e
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) { sep -> "$loggableEntityName$sep$dataReference" }
+    }
+}
+
+@Serializable
+data class OutStmt(
+    val dataReference: String,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators {
+    override val loggableEntityName = "OUT"
+
+    override fun execute(interpreter: InterpreterCore) {
+        val callback = MainExecutionContext.getConfiguration().jarikoCallback
+        val dataArea = interpreter.getStatus().getDataArea(dataReference)
+            ?: throw Error("Data area for definition $dataReference not found")
+        val value = interpreter[dataReference].asString().value
+        try {
+            // Write data to data area
+            callback.writeDataArea(dataArea!!, value)
+        } catch (e: Exception) {
+            // Turn on error indicator if present
+            val errorIndicator = rightIndicators.lo
+            errorIndicator ?: throw e
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+        }
+    }
+
+    override fun getStatementLogRenderer(source: LogSourceProvider, action: String): LazyLogEntry {
+        val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
+        return LazyLogEntry(entry) { sep -> "$loggableEntityName$sep$dataReference" }
+    }
+}
+
+@Serializable
+abstract class AbstractDefineStmt(@Transient override val position: Position? = null) : Statement(position) {
+    enum class DefineMode {
+        DataReference,
+        DataArea;
+
+        companion object {
+            fun parse(raw: String): DefineMode {
+                val normalized = raw.uppercase().trim()
+                return when (normalized) {
+                    "*DTAARA" -> DataArea
+                    else -> DataReference
+                }
+            }
+        }
+    }
+}
+
+@Serializable
+data class DefineDataAreaStmt(
+    val externalName: String,
+    val internalName: String,
+    override val position: Position? = null
+) : AbstractDefineStmt(position) {
+    override val loggableEntityName: String get() = "DEFINE"
+    override fun execute(interpreter: InterpreterCore) {
+        // Do nothing
+    }
+}
+
+@Serializable
 data class DefineStmt(
     val originalName: String,
     val newVarName: String,
     override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
+) : AbstractDefineStmt(position), StatementThatCanDefineData {
     companion object {
         private val INDICATOR_PATTERN = Regex("\\*IN\\(?(\\d\\d)\\)?", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
     }

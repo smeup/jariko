@@ -453,6 +453,7 @@ class MiscTest {
             subroutines = emptyList(),
             compileTimeArrays = emptyList(),
             directives = emptyList(),
+            dataAreas = mapOf(),
             position = null
         )
 

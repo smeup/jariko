@@ -33,26 +33,43 @@ import kotlinx.serialization.Serializable
 // to its main components
 @Serializable
 data class CompilationUnit(
+    /** The file definitions defined in this CU. */
     val fileDefinitions: List<FileDefinition>,
+    /** The data definitions defined in this CU. */
     val dataDefinitions: List<DataDefinition>,
+    /** The main body. */
     val main: MainBody,
+    /** The list of the subroutines defined in this CU. */
     val subroutines: List<Subroutine>,
+    /** The list of the compile time arrays defined in this CU. */
     val compileTimeArrays: List<CompileTimeArray>,
+    /** The directives associated with this CU. */
     val directives: List<Directive>,
+    /**
+     * A map data areas defined in this CU.
+     * The key is the data definition name, The value is the data area name.
+     */
+    val dataAreas: Map<String, String>,
+    /** The position in source */
     override val position: Position?,
+    /** The api descriptors associated with this CU. */
     val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
     // This way we say to not consider these nodes as part of compilation unit, this annotation is
     // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
     @property:Link val procedures: List<CompilationUnit>? = null,
+    /** The name of the containing procedure */
     val procedureName: String? = null,
     // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
     // - if 'CompilationUnit' is an 'RpgProgram' this list is null.
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
     val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
     val source: String? = null,
+    /** Copy blocks contained by this CU. */
     val copyBlocks: CopyBlocks? = null,
+    /** The display files associated with this CU. */
     val displayFiles: Map<String, DSPF>? = null
 ) : Node(position) {
+    val isProcedure get() = procedureName != null
 
     val resolvedProfilingAnnotations: List<ProfilingAnnotationResolved> by lazy {
         val statements = main.stmts.explode(true)
@@ -78,6 +95,7 @@ data class CompilationUnit(
             subroutines = emptyList(),
             compileTimeArrays = emptyList(),
             directives = emptyList(),
+            dataAreas = mapOf(),
             position = null,
             procedures = emptyList()
         )
