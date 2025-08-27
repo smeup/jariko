@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/com/smeup/rpgparser/execution/Configuration.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/execution/MainExecutionContext.kt">
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="26" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/execution/SimpleShell.kt">
+        <error line="47" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/execution/runner.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+        <error line="37" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/execution/simple_reload_config.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/experimental/simple_properties_storaging.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="12" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/DBFileMap.kt">
+        <error line="24" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/Evaluator.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/ExpressionEvaluation.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="24" column="1" source="standard:no-wildcard-imports" />
+        <error line="34" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/InterpreterCore.kt">
+        <error line="24" column="1" source="standard:no-wildcard-imports" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/add.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/coercing.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/comparison.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/compile_time_interpreter.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="212" column="60" source="standard:comment-wrapping" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/context.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/control_flow_exceptions.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="7" column="1" source="standard:no-wildcard-imports" />
+        <error line="64" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/data_definitions.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/datastruct_value_builder.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/db.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/div.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/formatting.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="9" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/function.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="16" column="1" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/internal_interpreter.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="25" column="1" source="standard:no-wildcard-imports" />
+        <error line="26" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="1" source="standard:no-wildcard-imports" />
+        <error line="39" column="1" source="standard:no-wildcard-imports" />
+        <error line="1327" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/interpretation_utils.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="25" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/interpreter_exceptions.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/interpreter_profiling.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/logs.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="1" source="standard:no-wildcard-imports" />
+        <error line="181" column="141" source="standard:max-line-length" />
+        <error line="254" column="1" source="standard:no-consecutive-comments" />
+        <error line="547" column="1" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/lookup.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/move_a.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/movel.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/mult.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/program.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/serialization/serialization_options.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="25" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/sorta.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/sub.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/symbol_table_storaging.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/system_interface.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="5" column="1" source="standard:no-wildcard-imports" />
+        <error line="16" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/tracing.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/typesystem.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/values.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="34" column="1" source="standard:no-wildcard-imports" />
+        <error line="1064" column="1" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/video.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/xfoot.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/interpreter/zadd.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="81" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/jvminterop/JDP_CALC.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="7" source="standard:class-naming" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/jvminterop/JDP_OPTIONAL.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="7" source="standard:class-naming" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/jvminterop/JDP_SUM.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="28" column="7" source="standard:class-naming" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/jvminterop/JDP_TYPES.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="31" column="7" source="standard:class-naming" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/jvminterop/JavaSystemInterface.kt">
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="33" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/jvminterop/jvm_program.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/logging/AnalyticsLoggingContext.kt">
+        <error line="28" column="1" source="standard:no-consecutive-comments" />
+        <error line="33" column="1" source="standard:no-consecutive-comments" />
+        <error line="38" column="1" source="standard:no-consecutive-comments" />
+        <error line="43" column="1" source="standard:no-consecutive-comments" />
+        <error line="48" column="1" source="standard:no-consecutive-comments" />
+        <error line="53" column="1" source="standard:no-consecutive-comments" />
+        <error line="126" column="1" source="standard:no-consecutive-comments" />
+        <error line="133" column="1" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/logging/ProgramUsageTable.kt">
+        <error line="7" column="1" source="standard:no-wildcard-imports" />
+        <error line="54" column="1" source="standard:no-consecutive-comments" />
+        <error line="65" column="1" source="standard:no-consecutive-comments" />
+        <error line="137" column="1" source="standard:no-consecutive-comments" />
+        <error line="156" column="1" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/logging/handlers_for_channels.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/logging/loggable.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/logging/logging.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="18" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/mute/muterunner.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="29" column="1" source="standard:no-wildcard-imports" />
+        <error line="30" column="1" source="standard:no-wildcard-imports" />
+        <error line="46" column="1" source="standard:no-wildcard-imports" />
+        <error line="50" column="1" source="standard:no-wildcard-imports" />
+        <error line="146" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/mute/standalone_mute_runner.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/api.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/builtin_functions.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/cu_components.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="28" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/directives.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/expressions.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/indicators.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="8" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/mute.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/profiling.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/serialization.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/ast/statements.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="25" column="1" source="standard:no-wildcard-imports" />
+        <error line="35" column="1" source="standard:no-wildcard-imports" />
+        <error line="36" column="1" source="standard:no-wildcard-imports" />
+        <error line="41" column="1" source="standard:no-wildcard-imports" />
+        <error line="430" column="9" source="standard:no-consecutive-comments" />
+        <error line="1576" column="9" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/facade/RpgParserFacade.kt">
+        <error line="25" column="1" source="standard:no-wildcard-imports" />
+        <error line="26" column="1" source="standard:no-wildcard-imports" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+        <error line="50" column="1" source="standard:no-wildcard-imports" />
+        <error line="54" column="1" source="standard:no-wildcard-imports" />
+        <error line="56" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/facade/compilerDirectives.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="7" column="12" source="standard:class-naming" />
+        <error line="243" column="5" source="standard:kdoc-wrapping" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/facade/copy.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/facade/preprocess.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/api.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/bif.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/data_definitions.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="1253" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/directives.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="6" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/errors.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/expressions.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="8" column="1" source="standard:no-wildcard-imports" />
+        <error line="15" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/input_specifications.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/misc.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="36" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/mute.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/profiling.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/resolution.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/parsing/parsetreetoast/statements.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/rpginterop/rpg_facade.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="24" column="1" source="standard:no-wildcard-imports" />
+        <error line="170" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/rpginterop/rpg_system.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="197" column="13" source="standard:property-naming" />
+        <error line="289" column="5" source="standard:enum-entry-name-case" />
+        <error line="290" column="5" source="standard:enum-entry-name-case" />
+        <error line="291" column="5" source="standard:enum-entry-name-case" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/serialization/custom_serializers.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/utils/misc.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="26" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/utils/rpgcompiler.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="33" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/main/kotlin/com/smeup/rpgparser/utils/serializer.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/AbstractTest.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/Chain2FilesDBTest.kt">
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/Chain2KeysDBTest.kt">
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/ChainHostsDBTest.kt">
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/OpenRenameTest.kt">
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/ReadTest.kt">
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/utilities/dbTestUtils.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/db/utilities/employeesTestDB.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="26" column="5" source="standard:indent" />
+        <error line="26" column="5" source="standard:string-template-indent" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/AstOverheadTest.kt">
+        <error line="29" column="22" source="standard:property-naming" />
+        <error line="37" column="13" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/DSPerformanceTest.kt">
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/ExpressionEvaluationTest.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+        <error line="6" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/InterpreterTest.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="38" column="1" source="standard:no-wildcard-imports" />
+        <error line="39" column="1" source="standard:no-wildcard-imports" />
+        <error line="1309" column="9" source="standard:function-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/JDExamplesTest.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="1" source="standard:no-wildcard-imports" />
+        <error line="188" column="13" source="standard:property-naming" />
+        <error line="191" column="13" source="standard:property-naming" />
+        <error line="195" column="13" source="standard:property-naming" />
+        <error line="199" column="13" source="standard:property-naming" />
+        <error line="224" column="13" source="standard:property-naming" />
+        <error line="319" column="13" source="standard:property-naming" />
+        <error line="325" column="13" source="standard:property-naming" />
+        <error line="329" column="13" source="standard:property-naming" />
+        <error line="333" column="13" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/MUTEExamplesTest.kt">
+        <error line="14" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/MuteExecutionTest.kt">
+        <error line="25" column="1" source="standard:no-wildcard-imports" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+        <error line="34" column="1" source="standard:no-wildcard-imports" />
+        <error line="329" column="5" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/ProfilingAnnotationTest.kt">
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/evaluation/SmeupInterpreterTest.kt">
+        <error line="18" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/execution/RunnerTest.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="31" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/interpreter/DataStructValueBuilderTest.kt">
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/interpreter/JarikoCallbackTest.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="36" column="1" source="standard:no-wildcard-imports" />
+        <error line="37" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/interpreter/SymbolTableTest.kt">
+        <error line="9" column="1" source="standard:no-wildcard-imports" />
+        <error line="55" column="21" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/interpreter/serialization/DSSerializationTest.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/interpreter/serialization/SerializationTest.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="30" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/jvminterop/java_system_interface_test.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/lexing/RpgTokensListTest.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/logging/LoggingTest.kt">
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="31" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/overlay/RpgDataEncoderTest.kt">
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/overlay/RpgEvalTest.kt">
+        <error line="28" column="9" source="standard:function-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/overlay/RpgParserOverlayTest11.kt">
+        <error line="72" column="13" source="standard:property-naming" />
+        <error line="73" column="13" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/overlay/RpgParserOverlayTest12.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="56" column="13" source="standard:property-naming" />
+        <error line="57" column="13" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/overlay/RpgSortATest.kt">
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="61" column="13" source="standard:property-naming" />
+        <error line="62" column="13" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/CopyTest.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/RpgParserDataStruct.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="21" column="1" source="standard:no-wildcard-imports" />
+        <error line="23" column="1" source="standard:no-wildcard-imports" />
+        <error line="51" column="13" source="standard:property-naming" />
+        <error line="52" column="13" source="standard:property-naming" />
+        <error line="53" column="13" source="standard:property-naming" />
+        <error line="105" column="13" source="standard:property-naming" />
+        <error line="106" column="13" source="standard:property-naming" />
+        <error line="107" column="13" source="standard:property-naming" />
+        <error line="108" column="13" source="standard:property-naming" />
+        <error line="109" column="13" source="standard:property-naming" />
+        <error line="110" column="13" source="standard:property-naming" />
+        <error line="111" column="13" source="standard:property-naming" />
+        <error line="112" column="13" source="standard:property-naming" />
+        <error line="184" column="13" source="standard:property-naming" />
+        <error line="186" column="13" source="standard:property-naming" />
+        <error line="191" column="13" source="standard:property-naming" />
+        <error line="196" column="13" source="standard:property-naming" />
+        <error line="201" column="13" source="standard:property-naming" />
+        <error line="205" column="13" source="standard:property-naming" />
+        <error line="243" column="13" source="standard:property-naming" />
+        <error line="380" column="141" source="standard:max-line-length" />
+        <error line="401" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/RpgParserParseTreeShapeTest.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/RpgParserWithMuteSupportTest.kt">
+        <error line="9" column="1" source="standard:no-wildcard-imports" />
+        <error line="12" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/ast/DataDefinitionTest.kt">
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="1" source="standard:no-wildcard-imports" />
+        <error line="242" column="13" source="standard:property-naming" />
+        <error line="243" column="13" source="standard:property-naming" />
+        <error line="244" column="13" source="standard:property-naming" />
+        <error line="245" column="13" source="standard:property-naming" />
+        <error line="246" column="13" source="standard:property-naming" />
+        <error line="247" column="13" source="standard:property-naming" />
+        <error line="248" column="13" source="standard:property-naming" />
+        <error line="249" column="13" source="standard:property-naming" />
+        <error line="250" column="13" source="standard:property-naming" />
+        <error line="251" column="13" source="standard:property-naming" />
+        <error line="252" column="13" source="standard:property-naming" />
+        <error line="253" column="13" source="standard:property-naming" />
+        <error line="254" column="13" source="standard:property-naming" />
+        <error line="255" column="13" source="standard:property-naming" />
+        <error line="256" column="13" source="standard:property-naming" />
+        <error line="257" column="13" source="standard:property-naming" />
+        <error line="258" column="13" source="standard:property-naming" />
+        <error line="259" column="13" source="standard:property-naming" />
+        <error line="260" column="13" source="standard:property-naming" />
+        <error line="261" column="13" source="standard:property-naming" />
+        <error line="262" column="13" source="standard:property-naming" />
+        <error line="263" column="13" source="standard:property-naming" />
+        <error line="355" column="13" source="standard:property-naming" />
+        <error line="359" column="13" source="standard:property-naming" />
+        <error line="375" column="13" source="standard:property-naming" />
+        <error line="379" column="13" source="standard:property-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/ast/DirectiveTest.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/parsing/ast/SerializationTest.kt">
+        <error line="16" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/performance/Kute.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+        <error line="5" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/performance/Kute10_50.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="19" column="1" source="standard:no-wildcard-imports" />
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="53" column="7" source="standard:class-naming" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/performance/Kute10_53.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+        <error line="34" column="7" source="standard:class-naming" />
+        <error line="53" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/performance/Kute10_54.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+        <error line="38" column="7" source="standard:class-naming" />
+        <error line="75" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/performance/Kute10_55.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+        <error line="5" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="7" source="standard:class-naming" />
+        <error line="64" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/performance/Kute10_56.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="4" column="1" source="standard:no-wildcard-imports" />
+        <error line="5" column="1" source="standard:no-wildcard-imports" />
+        <error line="32" column="7" source="standard:class-naming" />
+        <error line="64" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/smeup/MULANGT02ConstAndDSpecTest.kt">
+        <error line="11" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="1" source="standard:no-consecutive-comments" />
+        <error line="154" column="5" source="standard:no-consecutive-comments" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/smeup/MULANGT03IndicatorTest.kt">
+        <error line="20" column="1" source="standard:no-wildcard-imports" />
+        <error line="24" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/test/forall.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/testing_utils.kt">
+        <error line="1" column="1" source="standard:filename" />
+        <error line="27" column="1" source="standard:no-wildcard-imports" />
+        <error line="28" column="1" source="standard:no-wildcard-imports" />
+        <error line="29" column="1" source="standard:no-wildcard-imports" />
+        <error line="33" column="1" source="standard:no-wildcard-imports" />
+        <error line="34" column="1" source="standard:no-wildcard-imports" />
+        <error line="57" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/utils/DbMock.kt">
+        <error line="7" column="1" source="standard:no-wildcard-imports" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/utils/MiscTest.kt">
+        <error line="22" column="1" source="standard:no-wildcard-imports" />
+        <error line="34" column="1" source="standard:no-wildcard-imports" />
+        <error line="504" column="141" source="standard:max-line-length" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/utils/fileProcessing.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="src/test/kotlin/com/smeup/rpgparser/video/VideoInterpreterTest.kt">
+        <error line="7" column="1" source="standard:no-wildcard-imports" />
+    </file>
+</baseline>

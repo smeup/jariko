@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.dspfparser.domain.DisplayFileParser
+import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.getDbFields
 import kotlinx.serialization.Serializable
@@ -12,8 +12,9 @@ import java.io.File
  * @param displayFilePath path where display file is located
  * */
 @Serializable
-data class SimpleDspfConfig(var displayFilePath: String? = null) {
-
+data class SimpleDspfConfig(
+    var displayFilePath: String? = null,
+) {
     fun dspfProducer(displayFile: String): DSPF {
         val videoFile = File(displayFilePath, "$displayFile.dspf")
         require(videoFile.exists()) { "$videoFile doesn't exist" }
@@ -36,7 +37,7 @@ data class SimpleDspfConfig(var displayFilePath: String? = null) {
                 tableName = "",
                 recordFormat = "",
                 fields = fields,
-                accessFields = emptyList()
+                accessFields = emptyList(),
             )
         }
     }

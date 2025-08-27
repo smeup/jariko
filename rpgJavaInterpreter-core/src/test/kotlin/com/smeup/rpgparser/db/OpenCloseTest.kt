@@ -22,15 +22,15 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 open class OpenCloseTest : AbstractTest() {
-
     @Test
     fun testOpenClose() {
-        val outputLines = outputOfDBPgm(
-            "db/OPEN_CLOSE",
-            listOf(createEmployeeMetadata()),
-            emptyList(),
-            emptyMap()
-        )
+        val outputLines =
+            outputOfDBPgm(
+                "db/OPEN_CLOSE",
+                listOf(createEmployeeMetadata()),
+                emptyList(),
+                emptyMap(),
+            )
         assertEquals(listOf("OPENED", "CLOSED", "OPENED"), outputLines)
     }
 }

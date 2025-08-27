@@ -34,7 +34,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class CallProgramHandlerTest : AbstractTest() {
-
     @Test
     fun testCallProgramHandler() {
         /*
@@ -60,17 +59,18 @@ class CallProgramHandlerTest : AbstractTest() {
         require(result != null)
         assertEquals("Hi!!!", result.parmsList[0].trim())
 
-        val callProgramHandler = CallProgramHandler(
-            handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                if (programName == "TRANSLATE") {
-                    listOf(
-                        StringValue(value = "Ciao!!!", varying = false)
-                    )
-                } else {
-                    null
-                }
-            }
-        )
+        val callProgramHandler =
+            CallProgramHandler(
+                handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                    if (programName == "TRANSLATE") {
+                        listOf(
+                            StringValue(value = "Ciao!!!", varying = false),
+                        )
+                    } else {
+                        null
+                    }
+                },
+            )
 
         configuration.options.callProgramHandler = callProgramHandler
         result = jariko.singleCall(listOf(""), configuration)
@@ -97,20 +97,21 @@ class CallProgramHandlerTest : AbstractTest() {
         val configuration = Configuration()
 
         var counter = 0
-        val callProgramHandler = CallProgramHandler(
-            handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                if (counter++ % 2 == 0) {
-                    listOf(
-                        StringValue(
-                            "CUSTOM_PGM",
-                            false
+        val callProgramHandler =
+            CallProgramHandler(
+                handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                    if (counter++ % 2 == 0) {
+                        listOf(
+                            StringValue(
+                                "CUSTOM_PGM",
+                                false,
+                            ),
                         )
-                    )
-                } else {
-                    null
-                }
-            }
-        )
+                    } else {
+                        null
+                    }
+                },
+            )
 
         val jariko = getProgram("CALL_STMT.rpgle", systemInterface, programFinders)
         configuration.options.callProgramHandler = callProgramHandler
@@ -143,21 +144,21 @@ class CallProgramHandlerTest : AbstractTest() {
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
-        val callProgramHandler = CallProgramHandler(
-
-            handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                if (programName == "TST_001_2") {
-                    listOf(
-                        StringValue(
-                            doPost(programName, "JARIKO"),
-                            false
+        val callProgramHandler =
+            CallProgramHandler(
+                handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                    if (programName == "TST_001_2") {
+                        listOf(
+                            StringValue(
+                                doPost(programName, "JARIKO"),
+                                false,
+                            ),
                         )
-                    )
-                } else {
-                    null
-                }
-            }
-        )
+                    } else {
+                        null
+                    }
+                },
+            )
 
         val jariko = getProgram("TST_001.rpgle", systemInterface, programFinders)
         configuration.options.callProgramHandler = callProgramHandler
@@ -166,7 +167,10 @@ class CallProgramHandlerTest : AbstractTest() {
         assertTrue { result.parmsList[0].trim().contains("HELLO JARIKO") }
     }
 
-    private fun doPost(theProgram: String, inputParams: String): String {
+    private fun doPost(
+        theProgram: String,
+        inputParams: String,
+    ): String {
         val url = URL("https://jariko.smeup.cloud")
         val con: HttpURLConnection = url.openConnection() as HttpURLConnection
         con.requestMethod = "POST"
@@ -175,7 +179,8 @@ class CallProgramHandlerTest : AbstractTest() {
         con.setRequestProperty("Content-Type", "application/json; utf-8")
         con.setRequestProperty("Accept", "application/json")
         con.doOutput = true
-        val jsonInputString = "{\n" +
+        val jsonInputString =
+            "{\n" +
                 " \"name\": \"$theProgram\",\n" +
                 " \"parameters\": [\n" +
                 " \"$inputParams                                                                                           \"\n" +
@@ -188,7 +193,7 @@ class CallProgramHandlerTest : AbstractTest() {
 
         val response = StringBuilder()
         BufferedReader(
-            InputStreamReader(con.inputStream, "utf-8")
+            InputStreamReader(con.inputStream, "utf-8"),
         ).use { br ->
             var responseLine: String?
             while (br.readLine().also { responseLine = it } != null) {
@@ -209,15 +214,18 @@ class CallProgramHandlerTest : AbstractTest() {
         val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
-        val callProgramHandler = CallProgramHandler(
-            handleCall = { programName: String, _: SystemInterface, params: LinkedHashMap<String, Value> ->
-                val values = getProgram(programName, systemInterface, programFinders).singleCall(
-                    parms = params, configuration = configuration
-                )
-                require(values != null)
-                values.namedParams!!.values.toList()
-            }
-        )
+        val callProgramHandler =
+            CallProgramHandler(
+                handleCall = { programName: String, _: SystemInterface, params: LinkedHashMap<String, Value> ->
+                    val values =
+                        getProgram(programName, systemInterface, programFinders).singleCall(
+                            parms = params,
+                            configuration = configuration,
+                        )
+                    require(values != null)
+                    values.namedParams!!.values.toList()
+                },
+            )
         configuration.options.callProgramHandler = callProgramHandler
         getProgram("CALLER.rpgle", systemInterface, programFinders).singleCall(listOf(""), configuration)
     }

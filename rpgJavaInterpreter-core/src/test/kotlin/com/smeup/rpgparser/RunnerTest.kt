@@ -13,7 +13,6 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class RunnerTest {
-
     @Test
     fun programsReturnValues() {
         val systemInterface = JavaSystemInterface()
@@ -63,10 +62,11 @@ class RunnerTest {
     fun commandLineProgramsCanReadSourcesFromString() {
         val systemInterface = JavaSystemInterface()
 
-        val source = """
+        val source =
+            """
 |     C     'Hello World' DSPLY
 |     C                   SETON                                          LR
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
 
@@ -77,12 +77,13 @@ class RunnerTest {
     fun commandLineProgramsCanReadSourcesFromUTF8String() {
         val systemInterface = JavaSystemInterface()
 
-        val source = """
+        val source =
+            """
 |     D Msg§            S             12
 |     C                   Eval      Msg§ = 'Hello World!'
 |     C                   dsply                   Msg§
 |     C                   SETON                                          LR
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
 
@@ -93,13 +94,14 @@ class RunnerTest {
     fun commandLineProgramsCanRunMutes() {
         val systemInterface = JavaSystemInterface()
 
-        val source = """
+        val source =
+            """
 |     D Msg             S             12
 |    MU* VAL1(Msg) VAL2('This should fail') COMP(EQ)
 |    MU* VAL1(Msg) VAL2('') COMP(EQ)
 |     C     'Hello World' DSPLY
 |     C                   SETON                                          LR
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
 
@@ -114,12 +116,13 @@ class RunnerTest {
     @Test
     fun commandLineProgramCanBeInstrumentedWithAssignmentsLogHandler() {
         val systemInterface = JavaSystemInterface()
-        val source = """
+        val source =
+            """
 |     D Msg§            S             12
 |     C                   Eval      Msg§ = 'Hello World!'
 |     C                   dsply                   Msg§
 |     C                   SETON                                          LR
-        """.trimMargin()
+            """.trimMargin()
         val program = getProgram(source, systemInterface)
         val logOutputStream = StringOutputStream()
         val printStream = PrintStream(logOutputStream)
@@ -173,7 +176,10 @@ class RunnerTest {
         println(logOutputStream)
     }
 
-    fun JavaSystemInterface.outputOfSingleCall(program: CommandLineProgram, parameters: List<String> = emptyList()): List<String> {
+    fun JavaSystemInterface.outputOfSingleCall(
+        program: CommandLineProgram,
+        parameters: List<String> = emptyList(),
+    ): List<String> {
         clearConsole()
         program.singleCall(parameters)
         return consoleOutput

@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class ConstantField(
     val value: ConstantValue?,
     override val x: Int?,
-    override val y: Int?
+    override val y: Int?,
 ) : DSPFField

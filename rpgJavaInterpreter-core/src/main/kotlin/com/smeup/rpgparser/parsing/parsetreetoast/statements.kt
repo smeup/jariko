@@ -26,42 +26,49 @@ import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
-import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.ParseTree
 
-fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return when {
+fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(conf)
         this.cspec_fixed_sql() != null -> this.cspec_fixed_sql().toAst(conf)
         this.block() != null -> this.block().toAst(conf)
         else -> todo(conf = conf)
     }
-}
 
-internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return when {
-        this.ifstatement() != null -> this.ifstatement().toAst(conf)
-            .buildIndicatorsFlags(this.ifstatement().beginif().csIFxx() ?: this.ifstatement().beginif(), conf)
-        this.selectstatement() != null -> this.selectstatement()
-            .let {
-                it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
-                    stmt = it.toAst(conf = conf),
-                    conf = conf
-                )
-            }
+internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    when {
+        this.ifstatement() != null ->
+            this
+                .ifstatement()
+                .toAst(conf)
+                .buildIndicatorsFlags(this.ifstatement().beginif().csIFxx() ?: this.ifstatement().beginif(), conf)
+        this.selectstatement() != null ->
+            this
+                .selectstatement()
+                .let {
+                    it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
+                        stmt = it.toAst(conf = conf),
+                        conf = conf,
+                    )
+                }
         this.casestatement() != null -> this.casestatement().toAst(conf)
         this.dostatement() != null -> this.dostatement().toAst(this, conf)
-        this.forstatement() != null -> this.forstatement().toAst(conf)
-            .buildIndicatorsFlags(this.forstatement().beginfor(), conf)
-        this.monitorstatement() != null -> this.monitorstatement().let {
-            it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
-                stmt = it.toAst(conf = conf),
-                conf = conf
-            )
-        }
+        this.forstatement() != null ->
+            this
+                .forstatement()
+                .toAst(conf)
+                .buildIndicatorsFlags(this.forstatement().beginfor(), conf)
+        this.monitorstatement() != null ->
+            this.monitorstatement().let {
+                it.beginmonitor().csMONITOR().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(conf = conf),
+                    conf = conf,
+                )
+            }
         else -> todo(message = "Missing composite statement implementation for this block: ${this.text}", conf = conf)
     }
-}
 
 /**
  * Builds and assigns indicator conditions and flags for the given statement.
@@ -76,29 +83,51 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
  * @param conf The configuration used to build the AST (Abstract Syntax Tree).
  * @return The current [Statement] with updated indicator conditions and continued indicators.
  */
-internal fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(context: TContext, conf: ToAstConfiguration): Statement {
+internal fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(
+    context: TContext,
+    conf: ToAstConfiguration,
+): Statement {
     var continuedIndicators: List<Cspec_continuedIndicatorsContext> = emptyList()
-    this.indicatorCondition = when (context) {
-        is CsIFxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is CsDOWxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is CsDOUxxContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is BeginifContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is BegindoContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is BegindowContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is BegindouContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is BeginforContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        is Cspec_fixedContext -> context.toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
-            .also { continuedIndicators = context.cspec_continuedIndicators() }
-        else -> null
-    }
+    this.indicatorCondition =
+        when (context) {
+            is CsIFxxContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is CsDOWxxContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is CsDOUxxContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is BeginifContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is BegindoContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is BegindowContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is BegindouContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is BeginforContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            is Cspec_fixedContext ->
+                context
+                    .toIndicatorCondition(context.indicators, context.indicatorsOff, conf)
+                    .also { continuedIndicators = context.cspec_continuedIndicators() }
+            else -> null
+        }
 
     if (this.indicatorCondition != null) {
         this.continuedIndicators.populate(continuedIndicators, context.children.toList())
@@ -127,16 +156,19 @@ internal fun <TContext : ParserRuleContext> Statement.buildIndicatorsFlags(conte
  * @throws NumberFormatException If the indicator text cannot be parsed into a valid numeric `IndicatorKey`.
  *                               In this case, an error is reported with a message about non-numeric indicators.
  */
-private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsContext, indicatorsOff: OnOffIndicatorsFlagContext, conf: ToAstConfiguration) =
-    if (indicators.text.isEmptyTrim()) {
-        null
-    } else {
-        try {
-            IndicatorCondition(indicators.text.toIndicatorKey(), " " != indicatorsOff.text)
-        } catch (e: NumberFormatException) {
-            error("Non numeric indicators", e, conf)
-        }
+private fun ParserRuleContext.toIndicatorCondition(
+    indicators: Cs_indicatorsContext,
+    indicatorsOff: OnOffIndicatorsFlagContext,
+    conf: ToAstConfiguration,
+) = if (indicators.text.isEmptyTrim()) {
+    null
+} else {
+    try {
+        IndicatorCondition(indicators.text.toIndicatorKey(), " " != indicatorsOff.text)
+    } catch (e: NumberFormatException) {
+        error("Non numeric indicators", e, conf)
     }
+}
 
 /**
  * Populates the current `HashMap` with a set of continued indicators and their related conditions.
@@ -154,20 +186,29 @@ private fun ParserRuleContext.toIndicatorCondition(indicators: Cs_indicatorsCont
  */
 private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
     continuedIndicators: List<Cspec_continuedIndicatorsContext>,
-    children: List<ParseTree> = emptyList()
+    children: List<ParseTree> = emptyList(),
 ) {
     // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
     for (i in 0 until continuedIndicators.size) {
-        val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
+        val indicator =
+            continuedIndicators[i]
+                .indicators.children[0]
+                .toString()
+                .toIndicatorKey()
         var onOff = false
-        if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+        if (!continuedIndicators[i]
+                .indicatorsOff.children[0]
+                .toString()
+                .isEmptyTrim()
+        ) {
             onOff = true
         }
-        val controlLevel = when (continuedIndicators[i].start.type) {
-            AndIndicator -> "AND"
-            OrIndicator -> "OR"
-            else -> ""
-        }
+        val controlLevel =
+            when (continuedIndicators[i].start.type) {
+                AndIndicator -> "AND"
+                OrIndicator -> "OR"
+                else -> ""
+            }
         val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
         this.put(indicator, continuedIndicator)
     }
@@ -179,37 +220,48 @@ private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
         controlLevel = "AND"
     }
     var onOff = false
-    if (!(children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString()
+    if (!(children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext)
+            .children[0]
+            .toString()
             .isEmptyTrim()
     ) {
         onOff = true
     }
-    val indicator = (children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString()
-        .toIndicatorKey()
+    val indicator =
+        (children[continuedIndicators.size + 3] as Cs_indicatorsContext)
+            .children[0]
+            .toString()
+            .toIndicatorKey()
     val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
     this.put(indicator, continuedIndicator)
 }
 
-internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, position: Position? = null, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
+internal fun RpgParser.CsDOWxxContext.toAst(
+    blockContext: BlockContext,
+    position: Position? = null,
+    conf: ToAstConfiguration = ToAstConfiguration(),
+): DOWxxStmt {
     val pos = position ?: toPosition(conf.considerPosition)
-    val comparison = when {
-        this.csDOWEQ() != null -> ComparisonOperator.EQ
-        this.csDOWNE() != null -> ComparisonOperator.NE
-        this.csDOWGT() != null -> ComparisonOperator.GT
-        this.csDOWGE() != null -> ComparisonOperator.GE
-        this.csDOWLT() != null -> ComparisonOperator.LT
-        this.csDOWLE() != null -> ComparisonOperator.LE
-        else -> todo(conf = conf)
-    }
-    val factor2 = when {
-        this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2
-        this.csDOWNE() != null -> this.csDOWNE().cspec_fixed_standard_parts().factor2
-        this.csDOWGT() != null -> this.csDOWGT().cspec_fixed_standard_parts().factor2
-        this.csDOWGE() != null -> this.csDOWGE().cspec_fixed_standard_parts().factor2
-        this.csDOWLT() != null -> this.csDOWLT().cspec_fixed_standard_parts().factor2
-        this.csDOWLE() != null -> this.csDOWLE().cspec_fixed_standard_parts().factor2
-        else -> todo(conf = conf)
-    }
+    val comparison =
+        when {
+            this.csDOWEQ() != null -> ComparisonOperator.EQ
+            this.csDOWNE() != null -> ComparisonOperator.NE
+            this.csDOWGT() != null -> ComparisonOperator.GT
+            this.csDOWGE() != null -> ComparisonOperator.GE
+            this.csDOWLT() != null -> ComparisonOperator.LT
+            this.csDOWLE() != null -> ComparisonOperator.LE
+            else -> todo(conf = conf)
+        }
+    val factor2 =
+        when {
+            this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2
+            this.csDOWNE() != null -> this.csDOWNE().cspec_fixed_standard_parts().factor2
+            this.csDOWGT() != null -> this.csDOWGT().cspec_fixed_standard_parts().factor2
+            this.csDOWGE() != null -> this.csDOWGE().cspec_fixed_standard_parts().factor2
+            this.csDOWLT() != null -> this.csDOWLT().cspec_fixed_standard_parts().factor2
+            this.csDOWLE() != null -> this.csDOWLE().cspec_fixed_standard_parts().factor2
+            else -> todo(conf = conf)
+        }
 
     val factor1Ast = this.factor1.toAstIfSymbolicConstant() ?: this.factor1.content.toAst(conf = conf)
     val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
@@ -219,7 +271,7 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, position
         factor1 = factor1Ast,
         factor2 = factor2Ast,
         position = pos,
-        body = blockContext.dostatement().statement().map { it.toAst(conf) }
+        body = blockContext.dostatement().statement().map { it.toAst(conf) },
     )
 }
 
@@ -228,33 +280,45 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, position
  *  instead for execute it like the new programming languages.
  * @see https://www.ibm.com/docs/en/i/7.5?topic=codes-douxx-do-until
  */
-internal fun RpgParser.CsDOUxxContext.toAst(blockContext: BlockContext, position: Position? = null, conf: ToAstConfiguration = ToAstConfiguration()): DOUxxStmt {
+internal fun RpgParser.CsDOUxxContext.toAst(
+    blockContext: BlockContext,
+    position: Position? = null,
+    conf: ToAstConfiguration = ToAstConfiguration(),
+): DOUxxStmt {
     val pos = position ?: toPosition(conf.considerPosition)
-    val comparison = when {
-        this.csDOUEQ() != null -> ComparisonOperator.NE
-        this.csDOUNE() != null -> ComparisonOperator.EQ
-        this.csDOUGT() != null -> ComparisonOperator.LE
-        this.csDOUGE() != null -> ComparisonOperator.LT
-        this.csDOULT() != null -> ComparisonOperator.GE
-        this.csDOULE() != null -> ComparisonOperator.GT
-        else -> todo(conf = conf)
-    }
-    val factor2 = when {
-        this.csDOUEQ() != null -> this.csDOUEQ().cspec_fixed_standard_parts().factor2
-        this.csDOUNE() != null -> this.csDOUNE().cspec_fixed_standard_parts().factor2
-        this.csDOUGT() != null -> this.csDOUGT().cspec_fixed_standard_parts().factor2
-        this.csDOUGE() != null -> this.csDOUGE().cspec_fixed_standard_parts().factor2
-        this.csDOULT() != null -> this.csDOULT().cspec_fixed_standard_parts().factor2
-        this.csDOULE() != null -> this.csDOULE().cspec_fixed_standard_parts().factor2
-        else -> todo(conf = conf)
-    }
+    val comparison =
+        when {
+            this.csDOUEQ() != null -> ComparisonOperator.NE
+            this.csDOUNE() != null -> ComparisonOperator.EQ
+            this.csDOUGT() != null -> ComparisonOperator.LE
+            this.csDOUGE() != null -> ComparisonOperator.LT
+            this.csDOULT() != null -> ComparisonOperator.GE
+            this.csDOULE() != null -> ComparisonOperator.GT
+            else -> todo(conf = conf)
+        }
+    val factor2 =
+        when {
+            this.csDOUEQ() != null -> this.csDOUEQ().cspec_fixed_standard_parts().factor2
+            this.csDOUNE() != null -> this.csDOUNE().cspec_fixed_standard_parts().factor2
+            this.csDOUGT() != null -> this.csDOUGT().cspec_fixed_standard_parts().factor2
+            this.csDOUGE() != null -> this.csDOUGE().cspec_fixed_standard_parts().factor2
+            this.csDOULT() != null -> this.csDOULT().cspec_fixed_standard_parts().factor2
+            this.csDOULE() != null -> this.csDOULE().cspec_fixed_standard_parts().factor2
+            else -> todo(conf = conf)
+        }
 
     return DOUxxStmt(
         comparisonOperator = comparison,
-        factor1 = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf),
-        factor2 = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor1.error("Factor 2 cannot be null", conf = conf),
+        factor1 =
+            factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(
+                conf,
+            ) ?: factor1.error("Factor 1 cannot be null", conf = conf),
+        factor2 =
+            factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(
+                conf,
+            ) ?: factor1.error("Factor 2 cannot be null", conf = conf),
         position = pos,
-        body = blockContext.dostatement().statement().map { it.toAst(conf) }
+        body = blockContext.dostatement().statement().map { it.toAst(conf) },
     )
 }
 
@@ -265,33 +329,45 @@ internal fun RpgParser.ForstatementContext.toAst(conf: ToAstConfiguration = ToAs
     val downward = csFOR.FREE_DOWNTO() != null
     val byValue = csFOR.byExpression()?.expression()?.toAst() ?: IntLiteral(1)
     return ForStmt(
-            assignment,
-            endValue,
-            byValue,
-            downward,
-            this.statement().map { it.toAst(conf) },
-            toPosition(conf.considerPosition))
+        assignment,
+        endValue,
+        byValue,
+        downward,
+        this.statement().map { it.toAst(conf) },
+        toPosition(conf.considerPosition),
+    )
 }
 
 internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectStmt {
     val whenClauses = this.whenstatement().map { it.toAst(conf) }
     // Unfortunately the other clause might end up being part of the when clause so we should unfold it
     // TODO change this in the grammar
-    val statementsOfLastWhen = if (this.whenstatement().isEmpty())
-        emptyList()
-    else
-        this.whenstatement().last().statement().map { it.toAst(conf) }
+    val statementsOfLastWhen =
+        if (this.whenstatement().isEmpty()) {
+            emptyList()
+        } else {
+            this
+                .whenstatement()
+                .last()
+                .statement()
+                .map { it.toAst(conf) }
+        }
     val indexOfOther = statementsOfLastWhen.indexOfFirst { it is OtherStmt }
     var other: SelectOtherClause? = null
     if (indexOfOther != -1) {
-        val otherPosition = if (conf.considerPosition) {
-            Position(statementsOfLastWhen[indexOfOther].position!!.start, statementsOfLastWhen.last().position!!.end)
-        } else {
-            null
-        }
+        val otherPosition =
+            if (conf.considerPosition) {
+                Position(statementsOfLastWhen[indexOfOther].position!!.start, statementsOfLastWhen.last().position!!.end)
+            } else {
+                null
+            }
         other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
     }
-    val result = beginselect().csSELECT().cspec_fixed_standard_parts().result.text
+    val result =
+        beginselect()
+            .csSELECT()
+            .cspec_fixed_standard_parts()
+            .result.text
     val position = toPosition(conf.considerPosition)
     val dataDefinition = beginselect().csSELECT().cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     // If other statement didn't get caught in the last when statement it can be still present as a standalone statement
@@ -300,32 +376,46 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
         cases = whenClauses,
         other = otherClause,
         dataDefinition = dataDefinition,
-        position = toPosition(conf.considerPosition)
+        position = toPosition(conf.considerPosition),
     )
 }
 
 internal fun RpgParser.DostatementContext.toAst(
     blockContext: BlockContext,
-    conf: ToAstConfiguration = ToAstConfiguration()
+    conf: ToAstConfiguration = ToAstConfiguration(),
 ): Statement {
     val position = toPosition(conf.considerPosition)
     return when {
-        this.begindo() != null -> this.begindo()
-            .let {
-                val doStmt = it.toAst(blockContext = blockContext, position = position, conf = conf)
-                it.csDO().cspec_fixed_standard_parts().validate(
-                    stmt = doStmt.buildIndicatorsFlags(this.begindo(), conf),
-                    conf = conf
-                )
-            }
-        this.begindow() != null -> this.begindow().toAst(blockContext = blockContext, position = position, conf = conf)
-            .buildIndicatorsFlags(this.begindow(), conf)
-        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = blockContext, position = position, conf = conf)
-            .buildIndicatorsFlags(this.csDOWxx(), conf)
-        this.begindou() != null -> this.begindou().toAst(blockContext = blockContext, position = position, conf = conf)
-            .buildIndicatorsFlags(this.begindou(), conf)
-        this.csDOUxx() != null -> this.csDOUxx().toAst(blockContext = blockContext, position = position, conf = conf)
-            .buildIndicatorsFlags(this.csDOUxx(), conf)
+        this.begindo() != null ->
+            this
+                .begindo()
+                .let {
+                    val doStmt = it.toAst(blockContext = blockContext, position = position, conf = conf)
+                    it.csDO().cspec_fixed_standard_parts().validate(
+                        stmt = doStmt.buildIndicatorsFlags(this.begindo(), conf),
+                        conf = conf,
+                    )
+                }
+        this.begindow() != null ->
+            this
+                .begindow()
+                .toAst(blockContext = blockContext, position = position, conf = conf)
+                .buildIndicatorsFlags(this.begindow(), conf)
+        this.csDOWxx() != null ->
+            this
+                .csDOWxx()
+                .toAst(blockContext = blockContext, position = position, conf = conf)
+                .buildIndicatorsFlags(this.csDOWxx(), conf)
+        this.begindou() != null ->
+            this
+                .begindou()
+                .toAst(blockContext = blockContext, position = position, conf = conf)
+                .buildIndicatorsFlags(this.begindou(), conf)
+        this.csDOUxx() != null ->
+            this
+                .csDOUxx()
+                .toAst(blockContext = blockContext, position = position, conf = conf)
+                .buildIndicatorsFlags(this.csDOUxx(), conf)
         else -> todo("Missing implementation for DO statement ${this.text}", conf)
     }
 }
@@ -333,7 +423,7 @@ internal fun RpgParser.DostatementContext.toAst(
 internal fun RpgParser.BegindoContext.toAst(
     blockContext: BlockContext,
     position: Position? = null,
-    conf: ToAstConfiguration = ToAstConfiguration()
+    conf: ToAstConfiguration = ToAstConfiguration(),
 ): DoStmt {
     val result = csDO().cspec_fixed_standard_parts().result
     val iter = if (result.text.isBlank()) null else result.toAst(conf)
@@ -354,34 +444,35 @@ internal fun RpgParser.BegindoContext.toAst(
         body = blockContext.dostatement().statement().map { it.toAst(conf) },
         startLimit = start,
         dataDefinition = dataDefinition,
-        position = pos
+        position = pos,
     )
 }
 
 internal fun RpgParser.BegindowContext.toAst(
     blockContext: BlockContext,
     position: Position? = null,
-    conf: ToAstConfiguration = ToAstConfiguration()
+    conf: ToAstConfiguration = ToAstConfiguration(),
 ): DowStmt {
     val pos = position ?: toPosition(conf.considerPosition)
     val endExpression = csDOW().fixedexpression.expression().toAst(conf)
-    return DowStmt(endExpression,
+    return DowStmt(
+        endExpression,
         blockContext.dostatement().statement().map { it.toAst(conf) },
-        position = pos
+        position = pos,
     )
 }
 
 internal fun RpgParser.BegindouContext.toAst(
     blockContext: BlockContext,
     position: Position? = null,
-    conf: ToAstConfiguration = ToAstConfiguration()
+    conf: ToAstConfiguration = ToAstConfiguration(),
 ): DouStmt {
     val pos = position ?: toPosition(conf.considerPosition)
     val endExpression = csDOU().fixedexpression.expression().toAst(conf)
     return DouStmt(
         endExpression,
         blockContext.dostatement().statement().map { it.toAst(conf) },
-        position = pos
+        position = pos,
     )
 }
 
@@ -397,9 +488,14 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     val position = toPosition(conf.considerPosition)
     return if (this.`when`() != null) {
         SelectCase(
-            this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
+            this
+                .`when`()
+                .csWHEN()
+                .fixedexpression
+                .expression()
+                .toAst(conf),
             statementsToConsider,
-            position
+            position,
         )
     } else {
         val (comparison, factor2) = this.csWHENxx().getCondition()
@@ -413,7 +509,7 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
         SelectCase(
             condition,
             statementsToConsider,
-            position
+            position,
         )
     }
 }
@@ -430,7 +526,7 @@ internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToA
     return CaseStmt(
         cases = casClauses,
         other = otherClause,
-        position = toPosition(conf.considerPosition)
+        position = toPosition(conf.considerPosition),
     )
 }
 
@@ -442,30 +538,40 @@ internal fun RpgParser.CsCASxxContext.toAst(conf: ToAstConfiguration = ToAstConf
     return CaseClause(
         condition,
         position,
-        function
+        function,
     )
 }
 
 internal fun RpgParser.CsCASotherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseOtherClause {
-    val function = this.csCAS().cspec_fixed_standard_parts().resultType().text
+    val function =
+        this
+            .csCAS()
+            .cspec_fixed_standard_parts()
+            .resultType()
+            .text
     val position = toPosition(conf.considerPosition)
     return CaseOtherClause(
         position,
-        function
+        function,
     )
 }
 
 @Serializable
-data class LogicalCondition(val expression: Expression) : Expression() {
+data class LogicalCondition(
+    val expression: Expression,
+) : Expression() {
     val ands = mutableListOf<LogicalCondition>()
+
     fun and(conditions: List<LogicalCondition>) {
         ands.addAll(conditions)
     }
 
     val ors = mutableListOf<LogicalCondition>()
+
     fun or(conditions: List<LogicalCondition>) {
         ors.addAll(conditions)
     }
+
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -482,7 +588,11 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return result
 }
 
-internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
+internal fun ComparisonOperator.asExpression(
+    factor1: RpgParser.FactorContext,
+    factor2: RpgParser.FactorContext,
+    conf: ToAstConfiguration,
+): Expression {
     val left = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf)
     val right = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor2.error("Factor 2 cannot be null", conf = conf)
     return when (this) {
@@ -541,12 +651,42 @@ internal fun RpgParser.CsCASxxContext.getCondition() =
 
 internal fun RpgParser.CsCASxxContext.getFunction() =
     when {
-        this.csCASEQ() != null -> this.csCASEQ().cspec_fixed_standard_parts().resultType().text
-        this.csCASNE() != null -> this.csCASNE().cspec_fixed_standard_parts().resultType().text
-        this.csCASGE() != null -> this.csCASGE().cspec_fixed_standard_parts().resultType().text
-        this.csCASGT() != null -> this.csCASGT().cspec_fixed_standard_parts().resultType().text
-        this.csCASLE() != null -> this.csCASLE().cspec_fixed_standard_parts().resultType().text
-        this.csCASLT() != null -> this.csCASLT().cspec_fixed_standard_parts().resultType().text
+        this.csCASEQ() != null ->
+            this
+                .csCASEQ()
+                .cspec_fixed_standard_parts()
+                .resultType()
+                .text
+        this.csCASNE() != null ->
+            this
+                .csCASNE()
+                .cspec_fixed_standard_parts()
+                .resultType()
+                .text
+        this.csCASGE() != null ->
+            this
+                .csCASGE()
+                .cspec_fixed_standard_parts()
+                .resultType()
+                .text
+        this.csCASGT() != null ->
+            this
+                .csCASGT()
+                .cspec_fixed_standard_parts()
+                .resultType()
+                .text
+        this.csCASLE() != null ->
+            this
+                .csCASLE()
+                .cspec_fixed_standard_parts()
+                .resultType()
+                .text
+        this.csCASLT() != null ->
+            this
+                .csCASLT()
+                .cspec_fixed_standard_parts()
+                .resultType()
+                .text
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
@@ -567,12 +707,14 @@ internal fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOther
 
 internal fun RpgParser.MonitorstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MonitorStmt {
     val position = toPosition(conf.considerPosition)
-    val statements = this.statement().mapNotNull {
-        it.toAst(conf)
-    }
-    val onErrorClauses = this.onError().mapNotNull {
-        it.toAst(conf)
-    }
+    val statements =
+        this.statement().mapNotNull {
+            it.toAst(conf)
+        }
+    val onErrorClauses =
+        this.onError().mapNotNull {
+            it.toAst(conf)
+        }
 
     return MonitorStmt(statements, onErrorClauses, position)
 }
@@ -581,11 +723,15 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
     val position = toPosition(conf.considerPosition)
     return if (this.beginif().fixedexpression != null) {
         IfStmt(
-            this.beginif().fixedexpression.expression().toAst(conf),
+            this
+                .beginif()
+                .fixedexpression
+                .expression()
+                .toAst(conf),
             this.thenBody.mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
             this.elseIfClause().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
             this.elseClause()?.toAst(conf),
-            position
+            position,
         )
     } else {
         val (comparison, factor2) = this.beginif().csIFxx().getCondition()
@@ -601,24 +747,38 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
             this.thenBody.mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
             this.elseIfClause().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
             this.elseClause()?.toAst(conf),
-            position
+            position,
         )
     }
 }
 
 internal fun RpgParser.OnErrorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OnErrorClause {
     val body = this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
-    val codes = this.csON_ERROR().onErrorCode().map { it.text.trim() }.ifEmpty { listOf("") }
+    val codes =
+        this
+            .csON_ERROR()
+            .onErrorCode()
+            .map { it.text.trim() }
+            .ifEmpty { listOf("") }
     val position = toPosition(conf.considerPosition)
     return OnErrorClause(codes, body, position)
 }
 
-internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
-    return ElseClause(this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }, toPosition(conf.considerPosition))
-}
+internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause =
+    ElseClause(
+        this.statement().mapNotNull {
+            kotlin.runCatching { it.toAst(conf) }.getOrNull()
+        },
+        toPosition(conf.considerPosition),
+    )
 
-internal fun RpgParser.ElseIfClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
-    return ElseIfClause(
-            this.elseifstmt().fixedexpression.expression().toAst(conf),
-            this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }, toPosition(conf.considerPosition))
-}
+internal fun RpgParser.ElseIfClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseIfClause =
+    ElseIfClause(
+        this
+            .elseifstmt()
+            .fixedexpression
+            .expression()
+            .toAst(conf),
+        this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
+        toPosition(conf.considerPosition),
+    )

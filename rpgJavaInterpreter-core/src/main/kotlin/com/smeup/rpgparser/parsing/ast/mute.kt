@@ -9,53 +9,70 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-abstract class MuteAnnotation(@Transient override val position: Position? = null) : Node(position)
+abstract class MuteAnnotation(
+    @Transient override val position: Position? = null,
+) : Node(position)
 
 @Serializable
 data class MuteComparisonAnnotation(
     var val1: Expression,
     var val2: Expression,
     val comparison: ComparisonOperator,
-    override val position: Position? = null
+    override val position: Position? = null,
 ) : MuteAnnotation(position)
 
 /**
  * This type is supported for retro-compatibility but it is never processed
  */
 @Serializable
-data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnnotation(position)
+data class MuteTypeAnnotation(
+    override var position: Position? = null,
+) : MuteAnnotation(position)
 
 /**
  * A timeout annotation
  */
 @Serializable
-data class MuteTimeoutAnnotation(val timeout: Long, override var position: Position? = null) : MuteAnnotation(position)
+data class MuteTimeoutAnnotation(
+    val timeout: Long,
+    override var position: Position? = null,
+) : MuteAnnotation(position)
 
 /**
  * A Fail annotation
  */
 @Serializable
-data class MuteFailAnnotation(val message: Expression, override val position: Position? = null) :
-    MuteAnnotation(position)
+data class MuteFailAnnotation(
+    val message: Expression,
+    override val position: Position? = null,
+) : MuteAnnotation(position)
 
 /**
  * A Mute annotation associated to a statement
  */
-data class MuteAnnotationResolved(val muteLine: Int, val statementLine: Int)
+data class MuteAnnotationResolved(
+    val muteLine: Int,
+    val statementLine: Int,
+)
 
 /**
  * The result of executing a mute annotation.
  */
-abstract class MuteAnnotationExecuted() {
+abstract class MuteAnnotationExecuted {
     abstract val programName: String
     abstract val result: BooleanValue
+
     fun succeeded(): Boolean = result.value
+
     fun failed(): Boolean = !succeeded()
-    fun resultAsString() = if (succeeded()) {
-        "succeded"
-    } else {
-        "failed"
-    }
+
+    fun resultAsString() =
+        if (succeeded()) {
+            "succeded"
+        } else {
+            "failed"
+        }
+
     abstract fun headerDescription(): String
 }
 
@@ -72,7 +89,7 @@ data class MuteComparisonAnnotationExecuted(
     override val result: BooleanValue,
     val value1Result: Value,
     val value2Result: Value,
-    val line: String
+    val line: String,
 ) : MuteAnnotationExecuted() {
     override fun headerDescription(): String =
         "Left value: \"${value1Result.render()}\"  - right value: \"${value2Result.render()}\" - Line $line"
@@ -84,9 +101,10 @@ data class MuteComparisonAnnotationExecuted(
 data class MuteFailAnnotationExecuted(
     override val programName: String,
     val message: Value,
-    val line: String
+    val line: String,
 ) : MuteAnnotationExecuted() {
     override fun headerDescription(): String = message.render() + " - Line $line"
+
     override val result = BooleanValue.FALSE
 }
 
@@ -96,9 +114,10 @@ data class MuteFailAnnotationExecuted(
 data class MuteTimeoutAnnotationExecuted(
     override val programName: String,
     val timeout: Long,
-    val line: String
+    val line: String,
 ) : MuteAnnotationExecuted() {
     override fun headerDescription(): String = "Timeout $timeout - Line $line"
+
     override val result = BooleanValue.TRUE
 }
 

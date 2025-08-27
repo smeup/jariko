@@ -11,7 +11,6 @@ import kotlin.test.assertEquals
 import org.junit.Test as test
 
 class ExpressionsTest {
-
     private fun expression(code: String): Expression {
         val exprContext = assertExpressionCanBeParsed("                                   $code")
         return exprContext.toAst(ToAstConfiguration(considerPosition = false))
@@ -42,67 +41,90 @@ class ExpressionsTest {
     }
 
     @test fun functionCallParsing() {
-        assertEquals(FunctionCall(
+        assertEquals(
+            FunctionCall(
                 ReferenceByName("\$\$SVARVA"),
-                listOf(dataRef(("\$R")))),
-                expression("\$\$SVARVA(\$R)"))
+                listOf(dataRef(("\$R"))),
+            ),
+            expression("\$\$SVARVA(\$R)"),
+        )
     }
 
     @test fun lookupParsing() {
-        assertEquals(LookupExpr(
-                        StringLiteral("Url"),
-                        dataRef("\$\$SVARCD")
-                ),
-                expression("%LOOKUP('Url':\$\$SVARCD)"))
+        assertEquals(
+            LookupExpr(
+                StringLiteral("Url"),
+                dataRef("\$\$SVARCD"),
+            ),
+            expression("%LOOKUP('Url':\$\$SVARCD)"),
+        )
     }
 
     @test fun translateExprParsing() {
-        assertEquals(TranslateExpr(dataRef("lo"), dataRef("up"), StringLiteral("rpg dept"), IntLiteral(1)),
-            expression("%XLATE(lo:up:'rpg dept')"))
+        assertEquals(
+            TranslateExpr(dataRef("lo"), dataRef("up"), StringLiteral("rpg dept"), IntLiteral(1)),
+            expression("%XLATE(lo:up:'rpg dept')"),
+        )
     }
 
     @test fun translateExprParsingWithStartPos() {
-        assertEquals(TranslateExpr(
+        assertEquals(
+            TranslateExpr(
                 dataRef("lo"),
                 dataRef("up"),
                 StringLiteral("RPG DEPT"),
-                IntLiteral(6)),
-                expression("%XLATE(lo:up:'RPG DEPT':6)")
+                IntLiteral(6),
+            ),
+            expression("%XLATE(lo:up:'RPG DEPT':6)"),
         )
     }
 
     @test fun notExprParsing() {
-        assertEquals(NotExpr(
-                dataRef("OK")),
-                expression("NOT(OK)")
+        assertEquals(
+            NotExpr(
+                dataRef("OK"),
+            ),
+            expression("NOT(OK)"),
         )
     }
 
     @test fun scanExprParsing() {
-        assertEquals(ScanExpr(
-                StringLiteral("oo"), dataRef("source")),
-                expression("%scan ('oo' : source)")
+        assertEquals(
+            ScanExpr(
+                StringLiteral("oo"),
+                dataRef("source"),
+            ),
+            expression("%scan ('oo' : source)"),
         )
     }
 
     @test fun scanExprParsingWithStart() {
-        assertEquals(ScanExpr(
-                StringLiteral("Dr."), dataRef("source"), IntLiteral(2)),
-                expression("%scan ('Dr.' : source : 2)")
+        assertEquals(
+            ScanExpr(
+                StringLiteral("Dr."),
+                dataRef("source"),
+                IntLiteral(2),
+            ),
+            expression("%scan ('Dr.' : source : 2)"),
         )
     }
 
     @test fun trimExprParsing() {
-        assertEquals(TrimExpr(
-                dataRef("§§NAM")),
-                expression("%TRIM(§§NAM)")
+        assertEquals(
+            TrimExpr(
+                dataRef("§§NAM"),
+            ),
+            expression("%TRIM(§§NAM)"),
         )
     }
 
     @test fun trimExprParsingWithCharacters() {
-        assertEquals(TrimExpr(
-                dataRef("edited"), StringLiteral("\$*")),
-                expression("%trim(edited : '\$*')")
+        assertEquals(
+            TrimExpr(
+                dataRef("edited"),
+                StringLiteral("\$*"),
+            ),
+            expression("%trim(edited : '\$*')"),
         )
     }
 

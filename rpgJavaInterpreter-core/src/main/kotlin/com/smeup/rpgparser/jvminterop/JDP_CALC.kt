@@ -26,27 +26,26 @@ import java.lang.RuntimeException
   Procedure is called by 'CALLP' and or 'EVAL' rpgle statement.
  */
 
-class JDP_CALC() : JavaFunction {
-
+class JDP_CALC : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        interpreterStatus: InterpreterStatus
+        interpreterStatus: InterpreterStatus,
     ): Value {
-
         // Create local variables from received parameters
         var n1 = params.filter { fv -> fv.variableName == "N1" }.first().value as IntValue
         var n2 = params.filter { fv -> fv.variableName == "N2" }.first().value as IntValue
         var op = params.filter { fv -> fv.variableName == "OP" }.first().value as StringValue
 
         // Compute requested operation
-        val returnValue = when (op.value) {
-            "+" -> n1.value + n2.value
-            "-" -> n1.value - n2.value
-            "*" -> n1.value * n2.value
-            "/" -> n1.value / n2.value
-            else -> throw RuntimeException("Unsupported math operator: ${op.value}")
-        }.asValue()
+        val returnValue =
+            when (op.value) {
+                "+" -> n1.value + n2.value
+                "-" -> n1.value - n2.value
+                "*" -> n1.value * n2.value
+                "/" -> n1.value / n2.value
+                else -> throw RuntimeException("Unsupported math operator: ${op.value}")
+            }.asValue()
 
         // Change value of "N1" and "R1" parameter.
         // This doesn't mean it will affect value of variable in symboltable caller scope,

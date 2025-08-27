@@ -12,27 +12,29 @@ import java.util.*
 data class IndicatorExpr(
     val index: IndicatorKey,
     override val position: Position? = null,
-    val indexExpression: Expression? = null
+    val indexExpression: Expression? = null,
 ) : AssignableExpression(position) {
-
     constructor(dataWrapUpChoice: DataWrapUpChoice, position: Position? = null) :
-            this(index = dataWrapUpChoice.name.toIndicatorKey(), position = position)
+        this(index = dataWrapUpChoice.name.toIndicatorKey(), position = position)
 
     /**
      * Constructor for *IN where the index is an expression
      * */
     constructor(index: Expression, position: Position?) :
-            this(index = 0, position = position, indexExpression = index)
+        this(index = 0, position = position, indexExpression = index)
 
     override fun size(): Int = 1
+
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // *IN
 @Serializable
-data class GlobalIndicatorExpr(override val position: Position? = null) :
-        AssignableExpression(position) {
+data class GlobalIndicatorExpr(
+    override val position: Position? = null,
+) : AssignableExpression(position) {
     override fun size(): Int = IndicatorType.Predefined.range.last
+
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -41,7 +43,9 @@ typealias IndicatorKey = Int
 /**
  * Managed indicator types
  * */
-enum class IndicatorType(val range: IntRange) {
+enum class IndicatorType(
+    val range: IntRange,
+) {
     Predefined(1..99),
     LR(100..100),
     RT(101..101),
@@ -75,16 +79,16 @@ enum class IndicatorType(val range: IntRange) {
     ;
 
     companion object {
-
         val STATELESS_INDICATORS: List<IndicatorKey> by lazy {
             arrayListOf<IndicatorKey>().apply {
-                values().filter { indicatorType ->
-                    indicatorType.range.last > 99
-                }.map { indicatorType ->
-                    indicatorType.range.forEach {
-                        add(it)
+                values()
+                    .filter { indicatorType ->
+                        indicatorType.range.last > 99
+                    }.map { indicatorType ->
+                        indicatorType.range.forEach {
+                            add(it)
+                        }
                     }
-                }
             }
         }
     }
@@ -93,17 +97,25 @@ enum class IndicatorType(val range: IntRange) {
 /**
  * Convert a string in format [0-9] [0-9] or [a-zA-Z] [a-zA-Z] to IndicatorKey
  * */
-fun String.toIndicatorKey(): IndicatorKey {
-    return when {
-        this.isInt() -> this.let {
-            require(IndicatorType.Predefined.range.contains(it.toInt()))
-            it.toInt()
-        }
+fun String.toIndicatorKey(): IndicatorKey =
+    when {
+        this.isInt() ->
+            this.let {
+                require(IndicatorType.Predefined.range.contains(it.toInt()))
+                it.toInt()
+            }
         else -> IndicatorType.valueOf(this.uppercase()).range.first
     }
-}
 
 @Serializable
-data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
+data class IndicatorCondition(
+    val key: IndicatorKey,
+    val negate: Boolean,
+)
+
 @Serializable
-data class ContinuedIndicator(val key: IndicatorKey, val negate: Boolean, val level: String)
+data class ContinuedIndicator(
+    val key: IndicatorKey,
+    val negate: Boolean,
+    val level: String,
+)

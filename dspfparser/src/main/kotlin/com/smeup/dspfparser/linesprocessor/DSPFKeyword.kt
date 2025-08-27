@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFKeyword(
     val name: String? = null,
-    val parameters: MutableList<DSPFParameters> = mutableListOf()
+    val parameters: MutableList<DSPFParameters> = mutableListOf(),
 ) {
     companion object {
         fun fromString(text: String): DSPFKeyword {
@@ -38,13 +38,14 @@ internal data class DSPFKeyword(
             return DSPFKeyword(message)
         }
 
-        private fun getConstantMessage(text: String): String? {
-            return Regex("^'.*'\$").find(text.trim())?.value?.removeFirst('\'')?.removeLast('\'')
-        }
+        private fun getConstantMessage(text: String): String? =
+            Regex("^'.*'\$")
+                .find(text.trim())
+                ?.value
+                ?.removeFirst('\'')
+                ?.removeLast('\'')
 
-        private fun getName(text: String): String? {
-            return Regex("^[a-zA-Z]*").find(text)?.value
-        }
+        private fun getName(text: String): String? = Regex("^[a-zA-Z]*").find(text)?.value
 
         private fun getParameters(text: String): MutableList<DSPFParameters> {
             val parameters =

@@ -11,7 +11,7 @@ sealed class InputSpecification
 @Serializable
 data class FileNameInputSpecification(
     val name: String,
-    val position: Position?
+    val position: Position?,
 ) : InputSpecification()
 
 @Serializable
@@ -20,7 +20,7 @@ data class ExternalFieldInputSpecification(
     val newName: String,
     val controlLevelIndicator: String?,
     val matchingFieldsIndicator: String?,
-    val position: Position?
+    val position: Position?,
 ) : InputSpecification()
 
 /**
@@ -28,22 +28,20 @@ data class ExternalFieldInputSpecification(
  */
 data class InputSpecificationGroup(
     val fileName: FileNameInputSpecification,
-    val specifications: List<InputSpecification>
+    val specifications: List<InputSpecification>,
 )
 
-fun RpgParser.ControlLevelIndicatorContext.toIndicator(): String? {
-    return when {
+fun RpgParser.ControlLevelIndicatorContext.toIndicator(): String? =
+    when {
         this.ControlLevelIndicator() != null -> this.ControlLevelIndicator().text
         else -> null
     }
-}
 
-fun RpgParser.MatchingFieldsIndicatorContext.toIndicator(): String? {
-    return when {
+fun RpgParser.MatchingFieldsIndicatorContext.toIndicator(): String? =
+    when {
         this.MatchingRecordIndicator() != null -> this.MatchingRecordIndicator().text
         else -> null
     }
-}
 
 fun RpgParser.Is_external_fieldContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InputSpecification {
     val originalName = this.IF_Name().text.trim()
@@ -59,12 +57,12 @@ fun RpgParser.Is_external_fieldContext.toAst(conf: ToAstConfiguration = ToAstCon
         newName,
         controlIndicator,
         matchField,
-        toPosition(conf.considerPosition)
+        toPosition(conf.considerPosition),
     )
 }
 
-fun RpgParser.Ispec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InputSpecification {
-    return when {
+fun RpgParser.Ispec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InputSpecification =
+    when {
         this.is_external_field() != null -> this.is_external_field().toAst(conf)
         this.IS_FileName() != null -> {
             val fileName = this.IS_FileName().text.trim()
@@ -72,9 +70,8 @@ fun RpgParser.Ispec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigura
             // TODO: Add support for indicators
             FileNameInputSpecification(
                 fileName,
-                toPosition(conf.considerPosition)
+                toPosition(conf.considerPosition),
             )
         }
         else -> todo(conf = conf)
     }
-}

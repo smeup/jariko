@@ -41,28 +41,22 @@ import kotlin.math.max
 
 @Serializable
 sealed class Type {
-    open fun numberOfElements(): Int {
-        return 1
-    }
-    open fun elementSize(): Int {
-        return size
-    }
+    open fun numberOfElements(): Int = 1
 
-    open fun canBeAssigned(value: Value): Boolean {
-        return value.assignableTo(this)
-    }
+    open fun elementSize(): Int = size
 
-    open fun canBeAssigned(type: Type): Boolean {
-        return this == type
-    }
+    open fun canBeAssigned(value: Value): Boolean = value.assignableTo(this)
+
+    open fun canBeAssigned(type: Type): Boolean = this == type
 
     abstract val size: Int
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
+
     fun isArray() = this is ArrayType
-    open fun asArray(): ArrayType {
-        throw IllegalStateException("Not an ArrayType")
-    }
+
+    open fun asArray(): ArrayType = throw IllegalStateException("Not an ArrayType")
+
     open fun hasVariableSize() = false
 
     open fun isNumeric() = false
@@ -83,9 +77,7 @@ object RecordFormatType : Type() {
 
     override fun canBeAssigned(value: Value) = value is BlanksValue
 
-    override fun toString(): String {
-        return "RecordFormatType"
-    }
+    override fun toString(): String = "RecordFormatType"
 }
 
 @Serializable
@@ -111,7 +103,7 @@ object KListType : Type() {
  * @property isQualified a boolean property that indicates if the data structure is qualified
  */
 @Serializable
-sealed class AbstractDataStructureType() : Type() {
+sealed class AbstractDataStructureType : Type() {
     abstract val isQualified: Boolean
 }
 
@@ -119,7 +111,7 @@ sealed class AbstractDataStructureType() : Type() {
 data class DataStructureType(
     var fields: List<FieldType>,
     val elementSize: Int,
-    override val isQualified: Boolean = false
+    override val isQualified: Boolean = false,
 ) : AbstractDataStructureType() {
     override val size: Int
         get() = elementSize
@@ -134,14 +126,17 @@ data class DataStructureType(
 data class OccurableDataStructureType(
     val dataStructureType: DataStructureType,
     val occurs: Int,
-    override val isQualified: Boolean = false
+    override val isQualified: Boolean = false,
 ) : AbstractDataStructureType() {
     override val size: Int
         get() = dataStructureType.size
 }
 
 @Serializable
-data class StringType(val length: Int, val varying: Boolean = false) : Type() {
+data class StringType(
+    val length: Int,
+    val varying: Boolean = false,
+) : Type() {
     override val size: Int
         get() = if (varying) length + 2 else length // varying type get 2 additional bytes containing the size of the data
 
@@ -149,18 +144,18 @@ data class StringType(val length: Int, val varying: Boolean = false) : Type() {
      * Creates an instance of StringType in according to [FeatureFlag.UnlimitedStringTypeFlag]
      * */
     internal companion object {
-        internal fun createInstance(length: Int, varying: Boolean = false): Type {
-            return MainExecutionContext.getSystemInterface()?.let {
+        internal fun createInstance(
+            length: Int,
+            varying: Boolean = false,
+        ): Type =
+            MainExecutionContext.getSystemInterface()?.let {
                 it.getFeaturesFactory().createStringType {
                     StringType(length = length, varying = varying)
                 }
             } ?: StringType(length = length, varying = varying)
-        }
     }
 
-    override fun hasVariableSize(): Boolean {
-        return varying
-    }
+    override fun hasVariableSize(): Boolean = varying
 }
 
 @Serializable
@@ -203,6 +198,7 @@ object StartValType : Type() {
         get() = throw IllegalStateException("Has variable size")
 
     override fun hasVariableSize() = true
+
     override fun isNumeric() = false
 }
 
@@ -212,6 +208,7 @@ object EndValType : Type() {
         get() = throw IllegalStateException("Has variable size")
 
     override fun hasVariableSize() = true
+
     override fun isNumeric() = false
 }
 
@@ -226,12 +223,15 @@ object TimeStampType : Type() {
  *  See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
  */
 @Serializable
-data class DateType(val format: DateFormat) : Type() {
+data class DateType(
+    val format: DateFormat,
+) : Type() {
     override val size: Int
-        get() = when (format) {
-            DateFormat.ISO -> 10
-            DateFormat.JUL -> 6
-        }
+        get() =
+            when (format) {
+                DateFormat.ISO -> 10
+                DateFormat.JUL -> 6
+            }
 }
 
 /**
@@ -239,7 +239,9 @@ data class DateType(val format: DateFormat) : Type() {
  * and very similar to a string.
  */
 @Serializable
-data class CharacterType(val nChars: Int) : Type() {
+data class CharacterType(
+    val nChars: Int,
+) : Type() {
     override val size: Int
         get() = nChars
 }
@@ -253,13 +255,14 @@ infix fun Int.pow(exponent: Int): Long {
     }
 }
 
-infix fun Long.log(base: Int): Double {
-    return (Math.log(this.toDouble()) / Math.log(base.toDouble()))
-}
+infix fun Long.log(base: Int): Double = (Math.log(this.toDouble()) / Math.log(base.toDouble()))
 
 @Serializable
-data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
-
+data class NumberType(
+    val entireDigits: Int,
+    val decimalDigits: Int,
+    val rpgType: String? = "",
+) : Type() {
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
 
     init {
@@ -322,38 +325,40 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
 object PointerType : Type() {
     override val size: Int get() = 8
 
-    override fun canBeAssigned(type: Type): Boolean = when (type) {
-        is PointerType, is NumberType -> true
-        else -> false
-    }
+    override fun canBeAssigned(type: Type): Boolean =
+        when (type) {
+            is PointerType, is NumberType -> true
+            else -> false
+        }
 
     override fun isNumeric() = true
 }
 
 @Serializable
-data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
+data class ArrayType(
+    val element: Type,
+    val nElements: Int,
+    val compileTimeRecordsPerLine: Int? = null,
+) : Type() {
     var ascend: Boolean? = null
 
     override val size: Int
         get() = element.size * nElements
 
-    override fun numberOfElements(): Int {
-        return nElements
-    }
+    override fun numberOfElements(): Int = nElements
 
-    override fun elementSize(): Int {
-        return element.size
-    }
+    override fun elementSize(): Int = element.size
 
-    override fun asArray(): ArrayType {
-        return this
-    }
+    override fun asArray(): ArrayType = this
 
     fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null
 }
 
 @Serializable
-data class FieldType(val name: String, val type: Type)
+data class FieldType(
+    val name: String,
+    val type: Type,
+)
 
 fun Expression.type(): Type {
     return when (this) {
@@ -422,22 +427,23 @@ fun Expression.type(): Type {
         }
         // insert is for LenExpr and FunctionCall
         is LenExpr -> {
-            val size = when (this.value) {
-                // If len argument is a dataref, we have to evaluate it
-                // But is absolutely not clear why if the argument is a string of 1-9 chars the len expression type is 1
-                // while if is a string of 10-99 chars the len expression type is 2
-                // This way the tests don't fail but to me is not clear why
-                is DataRefExpr -> (this.value as DataRefExpr).size().toString().length
-                // else we need to find the dataref inside the expression
-                else -> {
-                    var dataRefInsideExpr: DataRefExpr? = null
-                    this.value.specificProcess(klass = DataRefExpr::class.java) {
-                        dataRefInsideExpr = it
+            val size =
+                when (this.value) {
+                    // If len argument is a dataref, we have to evaluate it
+                    // But is absolutely not clear why if the argument is a string of 1-9 chars the len expression type is 1
+                    // while if is a string of 10-99 chars the len expression type is 2
+                    // This way the tests don't fail but to me is not clear why
+                    is DataRefExpr -> (this.value as DataRefExpr).size().toString().length
+                    // else we need to find the dataref inside the expression
+                    else -> {
+                        var dataRefInsideExpr: DataRefExpr? = null
+                        this.value.specificProcess(klass = DataRefExpr::class.java) {
+                            dataRefInsideExpr = it
+                        }
+                        dataRefInsideExpr?.size()?.toString()?.length
+                            ?: this.value.error(message = "I don't know how to calculate the length of this expression")
                     }
-                    dataRefInsideExpr?.size()?.toString()?.length
-                        ?: this.value.error(message = "I don't know how to calculate the length of this expression")
                 }
-            }
             return NumberType(size, decimalDigits = 0)
         }
         is FunctionCall -> {

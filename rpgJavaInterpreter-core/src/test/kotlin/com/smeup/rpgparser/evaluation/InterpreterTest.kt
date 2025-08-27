@@ -39,7 +39,6 @@ import java.util.*
 import kotlin.test.*
 
 open class InterpreterTest : AbstractTest() {
-
     companion object {
         val APIPGM_BLACKLIST = listOf("APIMATH", "APIVARS", "APIPROCS", "APISR", "APIMULTIPLEDEF", "APIERR1")
     }
@@ -48,11 +47,12 @@ open class InterpreterTest : AbstractTest() {
     fun doubleVarDefinitionWithDifferentTypeShouldThrowAnError() {
         val systemInterface = JavaSystemInterface()
 
-        val source = """
+        val source =
+            """
 |     D n               S              1  0 inz(00)
 |     D n               S              1  0 inz(00)
 |     C                   SETON                                          LR
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
         assertFailsWith(AstResolutionError::class) {
@@ -100,7 +100,10 @@ open class InterpreterTest : AbstractTest() {
         assertEquals(listOf("10"), si.displayed)
     }
 
-    private fun assertFibonacci(input: String, output: String) {
+    private fun assertFibonacci(
+        input: String,
+        output: String,
+    ) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolveAndValidate()
         val si = CollectorSystemInterface()
@@ -169,21 +172,25 @@ open class InterpreterTest : AbstractTest() {
         cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
-        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                val n = params["ppdat"]!!.asString().value.asInt()
-                var t1 = 0
-                var t2 = 1
+        si.programs["CALCFIB"] =
+            object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
+                override fun execute(
+                    systemInterface: SystemInterface,
+                    params: LinkedHashMap<String, Value>,
+                ): List<Value> {
+                    val n = params["ppdat"]!!.asString().value.asInt()
+                    var t1 = 0
+                    var t2 = 1
 
-                for (i in 1..n) {
-                    val sum = t1 + t2
-                    t1 = t2
-                    t2 = sum
+                    for (i in 1..n) {
+                        val sum = t1 + t2
+                        t1 = t2
+                        t2 = sum
+                    }
+                    systemInterface.display("FIBONACCI OF: $n IS: $t1")
+                    return listOf(params["ppdat"]!!)
                 }
-                systemInterface.display("FIBONACCI OF: $n IS: $t1")
-                return listOf(params["ppdat"]!!)
             }
-        }
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
         assertEquals(logHandler.getExecutedSubroutines().size, 0)
@@ -240,17 +247,20 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeLEN() {
-        assertEquals(listOf(
-            "Hello World! 23",
-            "%LEN(B_01) is 1",
-            "%LEN(B_02) is 20",
-            "%LEN(B_03) is 0",
-            "%LEN(B_03) is 1",
-            "%LEN(B_03) is 5",
-            "%LEN(B_04) is 0",
-            "%LEN(B_05) is 5",
-            "%LEN(B_06) is 6"
-        ), outputOf("LEN"))
+        assertEquals(
+            listOf(
+                "Hello World! 23",
+                "%LEN(B_01) is 1",
+                "%LEN(B_02) is 20",
+                "%LEN(B_03) is 0",
+                "%LEN(B_03) is 1",
+                "%LEN(B_03) is 5",
+                "%LEN(B_04) is 0",
+                "%LEN(B_05) is 5",
+                "%LEN(B_06) is 6",
+            ),
+            outputOf("LEN"),
+        )
     }
 
     @Test
@@ -265,20 +275,30 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeSETONSETOF() {
-        assertEquals(listOf("Before",
-            "56=off57=off",
-            "After set",
-            "56=on",
-            "After off",
-            "56=off57=off"), outputOf("SETONOF01"))
+        assertEquals(
+            listOf(
+                "Before",
+                "56=off57=off",
+                "After set",
+                "56=on",
+                "After off",
+                "56=off57=off",
+            ),
+            outputOf("SETONOF01"),
+        )
     }
 
     @Test @Ignore
     fun executeSETOFLF() {
-        assertEquals(listOf("Before",
-            "LR Of",
-            "After set",
-            "LR Off"), outputOf("SETOFLR"))
+        assertEquals(
+            listOf(
+                "Before",
+                "LR Of",
+                "After set",
+                "LR Off",
+            ),
+            outputOf("SETOFLR"),
+        )
     }
 
     @Test
@@ -304,16 +324,17 @@ open class InterpreterTest : AbstractTest() {
      C                   add       1             y    
         """
         listOf(eval, move, add).forEach { source ->
-            kotlin.runCatching {
-                println("Executing:$source")
-                getProgram(nameOrSource = source).singleCall(emptyList())
-            }.onSuccess {
-                fail(message = "Program:\n$source\ndid not have to be executed properly.")
-            }.onFailure {
-                assert(it.message!!.indexOf("is a const and cannot be assigned") != -1) {
-                    "Exception message doesn't contain expected message but contains:\n${it.message}"
+            kotlin
+                .runCatching {
+                    println("Executing:$source")
+                    getProgram(nameOrSource = source).singleCall(emptyList())
+                }.onSuccess {
+                    fail(message = "Program:\n$source\ndid not have to be executed properly.")
+                }.onFailure {
+                    assert(it.message!!.indexOf("is a const and cannot be assigned") != -1) {
+                        "Exception message doesn't contain expected message but contains:\n${it.message}"
+                    }
                 }
-            }
         }
     }
 
@@ -433,7 +454,7 @@ open class InterpreterTest : AbstractTest() {
     fun executeMOVEL07() {
         assertEquals(
             listOf("0"),
-            outputOf("MOVEL07")
+            outputOf("MOVEL07"),
         )
     }
 
@@ -444,32 +465,40 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeMOVEAMUT13() {
-        assertEquals(listOf("ABCDEFGHIL         1",
-            "BBBBBBBBBBBBBBBBBBBB",
-            "AAAAAAAAAAAAAAAAAAAA",
-            "  ABCDEFGHILMNOPQRST",
-            "  ABCDEFGHILMNOPQRST",
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXXX",
-            "XXXXXXXXXXXXXXXXXXXX"),
-            outputOf("MOVEAMUT13"))
+        assertEquals(
+            listOf(
+                "ABCDEFGHIL         1",
+                "BBBBBBBBBBBBBBBBBBBB",
+                "AAAAAAAAAAAAAAAAAAAA",
+                "  ABCDEFGHILMNOPQRST",
+                "  ABCDEFGHILMNOPQRST",
+                "XXXXXXXXXXXXXXXXXXXX",
+                "XXXXXXXXXXXXXXXXXXXX",
+                "XXXXXXXXXXXXXXXXXXXX",
+                "XXXXXXXXXXXXXXXXXXXX",
+                "XXXXXXXXXXXXXXXXXXXX",
+            ),
+            outputOf("MOVEAMUT13"),
+        )
     }
 
     @Test
     fun executeMOVEAP0904_p_with_chars() {
-        assertEquals(listOf("ABCDEFGHIL",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""),
-            outputOf("MOVEAP0904"))
+        assertEquals(
+            listOf(
+                "ABCDEFGHIL",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ),
+            outputOf("MOVEAP0904"),
+        )
     }
 
     @Test
@@ -593,10 +622,10 @@ open class InterpreterTest : AbstractTest() {
         assertEquals(expected, "EVALARRAY2".outputOf())
     }
 
-    @Test
     /**
      * Test the '+' operator with arrays
      */
+    @Test
     fun executeEVALARRAY3() {
         val expected = listOf("1(A ) 2(B ) 3( C) 4(  )", "1(1) 2(4) 3(3) 4(0)")
         assertEquals(expected, "EVALARRAY3".outputOf())
@@ -625,7 +654,8 @@ open class InterpreterTest : AbstractTest() {
 
     @Test @Ignore
     fun executeLOOKUP_OPCODE() {
-        assertEquals("""
+        assertEquals(
+            """
 Test 1
 68 OFF
 69 ON-
@@ -650,8 +680,9 @@ Test 6
 68 OFF 
 69 ON- 
  7               
-        """.trimIndent().lines().map(String::trim),
-            outputOf("LOOKUP_OP1"))
+            """.trimIndent().lines().map(String::trim),
+            outputOf("LOOKUP_OP1"),
+        )
     }
 
     @Test
@@ -666,7 +697,8 @@ Test 6
 
     @Test @Ignore
     fun executeLOOKUP_OPCODE_GoodArray() {
-        assertEquals("""
+        assertEquals(
+            """
 Test 1
 68 ON-
 69 OFF
@@ -691,8 +723,9 @@ Test 6
 68 OFF
 69 OFF
  1    
-        """.trimIndent().lines().map(String::trim),
-            outputOf("LOOKUP_OP9"))
+            """.trimIndent().lines().map(String::trim),
+            outputOf("LOOKUP_OP9"),
+        )
     }
 
     @Test @Ignore
@@ -741,20 +774,22 @@ Test 6
 
     @Test
     fun executeCALLER_CALLED_pgm_with_RT() {
-        assertEquals(listOf(
-            "Executing CALLER",
-            "x initialized at: 18",
-            "x is now: 6",
-            "Calling CALLED",
-            "Executing CALLED",
-            "x initialized at: 9",
-            "x is now: 3",
-            "Calling CALLED",
-            "Executing CALLED",
-            "x initialized at: 3",
-            "x is now: 1"
-        ),
-            outputOf("CALLER"))
+        assertEquals(
+            listOf(
+                "Executing CALLER",
+                "x initialized at: 18",
+                "x is now: 6",
+                "Calling CALLED",
+                "Executing CALLED",
+                "x initialized at: 9",
+                "x is now: 3",
+                "Calling CALLED",
+                "Executing CALLED",
+                "x initialized at: 3",
+                "x is now: 1",
+            ),
+            outputOf("CALLER"),
+        )
     }
 
     @Test
@@ -766,18 +801,26 @@ Test 6
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
         var javaPgmCalled = false
-        si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
-            ProgramParam("NBR", NumberType(8, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                javaPgmCalled = true
-                val nbr = params["NBR"]
-                if (nbr!!.asInt().value.toInt() == 0) {
-                    return listOf(IntValue(1))
-                } else {
-                    return listOf(IntValue(2))
+        si.programs["CAL02"] =
+            object : JvmProgramRaw(
+                "CAL02",
+                listOf(
+                    ProgramParam("NBR", NumberType(8, 0)),
+                ),
+            ) {
+                override fun execute(
+                    systemInterface: SystemInterface,
+                    params: LinkedHashMap<String, Value>,
+                ): List<Value> {
+                    javaPgmCalled = true
+                    val nbr = params["NBR"]
+                    if (nbr!!.asInt().value.toInt() == 0) {
+                        return listOf(IntValue(1))
+                    } else {
+                        return listOf(IntValue(2))
+                    }
                 }
             }
-        }
         execute("CAL01", emptyMap(), si)
         assertTrue(javaPgmCalled, "Java pgm CAL02 was not called")
         assertEquals(si.displayed.map { it.trim() }, listOf("1"))
@@ -792,7 +835,7 @@ Test 6
     fun executeMOVE() {
         assertEquals(
             listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE", "DE", "DE"),
-            outputOf("MOVE")
+            outputOf("MOVE"),
         )
     }
 
@@ -800,7 +843,7 @@ Test 6
     fun executeMOVE01() {
         assertEquals(
             listOf("0"),
-            outputOf("MOVE01")
+            outputOf("MOVE01"),
         )
     }
 
@@ -812,8 +855,24 @@ Test 6
     @Test
     fun executeMOVEL() {
         assertEquals(
-            listOf("AYXWV", "ABCDE", "ABCDE", "XXXX ".trim(), "123WV", "456WV", "12399", "45699", "YYXWV", "AB", "12345", "123.45", "1234.5", "AB", "AB"),
-            outputOf("MOVEL")
+            listOf(
+                "AYXWV",
+                "ABCDE",
+                "ABCDE",
+                "XXXX ".trim(),
+                "123WV",
+                "456WV",
+                "12399",
+                "45699",
+                "YYXWV",
+                "AB",
+                "12345",
+                "123.45",
+                "1234.5",
+                "AB",
+                "AB",
+            ),
+            outputOf("MOVEL"),
         )
     }
 
@@ -821,15 +880,25 @@ Test 6
     fun executeMOVELP() {
         assertEquals(
             listOf("ABC  ".trim(), "123  ".trim(), "456  ".trim(), "45600", "ABC  ".trim(), "AB"),
-            outputOf("MOVELP")
+            outputOf("MOVELP"),
         )
     }
 
     @Test
     fun executeMOVELP2() {
         assertEquals(
-            listOf("AAAA      ".trim(), "AAAAAAAA            ".trim(), "AAAAA".trim(), "AAAAA            ".trim(), "AAA".trim(), "AAAAAAA".trim(), "AAA         ".trim(), "AAAA".trim(), "AAAAA   ".trim()),
-            outputOf("MOVELP2")
+            listOf(
+                "AAAA      ".trim(),
+                "AAAAAAAA            ".trim(),
+                "AAAAA".trim(),
+                "AAAAA            ".trim(),
+                "AAA".trim(),
+                "AAAAAAA".trim(),
+                "AAA         ".trim(),
+                "AAAA".trim(),
+                "AAAAA   ".trim(),
+            ),
+            outputOf("MOVELP2"),
         )
     }
 
@@ -883,12 +952,14 @@ Test 6
         assertEquals(listOf("Body"), outputOf("DO_TST02"))
     }
 
-    @Test @Category(PerformanceTest::class)
+    @Test
+    @Category(PerformanceTest::class)
     fun executeDOW_PERF() {
         assertEquals(outputOf("DOW_PERF"), listOf("COUNTER IS NOW 100000001"))
     }
 
-    @Test @Category(PerformanceTest::class)
+    @Test
+    @Category(PerformanceTest::class)
     fun executeDOW_LEAVE_PERF() {
         assertEquals(outputOf("DOW_LEAVE_PERF"), listOf("COUNTER IS NOW 100000001"))
     }
@@ -910,54 +981,57 @@ Test 6
 
     @Test
     fun executeUNLIMIT_S() {
-        val expected = listOf(
-            "",
-            "UnlInited",
-            "Assignment by string literal",
-            "Assignment by reference of the same type",
-            "Assignment from StringType to UnlimitedStringType",
-            "Assignment from StringType to UnlimitedStringType",
-            "Concat literal A with literal B",
-            "ok blank",
-            "Concat UnlimitedStringType with StringType",
-            "Concat StringType                                 with UnlimitedStringType",
-            "0"
-        )
+        val expected =
+            listOf(
+                "",
+                "UnlInited",
+                "Assignment by string literal",
+                "Assignment by reference of the same type",
+                "Assignment from StringType to UnlimitedStringType",
+                "Assignment from StringType to UnlimitedStringType",
+                "Concat literal A with literal B",
+                "ok blank",
+                "Concat UnlimitedStringType with StringType",
+                "Concat StringType                                 with UnlimitedStringType",
+                "0",
+            )
         assertEquals(expected, outputOf("UNLIMIT_S"))
     }
 
     @Test
     fun executeUNLIMIT_DS() {
-        val expected = listOf(
-            "",
-            "UnlInited",
-            "",
-            "UnlInited",
-            "DS1.Msg1",
-            "DS1.Unlimit",
-            "DS2.Msg1",
-            "DS2.Unlimit",
-            "DS1 <> DS2",
-            "DS1.Msg1 content = DS2.Msg content",
-            "DS1.Unlimit content = DS2.Unlimit content",
-            "DS1 = DS2",
-            "Compare unlimited with literal",
-            "Compare unlimited with limited",
-            "Compare uninitialized unlimited with *BLANKS",
-            "Reset an unlimited and compare with *BLANKS",
-            "Assignment from a boolean"
-        )
+        val expected =
+            listOf(
+                "",
+                "UnlInited",
+                "",
+                "UnlInited",
+                "DS1.Msg1",
+                "DS1.Unlimit",
+                "DS2.Msg1",
+                "DS2.Unlimit",
+                "DS1 <> DS2",
+                "DS1.Msg1 content = DS2.Msg content",
+                "DS1.Unlimit content = DS2.Unlimit content",
+                "DS1 = DS2",
+                "Compare unlimited with literal",
+                "Compare unlimited with limited",
+                "Compare uninitialized unlimited with *BLANKS",
+                "Reset an unlimited and compare with *BLANKS",
+                "Assignment from a boolean",
+            )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
 
     @Test
     fun executeUNLIMIT_BIF() {
-        val expected = listOf(
-            "%INT",
-            "1234",
-            "%DEC",
-            "1.50"
-        )
+        val expected =
+            listOf(
+                "%INT",
+                "1234",
+                "%DEC",
+                "1.50",
+            )
         assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
 
@@ -983,8 +1057,10 @@ Test 6
 
     @Test
     fun executeREPLACEBIF() {
-        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!", "%20 ef", "abc%20ef"),
-            outputOf("REPLACEBIF"))
+        assertEquals(
+            listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!", "%20 ef", "abc%20ef"),
+            outputOf("REPLACEBIF"),
+        )
     }
 
     @Test
@@ -1006,43 +1082,64 @@ Test 6
 
     @Test
     fun executeBIFEDITC_2() {
-        assertEquals(listOf("x   123,456   123,456  1,234.56X",
-            "x  1,234.56          X",
-            "x  1,234.50X"),
-            outputOf("BIFEDITC_2"))
+        assertEquals(
+            listOf(
+                "x   123,456   123,456  1,234.56X",
+                "x  1,234.56          X",
+                "x  1,234.50X",
+            ),
+            outputOf("BIFEDITC_2"),
+        )
     }
 
     @Test
     fun executeBIFEDITC_3() {
-        assertEquals(listOf("x  123456  123456  1234.56X",
-            "x  1234.56      .00X",
-            "x  1234.50X"),
-            outputOf("BIFEDITC_3"))
+        assertEquals(
+            listOf(
+                "x  123456  123456  1234.56X",
+                "x  1234.56      .00X",
+                "x  1234.50X",
+            ),
+            outputOf("BIFEDITC_3"),
+        )
     }
+
     @Test
     fun executeBIFEDITC_4() {
-        assertEquals(listOf("x  123456  123456  1234.56X",
-            "x  1234.56         X",
-            "x  1234.50X"),
-            outputOf("BIFEDITC_4"))
+        assertEquals(
+            listOf(
+                "x  123456  123456  1234.56X",
+                "x  1234.56         X",
+                "x  1234.50X",
+            ),
+            outputOf("BIFEDITC_4"),
+        )
     }
 
     @Test
     fun executeBIFEDITC_J() {
-        assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
-            "x  1,234.56-       .00 X",
-            "x  1,234.50 X"),
-            outputOf("BIFEDITC_J"))
+        assertEquals(
+            listOf(
+                "x   123,456    123,456-  1,234.56 X",
+                "x  1,234.56-       .00 X",
+                "x  1,234.50 X",
+            ),
+            outputOf("BIFEDITC_J"),
+        )
     }
 
     @Test
     @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_Y() {
-        assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
-            "x  12/34/56   0/00/00X",
-            "x  12/34/50 12/34/5678  0/00/12X",
-            "x   1/23/45X"),
-            outputOf("BIFEDITC_Y"))
+        assertEquals(
+            listOf(
+                "x  12/34/56  12/34/56  12/34/56X",
+                "x  12/34/56   0/00/00X",
+                "x  12/34/50 12/34/5678  0/00/12X",
+                "x   1/23/45X",
+            ),
+            outputOf("BIFEDITC_Y"),
+        )
     }
 
     @Test
@@ -1067,90 +1164,110 @@ Test 6
 
     @Test
     fun executeCTDATA() {
-        assertEquals(expected =
-        ("001\n" +
-                "d01\n" +
-                "A01\n" +
-                "c01\n" +
-                "B01\n" +
-                "b01\n" +
-                "C01\n" +
-                "901\n" +
-                "101\n" +
-                "D01\n" +
-                "H01\n" +
-                "E01\n" +
-                "201\n" +
-                "e01\n" +
-                "a01\n" +
-                "x01\n" +
-                "X01").lines(),
-            actual = outputOf("CTDATA").map(String::trim))
+        assertEquals(
+            expected =
+                (
+                    "001\n" +
+                        "d01\n" +
+                        "A01\n" +
+                        "c01\n" +
+                        "B01\n" +
+                        "b01\n" +
+                        "C01\n" +
+                        "901\n" +
+                        "101\n" +
+                        "D01\n" +
+                        "H01\n" +
+                        "E01\n" +
+                        "201\n" +
+                        "e01\n" +
+                        "a01\n" +
+                        "x01\n" +
+                        "X01"
+                ).lines(),
+            actual = outputOf("CTDATA").map(String::trim),
+        )
     }
 
     @Test
     fun executeARRAY02_arrayWithComments() {
-        assertEquals(expected =
-        ("abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "xxx").lines(),
-            actual = outputOf("ARRAY02").map(String::trim))
+        assertEquals(
+            expected =
+                (
+                    "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "xxx"
+                ).lines(),
+            actual = outputOf("ARRAY02").map(String::trim),
+        )
     }
 
     @Test
     fun executeARRAY03_arrayWithCommentsPERRCD_1() {
-        assertEquals(expected =
-        ("abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "xxx").lines(),
-            actual = outputOf("ARRAY02").map(String::trim))
+        assertEquals(
+            expected =
+                (
+                    "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "xxx"
+                ).lines(),
+            actual = outputOf("ARRAY02").map(String::trim),
+        )
     }
 
     @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
-        assertEquals(expected =
-        ("abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "xxx").lines(),
-            actual = outputOf("ARRAY04").map(String::trim))
+        assertEquals(
+            expected =
+                (
+                    "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "123\n" +
+                        "abc\n" +
+                        "xxx"
+                ).lines(),
+            actual = outputOf("ARRAY04").map(String::trim),
+        )
     }
 
     @Test
     fun executeARRAY05NAM_namedCompileTimeArrays() {
-        assertEquals(expected =
-        ("100\n" +
-                "100\n" +
-                "100\n" +
-                "100\n" +
-                "100").lines(),
-            actual = outputOf("ARRAY05NAM").map(String::trim))
+        assertEquals(
+            expected =
+                (
+                    "100\n" +
+                        "100\n" +
+                        "100\n" +
+                        "100\n" +
+                        "100"
+                ).lines(),
+            actual = outputOf("ARRAY05NAM").map(String::trim),
+        )
     }
 
     @Test
@@ -1192,11 +1309,12 @@ Test 6
     fun EVALwithTypeError() {
         val systemInterface = JavaSystemInterface()
 
-        val source = """
+        val source =
+            """
 |     D n               S              1  0 inz(00)
 |     C                   Eval      n = 'Hello World!'
 |     C                   SETON                                          LR
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
         assertFailsWith(IllegalArgumentException::class) {
@@ -1267,14 +1385,18 @@ Test 6
 
     @Test
     fun executeDS_CALLED_with_String_parameter() {
-        assertEquals(listOf("James", "Bond", "007"),
-            outputOf("DS_CALLED", initialValues = mapOf("P1" to StringValue("JamesBond   7"))))
+        assertEquals(
+            listOf("James", "Bond", "007"),
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to StringValue("JamesBond   7"))),
+        )
     }
 
     @Test
     fun executeDS_CALLED_with_DS_parameter() {
-        assertEquals(listOf("James", "Bond", "007"),
-            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7"))))
+        assertEquals(
+            listOf("James", "Bond", "007"),
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7"))),
+        )
     }
 
     @Test
@@ -1317,12 +1439,14 @@ Test 6
     // TODO understand why this test does not pass
     @Test @Ignore
     fun executeJCODFISD() {
-        val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
-            "FISICA" to BooleanValue(false),
-            "OMONIM" to BooleanValue(false),
-            "SINTAX" to BooleanValue(false),
-            "CHKDIG" to BooleanValue(false)
-        )
+        val parms =
+            mapOf(
+                "CFDS" to StringValue("LNZNLN09B63H501J"),
+                "FISICA" to BooleanValue(false),
+                "OMONIM" to BooleanValue(false),
+                "SINTAX" to BooleanValue(false),
+                "CHKDIG" to BooleanValue(false),
+            )
         assertEquals(outputOf("JCODFISD", parms), emptyList())
     }
 
@@ -1497,7 +1621,10 @@ Test 6
 
     @Test
     fun executeFCONSTRES() {
-        assertEquals(listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"), outputOf(programName = "FCONSTRES"))
+        assertEquals(
+            listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"),
+            outputOf(programName = "FCONSTRES"),
+        )
     }
 
     @Test
@@ -1542,17 +1669,25 @@ Test 6
 
     @Test
     fun executeFIZZBUZZ() {
-        assertEquals(listOf("7"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))))
+        assertEquals(
+            listOf("7"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))),
+        )
 
-        assertEquals(listOf("FIZZ"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))))
+        assertEquals(
+            listOf("FIZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))),
+        )
 
-        assertEquals(listOf("BUZZ"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))))
+        assertEquals(
+            listOf("BUZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))),
+        )
 
-        assertEquals(listOf("FIZZBUZZ"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))))
+        assertEquals(
+            listOf("FIZZBUZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))),
+        )
     }
 
     @Test
@@ -1608,9 +1743,10 @@ Test 6
 
     @Test
     fun executeARRAY_PARMS() {
-        val parms = mapOf(
-            "Arr" to StringValue("ABC".padEnd(40))
-        )
+        val parms =
+            mapOf(
+                "Arr" to StringValue("ABC".padEnd(40)),
+            )
         assertEquals(listOf("ABC"), outputOf("ARRAY_PARMS", parms))
     }
 
@@ -1672,9 +1808,10 @@ Test 6
                 "                      ",
                 "                      ",
                 "                      ",
-                "                      "
+                "                      ",
             ),
-            outputOf("CLEARARRAY"))
+            outputOf("CLEARARRAY"),
+        )
     }
 
     @Test
@@ -1696,9 +1833,10 @@ Test 6
                 " ",
                 " ",
                 " ",
-                " "
+                " ",
             ),
-            outputOf("CLEARARRAY1"))
+            outputOf("CLEARARRAY1"),
+        )
     }
 
     @Test
@@ -1714,37 +1852,47 @@ Test 6
         val dsValue = DataStructValue.blank(30448)
         var dsDataDefinition: DataDefinition? = null
         // TODO: 03/12/2020 Move in inline function of CompilationUnit the logic to set e DS
-        val configuration = Configuration(
-            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
-            jarikoCallback = JarikoCallback(
-                afterAstCreation = { ast: CompilationUnit ->
-                    ast.dataDefinitions.forEach { dataDefinition ->
-                        when (dataDefinition.type) {
-                            is DataStructureType -> {
-                                dsDataDefinition = dataDefinition
-                                dataDefinition.fields.forEach {
-                                    when (it.name) {
-                                        "\$UIBPG" -> { dsValue.set(it, StringValue("EXP", false)) }
-                                        "\$UIBFU" -> { dsValue.set(it, StringValue("X1X2110", false)) }
-                                        "\$UIBME" -> { dsValue.set(it, StringValue("FIB", false)) }
-                                        "\$UIBD1" -> { dsValue.set(it, StringValue("NUM(10)", false)) }
+        val configuration =
+            Configuration(
+                memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
+                jarikoCallback =
+                    JarikoCallback(
+                        afterAstCreation = { ast: CompilationUnit ->
+                            ast.dataDefinitions.forEach { dataDefinition ->
+                                when (dataDefinition.type) {
+                                    is DataStructureType -> {
+                                        dsDataDefinition = dataDefinition
+                                        dataDefinition.fields.forEach {
+                                            when (it.name) {
+                                                "\$UIBPG" -> {
+                                                    dsValue.set(it, StringValue("EXP", false))
+                                                }
+                                                "\$UIBFU" -> {
+                                                    dsValue.set(it, StringValue("X1X2110", false))
+                                                }
+                                                "\$UIBME" -> {
+                                                    dsValue.set(it, StringValue("FIB", false))
+                                                }
+                                                "\$UIBD1" -> {
+                                                    dsValue.set(it, StringValue("NUM(10)", false))
+                                                }
+                                            }
+                                        }
                                     }
+                                    // no-op
+                                    else -> { }
                                 }
                             }
-                            /* no-op */
-                            else -> { }
-                        }
-                    }
-                },
-                onEnterPgm = { _: String, symbolTable: ISymbolTable ->
-                    symbolTable[dsDataDefinition!!] = dsValue
-                }
+                        },
+                        onEnterPgm = { _: String, symbolTable: ISymbolTable ->
+                            symbolTable[dsDataDefinition!!] = dsValue
+                        },
+                    ),
             )
-        )
         executePgmWithStringArgs(
             "X1X2110",
             listOf(""),
-            configuration = configuration
+            configuration = configuration,
         )
     }
 
@@ -1752,7 +1900,8 @@ Test 6
     fun executeFREE_HELLO() {
         assertEquals(
             expected = "Hello world, Hello world in Chinese: 你好世界, number1 * number2 = 15".split(Regex(", ")),
-            actual = outputOf("FREE_HELLO"))
+            actual = outputOf("FREE_HELLO"),
+        )
     }
 
     @Test @Ignore
@@ -1763,33 +1912,36 @@ Test 6
     @Test
     fun executePROCEDURE_B() {
         assertEquals(
-            expected = listOf(
-                "mainVar set by main",
-                "sameVar set by main",
-                "procVar set by proc",
-                "sameVar just initialized",
-                "sameVar set by proc",
-                "D specs inline init!",
-                "468.95",
-                "mainVar changed by proc",
-                "sameVar set by main"
-            ),
-            actual = outputOf("PROCEDURE_B")
+            expected =
+                listOf(
+                    "mainVar set by main",
+                    "sameVar set by main",
+                    "procVar set by proc",
+                    "sameVar just initialized",
+                    "sameVar set by proc",
+                    "D specs inline init!",
+                    "468.95",
+                    "mainVar changed by proc",
+                    "sameVar set by main",
+                ),
+            actual = outputOf("PROCEDURE_B"),
         )
     }
 
     @Test
     fun executePROCEDURE_C() {
         assertEquals(
-            expected = listOf("p received must be 11, is:11",
-                "q received must be 22, is:22",
-                "r received must be 0, is:0",
-                "r=p+q must be 33, is:33",
-                "s=q*2 must be 44, is:44",
-                "c was *zeros, now must be 33, is:33",
-                "d was *zeros, now must be 44, is:44"
-            ),
-            actual = outputOf("PROCEDURE_C")
+            expected =
+                listOf(
+                    "p received must be 11, is:11",
+                    "q received must be 22, is:22",
+                    "r received must be 0, is:0",
+                    "r=p+q must be 33, is:33",
+                    "s=q*2 must be 44, is:44",
+                    "c was *zeros, now must be 33, is:33",
+                    "d was *zeros, now must be 44, is:44",
+                ),
+            actual = outputOf("PROCEDURE_C"),
         )
     }
 
@@ -1797,7 +1949,7 @@ Test 6
     fun executePROCEDURE_D() {
         assertEquals(
             expected = "33".split(Regex(",")),
-            actual = outputOf("PROCEDURE_D")
+            actual = outputOf("PROCEDURE_D"),
         )
     }
 
@@ -1805,7 +1957,7 @@ Test 6
     fun executePROCEDURE_F() {
         assertEquals(
             expected = "99".split(Regex(",")),
-            actual = outputOf("PROCEDURE_F")
+            actual = outputOf("PROCEDURE_F"),
         )
     }
 
@@ -1813,140 +1965,158 @@ Test 6
     fun executePROCEDURE_G() {
         assertEquals(
             expected = "99,66".split(Regex(",")),
-            actual = outputOf("PROCEDURE_G")
+            actual = outputOf("PROCEDURE_G"),
         )
     }
 
     @Test
     fun executePROCEDURE_H() {
         assertEquals(
-            expected = listOf("11",
-                "22",
-                "33",
-                "0",
-                "33",
-                "22",
-                "121"),
-            actual = outputOf("PROCEDURE_H")
+            expected =
+                listOf(
+                    "11",
+                    "22",
+                    "33",
+                    "0",
+                    "33",
+                    "22",
+                    "121",
+                ),
+            actual = outputOf("PROCEDURE_H"),
         )
     }
 
     @Test
     fun executePROCEDURE_I() {
         assertEquals(
-            expected = listOf("1",
-                "4"
-            ),
-            actual = outputOf("PROCEDURE_I")
+            expected =
+                listOf(
+                    "1",
+                    "4",
+                ),
+            actual = outputOf("PROCEDURE_I"),
         )
     }
 
     @Test
     fun executePROCEDURE_J() {
         assertEquals(
-            expected = listOf("1",
-                "4",
-                "8",
-                "9",
-                "27",
-                "16-",
-                "16-",
-                "16-"
-            ),
-            actual = outputOf("PROCEDURE_J")
+            expected =
+                listOf(
+                    "1",
+                    "4",
+                    "8",
+                    "9",
+                    "27",
+                    "16-",
+                    "16-",
+                    "16-",
+                ),
+            actual = outputOf("PROCEDURE_J"),
         )
     }
 
     @Test
     fun executePROCEDURE_K() {
         assertEquals(
-            expected = listOf("69.12",
-                ".59",
-                "12345          54321",
-                "73.00",
-                "1",
-                "69.12",
-                ".59",
-                "12345          54321",
-                "73.00",
-                "1"
-            ),
-            actual = outputOf("PROCEDURE_K")
+            expected =
+                listOf(
+                    "69.12",
+                    ".59",
+                    "12345          54321",
+                    "73.00",
+                    "1",
+                    "69.12",
+                    ".59",
+                    "12345          54321",
+                    "73.00",
+                    "1",
+                ),
+            actual = outputOf("PROCEDURE_K"),
         )
     }
 
     @Test
     fun executePROCEDURE_L() {
         assertEquals(
-            expected = listOf(".99",
-                "1.11",
-                "9.99"
-            ),
-            actual = outputOf("PROCEDURE_L")
+            expected =
+                listOf(
+                    ".99",
+                    "1.11",
+                    "9.99",
+                ),
+            actual = outputOf("PROCEDURE_L"),
         )
     }
 
     @Test
     fun executePROCEDURE_M() {
         assertEquals(
-            expected = listOf("2.24",
-                "3.36"
-            ),
-            actual = outputOf("PROCEDURE_M")
+            expected =
+                listOf(
+                    "2.24",
+                    "3.36",
+                ),
+            actual = outputOf("PROCEDURE_M"),
         )
     }
 
+    // TODO ignored until 'DS as parameter' will be supported (maybe never?)
     @Test
     @Ignore
-    // TODO ignored until 'DS as parameter' will be supported (maybe never?)
     fun executePROCEDURE_N() {
         assertEquals(
-            expected = listOf("10.2",
-                "ABCDE"
-            ),
-            actual = outputOf("PROCEDURE_N")
+            expected =
+                listOf(
+                    "10.2",
+                    "ABCDE",
+                ),
+            actual = outputOf("PROCEDURE_N"),
         )
     }
 
     @Test
     fun executePROCEDURE_O() {
         assertEquals(
-            expected = listOf(
-                "1.01",
-                "2.04",
-                "3.09",
-                "1.04",
-                "1.05",
-                "2.22",
-                "2.24",
-                "2.26",
-                "2.28",
-                "2.30",
-                "6.14",
-                "1.01",
-                "2.04",
-                "3.09",
-                "1.04",
-                "1.05",
-                "11.30",
-                "2.22",
-                "2.24",
-                "2.26",
-                "2.28",
-                "2.30"
-            ),
-            actual = outputOf("PROCEDURE_O")
+            expected =
+                listOf(
+                    "1.01",
+                    "2.04",
+                    "3.09",
+                    "1.04",
+                    "1.05",
+                    "2.22",
+                    "2.24",
+                    "2.26",
+                    "2.28",
+                    "2.30",
+                    "6.14",
+                    "1.01",
+                    "2.04",
+                    "3.09",
+                    "1.04",
+                    "1.05",
+                    "11.30",
+                    "2.22",
+                    "2.24",
+                    "2.26",
+                    "2.28",
+                    "2.30",
+                ),
+            actual = outputOf("PROCEDURE_O"),
         )
     }
 
     @Test
     fun executePROCEDURE_P() {
         assertEquals(
-            expected = listOf("2.04",
-                "1.02",
-                "1.03"
-            ),
-            actual = outputOf("PROCEDURE_P")
+            expected =
+                listOf(
+                    "2.04",
+                    "1.02",
+                    "1.03",
+                ),
+            actual = outputOf("PROCEDURE_P"),
         )
     }
 
@@ -1967,53 +2137,69 @@ Test 6
         // PASS NO PARAMETERS
         var si = CollectorSystemInterface()
         si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
-        execute(cu, emptyMap(),
-            si, listOf(logHandler))
+        execute(
+            cu,
+            emptyMap(),
+            si,
+            listOf(logHandler),
+        )
         assertEquals(listOf("0"), si.displayed)
 
         // PASS ONE PARAMETER
         si = CollectorSystemInterface()
         si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
-        execute(cu, mapOf("P1" to StringValue("5")),
-            si, listOf(logHandler))
+        execute(
+            cu,
+            mapOf("P1" to StringValue("5")),
+            si,
+            listOf(logHandler),
+        )
         assertEquals(listOf("1"), si.displayed)
 
         // PASS TWO PARAMETERS
         si = CollectorSystemInterface()
         si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
-        execute(cu, mapOf("P1" to StringValue("5"),
-            "P2" to StringValue("10")),
-            si, listOf(logHandler))
+        execute(
+            cu,
+            mapOf(
+                "P1" to StringValue("5"),
+                "P2" to StringValue("10"),
+            ),
+            si,
+            listOf(logHandler),
+        )
         assertEquals(listOf("2"), si.displayed)
     }
 
     @Test
     fun executePROCEDURE_R() {
         assertEquals(
-            expected = listOf("1.01",
-                "2.04",
-                "3.09",
-                "1.04",
-                "1.05",
-                "2.21",
-                "4.44",
-                "6.69",
-                "2.28",
-                "2.30",
-                "1.01",
-                "1.01",
-                "2.04",
-                "3.09",
-                "1.04",
-                "1.05",
-                "2.21",
-                "2.21",
-                "4.44",
-                "6.69",
-                "2.28",
-                "2.30"
-            ),
-            actual = outputOf("PROCEDURE_R")
+            expected =
+                listOf(
+                    "1.01",
+                    "2.04",
+                    "3.09",
+                    "1.04",
+                    "1.05",
+                    "2.21",
+                    "4.44",
+                    "6.69",
+                    "2.28",
+                    "2.30",
+                    "1.01",
+                    "1.01",
+                    "2.04",
+                    "3.09",
+                    "1.04",
+                    "1.05",
+                    "2.21",
+                    "2.21",
+                    "4.44",
+                    "6.69",
+                    "2.28",
+                    "2.30",
+                ),
+            actual = outputOf("PROCEDURE_R"),
         )
     }
 
@@ -2021,7 +2207,7 @@ Test 6
     fun executePROCEDURE_S() {
         assertEquals(
             expected = listOf("10"),
-            actual = outputOf("PROCEDURE_S")
+            actual = outputOf("PROCEDURE_S"),
         )
     }
 
@@ -2029,7 +2215,7 @@ Test 6
     fun executePROCEDURE_T() {
         assertEquals(
             expected = listOf("33", "34"),
-            actual = "PROCEDURE_T".outputOf()
+            actual = "PROCEDURE_T".outputOf(),
         )
     }
 
@@ -2039,16 +2225,17 @@ Test 6
     @Test
     fun executePROCEDURE_T_More_Times() {
         // Initialize the configuration with a memory storage in order to keep the static variables
-        val configuration = Configuration(
-            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
-        )
+        val configuration =
+            Configuration(
+                memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
+            )
         assertEquals(
             expected = listOf("33", "34"),
-            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+            actual = "PROCEDURE_T".outputOf(configuration = configuration),
         )
         assertEquals(
             expected = listOf("35", "36"),
-            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+            actual = "PROCEDURE_T".outputOf(configuration = configuration),
         )
     }
 
@@ -2056,48 +2243,53 @@ Test 6
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
-            actual = outputOf("APIPGM1"))
+            actual = outputOf("APIPGM1"),
+        )
     }
 
     @Test
     fun executeAPIPGM2() {
         assertEquals(
             expected = listOf("Hello world"),
-            actual = outputOf("APIPGM2"))
+            actual = outputOf("APIPGM2"),
+        )
     }
 
     @Test
     fun executeAPIPGM3() {
         assertEquals(
             expected = listOf("3", "6"),
-            actual = outputOf("APIPGM3"))
+            actual = outputOf("APIPGM3"),
+        )
     }
 
     @Test
     fun executeAPIPGM4() {
         assertEquals(
             expected = listOf("Hello there!", "General Kenobi"),
-            actual = outputOf("APIPGM4"))
+            actual = outputOf("APIPGM4"),
+        )
     }
 
     @Test
     fun executeAPIPGM5() {
         assertEquals(
             expected = listOf("Hello there!", "General Kenobi"),
-            actual = outputOf("APIPGM5"))
+            actual = outputOf("APIPGM5"),
+        )
     }
 
     @Test
     open fun executeDSOVERL() {
         assertEquals(
             expected = "AAAA,BBBB".split(","),
-            actual = outputOf("DSOVERL")
+            actual = outputOf("DSOVERL"),
         )
     }
 
+    // TODO ignored until fix of 'Issue executing CallStmt at line 19. Data definition P2 was not found'
     @Test
     @Ignore
-    // TODO ignored until fix of 'Issue executing CallStmt at line 19. Data definition P2 was not found'
     fun executeENTRY_A() {
         assertEquals(listOf("1"), outputOf("ENTRY_A"))
     }
@@ -2105,16 +2297,18 @@ Test 6
     @Test
     fun executeDOPED_PROC() {
         assertEquals(
-            expected = listOf("46",
-                "12",
-                "-22",
-                "56",
-                "56",
-                "7",
-                "5",
-                "30"
-            ),
-            actual = outputOf("DOPED_PROC")
+            expected =
+                listOf(
+                    "46",
+                    "12",
+                    "-22",
+                    "56",
+                    "56",
+                    "7",
+                    "5",
+                    "30",
+                ),
+            actual = outputOf("DOPED_PROC"),
         )
     }
 
@@ -2128,12 +2322,14 @@ Test 6
     @Test
     fun executeDOPED_PROC3() {
         assertEquals(
-            expected = listOf("12",
-                "46",
-                "56",
-                "99"
-            ),
-            actual = outputOf("DOPED_PROC3")
+            expected =
+                listOf(
+                    "12",
+                    "46",
+                    "56",
+                    "99",
+                ),
+            actual = outputOf("DOPED_PROC3"),
         )
     }
 
@@ -2152,20 +2348,24 @@ Test 6
     @Test
     fun executeJAJAX1C() {
         assertEquals(
-            expected = listOf("Ahi quanto a dir qual era è cosa dura,esta selva selvaggia",
-                "Lupa"
-            ),
-            actual = outputOf("JAJAX1C")
+            expected =
+                listOf(
+                    "Ahi quanto a dir qual era è cosa dura,esta selva selvaggia",
+                    "Lupa",
+                ),
+            actual = outputOf("JAJAX1C"),
         )
     }
 
     @Test
     fun executeJAJAX1C_2() {
         assertEquals(
-            expected = listOf("ERB",
-                "Erbusco"
-            ),
-            actual = outputOf("JAJAX1C_2")
+            expected =
+                listOf(
+                    "ERB",
+                    "Erbusco",
+                ),
+            actual = outputOf("JAJAX1C_2"),
         )
     }
 
@@ -2173,46 +2373,59 @@ Test 6
     fun executeINZSR() {
         assertEquals(
             expected = listOf("HELLO IN RT", "HELLO IN LR", "HELLO IN LR"),
-            actual = outputOf("INZSR")
+            actual = outputOf("INZSR"),
         )
     }
 
     @Test
     fun executePGM_A() {
-        val configuration = Configuration(
-            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
-        )
+        val configuration =
+            Configuration(
+                memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
+            )
         assertEquals(
-            listOf("Echo P1: INZ",
+            listOf(
+                "Echo P1: INZ",
                 "Echo P2:",
                 "Echo P1: INZ",
-                "Echo P2:"),
-            outputOf("PGM_A", configuration = configuration))
+                "Echo P2:",
+            ),
+            outputOf("PGM_A", configuration = configuration),
+        )
 
         assertEquals(
-            listOf("Echo P1: INZ",
+            listOf(
+                "Echo P1: INZ",
                 "Echo P2:",
                 "Echo P1: INZ",
-                "Echo P2:"),
-            outputOf("PGM_A", configuration = configuration))
+                "Echo P2:",
+            ),
+            outputOf("PGM_A", configuration = configuration),
+        )
     }
 
     // CALL_DIVIDE calls DIVIDE and it expects a regular execution
     @Test
     fun executeCALL_DIVIDE_Ok() {
-        val params = CommandLineParms(
-            mapOf(
-                "A" to DecimalValue(BigDecimal.valueOf(10)),
-                "B" to DecimalValue(BigDecimal.valueOf(10)),
-                "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
-                "CATCHERR" to IntValue(0)
+        val params =
+            CommandLineParms(
+                mapOf(
+                    "A" to DecimalValue(BigDecimal.valueOf(10)),
+                    "B" to DecimalValue(BigDecimal.valueOf(10)),
+                    "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
+                    "CATCHERR" to IntValue(0),
+                ),
             )
-        )
         val result = executePgm(programName = "CALL_DIVIDE", params = params)
         // 10/10 = 1
         assertEquals(
             expected = BigDecimal.valueOf(1).toDouble(),
-            actual = result!!.namedParams!!["RESULT"]!!.asDecimal().value.toDouble()
+            actual =
+                result!!
+                    .namedParams!!["RESULT"]!!
+                    .asDecimal()
+                    .value
+                    .toDouble(),
         )
     }
 
@@ -2221,20 +2434,21 @@ Test 6
     @Test
     fun executeCALL_DIVIDE_ErrIndicatorNo() {
         val si = JavaSystemInterface()
-        val paramsKo = CommandLineParms(
-            mapOf(
-                "A" to DecimalValue(BigDecimal.valueOf(10)),
-                // Forcing error
-                "B" to DecimalValue(BigDecimal.valueOf(0)),
-                "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
-                "CATCHERR" to IntValue(0)
+        val paramsKo =
+            CommandLineParms(
+                mapOf(
+                    "A" to DecimalValue(BigDecimal.valueOf(10)),
+                    // Forcing error
+                    "B" to DecimalValue(BigDecimal.valueOf(0)),
+                    "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
+                    "CATCHERR" to IntValue(0),
+                ),
             )
-        )
         assertFailsWith<java.lang.RuntimeException> {
             executePgm(
                 programName = "CALL_DIVIDE",
                 params = paramsKo,
-                systemInterface = si
+                systemInterface = si,
             )
         }
         // DSPLY must be executed just once
@@ -2250,21 +2464,22 @@ Test 6
         // CALL_DIVIDE.rpgle contains a mute annotation
         val systemInterface = JavaSystemInterface()
         val configuration = Configuration(options = Options(muteSupport = true))
-        val paramsKo = CommandLineParms(
-            mapOf(
-                "A" to DecimalValue(BigDecimal.valueOf(10)),
-                // Forcing error
-                "B" to DecimalValue(BigDecimal.valueOf(0)),
-                "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
-                // Pass to 1 to handle error (view CALL_DIVIDE.rpgle implementation)
-                "CATCHERR" to IntValue(1)
+        val paramsKo =
+            CommandLineParms(
+                mapOf(
+                    "A" to DecimalValue(BigDecimal.valueOf(10)),
+                    // Forcing error
+                    "B" to DecimalValue(BigDecimal.valueOf(0)),
+                    "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
+                    // Pass to 1 to handle error (view CALL_DIVIDE.rpgle implementation)
+                    "CATCHERR" to IntValue(1),
+                ),
             )
-        )
         executePgm(
             programName = "CALL_DIVIDE",
             params = paramsKo,
             systemInterface = systemInterface,
-            configuration = configuration
+            configuration = configuration,
         )
 
         // DSPLY must be executed twice
@@ -2325,16 +2540,18 @@ Test 6
     fun executePARMS1() {
         val console = mutableListOf<String>()
         val expected = listOf("HELLO", "2", "0")
-        val systemInterface = JavaSystemInterface().apply {
-            this.onDisplay = { message, _ ->
-                println(message)
-                console.add(message.trim())
+        val systemInterface =
+            JavaSystemInterface().apply {
+                this.onDisplay = { message, _ ->
+                    println(message)
+                    console.add(message.trim())
+                }
             }
-        }
         executePgm(
             programName = "PARMS1",
             params = CommandLineParms(listOf("FUNC", "METH")),
-            systemInterface = systemInterface)
+            systemInterface = systemInterface,
+        )
         assertEquals(expected, console)
     }
 
@@ -2367,7 +2584,12 @@ Test 6
 
     @Test
     fun executeSUBARR() {
-        val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)", "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)", "AR1(1)(9) AR1(2)(5) AR1(3)(13) AR1(4)(16) AR1(5)(3)")
+        val expected =
+            listOf(
+                "AR3(1)(13) AR3(2)(3) AR3(3)(0)",
+                "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)",
+                "AR1(1)(9) AR1(2)(5) AR1(3)(13) AR1(4)(16) AR1(5)(3)",
+            )
         assertEquals(expected, "SUBARR".outputOf())
     }
 
@@ -2379,7 +2601,10 @@ Test 6
 
     @Test
     fun executeXLATEOP() {
-        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
+        assertEquals(
+            listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"),
+            outputOf("XLATEOP"),
+        )
     }
 
     @Test
@@ -2392,13 +2617,52 @@ Test 6
 
     @Test
     fun executeBIFCHAR() {
-        assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      ", "(ABC       |ABC       )       ", "(1|1.30)                      ", "(ABC|ABC       )              ", "(.00)       ", "N1(0)       ", "N2(.00)     ", "P1(0)       ", "P2(.00)     "), outputOf("BIFCHAR", trimEnd = false))
-        assertEquals(listOf("Parma", "Parma", " Parma", "(ABC       )", "(ABC       )", "(1)", "(1.30)", "(ABC       |ABC       )", "(1|1.30)", "(ABC|ABC       )", "(.00)", "N1(0)", "N2(.00)", "P1(0)", "P2(.00)"), outputOf("BIFCHAR", trimEnd = true))
+        assertEquals(
+            listOf(
+                "Parma       ",
+                "Parma       ",
+                " Parma      ",
+                "(ABC       )",
+                "(ABC       )",
+                "(1)         ",
+                "(1.30)      ",
+                "(ABC       |ABC       )       ",
+                "(1|1.30)                      ",
+                "(ABC|ABC       )              ",
+                "(.00)       ",
+                "N1(0)       ",
+                "N2(.00)     ",
+                "P1(0)       ",
+                "P2(.00)     ",
+            ),
+            outputOf("BIFCHAR", trimEnd = false),
+        )
+        assertEquals(
+            listOf(
+                "Parma",
+                "Parma",
+                " Parma",
+                "(ABC       )",
+                "(ABC       )",
+                "(1)",
+                "(1.30)",
+                "(ABC       |ABC       )",
+                "(1|1.30)",
+                "(ABC|ABC       )",
+                "(.00)",
+                "N1(0)",
+                "N2(.00)",
+                "P1(0)",
+                "P2(.00)",
+            ),
+            outputOf("BIFCHAR", trimEnd = true),
+        )
     }
 
     @Test
     fun executeMIXED_CONDITIONS() {
-        val expected = listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
+        val expected =
+            listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
         assertEquals(expected, "MIXED_CONDITIONS".outputOf())
     }
 
@@ -2410,9 +2674,11 @@ Test 6
 
     @Test
     fun executeMOVEAIN() {
-        val expected = listOf(
-            "111000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000",
-            "001000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000")
+        val expected =
+            listOf(
+                "111000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000",
+                "001000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000",
+            )
         assertEquals(expected, "MOVEAIN".outputOf())
     }
 
@@ -2430,10 +2696,11 @@ Test 6
 
     @Test
     fun executeINDIC03() {
-        val expected = listOf(
-            "*INKA(0) *IN01(1)",
-            "*INKA(1) *IN01(0)"
-        )
+        val expected =
+            listOf(
+                "*INKA(0) *IN01(1)",
+                "*INKA(1) *IN01(0)",
+            )
         assertEquals(expected, "INDIC03".outputOf())
     }
 
@@ -2498,7 +2765,8 @@ Test 6
 
     @Test
     fun executeEVALVARSNUMS() {
-        val expected = listOf(
+        val expected =
+            listOf(
                 "246",
                 "246",
                 "246",
@@ -2506,8 +2774,8 @@ Test 6
                 "246",
                 "246",
                 "246",
-                "246"
-        )
+                "246",
+            )
         assertEquals(expected, "EVALVARSNUMS".outputOf())
     }
 
@@ -2551,12 +2819,13 @@ Test 6
         val month = now.format(DateTimeFormatter.ofPattern("MM"))
         val day = now.format(DateTimeFormatter.ofPattern("dd"))
 
-        val source = """
+        val source =
+            """
 |     C     UDATE         DSPLY
 |     C     UYEAR         DSPLY
 |     C     UMONTH        DSPLY
 |     C     UDAY          DSPLY
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
         program.singleCall(emptyList())
@@ -2597,10 +2866,11 @@ Test 6
     fun missingDefinitionOnPListShouldThrowResolutionError() {
         val systemInterface = JavaSystemInterface()
 
-        val source = """
+        val source =
+            """
 |     C                   CALL      'PGM'
 |     C                   PARM                    MISSING
-        """.trimMargin()
+            """.trimMargin()
 
         val program = getProgram(source, systemInterface)
         assertFailsWith(AstResolutionError::class) {
@@ -2611,16 +2881,18 @@ Test 6
     @Test
     fun executeBIG_DO_LOOP() {
         var error: Throwable? = null
-        val jarikoExecutorThread = Thread {
-            error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
-        }
-        val jarikoKillerThread = Thread {
-            println("Waiting 2 seconds before killing jariko")
-            Thread.sleep(2000)
-            println("Killing jariko")
-            jarikoExecutorThread.interrupt()
-            println(jarikoExecutorThread.state)
-        }
+        val jarikoExecutorThread =
+            Thread {
+                error = assertFails { executePgm(programName = "BIG_DO_LOOP") }
+            }
+        val jarikoKillerThread =
+            Thread {
+                println("Waiting 2 seconds before killing jariko")
+                Thread.sleep(2000)
+                println("Killing jariko")
+                jarikoExecutorThread.interrupt()
+                println(jarikoExecutorThread.state)
+            }
         jarikoExecutorThread.start()
         jarikoKillerThread.start()
         jarikoExecutorThread.join()
@@ -2649,34 +2921,37 @@ Test 6
         val obj = Object()
         val simulateBlockingOperation = { programName: String, blockAt: Int ->
             var i = 0
-            val configuration = Configuration().apply {
-                jarikoCallback.onEnterStatement = { absoluteLine: Int, ref: SourceReference ->
-                    // simulates some instructions before sleeping
-                    if (i == blockAt) {
-                        // fakes blocking operation (e.g. IO on a DB)
-                        synchronized(obj) {
-                            obj.wait(3000)
+            val configuration =
+                Configuration().apply {
+                    jarikoCallback.onEnterStatement = { absoluteLine: Int, ref: SourceReference ->
+                        // simulates some instructions before sleeping
+                        if (i == blockAt) {
+                            // fakes blocking operation (e.g. IO on a DB)
+                            synchronized(obj) {
+                                obj.wait(3000)
+                            }
                         }
+                        i++
                     }
-                    i++
+                    options = Options().apply { debuggingInformation = true }
                 }
-                options = Options().apply { debuggingInformation = true }
-            }
 
             var rootCause: Throwable? = null
-            val jariko = Thread {
-                try {
-                    executePgm(programName = programName, configuration = configuration)
-                } catch (e: RuntimeException) {
-                    rootCause = getRootCause(e)
+            val jariko =
+                Thread {
+                    try {
+                        executePgm(programName = programName, configuration = configuration)
+                    } catch (e: RuntimeException) {
+                        rootCause = getRootCause(e)
+                    }
                 }
-            }
 
-            val killer = Thread {
-                // do not set it too short, Jariko should compile program...
-                Thread.sleep(2000)
-                jariko.interrupt()
-            }
+            val killer =
+                Thread {
+                    // do not set it too short, Jariko should compile program...
+                    Thread.sleep(2000)
+                    jariko.interrupt()
+                }
 
             jariko.start()
             killer.start()
@@ -2711,30 +2986,33 @@ Test 6
         val firstRun = mutableListOf<CompilationUnit>()
         val secondRun = mutableListOf<CompilationUnit>()
 
-        val firstRunConfig = Configuration().apply {
-            jarikoCallback.onEnterPgm = { name, st ->
-                val pgm = MainExecutionContext.getProgramStack().peek()
+        val firstRunConfig =
+            Configuration().apply {
+                jarikoCallback.onEnterPgm = { name, st ->
+                    val pgm = MainExecutionContext.getProgramStack().peek()
 
-                // Manually apply resolution
-                pgm.cu.resolveAndValidate()
-                pgm.cu.procedures?.forEach { it.resolveAndValidate() }
-                firstRun.add(pgm.cu)
+                    // Manually apply resolution
+                    pgm.cu.resolveAndValidate()
+                    pgm.cu.procedures?.forEach { it.resolveAndValidate() }
+                    firstRun.add(pgm.cu)
 
-                throw StopExecutionException()
+                    throw StopExecutionException()
+                }
             }
-        }
 
-        val secondRunConfig = Configuration().apply {
-            jarikoCallback.onEnterPgm = { name, st ->
-                val pgm = MainExecutionContext.getProgramStack().peek()
-                secondRun.add(pgm.cu)
+        val secondRunConfig =
+            Configuration().apply {
+                jarikoCallback.onEnterPgm = { name, st ->
+                    val pgm = MainExecutionContext.getProgramStack().peek()
+                    secondRun.add(pgm.cu)
+                }
             }
-        }
 
         // Execute first time, throw an exception to stop execution
         try {
             executePgm("CALLDEF01", configuration = firstRunConfig)
-        } catch (_: StopExecutionException) { }
+        } catch (_: StopExecutionException) {
+        }
 
         // Execute second time, ignore programs that emits error during execution
         executePgm("CALLDEF01", configuration = secondRunConfig)
@@ -2758,7 +3036,13 @@ Test 6
         val erroringPrograms = mutableListOf<String>()
 
         var matched = 0
-        val candidates = resourcesDir.listFiles()!!.filter { it.isFile && !it.nameWithoutExtension.contains("ERR") && !it.nameWithoutExtension.contains("PERF") && !APIPGM_BLACKLIST.contains(it.nameWithoutExtension) }
+        val candidates =
+            resourcesDir.listFiles()!!.filter {
+                it.isFile &&
+                    !it.nameWithoutExtension.contains("ERR") &&
+                    !it.nameWithoutExtension.contains("PERF") &&
+                    !APIPGM_BLACKLIST.contains(it.nameWithoutExtension)
+            }
         candidates.forEachIndexed { index, file ->
             val oneBasedIndex = index + 1
             val progress = oneBasedIndex.toDouble() / candidates.size.toDouble() * 100
@@ -2769,25 +3053,27 @@ Test 6
             val firstRun = mutableListOf<CompilationUnit>()
             val secondRun = mutableListOf<CompilationUnit>()
 
-            val firstRunConfig = Configuration().apply {
-                jarikoCallback.onEnterPgm = { name, st ->
-                    val pgm = MainExecutionContext.getProgramStack().peek()
+            val firstRunConfig =
+                Configuration().apply {
+                    jarikoCallback.onEnterPgm = { name, st ->
+                        val pgm = MainExecutionContext.getProgramStack().peek()
 
-                    // Manually apply resolution
-                    pgm.cu.resolveAndValidate()
-                    pgm.cu.procedures?.forEach { it.resolveAndValidate() }
-                    firstRun.add(pgm.cu)
+                        // Manually apply resolution
+                        pgm.cu.resolveAndValidate()
+                        pgm.cu.procedures?.forEach { it.resolveAndValidate() }
+                        firstRun.add(pgm.cu)
 
-                    throw StopExecutionException()
+                        throw StopExecutionException()
+                    }
                 }
-            }
 
-            val secondRunConfig = Configuration().apply {
-                jarikoCallback.onEnterPgm = { name, st ->
-                    val pgm = MainExecutionContext.getProgramStack().peek()
-                    secondRun.add(pgm.cu)
+            val secondRunConfig =
+                Configuration().apply {
+                    jarikoCallback.onEnterPgm = { name, st ->
+                        val pgm = MainExecutionContext.getProgramStack().peek()
+                        secondRun.add(pgm.cu)
+                    }
                 }
-            }
 
             // Execute first time, throw an exception to stop execution
             try {
@@ -2828,10 +3114,13 @@ Test 6
             executePgm("CALLMISSING")
         } catch (e: RuntimeException) {
             assertIs<InterpreterProgramStatusErrorException>(e.cause)
-            val expected = buildString {
-                appendLine("Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).")
-                append("Error calling program or procedure - Could not find program MISSING")
-            }
+            val expected =
+                buildString {
+                    appendLine(
+                        "Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).",
+                    )
+                    append("Error calling program or procedure - Could not find program MISSING")
+                }
             assertEquals(expected, e.message)
         } catch (e: Exception) {
             fail("got unexpected exception: $e")
@@ -2848,11 +3137,16 @@ Test 6
         try {
             executePgm("CMISSROOT", configuration = Configuration(options = options))
         } catch (e: RuntimeException) {
-            val expected = buildString {
-                appendLine("Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).")
-                appendLine("Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, Column 25, end=Line 8, Column 81)).")
-                append("Error calling program or procedure - Could not find program MISSING")
-            }
+            val expected =
+                buildString {
+                    appendLine(
+                        "Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).",
+                    )
+                    appendLine(
+                        "Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, Column 25, end=Line 8, Column 81)).",
+                    )
+                    append("Error calling program or procedure - Could not find program MISSING")
+                }
             assertEquals(expected, e.message)
         } catch (e: Exception) {
             fail("got unexpected exception: $e")

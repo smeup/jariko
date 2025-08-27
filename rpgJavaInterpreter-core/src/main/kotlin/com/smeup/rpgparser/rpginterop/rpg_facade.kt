@@ -30,7 +30,9 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 
-annotation class Param(val name: String)
+annotation class Param(
+    val name: String,
+)
 
 private val <R> KProperty<R>.rpgName: String
     get() {
@@ -46,11 +48,10 @@ class ClassProgramName<P> : ProgramNameSource<P> {
     override fun nameFor(rpgFacade: RpgFacade<P>): String = rpgFacade.javaClass.simpleName
 }
 
-abstract class RpgFacade<P> (
+abstract class RpgFacade<P>(
     val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
-    val systemInterface: SystemInterface
+    val systemInterface: SystemInterface,
 ) {
-
     private var logHandlers = mutableListOf<InterpreterLogHandler>()
 
     private val programInterpreter = ProgramInterpreter(systemInterface.addExtraLogHandlers(logHandlers))
@@ -61,8 +62,11 @@ abstract class RpgFacade<P> (
         logHandlers = systemInterface.getAllLogHandlers()
     }
 
-    fun singleCall(params: P, configuration: Configuration = Configuration()): P? {
-        return MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+    fun singleCall(
+        params: P,
+        configuration: Configuration = Configuration(),
+    ): P? =
+        MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
             configureLogHandlers()
             it.executionProgramName = programName
             // I need to create rpgProgram inside MainExecutionContext to fix issue on experimental symbol table.
@@ -79,24 +83,28 @@ abstract class RpgFacade<P> (
             }
             configuration.options?.apply {
                 if (muteSupport) {
-                    kotlin.runCatching {
-                        systemInterface.assertMutesSucceed(programName = programName)
-                    }.onFailure { error ->
-                        when (program) {
-                            is RpgProgram -> (program as RpgProgram).cu.source?.apply {
-                                System.err.println(error.message)
-                                System.err.println(this.dumpSource())
+                    kotlin
+                        .runCatching {
+                            systemInterface.assertMutesSucceed(programName = programName)
+                        }.onFailure { error ->
+                            when (program) {
+                                is RpgProgram ->
+                                    (program as RpgProgram).cu.source?.apply {
+                                        System.err.println(error.message)
+                                        System.err.println(this.dumpSource())
+                                    }
                             }
+                            throw error
                         }
-                        throw error
-                    }
                 }
             }
             toResults(params, initialValues)
         }
-    }
 
-    protected open fun toResults(params: P, resultValues: LinkedHashMap<String, Value>): P {
+    protected open fun toResults(
+        params: P,
+        resultValues: LinkedHashMap<String, Value>,
+    ): P {
         params!!
 //        val kclass = any::class
 //        val initialValues = HashMap<String, Value>()
@@ -107,7 +115,10 @@ abstract class RpgFacade<P> (
         return params
     }
 
-    protected open fun toInitialValues(program: Program, params: P): LinkedHashMap<String, Value> {
+    protected open fun toInitialValues(
+        program: Program,
+        params: P,
+    ): LinkedHashMap<String, Value> {
         val any: Any = params!!
         val klass = any::class
         val initialValues = LinkedHashMap<String, Value>()
@@ -117,7 +128,10 @@ abstract class RpgFacade<P> (
         return initialValues
     }
 
-    private fun propertyStringValue(property: KProperty1<Any, *>, container: Any): String {
+    private fun propertyStringValue(
+        property: KProperty1<Any, *>,
+        container: Any,
+    ): String {
         val value = property.get(container)
         if (value is String) {
             return value
@@ -144,7 +158,10 @@ abstract class RpgFacade<P> (
         }
     }
 
-    private fun toRpgValue(property: KProperty<*>, jvmValue: Any?): Value {
+    private fun toRpgValue(
+        property: KProperty<*>,
+        jvmValue: Any?,
+    ): Value {
         return when {
             property.returnType == String::class.createType() -> {
                 val s = jvmValue as String
@@ -153,14 +170,16 @@ abstract class RpgFacade<P> (
             property.returnType.classifier is KClass<*> && (property.returnType.classifier as KClass<*>).qualifiedName == "kotlin.Array" -> {
                 val jvmArray = jvmValue as Array<*>
                 val elementType = property.returnType.arguments[0].type!!
-                val nElements = property.findAnnotation<Size>()?.size ?: throw RuntimeException("Size expected for property ${property.name}")
-                val rpgArray = createArrayValue(elementType.toRpgType(), nElements) {
-                    if (it < jvmArray.size) {
-                        toRpgValue(jvmArray[it])
-                    } else {
-                        elementType.toRpgType().blank()
+                val nElements =
+                    property.findAnnotation<Size>()?.size ?: throw RuntimeException("Size expected for property ${property.name}")
+                val rpgArray =
+                    createArrayValue(elementType.toRpgType(), nElements) {
+                        if (it < jvmArray.size) {
+                            toRpgValue(jvmArray[it])
+                        } else {
+                            elementType.toRpgType().blank()
+                        }
                     }
-                }
                 return rpgArray
             }
             else -> {
@@ -172,8 +191,8 @@ abstract class RpgFacade<P> (
     }
 }
 
-private fun KType.toRpgType(size: Size? = null): Type {
-    return when {
+private fun KType.toRpgType(size: Size? = null): Type =
+    when {
         this.classifier == String::class -> {
             StringType(size!!.size, false)
         }
@@ -183,7 +202,6 @@ private fun KType.toRpgType(size: Size? = null): Type {
         }
         else -> TODO("$this")
     }
-}
 
 private fun <R> KProperty<R>.rpgLength(): Int {
     val size = this.findAnnotation<Size>()

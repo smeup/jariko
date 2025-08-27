@@ -2,7 +2,7 @@ package com.smeup.dspfparser.utils
 
 internal fun String.extend(
     with: Char,
-    until: Int
+    until: Int,
 ): String {
     if (this.isEmpty()) {
         return with.toString().repeat(until)
@@ -13,7 +13,7 @@ internal fun String.extend(
 
 internal fun String.removeNewLineAndExtend(
     with: Char,
-    until: Int
+    until: Int,
 ): String {
     val line = this.replace("\n", "")
     if (until < line.length) throw Exception("Line length (${line.length}) is greater than $until")
@@ -21,18 +21,10 @@ internal fun String.removeNewLineAndExtend(
     return line.extend(with, until)
 }
 
-internal fun String.removeFirst(char: Char): String {
-    return this.replaceFirst(char.toString(), "")
-}
+internal fun String.removeFirst(char: Char): String = this.replaceFirst(char.toString(), "")
 
-internal fun String.removeFirst(string: String): String {
-    return this.replaceFirst(string, "")
-}
+internal fun String.removeFirst(string: String): String = this.replaceFirst(string, "")
 
-internal fun String.removeLast(char: Char): String {
-    return this.reversed().replaceFirst(char.toString(), "").reversed()
-}
+internal fun String.removeLast(char: Char): String = this.reversed().replaceFirst(char.toString(), "").reversed()
 
-internal fun String.removeLast(string: String): String {
-    return this.reversed().replaceFirst(string, "").reversed()
-}
+internal fun String.removeLast(string: String): String = this.reversed().replaceFirst(string, "").reversed()

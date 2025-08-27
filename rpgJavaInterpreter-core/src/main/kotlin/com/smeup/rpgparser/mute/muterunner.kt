@@ -56,12 +56,12 @@ data class ExecutionResult(
     val executed: Int,
     val failed: Int,
     val exceptions: LinkedList<Throwable>,
-    val syntaxErrors: List<Error>
+    val syntaxErrors: List<Error>,
 ) {
     fun success(): Boolean = failed == 0 && exceptions.isEmpty() && syntaxErrors.isEmpty()
 
-    override fun toString(): String {
-        return buildString {
+    override fun toString(): String =
+        buildString {
             appendLine("------------")
             val message =
                 "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
@@ -73,7 +73,6 @@ data class ExecutionResult(
                 appendLine(it)
             }
         }.addFileLink()
-    }
 
     private fun String.addFileLink(): String {
         var lineNumber = substringAfter(" at line ").substringBefore(".").asDouble().toInt()
@@ -95,13 +94,14 @@ fun Throwable.toExecutionMessage(): String {
 
 fun String.color(success: Boolean) = if (success) this.green() else this.red()
 
-fun File.linkTo(line: Int) = if (showSourceAbsolutePath()) {
-    // For linking to source from Visual Studio Code console
-    "${this.absolutePath}:$line"
-} else {
-    // For linking to source from IDEA console
-    "${this.name}(${this.name}:$line)"
-}
+fun File.linkTo(line: Int) =
+    if (showSourceAbsolutePath()) {
+        // For linking to source from Visual Studio Code console
+        "${this.absolutePath}:$line"
+    } else {
+        // For linking to source from IDEA console
+        "${this.name}(${this.name}:$line)"
+    }
 
 fun showSourceAbsolutePath(): Boolean = "true" == System.getProperty("showSourceAbsolutePath")
 
@@ -111,18 +111,20 @@ fun executeWithMutes(
     logConfigurationFile: File?,
     programFinders: List<RpgProgramFinder> = listOf<RpgProgramFinder>(DirRpgProgramFinder(File("src/test/resources/"))),
     output: PrintStream? = null,
-    configuration: Configuration = Configuration(options = Options(muteSupport = true))
+    configuration: Configuration = Configuration(options = Options(muteSupport = true)),
 ): ExecutionResult {
     var failed = 0
     var executed = 0
     val exceptions = LinkedList<Throwable>()
 
-    val systemInterface = JavaSystemInterface(os = output ?: System.out).apply {
-        rpgSystem.addProgramFinders(programFinders)
-    }.let {
-        it.useConfigurationFile(logConfigurationFile)
-        it
-    }
+    val systemInterface =
+        JavaSystemInterface(os = output ?: System.out)
+            .apply {
+                rpgSystem.addProgramFinders(programFinders)
+            }.let {
+                it.useConfigurationFile(logConfigurationFile)
+                it
+            }
     return MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
         var parserResult: RpgParserResult? = null
         val file = File(path.toString())
@@ -130,30 +132,44 @@ fun executeWithMutes(
             it.executionProgramName = file.name
             parserResult =
                 RpgParserFacade()
-                .parse(file.inputStream())
+                    .parse(file.inputStream())
             if (parserResult.correct) {
-                parserResult.executeMuteAnnotations(
-                    verbose = verbose,
-                    systemInterface = systemInterface,
-                    mainExecutionContext = it,
-                    programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
-                    if (verbose || annotation.failed()) {
-                        println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
-                        if (annotation.failed()) {
-                            failed++
-                            if (annotation is MuteComparisonAnnotationExecuted) {
-                                println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                                println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+                parserResult
+                    .executeMuteAnnotations(
+                        verbose = verbose,
+                        systemInterface = systemInterface,
+                        mainExecutionContext = it,
+                        programName = file.name.removeSuffix(".rpgle"),
+                    ).forEach { (line, annotation) ->
+                        if (verbose || annotation.failed()) {
+                            println(
+                                "Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(
+                                    line,
+                                )}"
+                                    .color(annotation.succeeded()),
+                            )
+                            if (annotation.failed()) {
+                                failed++
+                                if (annotation is MuteComparisonAnnotationExecuted) {
+                                    println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                                    println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+                                }
                             }
                         }
+                        executed++
                     }
-                    executed++
-                }
             }
         } catch (e: Throwable) {
             exceptions.add(e)
         }
-        ExecutionResult(file, parserResult?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, parserResult?.errors ?: emptyList())
+        ExecutionResult(
+            file,
+            parserResult?.root?.muteContexts?.size ?: 0,
+            executed,
+            failed,
+            exceptions,
+            parserResult?.errors ?: emptyList(),
+        )
     }
 }
 
@@ -161,12 +177,12 @@ fun executeMuteAnnotations(
     programSrc: File,
     systemInterface: SystemInterface,
     parameters: List<String> = listOf(),
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
 ): SortedMap<Int, MuteAnnotationExecuted> {
     getProgram(
         nameOrSource = programSrc.name,
         programFinders = listOf(DirRpgProgramFinder(programSrc.parentFile)),
-        systemInterface = systemInterface
+        systemInterface = systemInterface,
     ).apply {
         singleCall(parameters, configuration)
     }
@@ -180,67 +196,76 @@ fun executeMuteAnnotations(
     verbose: Boolean = false,
     parameters: Map<String, Value> = mapOf(),
     programName: String = "<UNKNOWN>",
-    configuration: Configuration = Configuration()
-): SortedMap<Int, MuteAnnotationExecuted>? {
-    return MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+    configuration: Configuration = Configuration(),
+): SortedMap<Int, MuteAnnotationExecuted>? =
+    MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
         it.executionProgramName = programName
         val parserResult =
-            RpgParserFacade().apply { muteSupport = true }
-            .parse(programStream)
+            RpgParserFacade()
+                .apply { muteSupport = true }
+                .parse(programStream)
         if (parserResult.correct) {
             parserResult.executeMuteAnnotations(
-                verbose = verbose, systemInterface = systemInterface, parameters = parameters,
-                programName = programName, mainExecutionContext = it
+                verbose = verbose,
+                systemInterface = systemInterface,
+                parameters = parameters,
+                programName = programName,
+                mainExecutionContext = it,
             )
         } else {
             null
         }
     }
-}
 
 fun RpgParserResult.executeMuteAnnotations(
     verbose: Boolean,
     systemInterface: SystemInterface,
     parameters: Map<String, Value> = mapOf(),
     programName: String = "<UNKONWN>",
-    mainExecutionContext: Context? = null
+    mainExecutionContext: Context? = null,
 ): SortedMap<Int, MuteAnnotationExecuted> {
     val root = this.root!!
     // ParsingProgram is necessary during ast creation to achieve procedure name
     mainExecutionContext?.parsingProgramStack?.push(ParsingProgram(programName))
-    val cu = root.rContext.toAst().apply {
-        val resolved = this.injectMuteAnnotation(root.muteContexts!!)
+    val cu =
+        root.rContext.toAst().apply {
+            val resolved = this.injectMuteAnnotation(root.muteContexts!!)
 
-        if (verbose) {
-            val sorted = resolved.sortedWith(compareBy { it.muteLine })
-            sorted.forEach {
-                println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+            if (verbose) {
+                val sorted = resolved.sortedWith(compareBy { it.muteLine })
+                sorted.forEach {
+                    println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                }
             }
         }
-    }
     cu.resolveAndValidate()
     // Executing RpgProgram is necessary before interpretation to achieve the compilation unit related to procedure
     mainExecutionContext?.let {
-        it.programStack.push(RpgProgram(cu = cu).apply {
-            activationGroup = ActivationGroup(type = NamedActivationGroup("dummy"), assignedName = "dummy")
-        })
+        it.programStack.push(
+            RpgProgram(cu = cu).apply {
+                activationGroup = ActivationGroup(type = NamedActivationGroup("dummy"), assignedName = "dummy")
+            },
+        )
     }
-    val interpreter = InternalInterpreter(systemInterface).apply {
-        MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(this)
-        setInterpretationContext(object : InterpretationContext {
-            private var iDataWrapUpChoice: DataWrapUpChoice? = null
-            override val currentProgramName: String
-                get() = programName
+    val interpreter =
+        InternalInterpreter(systemInterface).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(this)
+            setInterpretationContext(
+                object : InterpretationContext {
+                    private var iDataWrapUpChoice: DataWrapUpChoice? = null
+                    override val currentProgramName: String
+                        get() = programName
 
-            override fun shouldReinitialize() = false
+                    override fun shouldReinitialize() = false
 
-            override var dataWrapUpChoice: DataWrapUpChoice?
-                get() = iDataWrapUpChoice
-                set(value) {
-                    iDataWrapUpChoice = value
-                }
-        })
-    }
+                    override var dataWrapUpChoice: DataWrapUpChoice?
+                        get() = iDataWrapUpChoice
+                        set(value) {
+                            iDataWrapUpChoice = value
+                        }
+                },
+            )
+        }
     interpreter.execute(cu, parameters)
     interpreter.doSomethingAfterExecution()
     mainExecutionContext?.let {
@@ -273,10 +298,15 @@ object MuteRunner {
     }
 
     private fun isRpgle(path: Path) = path.toString().lowercase(Locale.getDefault()).endsWith(".rpgle")
+
     fun resolved(): Int = results.sumOf { it.resolved }
+
     fun executed(): Int = results.sumOf { it.executed }
+
     fun failed(): Int = results.sumOf { it.failed }
+
     fun errors(): Int = results.sumOf { it.syntaxErrors.size }
+
     fun exceptions(): Int = results.sumOf { it.exceptions.size }
 }
 
@@ -284,16 +314,17 @@ const val FAILURE_EXIT_CODE = 1
 
 class MuteRunnerCLI : CliktCommand() {
     private val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(
-        false
+        false,
     )
 
     private val logConfigurationFile by option("-lc", "--log-configuration").file(mustExist = true, mustBeReadable = true)
 
-    private val pathsToProcessArgs by argument(name = "Paths to process").file(
-        mustExist = true,
-        canBeDir = true,
-        canBeFile = true
-    ).multiple(required = false)
+    private val pathsToProcessArgs by argument(name = "Paths to process")
+        .file(
+            mustExist = true,
+            canBeDir = true,
+            canBeFile = true,
+        ).multiple(required = false)
 
     override fun run() {
         MuteRunner.verbose = verbosity
@@ -321,7 +352,9 @@ class MuteRunnerCLI : CliktCommand() {
 
         MuteRunner.processPaths(pathsToProcess)
         MuteRunner.results.forEach { println(it) }
-        printBox("Total files: ${MuteRunner.results.size}, resolved: ${MuteRunner.resolved()}, executed: ${MuteRunner.executed()}, failed: ${MuteRunner.failed()}, errors: ${MuteRunner.errors()}, exceptions: ${MuteRunner.exceptions()}")
+        printBox(
+            "Total files: ${MuteRunner.results.size}, resolved: ${MuteRunner.resolved()}, executed: ${MuteRunner.executed()}, failed: ${MuteRunner.failed()}, errors: ${MuteRunner.errors()}, exceptions: ${MuteRunner.exceptions()}",
+        )
         if (MuteRunner.successful) {
             println()
             println("SUCCESS".green())

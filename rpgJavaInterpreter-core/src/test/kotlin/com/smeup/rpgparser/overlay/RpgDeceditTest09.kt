@@ -26,7 +26,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
 open class RpgDeceditTest09 : AbstractTest() {
-
     @Test
     fun parseMUTE09_02() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02", considerPosition = true, withMuteSupport = true)

@@ -6,23 +6,33 @@ import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.Trees
 
 private fun String.encodeXmlChars(): String {
-    val map = mapOf(
-        '<' to "&lt;",
-        '>' to "&gt;",
-        '&' to "&amp;",
-        '\'' to "&apos;",
-        '"' to "&quot;"
-    )
+    val map =
+        mapOf(
+            '<' to "&lt;",
+            '>' to "&gt;",
+            '&' to "&amp;",
+            '\'' to "&apos;",
+            '"' to "&quot;",
+        )
     return this.map { it -> if (map[it] == null) it.toString() else map[it] }.joinToString(separator = "")
 }
 
 private fun String.openTag(indent: Int) = " ".repeat(indent) + "<${this.encodeXmlChars()}>\n"
+
 private fun String.closeTag(indent: Int) = " ".repeat(indent) + "</${this.encodeXmlChars()}>\n"
+
 private fun String.emptyTag(indent: Int) = " ".repeat(indent) + "<${this.encodeXmlChars()}/>\n"
+
 private fun String.leaf(indent: Int) = " ".repeat(indent) + "${this.encodeXmlChars()}\n"
 
-fun parseTreeToXml(t: ParseTree?, parser: Parser): String {
-    fun toXmlString(t: ParseTree?, indent: Int = 0): String {
+fun parseTreeToXml(
+    t: ParseTree?,
+    parser: Parser,
+): String {
+    fun toXmlString(
+        t: ParseTree?,
+        indent: Int = 0,
+    ): String {
         val sb = StringBuilder()
         if (t != null) {
             val nodeText = Trees.getNodeText(t, parser).trim()

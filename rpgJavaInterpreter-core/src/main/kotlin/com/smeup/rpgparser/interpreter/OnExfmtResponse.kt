@@ -5,5 +5,5 @@ package com.smeup.rpgparser.interpreter
  */
 data class OnExfmtResponse(
     val runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot,
-    val values: Map<String, Value>
+    val values: Map<String, Value>,
 )

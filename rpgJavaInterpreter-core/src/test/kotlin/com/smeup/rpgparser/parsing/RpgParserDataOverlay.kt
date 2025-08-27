@@ -8,7 +8,6 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 open class RpgParserDataOverlay : AbstractTest() {
-
     /**
      * Test Structure Overlay
      */

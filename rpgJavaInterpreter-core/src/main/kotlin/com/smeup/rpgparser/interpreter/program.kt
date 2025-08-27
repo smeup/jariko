@@ -26,26 +26,33 @@ import java.io.InputStream
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.nanoseconds
 
-data class ProgramParam(val name: String, val type: Type)
+data class ProgramParam(
+    val name: String,
+    val type: Type,
+)
 
 infix fun Type.parm(name: String): ProgramParam = ProgramParam(name, this)
 
 interface Program {
     fun params(): List<ProgramParam>
-    fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
+
+    fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value>
 }
 
 class RpgProgram(
     val cu: CompilationUnit,
     val name: String = "<UNNAMED RPG PROGRAM>",
-    val init: (CompilationUnit) -> Unit = { cu -> cu.resolveAndValidate() } // default init calls resolveAndValidate
+    val init: (CompilationUnit) -> Unit = { cu -> cu.resolveAndValidate() }, // default init calls resolveAndValidate
 ) : Program {
     // Java constructor for interoperability
     @JvmOverloads
     constructor(cu: CompilationUnit, name: String = "<UNNAMED RPG PROGRAM>") : this(
         cu,
         name,
-        { cu -> cu.resolveAndValidate() }
+        { cu -> cu.resolveAndValidate() },
     )
 
     init {
@@ -79,16 +86,22 @@ class RpgProgram(
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
         return plistParams?.params?.map {
-            val type = cu.getAnyDataDefinition(it.result.name) {
-                "Cannot resolve RESULT: ${it.result.name} in *ENTRY PLIST of the program: $name"
-            }.type
+            val type =
+                cu
+                    .getAnyDataDefinition(it.result.name) {
+                        "Cannot resolve RESULT: ${it.result.name} in *ENTRY PLIST of the program: $name"
+                    }.type
             ProgramParam(it.result.name, type)
         }
             ?: emptyList()
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>", sourceProgram: SourceProgram? = SourceProgram.RPGLE): RpgProgram {
+        fun fromInputStream(
+            inputStream: InputStream,
+            name: String = "<UNNAMED INPUT STREAM>",
+            sourceProgram: SourceProgram? = SourceProgram.RPGLE,
+        ): RpgProgram {
             inputStream.use {
                 val cu = RpgParserFacade().parseAndProduceAst(inputStream, sourceProgram)
                 return RpgProgram(cu, name)
@@ -96,7 +109,10 @@ class RpgProgram(
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value> {
         val callback = configuration.jarikoCallback
         val trace = JarikoTrace(JarikoTraceKind.RpgProgram, "Execute ${this.name}")
         return callback.traceBlock(trace) {
@@ -110,7 +126,13 @@ class RpgProgram(
                     "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
                 }
             } else {
-                require(params().asSequence().map { it.name }.toSet().all { it in expectedKeys }) {
+                require(
+                    params()
+                        .asSequence()
+                        .map { it.name }
+                        .toSet()
+                        .all { it in expectedKeys },
+                ) {
                     "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
                 }
 
@@ -125,89 +147,99 @@ class RpgProgram(
             val logSource = { LogSourceData.fromProgram(name) }
             logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "START"))
             val changedInitialValues: List<Value>
-            val elapsed = measureNanoTime {
-                interpreter.setInterpretationContext(object : InterpretationContext {
-                    private var iDataWrapUpChoice: DataWrapUpChoice? = null
-                    override val currentProgramName: String
-                        get() = name
+            val elapsed =
+                measureNanoTime {
+                    interpreter.setInterpretationContext(
+                        object : InterpretationContext {
+                            private var iDataWrapUpChoice: DataWrapUpChoice? = null
+                            override val currentProgramName: String
+                                get() = name
 
-                    override fun shouldReinitialize() = false
-                    override var dataWrapUpChoice: DataWrapUpChoice?
-                        get() = iDataWrapUpChoice
-                        set(value) {
-                            iDataWrapUpChoice = value
+                            override fun shouldReinitialize() = false
+
+                            override var dataWrapUpChoice: DataWrapUpChoice?
+                                get() = iDataWrapUpChoice
+                                set(value) {
+                                    iDataWrapUpChoice = value
+                                }
+                        },
+                    )
+
+                    for (pv in params) {
+                        val expectedType = params().find { it.name == pv.key }!!.type
+                        val coercedValue = coerce(pv.value, expectedType)
+                        require(coercedValue.assignableTo(expectedType)) {
+                            "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
                         }
-                })
-
-                for (pv in params) {
-                    val expectedType = params().find { it.name == pv.key }!!.type
-                    val coercedValue = coerce(pv.value, expectedType)
-                    require(coercedValue.assignableTo(expectedType)) {
-                        "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
-                    }
-                }
-
-                if (!initialized) {
-                    initialized = true
-
-                    /**
-                     * As the RPG program stack is managed outside of this method, it is up to the caller of this method
-                     * to ensure it is in the correct state, that is:
-                     * - `lastIndex` is this RpgProgram
-                     * - `lastIndex - 1` is the RpgProgram that calls this RpgProgram
-                     *
-                     * Note: If these two rules are not followed at this point, do not expect RpgPrograms to behave correctly.
-                     * that means something is wrong with `MainExecutionContext.getProgramStack()` push and pop logic.
-                     */
-                    val programStack = MainExecutionContext.getProgramStack()
-                    val caller = if (programStack.size > 1) {
-                        val parentProgramIndex = programStack.lastIndex - 1
-                        programStack[parentProgramIndex]
-                    } else {
-                        null
                     }
 
-                    val activationGroupType = cu.activationGroupType()?.let {
-                        when {
-                            // When there is no caller use the default activation group
-                            it is CallerActivationGroup && caller == null ->
-                                NamedActivationGroup(configuration.defaultActivationGroupName)
+                    if (!initialized) {
+                        initialized = true
 
-                            else -> it
-                        }
-                    } ?: when (caller) {
-                        // for main program, which does not have a caller, activation group is fixed by config
-                        null -> NamedActivationGroup(configuration.defaultActivationGroupName)
-                        else -> CallerActivationGroup
+                        /**
+                         * As the RPG program stack is managed outside of this method, it is up to the caller of this method
+                         * to ensure it is in the correct state, that is:
+                         * - `lastIndex` is this RpgProgram
+                         * - `lastIndex - 1` is the RpgProgram that calls this RpgProgram
+                         *
+                         * Note: If these two rules are not followed at this point, do not expect RpgPrograms to behave correctly.
+                         * that means something is wrong with `MainExecutionContext.getProgramStack()` push and pop logic.
+                         */
+                        val programStack = MainExecutionContext.getProgramStack()
+                        val caller =
+                            if (programStack.size > 1) {
+                                val parentProgramIndex = programStack.lastIndex - 1
+                                programStack[parentProgramIndex]
+                            } else {
+                                null
+                            }
+
+                        val activationGroupType =
+                            cu.activationGroupType()?.let {
+                                when {
+                                    // When there is no caller use the default activation group
+                                    it is CallerActivationGroup && caller == null ->
+                                        NamedActivationGroup(configuration.defaultActivationGroupName)
+
+                                    else -> it
+                                }
+                            } ?: when (caller) {
+                                // for main program, which does not have a caller, activation group is fixed by config
+                                null -> NamedActivationGroup(configuration.defaultActivationGroupName)
+                                else -> CallerActivationGroup
+                            }
+
+                        activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
                     }
-
-                    activationGroup = ActivationGroup(activationGroupType, activationGroupType.assignedName(caller))
-                }
-                configuration.jarikoCallback.onEnterPgm(
-                    name,
-                    interpreter.getGlobalSymbolTable()
-                )
-                // set reinitialization to false because symboltable cleaning currently is handled directly
-                // in internal interpreter before exit
-                // todo i don't know whether parameter reinitialization has still sense
-                interpreter.execute(this.cu, params, false, callerParams)
-                configuration.jarikoCallback.onExitPgm(
-                    name,
-                    interpreter.getGlobalSymbolTable(),
-                    null
-                )
-                params.keys.forEach { params[it] = interpreter[it] }
+                    configuration.jarikoCallback.onEnterPgm(
+                        name,
+                        interpreter.getGlobalSymbolTable(),
+                    )
+                    // set reinitialization to false because symboltable cleaning currently is handled directly
+                    // in internal interpreter before exit
+                    // todo i don't know whether parameter reinitialization has still sense
+                    interpreter.execute(this.cu, params, false, callerParams)
+                    configuration.jarikoCallback.onExitPgm(
+                        name,
+                        interpreter.getGlobalSymbolTable(),
+                        null,
+                    )
+                    params.keys.forEach { params[it] = interpreter[it] }
 
                 /* In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
                  *  at the end, if the Factor 2 is declared, replaces the Result with the value of Factor 2.
                  */
-                changedInitialValues = params().map { param -> this.cu.entryPlist?.params
-                    ?.firstOrNull { plistParamCu -> plistParamCu.result.name.equals(param.name, true) }
-                    .let { it?.factor2?.let { factor2 -> interpreter.eval(factor2) } } ?: interpreter[param.name] }
+                    changedInitialValues =
+                        params().map { param ->
+                            this.cu.entryPlist
+                                ?.params
+                                ?.firstOrNull { plistParamCu -> plistParamCu.result.name.equals(param.name, true) }
+                                .let { it?.factor2?.let { factor2 -> interpreter.eval(factor2) } } ?: interpreter[param.name]
+                        }
 
-                // here clear symbol table if needed
-                interpreter.doSomethingAfterExecution()
-            }.nanoseconds
+                    // here clear symbol table if needed
+                    interpreter.doSomethingAfterExecution()
+                }.nanoseconds
             if (MainExecutionContext.isLoggingEnabled) {
                 logHandlers.renderLog(LazyLogEntry.produceStatement(logSource, "INTERPRETATION", "END"))
                 logHandlers.renderLog(
@@ -215,20 +247,17 @@ class RpgProgram(
                         logSource,
                         ProgramUsageType.Interpretation,
                         "INTERPRETATION",
-                        elapsed
-                    )
+                        elapsed,
+                    ),
                 )
             }
             changedInitialValues
         }
     }
 
-    override fun equals(other: Any?) =
-            (other is RpgProgram) && other.name == name
+    override fun equals(other: Any?) = (other is RpgProgram) && other.name == name
 
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
+    override fun hashCode(): Int = name.hashCode()
 }
 
 /**
@@ -237,4 +266,7 @@ class RpgProgram(
  * @param assignedName Name assigned. The assignment algorithm depends on activation group type
  * @see ActivationGroupType.assignedName
  * */
-data class ActivationGroup(val type: ActivationGroupType, val assignedName: String)
+data class ActivationGroup(
+    val type: ActivationGroupType,
+    val assignedName: String,
+)

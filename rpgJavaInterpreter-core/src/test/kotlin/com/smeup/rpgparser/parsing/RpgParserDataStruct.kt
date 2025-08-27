@@ -27,7 +27,6 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 
 open class RpgParserDataStruct : AbstractTest() {
-
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
@@ -67,11 +66,17 @@ open class RpgParserDataStruct : AbstractTest() {
         assertEquals(10, FLD2.size)
         assertEquals(10, FLD2.elementSize())
 
-        assertEquals(DataStructureType(listOf(
-                // In datastruct if not specified default to ZONED (S)
-                FieldType("FLD1", NumberType(5, 0, "S")),
-                FieldType("FLD2", StringType(10))
-        ), 15), MYDS.type)
+        assertEquals(
+            DataStructureType(
+                listOf(
+                    // In datastruct if not specified default to ZONED (S)
+                    FieldType("FLD1", NumberType(5, 0, "S")),
+                    FieldType("FLD2", StringType(10)),
+                ),
+                15,
+            ),
+            MYDS.type,
+        )
 
         assertEquals(15, MYDS.elementSize())
 
@@ -136,9 +141,10 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
-        val si = CollectorSystemInterface().apply {
-            printOutput = true
-        }
+        val si =
+            CollectorSystemInterface().apply {
+                printOutput = true
+            }
         cu.resolveAndValidate()
         execute(cu, mapOf(), si)
     }
@@ -234,17 +240,18 @@ open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun compressionIntoDSofPackedValue() {
-        val PAC030 = FieldDefinition(
-            name = "PAC030",
-            type = NumberType(3, 0, RpgType.PACKED),
-            explicitStartOffset = null,
-            explicitEndOffset = null,
-            calculatedStartOffset = 6,
-            calculatedEndOffset = 8,
-            overriddenContainer = null,
-            position = null,
-            declaredArrayInLineOnThisField = null
-        )
+        val PAC030 =
+            FieldDefinition(
+                name = "PAC030",
+                type = NumberType(3, 0, RpgType.PACKED),
+                explicitStartOffset = null,
+                explicitEndOffset = null,
+                calculatedStartOffset = 6,
+                calculatedEndOffset = 8,
+                overriddenContainer = null,
+                position = null,
+                declaredArrayInLineOnThisField = null,
+            )
         val encodedValue = PAC030.toDataStructureValue(IntValue(999))
         assertEquals(2, encodedValue.value.length)
     }
@@ -276,11 +283,12 @@ open class RpgParserDataStruct : AbstractTest() {
     open fun parseSTRUCT_06_runtime() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
-        val cu = assertASTCanBeProduced(
-            exampleName = "struct/STRUCT_06",
-            considerPosition = true,
-            withMuteSupport = true
-        )
+        val cu =
+            assertASTCanBeProduced(
+                exampleName = "struct/STRUCT_06",
+                considerPosition = true,
+                withMuteSupport = true,
+            )
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
@@ -292,6 +300,7 @@ open class RpgParserDataStruct : AbstractTest() {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
+
     /**
      * Test for all data type
      */
@@ -299,11 +308,12 @@ open class RpgParserDataStruct : AbstractTest() {
     fun parseSTRUCT_07_runtime() {
         assertCanBeParsed("struct/STRUCT_07", withMuteSupport = true)
 
-        val cu = assertASTCanBeProduced(
-            exampleName = "struct/STRUCT_07",
-            considerPosition = true,
-            withMuteSupport = true
-        )
+        val cu =
+            assertASTCanBeProduced(
+                exampleName = "struct/STRUCT_07",
+                considerPosition = true,
+                withMuteSupport = true,
+            )
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
@@ -318,28 +328,34 @@ open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun parseSTRUCT_80TypeTest() {
+        val ds1 =
+            OccurableDataStructureType(
+                dataStructureType =
+                    DataStructureType(
+                        fields =
+                            listOf(
+                                FieldType("FLDA", StringType(5, false)),
+                                FieldType("FLDB", StringType(75, false)),
+                            ),
+                        elementSize = 80,
+                    ),
+                occurs = 50,
+            )
 
-        val ds1 = OccurableDataStructureType(
-            dataStructureType = DataStructureType(
-                fields = listOf(
-                    FieldType("FLDA", StringType(5, false)),
-                    FieldType("FLDB", StringType(75, false))
-                ),
-                elementSize = 80),
-            occurs = 50
-        )
-
-        val ds2 = DataStructureType(
-            fields = listOf(
-                FieldType("FLDC", StringType(6, false)),
-                FieldType("FLDD", StringType(5, false))
-            ),
-            elementSize = 11
-        )
-        val expectedDSTypes = mapOf(
-            "DS1" to ds1,
-            "DS2" to ds2
-        )
+        val ds2 =
+            DataStructureType(
+                fields =
+                    listOf(
+                        FieldType("FLDC", StringType(6, false)),
+                        FieldType("FLDD", StringType(5, false)),
+                    ),
+                elementSize = 11,
+            )
+        val expectedDSTypes =
+            mapOf(
+                "DS1" to ds1,
+                "DS2" to ds2,
+            )
         val actualDSTypes = mutableMapOf<String, Type>()
         val r = assertCanBeParsed("struct/STRUCT_08", withMuteSupport = true)
         for (stat in r.statement()) {
@@ -359,10 +375,11 @@ open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun executeSTRUCT_09MustFail() {
-        val expectedErrors = listOf(
-            "Program STRUCT_09 - Issue executing OccurStmt at absolute line 10 of SourceReference(sourceReferenceType=Program, sourceId=STRUCT_09, relativeLine=10, position=Position(start=Line 10, Column 25, end=Line 10, Column 81)).\n" +
-                    "OCCUR not supported. DS2 must be a DS defined with OCCURS keyword"
-        )
+        val expectedErrors =
+            listOf(
+                "Program STRUCT_09 - Issue executing OccurStmt at absolute line 10 of SourceReference(sourceReferenceType=Program, sourceId=STRUCT_09, relativeLine=10, position=Position(start=Line 10, Column 25, end=Line 10, Column 81)).\n" +
+                    "OCCUR not supported. DS2 must be a DS defined with OCCURS keyword",
+            )
         testError(exampleName = "struct/STRUCT_09", expectedErrors = expectedErrors)
     }
 
@@ -379,10 +396,11 @@ open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun executeSTRUCT_1BMustFail() {
-        val expectedErrors = listOf(
-            "Program STRUCT_1B - Issue executing OccurStmt at absolute line 12 of SourceReference(sourceReferenceType=Program, sourceId=STRUCT_1B, relativeLine=12, position=Position(start=Line 12, Column 25, end=Line 12, Column 85)).\n" +
-                    "occurrence value: 11 cannot be greater than occurs: 10"
-        )
+        val expectedErrors =
+            listOf(
+                "Program STRUCT_1B - Issue executing OccurStmt at absolute line 12 of SourceReference(sourceReferenceType=Program, sourceId=STRUCT_1B, relativeLine=12, position=Position(start=Line 12, Column 25, end=Line 12, Column 85)).\n" +
+                    "occurrence value: 11 cannot be greater than occurs: 10",
+            )
         testError(exampleName = "struct/STRUCT_1B", expectedErrors = expectedErrors)
     }
 
@@ -392,25 +410,30 @@ open class RpgParserDataStruct : AbstractTest() {
         executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
     }
 
-    private fun testError(exampleName: String, expectedErrors: List<String>) {
+    private fun testError(
+        exampleName: String,
+        expectedErrors: List<String>,
+    ) {
         val errorMessages = mutableListOf<String>()
-        val configuration = Configuration().apply {
-            jarikoCallback.onError = { errorEvent ->
-                println(errorEvent)
-                errorEvent.error.message?.let {
-                    errorMessages.add(it)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.onError = { errorEvent ->
+                    println(errorEvent)
+                    errorEvent.error.message?.let {
+                        errorMessages.add(it)
+                    }
                 }
             }
-        }
-        kotlin.runCatching {
-            executePgm(programName = exampleName, configuration = configuration)
-        }.onSuccess {
-            fail("This program must fail")
-        }.onFailure {
-            if (expectedErrors != errorMessages) {
-                it.printStackTrace()
+        kotlin
+            .runCatching {
+                executePgm(programName = exampleName, configuration = configuration)
+            }.onSuccess {
+                fail("This program must fail")
+            }.onFailure {
+                if (expectedErrors != errorMessages) {
+                    it.printStackTrace()
+                }
+                assertEquals(expectedErrors, errorMessages)
             }
-            assertEquals(expectedErrors, errorMessages)
-        }
     }
 }

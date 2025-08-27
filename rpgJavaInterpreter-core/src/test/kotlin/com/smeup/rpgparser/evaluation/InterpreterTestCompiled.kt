@@ -17,7 +17,6 @@ import java.io.File
 import kotlin.test.assertEquals
 
 private class BinProgramFinder : RpgProgramFinder {
-
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val f = File(testCompiledDir, "$nameOrSource.bin")
         return if (f.exists()) {
@@ -28,21 +27,14 @@ private class BinProgramFinder : RpgProgramFinder {
         }
     }
 
-    override fun findCopy(copyId: CopyId): Copy? {
-        return null
-    }
+    override fun findCopy(copyId: CopyId): Copy? = null
 
-    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
-        return null
-    }
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? = null
 
-    override fun findApi(apiId: ApiId): Api? {
-        return null
-    }
+    override fun findApi(apiId: ApiId): Api? = null
 }
 
 class InterpreterTestCompiled : InterpreterTest() {
-
     override fun useCompiledVersion() = true
 
     @Test
@@ -53,7 +45,7 @@ class InterpreterTestCompiled : InterpreterTest() {
         getProgram("DSOVERL", si, programFinder).singleCall(emptyList())
         assertEquals(
             expected = "AAAA,BBBB".split(","),
-            actual = si.consoleOutput
+            actual = si.consoleOutput,
         )
     }
 }

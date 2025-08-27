@@ -1,32 +1,34 @@
 package com.strumenta.kolasu.parsing
 
-import java.util.LinkedList
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Vocabulary
 import org.antlr.v4.runtime.tree.TerminalNode
+import java.util.LinkedList
 
 abstract class ParseTreeElement {
     abstract fun multiLineString(indentation: String = ""): String
 }
 
-class ParseTreeLeaf(val type: String, val text: String) : ParseTreeElement() {
-    override fun toString(): String {
-        return "T:$type[$text]"
-    }
+class ParseTreeLeaf(
+    val type: String,
+    val text: String,
+) : ParseTreeElement() {
+    override fun toString(): String = "T:$type[$text]"
 
     override fun multiLineString(indentation: String): String = "${indentation}T:$type[$text]\n"
 }
 
-class ParseTreeNode(val name: String) : ParseTreeElement() {
+class ParseTreeNode(
+    val name: String,
+) : ParseTreeElement() {
     val children = LinkedList<ParseTreeElement>()
+
     fun child(c: ParseTreeElement): ParseTreeNode {
         children.add(c)
         return this
     }
 
-    override fun toString(): String {
-        return "Node($name) $children"
-    }
+    override fun toString(): String = "Node($name) $children"
 
     override fun multiLineString(indentation: String): String {
         val sb = StringBuilder()
@@ -36,7 +38,10 @@ class ParseTreeNode(val name: String) : ParseTreeElement() {
     }
 }
 
-fun toParseTree(node: ParserRuleContext, vocabulary: Vocabulary): ParseTreeNode {
+fun toParseTree(
+    node: ParserRuleContext,
+    vocabulary: Vocabulary,
+): ParseTreeNode {
     val res = ParseTreeNode(node.javaClass.simpleName.removeSuffix("Context"))
     node.children?.forEach { c ->
         when (c) {

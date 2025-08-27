@@ -17,6 +17,5 @@
 package com.smeup.rpgparser.evaluation
 
 class DSPerformanceTestCompiled : DSPerformanceTest() {
-
     override fun useCompiledVersion() = true
 }

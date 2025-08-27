@@ -21,16 +21,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFRecordSpecifications(
-    override val name: String
+    override val name: String,
 ) : DSPFRecord {
     override val mutables: MutableList<MutableField> = mutableListOf()
     override val constants: MutableList<ConstantField> = mutableListOf()
 
     companion object {
-        fun fromLine(declaration: DSPFLine): DSPFRecordSpecifications {
-            return DSPFRecordSpecifications(
-                name = declaration.fieldName
+        fun fromLine(declaration: DSPFLine): DSPFRecordSpecifications =
+            DSPFRecordSpecifications(
+                name = declaration.fieldName,
             )
-        }
     }
 }

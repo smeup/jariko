@@ -4,7 +4,6 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 class TypeTest {
-
     @Test
     fun aSmallerIntIsAssignableToALargerInt() {
         val valueType = NumberType(1, 0)

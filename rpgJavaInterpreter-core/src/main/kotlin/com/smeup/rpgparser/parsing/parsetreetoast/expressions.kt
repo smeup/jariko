@@ -14,51 +14,97 @@ import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
 
-internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when {
+internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression =
+    when {
         this.number() != null -> this.number()!!.toAst(conf)
         this.identifier() != null -> this.identifier().toAst(conf)
         this.bif() != null -> this.bif().toAst(conf)
         this.literal() != null -> this.literal().toAst(conf)
         else -> todo(conf = conf)
     }
-}
 
-fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when {
+fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression =
+    when {
         this.number() != null -> this.number()!!.toAst(conf)
         this.identifier() != null -> this.identifier().toAst(conf)
         this.bif() != null -> this.bif().toAst(conf)
         this.literal() != null -> this.literal().toAst(conf)
-        this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-        this.OR() != null -> LogicalOrExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-        this.AND() != null -> LogicalAndExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-        this.comparisonOperator() != null -> when {
-            this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-            this.comparisonOperator().GE() != null -> GreaterEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-            this.comparisonOperator().LT() != null -> LessThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-            this.comparisonOperator().LE() != null -> LessEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-            this.comparisonOperator().NE() != null -> DifferentThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-            else -> todo(conf = conf)
-        }
+        this.EQUAL() != null ->
+            EqualityExpr(
+                this.expression(0).toAst(conf),
+                this.expression(1).toAst(conf),
+                toPosition(conf.considerPosition),
+            )
+        this.OR() != null ->
+            LogicalOrExpr(
+                this.expression(0).toAst(conf),
+                this.expression(1).toAst(conf),
+                toPosition(conf.considerPosition),
+            )
+        this.AND() != null ->
+            LogicalAndExpr(
+                this.expression(0).toAst(conf),
+                this.expression(1).toAst(conf),
+                toPosition(conf.considerPosition),
+            )
+        this.comparisonOperator() != null ->
+            when {
+                this.comparisonOperator().GT() != null ->
+                    GreaterThanExpr(
+                        this.expression(0).toAst(conf),
+                        this.expression(1).toAst(conf),
+                        toPosition(conf.considerPosition),
+                    )
+                this.comparisonOperator().GE() != null ->
+                    GreaterEqualThanExpr(
+                        this.expression(0).toAst(conf),
+                        this.expression(1).toAst(conf),
+                        toPosition(conf.considerPosition),
+                    )
+                this.comparisonOperator().LT() != null ->
+                    LessThanExpr(
+                        this.expression(0).toAst(conf),
+                        this.expression(1).toAst(conf),
+                        toPosition(conf.considerPosition),
+                    )
+                this.comparisonOperator().LE() != null ->
+                    LessEqualThanExpr(
+                        this.expression(0).toAst(conf),
+                        this.expression(1).toAst(conf),
+                        toPosition(conf.considerPosition),
+                    )
+                this.comparisonOperator().NE() != null ->
+                    DifferentThanExpr(
+                        this.expression(0).toAst(conf),
+                        this.expression(1).toAst(conf),
+                        toPosition(conf.considerPosition),
+                    )
+                else -> todo(conf = conf)
+            }
         this.function() != null -> this.function().toAst(conf)
         this.NOT() != null -> NotExpr(this.expression(0).toAst(conf), toPosition(conf.considerPosition))
         this.PLUS() != null -> PlusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
         this.MINUS() != null -> MinusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
-        this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
+        this.MULT() != null || this.MULT_NOSPACE() != null ->
+            MultExpr(
+                this.expression(0).toAst(conf),
+                this.expression(1).toAst(conf),
+                toPosition(conf.considerPosition),
+            )
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf), toPosition(conf.considerPosition))
         this.indicator() != null -> this.indicator().toAst(conf)
         this.unaryExpression() != null -> this.unaryExpression().toAst(conf)
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
-        this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
-                && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
+        this.children.size == 3 &&
+            this.children[0].text == "(" &&
+            this.children[2].text == ")" &&
+            this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
         else -> todo(conf = conf)
     }
-}
 
-fun RpgParser.OccurExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when {
+fun RpgParser.OccurExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression =
+    when {
         this.number() != null -> this.number()!!.toAst(conf)
         this.identifier() != null -> this.identifier().toAst(conf)
         this.bif() != null -> this.bif().toAst(conf)
@@ -67,7 +113,6 @@ fun RpgParser.OccurExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfi
         this.indicator() != null -> this.indicator().toAst(conf)
         else -> todo(conf = conf)
     }
-}
 
 internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     if (this.children.isEmpty()) {
@@ -95,7 +140,6 @@ internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstCo
 }
 
 internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): StringLiteral {
-
     /*
      The following line of code allows you to trap and throw the error when defining a hexadecimal constant variable.
      We don't want to handle this type of constant, because jariko using UTF-8 doesn't need to go through
@@ -113,15 +157,16 @@ internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConf
        children[1 to n-1] = text
        children[n] = "'"
      */
-    val stringContent = if (this.children.size > 3) {
-        if (children[0].text == "'" && children[this.children.size - 1].text == "'") {
-            this.children.subList(1, this.children.size - 1).joinToString(separator = "")
+    val stringContent =
+        if (this.children.size > 3) {
+            if (children[0].text == "'" && children[this.children.size - 1].text == "'") {
+                this.children.subList(1, this.children.size - 1).joinToString(separator = "")
+            } else {
+                this.content?.text ?: ""
+            }
         } else {
             this.content?.text ?: ""
         }
-    } else {
-        this.content?.text ?: ""
-    }
     return StringLiteral(stringContent, toPosition(conf.considerPosition))
 }
 
@@ -131,27 +176,32 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return literalToNumber(this.text, position)
 }
 
-fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
+fun String.toRealLiteral(
+    position: Position?,
+    locale: Locale,
+): RealLiteral {
     val nf = NumberFormat.getNumberInstance(locale)
     val formatter = nf as DecimalFormat
     formatter.isParseBigDecimal = true
     val bd = (formatter.parse(this) as BigDecimal)
     // in case of zero precision returned by big decimal il always 1
-    val precision = if (bd.toDouble() == 0.0) {
-        this.replace(Regex("[^0-9]"), "").length
-    } else {
-        bd.precision()
-    }
+    val precision =
+        if (bd.toDouble() == 0.0) {
+            this.replace(Regex("[^0-9]"), "").length
+        } else {
+            bd.precision()
+        }
     return RealLiteral(value = bd, position = position, precision = precision)
 }
 
 fun String.toIntLiteral(position: Position?): IntLiteral {
     val value = this.toLong()
-    val precision = if (value == 0L) {
-        this.replace(Regex("[^0-9]"), "").length
-    } else {
-        BigDecimal(value).precision()
-    }
+    val precision =
+        if (value == 0L) {
+            this.replace(Regex("[^0-9]"), "").length
+        } else {
+            BigDecimal(value).precision()
+        }
     return IntLiteral(value = value, position = position, precision = precision)
 }
 
@@ -178,24 +228,28 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression {
-    return when {
+private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression =
+    when {
         this.text.indicatorIndex() != null -> IndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
-}
 
-private fun RpgParser.IdentifierContext.isFunctionWithoutParams(referenceName: String): Boolean {
-    return runCatching {
-        rContext().children.filterIsInstance<Dcl_prContext>()
-                .flatMap { it.children.filterIsInstance<PrBeginContext>() }
-                .flatMap { it.children.filterIsInstance<Ds_nameContext>() }
-                .firstOrNull { it.text == referenceName }?.text
+private fun RpgParser.IdentifierContext.isFunctionWithoutParams(referenceName: String): Boolean =
+    runCatching {
+        rContext()
+            .children
+            .filterIsInstance<Dcl_prContext>()
+            .flatMap { it.children.filterIsInstance<PrBeginContext>() }
+            .flatMap { it.children.filterIsInstance<Ds_nameContext>() }
+            .firstOrNull { it.text == referenceName }
+            ?.text
     }.getOrNull() != null
-}
 
-internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), fieldName: String? = null): Expression {
+internal fun RpgParser.Multipart_identifierContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fieldName: String? = null,
+): Expression {
     require(this.elements.size == 2) { "More than two elements not yet supported" }
 
     // The parse tree is not constructed well, and that force us to do... complicated things
@@ -215,28 +269,42 @@ internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguratio
     // So we deal with this here
 
     if (fieldName == null && this.elements[1].indexed_identifier() != null) {
-        val container = this.toAst(conf, fieldName = this.elements[1].indexed_identifier().free_identifier().idOrKeyword().text)
-        val index = this.elements[1].indexed_identifier().expression().toAst(conf)
+        val container =
+            this.toAst(
+                conf,
+                fieldName =
+                    this.elements[1]
+                        .indexed_identifier()
+                        .free_identifier()
+                        .idOrKeyword()
+                        .text,
+            )
+        val index =
+            this.elements[1]
+                .indexed_identifier()
+                .expression()
+                .toAst(conf)
         return ArrayAccessExpr(container, index, position = toPosition(conf.considerPosition))
     }
 
     require(fieldName != null || this.elements[1].free_identifier() != null)
     return QualifiedAccessExpr(
-            container = this.elements[0].toAst(conf),
-            field = ReferenceByName(fieldName ?: this.elements[1].free_identifier().text),
-            position = toPosition(conf.considerPosition)
+        container = this.elements[0].toAst(conf),
+        field = ReferenceByName(fieldName ?: this.elements[1].free_identifier().text),
+        position = toPosition(conf.considerPosition),
     )
 }
+
 //
-internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when {
-        this.free_identifier() != null -> DataRefExpr(
+internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression =
+    when {
+        this.free_identifier() != null ->
+            DataRefExpr(
                 variable = ReferenceByName(this.free_identifier().text),
-                position = toPosition(conf.considerPosition)
-        )
+                position = toPosition(conf.considerPosition),
+            )
         else -> todo(conf = conf)
     }
-}
 
 internal fun String.indicatorIndex(): Int? {
     val uCaseIndicatorString = this.uppercase()
@@ -248,12 +316,13 @@ internal fun String.indicatorIndex(): Int? {
 }
 
 internal fun String.dataWrapUpChoice(): DataWrapUpChoice? {
-    val indicator = when {
-        this.uppercase().startsWith("*IN(") && this.endsWith(")") ->
-            this.uppercase().removePrefix("*IN(").removeSuffix(")")
-        this.uppercase().startsWith("*IN") -> this.substring("*IN".length)
-        else -> null
-    }
+    val indicator =
+        when {
+            this.uppercase().startsWith("*IN(") && this.endsWith(")") ->
+                this.uppercase().removePrefix("*IN(").removeSuffix(")")
+            this.uppercase().startsWith("*IN") -> this.substring("*IN".length)
+            else -> null
+        }
     return when (indicator) {
         "LR" -> DataWrapUpChoice.LR
         "RT" -> DataWrapUpChoice.RT

@@ -6,7 +6,6 @@ import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.nanoseconds
 
 interface IMemorySliceStorage : AutoCloseable {
-
     /**
      * Open the storage
      * */
@@ -25,7 +24,10 @@ interface IMemorySliceStorage : AutoCloseable {
     /**
      * Store map associated to memory slices
      * */
-    fun store(memorySliceId: MemorySliceId, values: Map<String, Value>)
+    fun store(
+        memorySliceId: MemorySliceId,
+        values: Map<String, Value>,
+    )
 
     /**
      * Called if all memory slices storing process is succesfully completed
@@ -46,9 +48,8 @@ interface IMemorySliceStorage : AutoCloseable {
         /**
          * Creates (just for tests) an instance of storage wrapped in a map
          * */
-        fun createMemoryStorage(map: MutableMap<MemorySliceId, Map<String, Value>>): IMemorySliceStorage {
-            return object : IMemorySliceStorage {
-
+        fun createMemoryStorage(map: MutableMap<MemorySliceId, Map<String, Value>>): IMemorySliceStorage =
+            object : IMemorySliceStorage {
                 override fun open() {
                 }
 
@@ -57,7 +58,10 @@ interface IMemorySliceStorage : AutoCloseable {
                 override fun beginTrans() {
                 }
 
-                override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
+                override fun store(
+                    memorySliceId: MemorySliceId,
+                    values: Map<String, Value>,
+                ) {
                     map[memorySliceId] = values
                 }
 
@@ -70,20 +74,24 @@ interface IMemorySliceStorage : AutoCloseable {
                 override fun close() {
                 }
             }
-        }
     }
 }
 
 /**
  * Memory slice identifier.
  * */
-data class MemorySliceId(val activationGroup: String, val programName: String)
+data class MemorySliceId(
+    val activationGroup: String,
+    val programName: String,
+)
 
 /**
  * Memory slice is that portion of program memory associated to the SymbolTable
  * */
-data class MemorySlice(val memorySliceId: MemorySliceId, val symbolTable: ISymbolTable) {
-
+data class MemorySlice(
+    val memorySliceId: MemorySliceId,
+    val symbolTable: ISymbolTable,
+) {
     /**
      * Flag to indicate that memory slice has to be persisted.
      * This property is optional because, if for some reason is not set, the serializer will throw an exception as warranty
@@ -95,21 +103,21 @@ data class MemorySlice(val memorySliceId: MemorySliceId, val symbolTable: ISymbo
 /**
  * Create a memory slice manager
  * */
-class MemorySliceMgr(private val storage: IMemorySliceStorage) {
-
+class MemorySliceMgr(
+    private val storage: IMemorySliceStorage,
+) {
     private var memorySlices = mutableMapOf<MemorySliceId, MemorySlice>()
 
     init {
         storage.open()
     }
 
-    private fun getDataDefinition(name: String, symbolTable: ISymbolTable): AbstractDataDefinition? {
-        return symbolTable.dataDefinitionByName(name)
-    }
+    private fun getDataDefinition(
+        name: String,
+        symbolTable: ISymbolTable,
+    ): AbstractDataDefinition? = symbolTable.dataDefinitionByName(name)
 
-    private fun encodeDataDefinition(dataDefinition: AbstractDataDefinition): String {
-        return dataDefinition.name
-    }
+    private fun encodeDataDefinition(dataDefinition: AbstractDataDefinition): String = dataDefinition.name
 
     fun afterMainProgramInterpretation(ok: Boolean = true) {
         storage.use {
@@ -132,11 +140,11 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         symbolTable: ISymbolTable,
         initSymbolTableEntry: (dataDefinition: AbstractDataDefinition, storedValue: Value) -> Unit = { dataDefinition, storedValue ->
             symbolTable[dataDefinition] = storedValue
-        }
+        },
     ): MemorySlice {
         val memorySlice = MemorySlice(memorySliceId = memorySliceId, symbolTable = symbolTable)
         memorySlices[memorySliceId] = memorySlice
-        storage.load(memorySliceId).forEach() { nameToValue ->
+        storage.load(memorySliceId).forEach { nameToValue ->
             getDataDefinition(nameToValue.key, symbolTable).let { dataDef ->
                 initSymbolTableEntry.invoke(dataDef!!, nameToValue.value)
             }
@@ -149,28 +157,41 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
      * @throws RuntimeException if something go wrong
      * */
     private fun store() {
-        val slicesNotConfigured = memorySlices.values.filter {
-            it.persist == null
-        }
+        val slicesNotConfigured =
+            memorySlices.values.filter {
+                it.persist == null
+            }
         if (slicesNotConfigured.isNotEmpty()) {
             throw RuntimeException("persist property not set for these slices: $slicesNotConfigured")
         }
         storage.beginTrans()
         memorySlices.values.forEach { slice ->
-            val result = storage.runCatching {
-                if (slice.persist!!) {
-                    val logSource = { LogSourceData(slice.memorySliceId.programName, "") }
-                    MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "START"))
-                    val values = slice.symbolTable.getValues().map {
-                        encodeDataDefinition(it.key) to it.value
-                    }.toMap()
-                    val elapsed = measureNanoTime {
-                        storage.store(memorySliceId = slice.memorySliceId, values = values)
-                    }.nanoseconds
-                    MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "END"))
-                    MainExecutionContext.log(LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.SymbolTable, SymbolTableAction.STORE.name, elapsed))
+            val result =
+                storage.runCatching {
+                    if (slice.persist!!) {
+                        val logSource = { LogSourceData(slice.memorySliceId.programName, "") }
+                        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "START"))
+                        val values =
+                            slice.symbolTable
+                                .getValues()
+                                .map {
+                                    encodeDataDefinition(it.key) to it.value
+                                }.toMap()
+                        val elapsed =
+                            measureNanoTime {
+                                storage.store(memorySliceId = slice.memorySliceId, values = values)
+                            }.nanoseconds
+                        MainExecutionContext.log(LazyLogEntry.produceStatement(logSource, "SYMTBLSTORE", "END"))
+                        MainExecutionContext.log(
+                            LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                                logSource,
+                                ProgramUsageType.SymbolTable,
+                                SymbolTableAction.STORE.name,
+                                elapsed,
+                            ),
+                        )
+                    }
                 }
-            }
             if (result.isFailure) {
                 storage.rollbackTrans()
                 throw RuntimeException(result.exceptionOrNull())

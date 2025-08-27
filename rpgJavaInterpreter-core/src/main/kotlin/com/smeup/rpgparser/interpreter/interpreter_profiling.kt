@@ -32,22 +32,31 @@ import com.smeup.rpgparser.utils.peekOrNull
 /**
  * Get profiling annotations attached to the following statement.
  */
-internal fun Statement.getAttachedBeforeAnnotations() = this.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToNext }
+internal fun Statement.getAttachedBeforeAnnotations() =
+    this.profilingAnnotations.filter {
+        it.attachStrategy ==
+            ProfilingAnnotationAttachStrategy.AttachToNext
+    }
 
 /**
  * Get profiling annotations attached to the previous statement.
  */
-internal fun Statement.getAttachedAfterAnnotations() = this.profilingAnnotations.filter { it.attachStrategy == ProfilingAnnotationAttachStrategy.AttachToPrevious }
+internal fun Statement.getAttachedAfterAnnotations() =
+    this.profilingAnnotations.filter {
+        it.attachStrategy ==
+            ProfilingAnnotationAttachStrategy.AttachToPrevious
+    }
 
 /**
  * Get profiling annotations attached with a given strategy.
  *
  * @param strategy The attachment strategy.
  */
-internal fun Statement.getProfilingAnnotations(strategy: ProfilingAnnotationAttachStrategy) = when (strategy) {
-    ProfilingAnnotationAttachStrategy.AttachToNext -> this.getAttachedBeforeAnnotations()
-    ProfilingAnnotationAttachStrategy.AttachToPrevious -> this.getAttachedAfterAnnotations()
-}
+internal fun Statement.getProfilingAnnotations(strategy: ProfilingAnnotationAttachStrategy) =
+    when (strategy) {
+        ProfilingAnnotationAttachStrategy.AttachToNext -> this.getAttachedBeforeAnnotations()
+        ProfilingAnnotationAttachStrategy.AttachToPrevious -> this.getAttachedAfterAnnotations()
+    }
 
 /**
  * Execute a set of [ProfilingAnnotation]s.
@@ -92,20 +101,22 @@ internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation) {
     }
 }
 
-internal fun InterpreterCore.toTracePoint(statement: Statement): JarikoTrace? {
-    return when (statement) {
-        is CallStmt -> JarikoTrace(
-            kind = JarikoTraceKind.CallStmt,
-            description = eval(statement.expression).asString().value.trim()
-        )
-        is ExecuteSubroutine -> JarikoTrace(
-            kind = JarikoTraceKind.ExecuteSubroutine,
-            description = statement.subroutine.name
-        )
-        is CompositeStatement -> JarikoTrace(
-            kind = JarikoTraceKind.CompositeStatement,
-            description = statement.loggableEntityName
-        )
+internal fun InterpreterCore.toTracePoint(statement: Statement): JarikoTrace? =
+    when (statement) {
+        is CallStmt ->
+            JarikoTrace(
+                kind = JarikoTraceKind.CallStmt,
+                description = eval(statement.expression).asString().value.trim(),
+            )
+        is ExecuteSubroutine ->
+            JarikoTrace(
+                kind = JarikoTraceKind.ExecuteSubroutine,
+                description = statement.subroutine.name,
+            )
+        is CompositeStatement ->
+            JarikoTrace(
+                kind = JarikoTraceKind.CompositeStatement,
+                description = statement.loggableEntityName,
+            )
         else -> null
     }
-}

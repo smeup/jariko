@@ -15,19 +15,20 @@ import org.mockito.kotlin.whenever
 import kotlin.test.Test
 
 class EnrichedDBFileTest {
-
     private lateinit var dbFile: DBFile
     private lateinit var fileDefinition: FileDefinition
     private lateinit var jarikoMetadata: FileMetadata
 
-    private val turnOnChainCacheFlagConfig = Configuration().apply {
-        jarikoCallback.featureFlagIsOn = { featureFlag: FeatureFlag -> featureFlag == FeatureFlag.ChainCacheFlag }
-    }
+    private val turnOnChainCacheFlagConfig =
+        Configuration().apply {
+            jarikoCallback.featureFlagIsOn = { featureFlag: FeatureFlag -> featureFlag == FeatureFlag.ChainCacheFlag }
+        }
 
-    private val turnOffChainCacheFlagConfig = Configuration().apply {
-        jarikoCallback.featureFlagIsOn =
-            { featureFlag: FeatureFlag -> if (featureFlag == FeatureFlag.ChainCacheFlag) false else featureFlag.on }
-    }
+    private val turnOffChainCacheFlagConfig =
+        Configuration().apply {
+            jarikoCallback.featureFlagIsOn =
+                { featureFlag: FeatureFlag -> if (featureFlag == FeatureFlag.ChainCacheFlag) false else featureFlag.on }
+        }
 
     @Before
     fun setup() {

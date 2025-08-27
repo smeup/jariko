@@ -22,16 +22,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFCondition(
     val op: BooleanNAryOperator,
-    val indicators: MutableList<DSPFIndicator> = mutableListOf()
+    val indicators: MutableList<DSPFIndicator> = mutableListOf(),
 ) {
     companion object {
-        fun fromString(text: String): DSPFCondition {
-            return DSPFCondition(this.getOp(text), this.getIndicators(text))
-        }
+        fun fromString(text: String): DSPFCondition = DSPFCondition(this.getOp(text), this.getIndicators(text))
 
-        private fun getOp(text: String): BooleanNAryOperator {
-            return BooleanNAryOperator.entries.first { it.value == text[0] }
-        }
+        private fun getOp(text: String): BooleanNAryOperator = BooleanNAryOperator.entries.first { it.value == text[0] }
 
         private fun getIndicators(text: String): MutableList<DSPFIndicator> {
             val indicators: MutableList<DSPFIndicator> = mutableListOf()

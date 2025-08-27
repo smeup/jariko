@@ -18,7 +18,7 @@ fun RpgParser.Hs_actgrpContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 
     return ActivationGroupDirective(
         activationGroupType(this.hs_actgrp_parm()),
-        this.toPosition(conf.considerPosition)
+        this.toPosition(conf.considerPosition),
     )
 }
 
@@ -31,11 +31,17 @@ fun activationGroupType(parm: RpgParser.Hs_actgrp_parmContext): ActivationGroupT
             CallerActivationGroup
 
         else ->
-            NamedActivationGroup(parm.hs_string().text.removeSurrounding("'").uppercase())
+            NamedActivationGroup(
+                parm
+                    .hs_string()
+                    .text
+                    .removeSurrounding("'")
+                    .uppercase(),
+            )
     }
 
-fun RpgParser.Hs_decedit_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DeceditDirectiveType {
-    return when {
+fun RpgParser.Hs_decedit_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DeceditDirectiveType =
+    when {
         this.hs_string() != null -> {
             val content = this.hs_string().content.joinToString(separator = "") { it.text }
             val format = StringLiteral(content, position = this.toPosition(conf.considerPosition))
@@ -44,7 +50,6 @@ fun RpgParser.Hs_decedit_parmContext.toAst(conf: ToAstConfiguration = ToAstConfi
         this.HS_JOBRUN() != null -> JobRunDeceditDirective
         else -> todo(message = "Invalid param in decedit directive", conf)
     }
-}
 
 fun RpgParser.Hs_decedit_setContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
     val type = this.hs_decedit_parm().toAst(conf)

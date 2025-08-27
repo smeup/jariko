@@ -39,23 +39,23 @@ import java.net.URL
 // How to implements a Simple Call Program Handler that override OP_CALL call (createCallProgramHandler)
 // And how to extends RpgProgramFinder to allow to Jariko to retrieve "OP_ADD" contract definition from URL (UrlRpgProgramFinder)
 
-fun createCallProgramHandler(): CallProgramHandler {
-    return CallProgramHandler(
+fun createCallProgramHandler(): CallProgramHandler =
+    CallProgramHandler(
         handleCall = { programName: String, _: SystemInterface, params: LinkedHashMap<String, Value> ->
             if (programName == "OP_ADD") {
                 val a = params["A"]!!.asInt().value
                 val b = params["B"]!!.asInt().value
-                val c = (a + b)*2
+                val c = (a + b) * 2
                 listOf(params["A"]!!, params["B"]!!, IntValue(c))
             } else {
                 null
             }
-        }
+        },
     )
-}
 
-class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
-
+class UrlRpgProgramFinder(
+    val endpoint: URL,
+) : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         // runCatching is wanted because endpoint could not have my program
         return runCatching {
@@ -72,7 +72,7 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-    // runCatching is wanted because endpoint could not have my program
+        // runCatching is wanted because endpoint could not have my program
         return runCatching {
             val pgmUrl = URL("$endpoint/${copyId.key(CopyFileExtension.rpgle)}")
             pgmUrl.openStream().use {
@@ -95,33 +95,36 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
 }
 
 fun execJariko() {
+    val configuration =
+        Configuration(
+            options = Options(callProgramHandler = createCallProgramHandler()),
+        )
+    val programFinders =
+        listOf(
+            DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg").path)),
+            UrlRpgProgramFinder(
+                endpoint = { }.javaClass.getResource("/rpg/api"),
+            ),
+            // I assume that all rpgle containing api contracts will be provided by endpoint.
+            // Attention: The fact that the endpoint url has "file:" as protocol is just because, is more convenient
+            // for our purposes, to work with local file, but endpoint could be whatever type of protocol.
+        )
 
-    val configuration = Configuration(
-        options = Options(callProgramHandler = createCallProgramHandler())
-    )
-    val programFinders = listOf(
-        DirRpgProgramFinder(File({ }.javaClass.getResource("/rpg").path)),
-        UrlRpgProgramFinder(
-            endpoint = { }.javaClass.getResource("/rpg/api"))
-        // I assume that all rpgle containing api contracts will be provided by endpoint.
-        // Attention: The fact that the endpoint url has "file:" as protocol is just because, is more convenient
-        // for our purposes, to work with local file, but endpoint could be whatever type of protocol.
-    )
-
-    val program = getProgram(
-        nameOrSource = "CALCULATOR.rpgle",
-        programFinders = programFinders
-    )
+    val program =
+        getProgram(
+            nameOrSource = "CALCULATOR.rpgle",
+            programFinders = programFinders,
+        )
     println("Call CALCULATOR OP_ADD.rpgle")
     program.singleCall(
-        listOf("10", "20", "")
+        listOf("10", "20", ""),
     )
     println("Call CALCULATOR through CallProgramHandler")
     program.singleCall(
         listOf("10", "20", ""),
         // in configuration we have implemented call overriding
         // result 60 is wanted to demonstrate that we have "properly" overwritten the call statement
-        configuration = configuration
+        configuration = configuration,
     )
 }
 

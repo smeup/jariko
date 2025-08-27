@@ -31,15 +31,12 @@ lateinit var simpleStorageTempDir: File
 val DEMO: Boolean = System.getenv("DEMO")?.toBoolean() ?: false
 
 private class SillySymbolTable : ISymbolTable {
-
     private val values = mutableMapOf<AbstractDataDefinition, Value>()
 
     /**
      * @return true if SymbolTable contains a variable named dataName
      * */
-    override fun contains(dataName: String): Boolean {
-        return dataDefinitionByName(dataName) != null
-    }
+    override fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
 
     /**
      * @return true if SymbolTable contains the datadefinition
@@ -65,23 +62,33 @@ private class SillySymbolTable : ISymbolTable {
     /**
      * @return if exists a datadefinition by variable name
      * */
-    override fun dataDefinitionByName(dataName: String) =
-        values.keys.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
+    override fun dataDefinitionByName(dataName: String) = values.keys.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
 
     /**
      * Set a value for data.
      * @return old value if presents
      * */
-    override fun set(data: AbstractDataDefinition, value: Value) = values.put(key = data, value = value)
+    override fun set(
+        data: AbstractDataDefinition,
+        value: Value,
+    ) = values.put(key = data, value = value)
 
     /**
      * @return All symbol table values
      * */
     override fun getValues(): Map<AbstractDataDefinition, Value> = values
 
-    fun setValue(name: String, value: String) {
-        val fieldDefinition = FieldDefinition(name = name, type = StringType(200), explicitStartOffset = 10,
-            explicitEndOffset = 30)
+    fun setValue(
+        name: String,
+        value: String,
+    ) {
+        val fieldDefinition =
+            FieldDefinition(
+                name = name,
+                type = StringType(200),
+                explicitStartOffset = 10,
+                explicitEndOffset = 30,
+            )
         this[fieldDefinition] = StringValue(value = value)
     }
 
@@ -103,11 +110,12 @@ private class SillySymbolTable : ISymbolTable {
 open class MemorySliceStorageTest : AbstractTest() {
     @Before
     fun before() {
-        val lastPathComponent = if (DEMO) {
-            "demo"
-        } else {
-            "${System.currentTimeMillis()}"
-        }
+        val lastPathComponent =
+            if (DEMO) {
+                "demo"
+            } else {
+                "${System.currentTimeMillis()}"
+            }
         simpleStorageTempDir = File(System.getProperty("java.io.tmpdir"), "/teststorage/$lastPathComponent")
     }
 
@@ -150,16 +158,16 @@ open class MemorySliceStorageTest : AbstractTest() {
         val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
         var currentStep = 0
         // here I set configuration
-        val configuration = Configuration(
-            PropertiesFileStorage(simpleStorageTempDir),
-            JarikoCallback(
-                onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                    val x = symbolTable["X"]
-                    assertEquals(currentStep + 1, x.asInt().value.toInt())
-                }
-
+        val configuration =
+            Configuration(
+                PropertiesFileStorage(simpleStorageTempDir),
+                JarikoCallback(
+                    onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+                        val x = symbolTable["X"]
+                        assertEquals(currentStep + 1, x.asInt().value.toInt())
+                    },
+                ),
             )
-        )
         val times = 2
         repeat(times) {
             // simulate pod execution
@@ -169,7 +177,7 @@ open class MemorySliceStorageTest : AbstractTest() {
                 programName = programName,
                 programFinders = rpgProgramFinders,
                 programArgs = listOf<String>(),
-                configuration = configuration
+                configuration = configuration,
             )
             configuration.memorySliceStorage?.let { memorySliceStorage ->
                 if (memorySliceStorage is PropertiesFileStorage) {
@@ -202,27 +210,29 @@ open class MemorySliceStorageTest : AbstractTest() {
         val memorySliceStorage = PropertiesFileStorage(simpleStorageTempDir)
         repeat(3) {
             val exitInRT = it == 0
-            val configuration = Configuration(
-                memorySliceStorage = memorySliceStorage,
-                // at the first iteration force RT in order to store a SymbolTable
-                jarikoCallback = JarikoCallback(
-                    exitInRT = { exitInRT },
-                    onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                        val x = symbolTable["X"]
-                        if (it == 0) {
-                            assertEquals(1, x.asInt().value.toInt())
-                        } else {
-                            assertEquals(2, x.asInt().value.toInt())
-                        }
-                    }
+            val configuration =
+                Configuration(
+                    memorySliceStorage = memorySliceStorage,
+                    // at the first iteration force RT in order to store a SymbolTable
+                    jarikoCallback =
+                        JarikoCallback(
+                            exitInRT = { exitInRT },
+                            onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+                                val x = symbolTable["X"]
+                                if (it == 0) {
+                                    assertEquals(1, x.asInt().value.toInt())
+                                } else {
+                                    assertEquals(2, x.asInt().value.toInt())
+                                }
+                            },
+                        ),
                 )
-            )
             println("Executing $programName")
             executePgmWithStringArgs(
                 programName = programName,
                 programFinders = rpgProgramFinders,
                 programArgs = listOf<String>(),
-                configuration = configuration
+                configuration = configuration,
             )
             configuration.memorySliceStorage?.let { memorySliceStorage ->
                 if (memorySliceStorage is PropertiesFileStorage) {

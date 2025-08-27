@@ -8,7 +8,6 @@ import kotlin.test.assertIs
 import org.junit.Test as test
 
 class DirectiveTest {
-
     @test fun singleDataParsing() {
         val cu = parseFragmentToCompilationUnit("H DECEDIT('.')")
         val decedits = cu.collectByType(DeceditDirective::class.java)

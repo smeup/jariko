@@ -19,7 +19,9 @@ package com.smeup.dspfparser.linesprocessor
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class DSPFKeywordsGroup(val group: MutableList<DSPFKeyword> = mutableListOf()) {
+internal data class DSPFKeywordsGroup(
+    val group: MutableList<DSPFKeyword> = mutableListOf(),
+) {
     companion object {
         fun fromString(text: String): DSPFKeywordsGroup {
             val constants = this.getConstant(text)
@@ -40,13 +42,10 @@ internal data class DSPFKeywordsGroup(val group: MutableList<DSPFKeyword> = muta
         }
     }
 
-    fun areConstant(): Boolean {
-        return this.group.size == 1 &&
-                this.group[0].name != null &&
-                this.group[0].parameters.isEmpty()
-    }
+    fun areConstant(): Boolean =
+        this.group.size == 1 &&
+            this.group[0].name != null &&
+            this.group[0].parameters.isEmpty()
 
-    fun getConstantValue(): String {
-        return this.group[0].name!!
-    }
+    fun getConstantValue(): String = this.group[0].name!!
 }

@@ -25,9 +25,7 @@ import kotlin.test.assertEquals
  * impact during AST creation.
  * */
 class AstOverheadTest : AbstractTest() {
-
     companion object {
-
         lateinit var PROGRAM_FINDER: RpgProgramFinder
 
         val PGM_USING_API_DIRECTIVE = StringBuffer()
@@ -43,7 +41,8 @@ class AstOverheadTest : AbstractTest() {
         @BeforeClass
         @JvmStatic
         fun createSimulationResources() {
-            val apiTemplate = """
+            val apiTemplate =
+                """
 |    C     nnn           BEGSR
 |    C      'A'          DSPLY
 |    C      'B'          DSPLY
@@ -55,43 +54,49 @@ class AstOverheadTest : AbstractTest() {
 |    C      'K'          DSPLY
 |    C      'I'          DSPLY
 |    C                   ENDSR
-        """.trimIndent()
+                """.trimIndent()
 
-            val templateUsingApiDirective = """
+            val templateUsingApiDirective =
+                """
 |     /API APInnn
 |    C                   EXSR      nnn     
-        """.trimIndent()
+                """.trimIndent()
 
-            val templateUsingCopyDirective = """
+            val templateUsingCopyDirective =
+                """
 |     /COPY APInnn
 |    C                   EXSR      nnn     
-        """.trimIndent()
+                """.trimIndent()
 
-            val templateUsingApiInline = """
+            val templateUsingApiInline =
+                """
 |    C                   EXSR      nnn     
-        """.trimIndent()
+                """.trimIndent()
 
-            val apis = mutableMapOf<String, String>().apply {
-                repeat(TOTAL_APIS) {
-                    // create APInnn
-                    val subroutineName = it.toString().padStart(3, '0')
-                    val apiSource = apiTemplate.replace("nnn", subroutineName)
-                    val apiName = "API$subroutineName"
-                    this[apiName] = apiSource
+            val apis =
+                mutableMapOf<String, String>().apply {
+                    repeat(TOTAL_APIS) {
+                        // create APInnn
+                        val subroutineName = it.toString().padStart(3, '0')
+                        val apiSource = apiTemplate.replace("nnn", subroutineName)
+                        val apiName = "API$subroutineName"
+                        this[apiName] = apiSource
 
-                    // Include API directive to programUsingApiDirective
-                    PGM_USING_API_DIRECTIVE.append(templateUsingApiDirective.replace("nnn", subroutineName))
-                        .append("\n")
+                        // Include API directive to programUsingApiDirective
+                        PGM_USING_API_DIRECTIVE
+                            .append(templateUsingApiDirective.replace("nnn", subroutineName))
+                            .append("\n")
 
-                    // Include COPY directive to programUsingCopyDirective
-                    PGM_USING_COPY_DIRECTIVE.append(templateUsingCopyDirective.replace("nnn", subroutineName))
-                        .append("\n")
+                        // Include COPY directive to programUsingCopyDirective
+                        PGM_USING_COPY_DIRECTIVE
+                            .append(templateUsingCopyDirective.replace("nnn", subroutineName))
+                            .append("\n")
 
-                    // Include API inline in programUsingApiInline
-                    PGM_USING_API_INLINE.append(templateUsingApiInline.replace("nnn", subroutineName)).append("\n")
-                    PGM_USING_API_INLINE.append(apiSource).append("\n")
+                        // Include API inline in programUsingApiInline
+                        PGM_USING_API_INLINE.append(templateUsingApiInline.replace("nnn", subroutineName)).append("\n")
+                        PGM_USING_API_INLINE.append(apiSource).append("\n")
+                    }
                 }
-            }
             PROGRAM_FINDER = MemoryProgramFinder(apis)
             // warming up
 //            val file = File.createTempFile("logsperfjariko", ".tsv")
@@ -103,14 +108,16 @@ class AstOverheadTest : AbstractTest() {
             println("done")
         }
 
-        private fun createSystemInterface(): SystemInterface {
-            return JavaSystemInterface().apply {
+        private fun createSystemInterface(): SystemInterface =
+            JavaSystemInterface().apply {
                 rpgSystem.addProgramFinder(PROGRAM_FINDER)
                 loggingConfiguration = LOGGING_CONFIGURATION
             }
-        }
 
-        private fun testPgm(pgmSrc: String, pgmName: String) {
+        private fun testPgm(
+            pgmSrc: String,
+            pgmName: String,
+        ) {
             MainExecutionContext.execute(systemInterface = createSystemInterface()) {
                 it.executionProgramName = pgmName
                 RpgParserFacade().parseAndProduceAst(pgmSrc.byteInputStream()).apply {
@@ -193,21 +200,14 @@ class AstOverheadTest : AbstractTest() {
     }
 }
 
-class MemoryProgramFinder(private val apis: Map<String, String>) : RpgProgramFinder {
+class MemoryProgramFinder(
+    private val apis: Map<String, String>,
+) : RpgProgramFinder {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? = null
 
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
-        return null
-    }
+    override fun findCopy(copyId: CopyId): Copy = Copy.fromInputStream(apis[copyId.member]!!.byteInputStream())
 
-    override fun findCopy(copyId: CopyId): Copy {
-        return Copy.fromInputStream(apis[copyId.member]!!.byteInputStream())
-    }
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor = ApiDescriptor()
 
-    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
-        return ApiDescriptor()
-    }
-
-    override fun findApi(apiId: ApiId): Api {
-        return Api.loadApi(apis[apiId.member]!!.byteInputStream(), sourceProgram = SourceProgram.RPGLE)
-    }
+    override fun findApi(apiId: ApiId): Api = Api.loadApi(apis[apiId.member]!!.byteInputStream(), sourceProgram = SourceProgram.RPGLE)
 }

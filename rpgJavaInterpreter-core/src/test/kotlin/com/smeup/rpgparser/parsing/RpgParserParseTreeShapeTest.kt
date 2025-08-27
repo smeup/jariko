@@ -11,7 +11,6 @@ import kotlin.test.assertTrue
 import org.junit.Test as test
 
 class RpgParserParseTreeShapeTest {
-
     @test fun parseJD_001_justdirectives() {
         val root = assertCanBeParsed("JD_001_justdirectives")
         assertTrue(root.children.size >= 3)

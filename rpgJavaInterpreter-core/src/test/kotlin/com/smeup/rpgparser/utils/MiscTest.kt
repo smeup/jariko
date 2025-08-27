@@ -34,23 +34,30 @@ import java.io.PrintStream
 import kotlin.test.*
 
 class MiscTest {
-
     @Test
     fun chunkLineTest() {
-        assertEquals(listOf("a1", "b1", "c1", "a2", "b2", "c2"),
-            listOf("a1b1c1d1", "a2b2c2xxxxxxx").chunkAs(3, 2))
+        assertEquals(
+            listOf("a1", "b1", "c1", "a2", "b2", "c2"),
+            listOf("a1b1c1d1", "a2b2c2xxxxxxx").chunkAs(3, 2),
+        )
 
-        assertEquals(listOf("a1", "b1", "a2", "b2"),
-            listOf("a1b1", "a2b2").chunkAs(3, 2))
+        assertEquals(
+            listOf("a1", "b1", "a2", "b2"),
+            listOf("a1b1", "a2b2").chunkAs(3, 2),
+        )
     }
 
     @Test
     fun resizeToTest() {
-        assertEquals(listOf("a", "b", "c"),
-            listOf("a", "b", "c", "z", "z").resizeTo(3, "x"))
+        assertEquals(
+            listOf("a", "b", "c"),
+            listOf("a", "b", "c", "z", "z").resizeTo(3, "x"),
+        )
 
-        assertEquals(listOf("a", "b", "x"),
-            listOf("a", "b").resizeTo(3, "x"))
+        assertEquals(
+            listOf("a", "b", "x"),
+            listOf("a", "b").resizeTo(3, "x"),
+        )
     }
 
     @Test
@@ -93,10 +100,11 @@ class MiscTest {
         val dummyDir = "/impossibiledir12334567"
         assertEquals(
             true,
-            compile(src = File(dummyDir), File(dummyDir).parentFile).isEmpty()
+            compile(src = File(dummyDir), File(dummyDir).parentFile).isEmpty(),
         )
 
-        val program = "     ** String of 50 chars:\n" +
+        val program =
+            "     ** String of 50 chars:\n" +
                 "     D Msg             S             50\n" +
                 "     ** Implicit declaration of a number with 3 digits, 2 of them are decimals\n" +
                 "     C                   clear                   X                 3 2\n" +
@@ -125,11 +133,12 @@ class MiscTest {
         srcFile.writeText(program)
         println("Compiling $srcFile")
 
-        val compilationResults = compile(
-            src = srcFile,
-            compiledProgramsDir = srcFile.parentFile,
-            allowCompilationError = { _, _ -> true }
-        )
+        val compilationResults =
+            compile(
+                src = srcFile,
+                compiledProgramsDir = srcFile.parentFile,
+                allowCompilationError = { _, _ -> true },
+            )
         assert(compilationResults.first().compiledFile == null)
         assertNotNull(compilationResults.first().parsingError)
     }
@@ -139,7 +148,7 @@ class MiscTest {
     @Test
     fun compileTestUseNotDefinedVariable() {
         val program =
-                "     D MSG             S             50\n" +
+            "     D MSG             S             50\n" +
                 "     C                   DSPLY                   MSG1\n" +
                 "     C                   SETON                                          LR"
         val srcFile = File.createTempFile("MYPGM", ".rpgle")
@@ -172,7 +181,6 @@ class MiscTest {
 
     @Test
     fun inputStreamPreprocess() {
-
         val src = """
      H/COPY QILEGEN,£INIZH     
       *---------------------------------------------------------------
@@ -200,18 +208,21 @@ class MiscTest {
       AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
 ********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD1   
         """
-        val included = src.byteInputStream().preprocess(
-            // recursive test
-            // simulate copy £JAX_PD1 include £JAX_PD2
-            findCopy = { copyId: CopyId ->
-                if (copyId.member == "£JAX_PD1") {
-                    ("      /COPY QILEGEN,£JAX_PD2\n" +
-                            "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
-                } else {
-                    "      HELLO I AM COPY ${copyId.file},${copyId.member}"
-                }
-            }
-        )
+        val included =
+            src.byteInputStream().preprocess(
+                // recursive test
+                // simulate copy £JAX_PD1 include £JAX_PD2
+                findCopy = { copyId: CopyId ->
+                    if (copyId.member == "£JAX_PD1") {
+                        (
+                            "      /COPY QILEGEN,£JAX_PD2\n" +
+                                "      AFTER QILEGEN,£PDS AND ADDING $1$2$3"
+                        )
+                    } else {
+                        "      HELLO I AM COPY ${copyId.file},${copyId.member}"
+                    }
+                },
+            )
         println(included)
         assertEquals(expected.trim(), included.trim())
     }
@@ -226,24 +237,26 @@ class MiscTest {
         val configuration = Configuration()
         configuration.options = Options()
         configuration.options.dumpSourceOnExecutionError = true
-        kotlin.runCatching {
-            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-        }.onFailure {
-            // Exception message must contain src code
-            Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") > 0)
-        }.onSuccess {
-            Assert.fail()
-        }
+        kotlin
+            .runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                // Exception message must contain src code
+                Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
         // restore default
         configuration.options = Options()
-        kotlin.runCatching {
-            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-        }.onFailure {
-            // Exception message does not must contain src code
-            Assert.assertFalse(it.message!!.indexOf("D MSG             S             20") > 0)
-        }.onSuccess {
-            Assert.fail()
-        }
+        kotlin
+            .runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                // Exception message does not must contain src code
+                Assert.assertFalse(it.message!!.indexOf("D MSG             S             20") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
     }
 
     @Test
@@ -256,24 +269,26 @@ class MiscTest {
         val configuration = Configuration()
         configuration.options = Options()
         configuration.options.dumpSourceOnExecutionError = true
-        kotlin.runCatching {
-            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-        }.onFailure {
-            // Exception message must contain src code
-            Assert.assertTrue(it.message!!.indexOf("MSG             S             20") > 0)
-        }.onSuccess {
-            Assert.fail()
-        }
+        kotlin
+            .runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                // Exception message must contain src code
+                Assert.assertTrue(it.message!!.indexOf("MSG             S             20") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
         // restore default options
         configuration.options = Options()
-        kotlin.runCatching {
-            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-        }.onFailure {
-            // Exception message does not must contain src code
-            Assert.assertFalse(it.message!!.indexOf("MSG             S             20") > 0)
-        }.onSuccess {
-            Assert.fail()
-        }
+        kotlin
+            .runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                // Exception message does not must contain src code
+                Assert.assertFalse(it.message!!.indexOf("MSG             S             20") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
     }
 
     @Test
@@ -293,30 +308,32 @@ class MiscTest {
             System.setErr(ps)
             configuration.options = Options()
             configuration.options.dumpSourceOnExecutionError = true
-            kotlin.runCatching {
-                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-            }.onFailure {
-                ps.flush()
-                // Error stream must contain src
-                Assert.assertTrue(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
-            }.onSuccess {
-                Assert.fail()
-            }
+            kotlin
+                .runCatching {
+                    getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+                }.onFailure {
+                    ps.flush()
+                    // Error stream must contain src
+                    Assert.assertTrue(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
+                }.onSuccess {
+                    Assert.fail()
+                }
             // reset stream
             err = ByteArrayOutputStream()
             ps = PrintStream(err)
             System.setErr(ps)
             // restore default options
             configuration.options = Options()
-            kotlin.runCatching {
-                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-            }.onFailure {
-                ps.flush()
-                // Error stream must not contain src
-                Assert.assertFalse(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
-            }.onSuccess {
-                Assert.fail()
-            }
+            kotlin
+                .runCatching {
+                    getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+                }.onFailure {
+                    ps.flush()
+                    // Error stream must not contain src
+                    Assert.assertFalse(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
+                }.onSuccess {
+                    Assert.fail()
+                }
         } finally {
             println("Restoring stderr")
             System.setErr(defaultErr)
@@ -334,24 +351,26 @@ class MiscTest {
         val dir = File("src/test/resources")
         File(dir, "ERROR35.rpgle").inputStream().use { src ->
             val errorLines = mutableListOf<Int>()
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    errorEvent.sourceReference?.relativeLine?.let {
-                        errorLines.add(it)
+            val configuration =
+                Configuration().apply {
+                    jarikoCallback.onError = { errorEvent ->
+                        errorEvent.sourceReference?.relativeLine?.let {
+                            errorLines.add(it)
+                        }
                     }
                 }
-            }
-            kotlin.runCatching {
-                compile(
-                    src = src,
-                    out = null,
-                    format = Format.BIN,
-                    programFinders = listOf(),
-                    configuration = configuration
-                )
-            }.onSuccess {
-                fail("ERROR35 cannot be compiled")
-            }
+            kotlin
+                .runCatching {
+                    compile(
+                        src = src,
+                        out = null,
+                        format = Format.BIN,
+                        programFinders = listOf(),
+                        configuration = configuration,
+                    )
+                }.onSuccess {
+                    fail("ERROR35 cannot be compiled")
+                }
             assertEquals(expected = expectedLines.sorted(), actual = errorLines.sorted())
         }
     }
@@ -360,10 +379,11 @@ class MiscTest {
     fun pgmWithErrorCouldBeSerialized() {
         // Based on afterPhaseErrorContinue also pgm will be serialized
 
-        val configuration = Configuration().apply {
-            // I ignore every error
-            options.toAstConfiguration.afterPhaseErrorContinue = { _ -> true }
-        }
+        val configuration =
+            Configuration().apply {
+                // I ignore every error
+                options.toAstConfiguration.afterPhaseErrorContinue = { _ -> true }
+            }
         javaClass.getResource("/ERROR21.rpgle").also { resource ->
             require(resource != null) { "Resource not found: /ERROR21.rpgle" }
             val path = File(resource.path).parentFile
@@ -374,7 +394,7 @@ class MiscTest {
                     out = ByteArrayOutputStream(),
                     format = Format.BIN,
                     programFinders = programFinders,
-                    configuration = configuration
+                    configuration = configuration,
                 )
             }
         }
@@ -389,73 +409,83 @@ class MiscTest {
     fun removeDuplicatedDataDefinition_RemoveStandaloneIfPresentInUnqualifiedDS() {
         val standaloneField1 = DataDefinition(name = "field_1", type = StringType(10), fields = emptyList())
         val standaloneField10 = DataDefinition(name = "field_10", type = StringType(10), fields = emptyList())
-        val unqualifiedDS = DataDefinition(
-            name = "UNQUALIFIED",
-            type = DataStructureType(
-                fields = listOf(
-                    FieldType("field_1", StringType(10)),
-                    FieldType("field_2", StringType(10))
-                ),
-                elementSize = 10,
-                isQualified = false
-            ),
-            fields = listOf(
-                FieldDefinition(
-                    name = "field_1",
-                    type = StringType(10),
-                    explicitStartOffset = 0,
-                    explicitEndOffset = 10
-                ),
-                FieldDefinition(
-                    name = "field_2",
-                    type = StringType(10),
-                    explicitStartOffset = 11,
-                    explicitEndOffset = 20
-                )
+        val unqualifiedDS =
+            DataDefinition(
+                name = "UNQUALIFIED",
+                type =
+                    DataStructureType(
+                        fields =
+                            listOf(
+                                FieldType("field_1", StringType(10)),
+                                FieldType("field_2", StringType(10)),
+                            ),
+                        elementSize = 10,
+                        isQualified = false,
+                    ),
+                fields =
+                    listOf(
+                        FieldDefinition(
+                            name = "field_1",
+                            type = StringType(10),
+                            explicitStartOffset = 0,
+                            explicitEndOffset = 10,
+                        ),
+                        FieldDefinition(
+                            name = "field_2",
+                            type = StringType(10),
+                            explicitStartOffset = 11,
+                            explicitEndOffset = 20,
+                        ),
+                    ),
             )
-        )
-        val qualifiedDS = DataDefinition(
-            name = "QUALIFIED",
-            type = DataStructureType(
-                fields = listOf(
-                    FieldType("field_1", StringType(10)),
-                    FieldType("field_10", StringType(10))
-                ),
-                elementSize = 10,
-                isQualified = true
-            ),
-            fields = listOf(
-                FieldDefinition(
-                    name = "field_1",
-                    type = StringType(10),
-                    explicitStartOffset = 0,
-                    explicitEndOffset = 10
-                ),
-                FieldDefinition(
-                    name = "field_10",
-                    type = StringType(10),
-                    explicitStartOffset = 11,
-                    explicitEndOffset = 20
-                )
+        val qualifiedDS =
+            DataDefinition(
+                name = "QUALIFIED",
+                type =
+                    DataStructureType(
+                        fields =
+                            listOf(
+                                FieldType("field_1", StringType(10)),
+                                FieldType("field_10", StringType(10)),
+                            ),
+                        elementSize = 10,
+                        isQualified = true,
+                    ),
+                fields =
+                    listOf(
+                        FieldDefinition(
+                            name = "field_1",
+                            type = StringType(10),
+                            explicitStartOffset = 0,
+                            explicitEndOffset = 10,
+                        ),
+                        FieldDefinition(
+                            name = "field_10",
+                            type = StringType(10),
+                            explicitStartOffset = 11,
+                            explicitEndOffset = 20,
+                        ),
+                    ),
             )
-        )
-        val dataDefinitions = listOf(
-            standaloneField1,
-            standaloneField10,
-            unqualifiedDS,
-            qualifiedDS
-        )
+        val dataDefinitions =
+            listOf(
+                standaloneField1,
+                standaloneField10,
+                unqualifiedDS,
+                qualifiedDS,
+            )
 
-        val compilationUnit = CompilationUnit(
-            fileDefinitions = emptyList(),
-            dataDefinitions = dataDefinitions,
-            main = MainBody(stmts = emptyList()),
-            subroutines = emptyList(),
-            compileTimeArrays = emptyList(),
-            directives = emptyList(),
-            dataAreas = mapOf(),
-            position = null
-        )
+        val compilationUnit =
+            CompilationUnit(
+                fileDefinitions = emptyList(),
+                dataDefinitions = dataDefinitions,
+                main = MainBody(stmts = emptyList()),
+                subroutines = emptyList(),
+                compileTimeArrays = emptyList(),
+                directives = emptyList(),
+                dataAreas = mapOf(),
+                position = null,
+            )
 
         assertEquals(4, compilationUnit.dataDefinitions.size)
 
@@ -463,15 +493,15 @@ class MiscTest {
         assertEquals(
             expected = 5,
             actual = allDataDefinitions.size,
-            message = "There must be 5 data definitions because all `FieldDefinition` is added to the `allDataDefinitions` list"
+            message = "There must be 5 data definitions because all `FieldDefinition` is added to the `allDataDefinitions` list",
         )
         assertIs<FieldDefinition>(
             value = allDataDefinitions.firstOrNull { it.name == "field_1" },
-            message = "`field_1` must be a FieldDefinition"
+            message = "`field_1` must be a FieldDefinition",
         )
         assertNotNull(
             actual = allDataDefinitions.firstOrNull { it.name == "field_10" },
-            message = "`field_10` does not must be removed because it is present both as qualified data structure field (with access only by dot notation) and `DataDefinition`"
+            message = "`field_10` does not must be removed because it is present both as qualified data structure field (with access only by dot notation) and `DataDefinition`",
         )
     }
 

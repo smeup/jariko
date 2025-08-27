@@ -43,26 +43,28 @@ class SymbolTableTest : AbstractTest() {
             afterAstCreation = { ast ->
                 val symbolTable: ISymbolTable = ast.createSymbolTable()
 
-                val timeVAR1 = measureTime {
-                    for (i in 1..1_000_000) {
-                        symbolTable.dataDefinitionByName("VAR1")
+                val timeVAR1 =
+                    measureTime {
+                        for (i in 1..1_000_000) {
+                            symbolTable.dataDefinitionByName("VAR1")
+                        }
+                    }.also { time ->
+                        println("Time execution during the resolution of VAR1: $time")
                     }
-                }.also { time ->
-                    println("Time execution during the resolution of VAR1: $time")
-                }
 
-                val timeDS10_FLD50 = measureTime {
-                    for (i in 1..1_000_000) {
-                        symbolTable.dataDefinitionByName("DS10_FLD50")
+                val timeDS10_FLD50 =
+                    measureTime {
+                        for (i in 1..1_000_000) {
+                            symbolTable.dataDefinitionByName("DS10_FLD50")
+                        }
+                    }.also { time ->
+                        println("Time execution during the resolution of DS10_FLD50: $time")
                     }
-                }.also { time ->
-                    println("Time execution during the resolution of DS10_FLD50: $time")
-                }
 
                 println("Ratio execution during the resolution of Standalone and DS field: ${timeVAR1 / timeDS10_FLD50}")
 
                 assertTrue((timeVAR1 + timeDS10_FLD50).toLong(DurationUnit.MILLISECONDS) < 3000)
-            }
+            },
         )
     }
 
@@ -110,7 +112,7 @@ class SymbolTableTest : AbstractTest() {
                 assertIs<DataDefinition>(fieldDefinition1.parent)
                 assertEquals("DS10", (fieldDefinition1.parent as DataDefinition).name, "DS10_FLD50 is field DS1.")
                 assertNull(fieldDefinition2, "DS10_FLD51 field not found.")
-            }
+            },
         )
     }
 
@@ -145,12 +147,11 @@ class SymbolTableTest : AbstractTest() {
      * @param dataDefinition the `DataDefinition` for which the key-value pair is created
      * @return a `Pair` where the key is the `DataDefinition` and the value is the associated `Value`
      */
-    private fun makePairDataDefinitionValue(dataDefinition: DataDefinition): Pair<DataDefinition, Value> {
-        return Pair(
+    private fun makePairDataDefinitionValue(dataDefinition: DataDefinition): Pair<DataDefinition, Value> =
+        Pair(
             dataDefinition,
-            dataDefinition.defaultValue ?: dataDefinition.type.blank()
+            dataDefinition.defaultValue ?: dataDefinition.type.blank(),
         )
-    }
 
     /**
      * Tests the interaction between a program with a data structure and another program using standalone variables,
@@ -173,22 +174,32 @@ class SymbolTableTest : AbstractTest() {
     @Test
     fun callWithDataStructureToStandalone() {
         val messages = emptyList<String>().toMutableList()
-        val systemInterface = JavaSystemInterface().apply { onDisplay = { message, printStream -> run {
-            messages.add(message)
-        } } }
-        executePgm(systemInterface = systemInterface, programName = "symboltable/ST_CALL01", configuration = Configuration().apply {
-            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
-                if (programName.equals("ST_CALL01C", ignoreCase = true)) {
-                    val dataDefinition = symbolTable.get("£G90WK")
-                    assertIs<StringValue>(dataDefinition)
-                }
-
-                if (programName.equals("ST_CALL01", ignoreCase = true)) {
-                    val dataDefinition = symbolTable.get("£G90DS")
-                    assertIs<DataStructValue>(dataDefinition)
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, printStream ->
+                    run {
+                        messages.add(message)
+                    }
                 }
             }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "symboltable/ST_CALL01",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                        if (programName.equals("ST_CALL01C", ignoreCase = true)) {
+                            val dataDefinition = symbolTable.get("£G90WK")
+                            assertIs<StringValue>(dataDefinition)
+                        }
+
+                        if (programName.equals("ST_CALL01", ignoreCase = true)) {
+                            val dataDefinition = symbolTable.get("£G90DS")
+                            assertIs<DataStructValue>(dataDefinition)
+                        }
+                    }
+                },
+        )
 
         assertEquals(listOf("CALLED", "CALLER"), messages)
     }
@@ -215,24 +226,34 @@ class SymbolTableTest : AbstractTest() {
     @Test
     fun callWithStandaloneToStandaloneWithDifferentSizes() {
         val messages = emptyList<String>().toMutableList()
-        val systemInterface = JavaSystemInterface().apply { onDisplay = { message, printStream -> run {
-            messages.add(message)
-        } } }
-        executePgm(systemInterface = systemInterface, programName = "symboltable/ST_CALL02", configuration = Configuration().apply {
-            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
-                if (programName.equals("ST_CALL02C", ignoreCase = true)) {
-                    val dataDefinition = symbolTable.get("VARSTD")
-                    assertIs<StringValue>(dataDefinition)
-                    assertEquals(5, dataDefinition.length())
-                }
-
-                if (programName.equals("ST_CALL02", ignoreCase = true)) {
-                    val dataDefinition = symbolTable.get("VARSTD")
-                    assertIs<StringValue>(dataDefinition)
-                    assertEquals(6, dataDefinition.length())
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, printStream ->
+                    run {
+                        messages.add(message)
+                    }
                 }
             }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "symboltable/ST_CALL02",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                        if (programName.equals("ST_CALL02C", ignoreCase = true)) {
+                            val dataDefinition = symbolTable.get("VARSTD")
+                            assertIs<StringValue>(dataDefinition)
+                            assertEquals(5, dataDefinition.length())
+                        }
+
+                        if (programName.equals("ST_CALL02", ignoreCase = true)) {
+                            val dataDefinition = symbolTable.get("VARSTD")
+                            assertIs<StringValue>(dataDefinition)
+                            assertEquals(6, dataDefinition.length())
+                        }
+                    }
+                },
+        )
 
         assertEquals(listOf("CALLER", "FOOBAR", "CALLED", "FOOBA"), messages)
     }
@@ -254,25 +275,35 @@ class SymbolTableTest : AbstractTest() {
     @Test
     fun callWithArrayOfDataStructureToStandalone() {
         val messages = emptyList<String>().toMutableList()
-        val systemInterface = JavaSystemInterface().apply { onDisplay = { message, printStream -> run {
-            messages.add(message)
-        } } }
-        executePgm(systemInterface = systemInterface, programName = "symboltable/ST_CALL03", configuration = Configuration().apply {
-            jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
-                if (programName.equals("ST_CALL03C", ignoreCase = true)) {
-                    val dataDefinition = symbolTable.get("VARSTD")
-                    assertIs<StringValue>(dataDefinition)
-                    assertEquals(2, dataDefinition.length())
-                }
-
-                if (programName.equals("ST_CALL03", ignoreCase = true)) {
-                    val dataDefinition = symbolTable.get("DS1_ARR")
-                    assertIs<ArrayValue>(dataDefinition)
-                    assertIs<StringType>(dataDefinition.elementType)
-                    assertEquals(5, dataDefinition.arrayLength())
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, printStream ->
+                    run {
+                        messages.add(message)
+                    }
                 }
             }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "symboltable/ST_CALL03",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                        if (programName.equals("ST_CALL03C", ignoreCase = true)) {
+                            val dataDefinition = symbolTable.get("VARSTD")
+                            assertIs<StringValue>(dataDefinition)
+                            assertEquals(2, dataDefinition.length())
+                        }
+
+                        if (programName.equals("ST_CALL03", ignoreCase = true)) {
+                            val dataDefinition = symbolTable.get("DS1_ARR")
+                            assertIs<ArrayValue>(dataDefinition)
+                            assertIs<StringType>(dataDefinition.elementType)
+                            assertEquals(5, dataDefinition.arrayLength())
+                        }
+                    }
+                },
+        )
 
         assertEquals(listOf("CALLER", "5", "5", "5", "5", "5", "CALLED", "55"), messages)
     }

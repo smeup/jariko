@@ -27,18 +27,33 @@ import java.time.LocalDateTime
 
 object BigDecimalSerializer : KSerializer<BigDecimal> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigDecimal", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: BigDecimal) = encoder.encodeString(value.toString())
+
+    override fun serialize(
+        encoder: Encoder,
+        value: BigDecimal,
+    ) = encoder.encodeString(value.toString())
+
     override fun deserialize(decoder: Decoder): BigDecimal = BigDecimal(decoder.decodeString())
 }
 
 object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LocalDateTime", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: LocalDateTime) = encoder.encodeString(value.toString())
+
+    override fun serialize(
+        encoder: Encoder,
+        value: LocalDateTime,
+    ) = encoder.encodeString(value.toString())
+
     override fun deserialize(decoder: Decoder): LocalDateTime = LocalDateTime.parse(decoder.decodeString())
 }
 
 object StringBuilderSerializer : KSerializer<StringBuilder> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringBuilder", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: StringBuilder) = encoder.encodeString(value.toString())
+
+    override fun serialize(
+        encoder: Encoder,
+        value: StringBuilder,
+    ) = encoder.encodeString(value.toString())
+
     override fun deserialize(decoder: Decoder): StringBuilder = StringBuilder(decoder.decodeString())
 }

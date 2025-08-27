@@ -18,7 +18,10 @@ import java.io.File
 
 // UI control functions
 
-class UnknownVariable(name: String) : Exception("`$name`")
+class UnknownVariable(
+    name: String,
+) : Exception("`$name`")
+
 class WrongInputSyntax : Exception("Should be: `VAR1=VALUE;VAR2=23`")
 
 private fun parseInput(input: String): Map<String, String> {
@@ -62,18 +65,23 @@ private fun askInputFor(record: DSPFRecord): Map<String, Value> {
     }
 
     record.mutables.filter { it.type == DSPFFieldType.INPUT && updatedVariables[it.name] != null }.forEach {
-        if (it.isNumeric && it.precision!! == 0)
+        if (it.isNumeric && it.precision!! == 0) {
             variablesAndValues[it.name] = IntValue(updatedVariables[it.name]!!.toLong())
-        if (it.isNumeric && it.precision!! > 0)
+        }
+        if (it.isNumeric && it.precision!! > 0) {
             variablesAndValues[it.name] = DecimalValue(updatedVariables[it.name]!!.toBigDecimal())
-        else if (!it.isNumeric)
+        } else if (!it.isNumeric) {
             variablesAndValues[it.name] = StringValue(updatedVariables[it.name]!!)
+        }
     }
 
     return variablesAndValues
 }
 
-private fun onExfmt(record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot): OnExfmtResponse? {
+private fun onExfmt(
+    record: DSPFRecord,
+    runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot,
+): OnExfmtResponse? {
     printRecord(record)
     while (true) {
         try {
@@ -92,7 +100,7 @@ private fun createDspfConfig(): DspfConfig {
     val simpleDspfConfig = SimpleDspfConfig({ }.javaClass.getResource("/metadata")!!.path)
     return DspfConfig(
         metadataProducer = simpleDspfConfig::getMetadata,
-        dspfProducer = simpleDspfConfig::dspfProducer
+        dspfProducer = simpleDspfConfig::dspfProducer,
     )
 }
 
@@ -102,12 +110,11 @@ private fun createJarikoCallback(): JarikoCallback {
     return jarikoCallback
 }
 
-private fun createConfig(): Configuration {
-    return Configuration(
+private fun createConfig(): Configuration =
+    Configuration(
         dspfConfig = createDspfConfig(),
-        jarikoCallback = createJarikoCallback()
+        jarikoCallback = createJarikoCallback(),
     )
-}
 
 fun main() {
     val programSource = "ADD01.rpgle"

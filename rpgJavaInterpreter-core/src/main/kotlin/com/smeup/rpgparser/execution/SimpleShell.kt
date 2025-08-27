@@ -56,9 +56,14 @@ rpg>
         while (true) {
             commandLine = console.readLine()
             run {
-                if (commandLine.trim().isNotEmpty() && !(exitCommands + interactiveCommands).contains(commandLine.trim()
-                        .lowercase(getDefault())) &&
-                    !commandLine.startsWith("@")) {
+                if (commandLine.trim().isNotEmpty() &&
+                    !(exitCommands + interactiveCommands).contains(
+                        commandLine
+                            .trim()
+                            .lowercase(getDefault()),
+                    ) &&
+                    !commandLine.startsWith("@")
+                ) {
                     content.append(commandLine).append("\n")
                 }
                 val trimmed = commandLine.trim().lowercase(getDefault())
@@ -84,15 +89,21 @@ rpg>
                     trimmed.startsWith("@") -> {
                         interactiveMode = false
                     }
-                    else -> if (interactiveMode == null) {
-                        println("Command not recognized")
-                        print("rpg>")
-                    }
+                    else ->
+                        if (interactiveMode == null) {
+                            println("Command not recognized")
+                            print("rpg>")
+                        }
                 }
                 interactiveMode?.let {
                     if (!it) {
                         println("Executing...")
-                        val args = commandLine.trim().split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                        val args =
+                            commandLine
+                                .trim()
+                                .split(" ".toRegex())
+                                .dropLastWhile { it.isEmpty() }
+                                .toTypedArray()
                         if (args.isNotEmpty()) {
                             measureAndPrint {
                                 r(args[0].substring(1), args.toList().subList(1, args.size))

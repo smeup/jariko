@@ -7,10 +7,10 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 class MuteInjectionTest {
-
     @Test
     fun mutesAtStartOfMainAreAttached() {
-        val result = RpgParserFacade()
+        val result =
+            RpgParserFacade()
                 .apply { this.muteSupport = true }
                 .parse(inputStreamFor("mute/SIMPLE_MUTE"))
         assert(result.correct)

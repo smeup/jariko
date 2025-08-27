@@ -28,7 +28,7 @@ import kotlin.time.Duration
  * Object holding information about the interpreter logging configuration and state.
  */
 data class InterpreterLoggingContext(
-    var logHandlers: List<InterpreterLogHandler> = emptyList()
+    var logHandlers: List<InterpreterLogHandler> = emptyList(),
 ) {
     /**
      * Determine whether logs are enabled or not.
@@ -56,7 +56,10 @@ data class InterpreterLoggingContext(
      * @param statement The statement connected to the scope.
      * @param sourceProducer The log source provider.
      */
-    fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
+    fun openLoggingScope(
+        statement: Statement,
+        sourceProducer: LogSourceProvider,
+    ) {
         renderLog { statement.getResolutionLogRenderer(sourceProducer) }
         if (statement is CompositeStatement) {
             renderLog { statement.getStatementLogRenderer(sourceProducer, "START") }
@@ -69,7 +72,7 @@ data class InterpreterLoggingContext(
                 LazyLogEntry.produceLoopStart(
                     sourceProducer,
                     statement.loggableEntityName,
-                    statement.loopSubject
+                    statement.loopSubject,
                 )
             }
         }
@@ -87,7 +90,7 @@ data class InterpreterLoggingContext(
         statement: Statement,
         programName: String,
         sourceProducer: LogSourceProvider,
-        executionTime: Duration
+        executionTime: Duration,
     ) {
         val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
         loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
@@ -98,7 +101,7 @@ data class InterpreterLoggingContext(
                     sourceProducer,
                     statement.loggableEntityName,
                     statement.loopSubject,
-                    statement.iterations
+                    statement.iterations,
                 )
             }
         }
@@ -112,7 +115,7 @@ data class InterpreterLoggingContext(
                 sourceProducer,
                 ProgramUsageType.Statement,
                 statement.loggableEntityName,
-                executionTime
+                executionTime,
             )
         }
     }

@@ -32,7 +32,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 open class RpgParserOverlayTest12 : AbstractTest() {
-
     @Test
     fun parseMUTE12_01_syntax() {
         assertCanBeParsed("overlay/MUTE12_01", withMuteSupport = true)

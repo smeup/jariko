@@ -23,11 +23,9 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class UnlimitedStringTypeFlagTest : AbstractTest() {
-
     private val featuresFactory = FeaturesFactory.newInstance()
 
     companion object {
-
         @BeforeClass
         @JvmStatic
         fun beforeClass() {

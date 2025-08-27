@@ -25,7 +25,10 @@ import com.smeup.rpgparser.utils.EBCDICComparator
  * Cp0280   EBCDIC ITALIAN
  * See: https://www.ibm.com/support/knowledgecenter/SSLTBW_2.1.0/com.ibm.zos.v2r1.idad400/ccsids.htm
  */
-fun sortA(value: Value, arrayType: ArrayType) {
+fun sortA(
+    value: Value,
+    arrayType: ArrayType,
+) {
     val ascend: Boolean = arrayType.ascend == null || arrayType.ascend == true
 
     when (value) {
@@ -49,26 +52,31 @@ fun sortA(value: Value, arrayType: ArrayType) {
             val elementsLeft = if (start > 0) elements.subList(0, start) else emptyList()
             val elementsRight = if (end < elements.size) elements.subList(end, elements.size) else emptyList()
 
-            val elementsToCalculateSort: MutableList<String> = elements.subList(start, end).map {
-                it.substring(
-                    value.field.calculatedStartOffset!!,
-                    value.field.calculatedEndOffset!!
-                )
-            }.toMutableList()
+            val elementsToCalculateSort: MutableList<String> =
+                elements
+                    .subList(start, end)
+                    .map {
+                        it.substring(
+                            value.field.calculatedStartOffset!!,
+                            value.field.calculatedEndOffset!!,
+                        )
+                    }.toMutableList()
             // crete a map <Index, ValueToSort>
             val indexesMap: Map<Int, String> = elementsToCalculateSort.mapIndexed { i, v -> i + 1 to v }.toMap()
             // sort the map
-            val descend: Boolean = if (value.field.overlayingOn == null) {
-                value.field.descend
-            } else {
-                (value.field.overlayingOn as FieldDefinition).descend
-            }
+            val descend: Boolean =
+                if (value.field.overlayingOn == null) {
+                    value.field.descend
+                } else {
+                    (value.field.overlayingOn as FieldDefinition).descend
+                }
             // sort using EBCDICComparator
             val comparator = EBCDICComparator(descend)
             val sortedValues = indexesMap.values.sortedWith(comparator)
-            val sortedMap = indexesMap.entries
-                .sortedBy { sortedValues.indexOf(it.value) }
-                .associate { it.toPair() }
+            val sortedMap =
+                indexesMap.entries
+                    .sortedBy { sortedValues.indexOf(it.value) }
+                    .associate { it.toPair() }
 
             val sortedElementsToSort = sortedMap.keys.map { elements[start + it - 1] }
 

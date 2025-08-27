@@ -46,9 +46,7 @@ class SourceProgramFinder : RpgProgramFinder {
         return null
     }
 
-    override fun toString(): String {
-        return "source:"
-    }
+    override fun toString(): String = "source:"
 
     override fun findCopy(copyId: CopyId): Copy? {
         // source program finder cannot know how to look for a copy
@@ -64,8 +62,9 @@ class SourceProgramFinder : RpgProgramFinder {
     }
 }
 
-open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
-
+open class DirRpgProgramFinder(
+    val directory: File? = null,
+) : RpgProgramFinder {
     private var foundProgram: (path: Path) -> Unit = { _: Path -> }
 
     init {
@@ -108,7 +107,8 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         // No extension, should be '.rpgle' or '.sqlrpgle' or '.bin'
         if (!nameOrSource.endsWith(SourceProgram.RPGLE.extension) &&
             !nameOrSource.endsWith(SourceProgram.SQLRPGLE.extension) &&
-            !nameOrSource.endsWith(SourceProgram.BINARY.extension)) {
+            !nameOrSource.endsWith(SourceProgram.BINARY.extension)
+        ) {
             var anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.RPGLE.extension}")
             if (anonymouosFile.exists()) {
                 anonymouosFile.notifyFound()
@@ -125,7 +125,7 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
                         return RpgProgram.fromInputStream(
                             FileInputStream(anonymouosFile),
                             nameOrSource,
-                            SourceProgram.BINARY
+                            SourceProgram.BINARY,
                         )
                     } else {
                         return null
@@ -136,9 +136,7 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         return null
     }
 
-    override fun findCopy(copyId: CopyId): Copy? {
-        return copyId.toFile(directory)?.let { Copy.fromInputStream(FileInputStream(it.absoluteFile)) }
-    }
+    override fun findCopy(copyId: CopyId): Copy? = copyId.toFile(directory)?.let { Copy.fromInputStream(FileInputStream(it.absoluteFile)) }
 
     private fun prefix(): String {
         if (directory != null) {
@@ -151,7 +149,8 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         // If name 'ABC' or 'ABC.rpgle' assume 'ABC.rpgle'
         // If name 'ABC.bin' assume 'ABC.bin'
         if (name.endsWith(SourceProgram.RPGLE.extension) ||
-            name.endsWith(SourceProgram.BINARY.extension)) {
+            name.endsWith(SourceProgram.BINARY.extension)
+        ) {
             return name
         }
         return "$name.${SourceProgram.RPGLE.extension}"
@@ -165,11 +164,12 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
         val rpgleFile = apiId.toFileApiDescriptor(directory, SourceProgram.RPGLE)
         val binaryFile = apiId.toFileApiDescriptor(directory, SourceProgram.BINARY)
-        val file = rpgleFile.takeIf {
-            it.exists()
-        } ?: binaryFile.takeIf {
-            it.exists()
-        }
+        val file =
+            rpgleFile.takeIf {
+                it.exists()
+            } ?: binaryFile.takeIf {
+                it.exists()
+            }
         return file?.let {
             val extension = file.name.substringAfterLast(".")
             Api.loadApiDescriptor(file.inputStream(), SourceProgram.getByExtension(extension))
@@ -177,11 +177,12 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     }
 
     override fun findApi(apiId: ApiId): Api? {
-        val file = apiId.toFile(directory, SourceProgram.RPGLE).takeIf {
-            it.exists()
-        } ?: apiId.toFile(directory, SourceProgram.BINARY).takeIf {
-            it.exists()
-        }
+        val file =
+            apiId.toFile(directory, SourceProgram.RPGLE).takeIf {
+                it.exists()
+            } ?: apiId.toFile(directory, SourceProgram.BINARY).takeIf {
+                it.exists()
+            }
         return file?.let {
             val extension = file.name.substringAfterLast(".")
             Api.loadApi(file.inputStream(), SourceProgram.getByExtension(extension))
@@ -190,7 +191,6 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 open class RpgSystem {
-
     internal val programFinders = mutableSetOf<RpgProgramFinder>()
 
     companion object {
@@ -286,7 +286,9 @@ open class RpgSystem {
 }
 
 enum class CopyFileExtension {
-    rpgle, api, tab
+    rpgle,
+    api,
+    tab,
 }
 
 /**
@@ -301,12 +303,22 @@ fun CopyId.toFile(dir: File?): File? {
         // after that I search for the first file by ignoring the extensions
         ?: dir?.let {
             val copyRelativePath = Paths.get(this.key(CopyFileExtension.rpgle).replace("\\..+$".toRegex(), ""))
-            it.toPath().resolve(copyRelativePath.parent?.toString() ?: "").toFile().listFiles { _, name ->
-                name.replace("\\..+$".toRegex(), "") == copyRelativePath.fileName.toString()
-            }?.firstOrNull()
+            it
+                .toPath()
+                .resolve(copyRelativePath.parent?.toString() ?: "")
+                .toFile()
+                .listFiles { _, name ->
+                    name.replace("\\..+$".toRegex(), "") == copyRelativePath.fileName.toString()
+                }?.firstOrNull()
         }
 }
 
-private fun ApiId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
+private fun ApiId.toFile(
+    dir: File?,
+    sourceProgram: SourceProgram,
+) = File(dir, this.key(sourceProgram))
 
-private fun ApiId.toFileApiDescriptor(dir: File?, sourceProgram: SourceProgram) = File(dir, this.apiDescriptorKey(sourceProgram))
+private fun ApiId.toFileApiDescriptor(
+    dir: File?,
+    sourceProgram: SourceProgram,
+) = File(dir, this.apiDescriptorKey(sourceProgram))

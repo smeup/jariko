@@ -42,26 +42,32 @@ fun measureAndPrint(block: () -> Unit) {
     println("Function executed in $timeElapsed milliseconds")
 }
 
-inline fun measureAndCatch(block: () -> Unit): Long {
-    return measureTimeMillis {
+inline fun measureAndCatch(block: () -> Unit): Long =
+    measureTimeMillis {
         try {
             block()
         } catch (t: Throwable) {
             t.printStackTrace()
         }
     }
-}
 
-fun List<String>.chunkAs(elementsPerLine: Int, elmentSize: Int): List<String> {
+fun List<String>.chunkAs(
+    elementsPerLine: Int,
+    elmentSize: Int,
+): List<String> {
     if (elementsPerLine == 1) {
         return this
     }
-    return this.map {
-        it.chunked(elmentSize).take(elementsPerLine)
-    }.flatten()
+    return this
+        .map {
+            it.chunked(elmentSize).take(elementsPerLine)
+        }.flatten()
 }
 
-fun <T> List<T>.resizeTo(n: Int, defaultValue: T): List<T> {
+fun <T> List<T>.resizeTo(
+    n: Int,
+    defaultValue: T,
+): List<T> {
     if (this.size > n) {
         return this.take(n)
     }
@@ -93,7 +99,9 @@ inline fun String?.runIfNotEmpty(code: String.() -> Unit) {
 }
 
 fun String.asLong(): Long = this.trim().toLong()
+
 fun String.asInt(): Int = this.trim().toInt()
+
 fun String?.asIntOrNull(): Int? =
     try {
         this?.trim()?.toInt()
@@ -119,20 +127,18 @@ fun String.asBigDecimal(): BigDecimal? =
         null
     }
 
-fun Int.ceilDiv(divisor: Int): Int {
-    return this / divisor + if (this % divisor > 0) 1 else 0
-}
+fun Int.ceilDiv(divisor: Int): Int = this / divisor + if (this % divisor > 0) 1 else 0
 
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
 
 fun String.moveEndingString(s: String): String =
-        if (this.trimEnd().endsWith(s)) {
-            s + this.substringBefore(s)
-        } else {
-            this
-        }
+    if (this.trimEnd().endsWith(s)) {
+        s + this.substringBefore(s)
+    } else {
+        this
+    }
 
 fun String.repeatWithMaxSize(l: Int): String {
     val repetitions = l.ceilDiv(this.length)
@@ -143,8 +149,11 @@ fun String.repeatWithMaxSize(l: Int): String {
  * Insert line numbers in a string
  * @param padChars Line number will be inserted in a range of source line between 0 and padChars
  * */
-fun String.insLineNumber(padChars: Int, filter: (lineNumber: Int) -> Boolean): String {
-    return StringBuffer().let { sb ->
+fun String.insLineNumber(
+    padChars: Int,
+    filter: (lineNumber: Int) -> Boolean,
+): String =
+    StringBuffer().let { sb ->
         lines().forEachIndexed { index, line ->
             if (filter.invoke(index + 1)) {
                 line.padEnd(padChars).let { currentLine ->
@@ -154,7 +163,6 @@ fun String.insLineNumber(padChars: Int, filter: (lineNumber: Int) -> Boolean): S
         }
         sb.toString()
     }
-}
 
 /**
  * Push parsingProgram in a stack if it is not already present
@@ -170,34 +178,38 @@ internal fun Stack<ParsingProgram>.pushIfNotAlreadyPresent(parsingProgram: Parsi
  * Pop a value from a stack if it is present
  * @return The element popped or null if the stack is empty
  * */
-internal fun <T> Stack<T>.popIfPresent(): T? {
-    return if (this.isNotEmpty()) {
+internal fun <T> Stack<T>.popIfPresent(): T? =
+    if (this.isNotEmpty()) {
         this.pop()
     } else {
         null
     }
-}
 
 /**
  * Peek a value from a [Stack] if it is present
  * @return The element peeked or null if the stack is empty
  */
-internal fun <T> Stack<T>.peekOrNull(): T? = if (isNotEmpty()) {
-    this.peek()
-} else null
+internal fun <T> Stack<T>.peekOrNull(): T? =
+    if (isNotEmpty()) {
+        this.peek()
+    } else {
+        null
+    }
 
 /**
  * Get the [CompilationUnit] that contains the current [Node]
  */
 internal fun Node.getContainingCompilationUnit() = ancestor(CompilationUnit::class.java)
 
-internal fun List<UnwrappedStatementData>.indexOfTag(tag: String) = indexOfFirst {
-    it.statement is TagStmt && (it.statement as TagStmt).tag.lowercase() == tag.lowercase()
-}
+internal fun List<UnwrappedStatementData>.indexOfTag(tag: String) =
+    indexOfFirst {
+        it.statement is TagStmt && (it.statement as TagStmt).tag.lowercase() == tag.lowercase()
+    }
 
-internal inline fun <T, R> Iterable<T>.mapNotNullOrError(transform: (T) -> R?): List<R> {
-    return this.mapNotNull { kotlin.runCatching { transform(it) }.getOrNull() }
-}
+internal inline fun <T, R> Iterable<T>.mapNotNullOrError(transform: (T) -> R?): List<R> =
+    this.mapNotNull {
+        kotlin.runCatching { transform(it) }.getOrNull()
+    }
 
 /**
  * Recursively get the root cause of a Throwable

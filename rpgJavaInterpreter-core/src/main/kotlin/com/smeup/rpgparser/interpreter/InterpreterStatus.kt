@@ -31,7 +31,7 @@ class InterpreterStatus(
     var dataAreas: Map<String, String>,
     var returnValue: Value? = null,
     var params: Int = 0,
-    var callerParams: Int = params
+    var callerParams: Int = params,
 ) {
     var inzsrExecuted: AtomicBoolean = AtomicBoolean(false)
     var lastFound: AtomicBoolean = AtomicBoolean(false)
@@ -51,10 +51,11 @@ class InterpreterStatus(
         return tmpValue
     }
 
-    fun getReferences(pointer: DataRefExpr) = symbolTable.getValues().filter {
-        val target = it.key.basedOn as? DataRefExpr
-        target?.variable == pointer.variable
-    }
+    fun getReferences(pointer: DataRefExpr) =
+        symbolTable.getValues().filter {
+            val target = it.key.basedOn as? DataRefExpr
+            target?.variable == pointer.variable
+        }
 
     /**
      * Get the data area associated with a data reference.

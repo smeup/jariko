@@ -54,44 +54,36 @@ private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpret
 
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
-    private val localizationContext: LocalizationContext = LocalizationContext()
+    private val localizationContext: LocalizationContext = LocalizationContext(),
 ) : InterpreterCore {
     private val configuration = MainExecutionContext.getConfiguration()
+
     override fun getConfiguration() = configuration
 
-    override fun getSystemInterface(): SystemInterface {
-        return systemInterface
-    }
+    override fun getSystemInterface(): SystemInterface = systemInterface
 
-    override fun getLocalizationContext(): LocalizationContext {
-        return localizationContext
-    }
+    override fun getLocalizationContext(): LocalizationContext = localizationContext
 
     private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
-    override fun getGlobalSymbolTable(): ISymbolTable {
-        return globalSymbolTable
-    }
 
-    override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
-        return getStatus().indicators
-    }
+    override fun getGlobalSymbolTable(): ISymbolTable = globalSymbolTable
+
+    override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> = getStatus().indicators
 
     /**
      * NOTE: This should never be accessed as is. Is [getInterpretationContext] to get its value.
      */
     private var _interpretationContext: InterpretationContext = DummyInterpretationContext
-    override fun getInterpretationContext(): InterpretationContext {
-        return _interpretationContext
-    }
+
+    override fun getInterpretationContext(): InterpretationContext = _interpretationContext
 
     fun setInterpretationContext(interpretationContext: InterpretationContext) {
         this._interpretationContext = interpretationContext
     }
 
     private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>(), mapOf())
-    override fun getStatus(): InterpreterStatus {
-        return status
-    }
+
+    override fun getStatus(): InterpreterStatus = status
 
     private val loggingContext = InterpreterLoggingContext()
 
@@ -104,9 +96,13 @@ open class InternalInterpreter(
     override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
     override operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
+
     override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
-    open operator fun set(data: AbstractDataDefinition, value: Value) {
+    open operator fun set(
+        data: AbstractDataDefinition,
+        value: Value,
+    ) {
         require(data.canBeAssigned(value)) {
             "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
@@ -115,9 +111,12 @@ open class InternalInterpreter(
 
         renderLog {
             val logSource = { LogSourceData(programName, data.startLine()) }
-            val previous = if (data in globalSymbolTable) {
-                globalSymbolTable[data]
-            } else null
+            val previous =
+                if (data in globalSymbolTable) {
+                    globalSymbolTable[data]
+                } else {
+                    null
+                }
             LazyLogEntry.produceData(logSource, data, value, previous)
         }
 
@@ -126,22 +125,30 @@ open class InternalInterpreter(
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
                 if (data.declaredArrayInLine != null) {
-                    val dataStructValue: DataStructValue = get(ds.name).let {
-                        if (it is OccurableDataStructValue) {
-                            return@let it.get(it.occurrence)
-                        }
+                    val dataStructValue: DataStructValue =
+                        get(ds.name).let {
+                            if (it is OccurableDataStructValue) {
+                                return@let it.get(it.occurrence)
+                            }
 
-                        return@let it as DataStructValue
-                    }
+                            return@let it as DataStructValue
+                        }
                     var startOffset = data.startOffset
                     val size = data.endOffset - data.startOffset
 
-                    fun assignValueToArray(value: Value, data: FieldDefinition) {
+                    fun assignValueToArray(
+                        value: Value,
+                        data: FieldDefinition,
+                    ) {
                         // Added coerce
                         val valueToAssign = coerce(value, data.type.asArray().element)
                         dataStructValue.setSubstring(
-                            startOffset, startOffset + data.type.elementSize(),
-                            data.type.asArray().element.toDataStructureValue(valueToAssign)
+                            startOffset,
+                            startOffset + data.type.elementSize(),
+                            data.type
+                                .asArray()
+                                .element
+                                .toDataStructureValue(valueToAssign),
                         )
                         startOffset += data.stepSize
                     }
@@ -194,7 +201,7 @@ open class InternalInterpreter(
     private fun initialize(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
-        reinitialization: Boolean = true
+        reinitialization: Boolean = true,
     ) {
         val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
@@ -222,39 +229,42 @@ open class InternalInterpreter(
                     var value: Value? = null
                     when (it) {
                         is DataDefinition -> {
-                            value = when {
-                                it.name in initialValues -> {
-                                    val initialValue = initialValues[it.name]
-                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
-                                    if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
-                                        require(initialValue.assignableTo(it.type)) {
-                                            "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                            value =
+                                when {
+                                    it.name in initialValues -> {
+                                        val initialValue =
+                                            initialValues[it.name]
+                                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                        if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                            require(initialValue.assignableTo(it.type)) {
+                                                "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                            }
                                         }
+                                        initialValue
                                     }
-                                    initialValue
-                                }
                                 /*
                                  * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
                                  *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
                                  *  the Factor 1 field.
                                  */
-                                it.isInPlist(compilationUnit) -> {
-                                    val resultName = it.getResultNameByFactor1(compilationUnit)
-                                    if (resultName == null || initialValues[resultName] is NullValue) {
-                                        blankValue(it)
-                                    } else {
-                                        initialValues[resultName]
+                                    it.isInPlist(compilationUnit) -> {
+                                        val resultName = it.getResultNameByFactor1(compilationUnit)
+                                        if (resultName == null || initialValues[resultName] is NullValue) {
+                                            blankValue(it)
+                                        } else {
+                                            initialValues[resultName]
+                                        }
                                     }
+
+                                    it.initializationValue != null -> eval(it.initializationValue)
+                                    it.isCompileTimeArray() ->
+                                        toArrayValue(
+                                            compilationUnit.compileTimeArray(index++),
+                                            (it.type as ArrayType),
+                                        )
+
+                                    else -> blankValue(it)
                                 }
-
-                                it.initializationValue != null -> eval(it.initializationValue)
-                                it.isCompileTimeArray() -> toArrayValue(
-                                    compilationUnit.compileTimeArray(index++),
-                                    (it.type as ArrayType)
-                                )
-
-                                else -> blankValue(it)
-                            }
                             if (it.name !in initialValues) {
                                 blankValue(it)
                                 it.fields.forEach { field ->
@@ -271,37 +281,42 @@ open class InternalInterpreter(
                         }
                         is FieldDefinition -> {
                             if (it.isCompileTimeArray()) {
-                                value = toArrayValue(
-                                    compilationUnit.compileTimeArray(index++),
-                                    (it.type as ArrayType)
-                                )
+                                value =
+                                    toArrayValue(
+                                        compilationUnit.compileTimeArray(index++),
+                                        (it.type as ArrayType),
+                                    )
                             }
                         }
                         is InStatementDataDefinition -> {
-                            value = if (it.parent is PlistParam) {
-                                when (it.name) {
-                                    in initialValues -> initialValues[it.name]
-                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            value =
+                                if (it.parent is PlistParam) {
+                                    when (it.name) {
+                                        in initialValues ->
+                                            initialValues[it.name]
+                                                ?: throw RuntimeException("Initial values for ${it.name} not found")
 
-                                    else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
-                                        it.type.blank()
-                                    } else {
-                                        null
+                                        else ->
+                                            if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                                it.type.blank()
+                                            } else {
+                                                null
+                                            }
                                     }
+                                } else {
+                                    // TODO check this during the process of revision of DB access
+                                    if (it.type is KListType) null else it.type.blank()
                                 }
-                            } else {
-                                // TODO check this during the process of revision of DB access
-                                if (it.type is KListType) null else it.type.blank()
-                            }
                         }
                     }
                     // Fix issue on CTDATA
                     val ctdata = compilationUnit.compileTimeArray(it.name)
                     if (ctdata.name == it.name) {
-                        value = toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
-                            (it.type as ArrayType)
-                        )
+                        value =
+                            toArrayValue(
+                                compilationUnit.compileTimeArray(it.name),
+                                (it.type as ArrayType),
+                            )
                         set(it, value)
                     }
 
@@ -331,7 +346,14 @@ open class InternalInterpreter(
 
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-            renderLog { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
+            renderLog {
+                LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                    logSourceProducer,
+                    ProgramUsageType.SymbolTable,
+                    SymbolTableAction.INIT.name,
+                    initElapsed,
+                )
+            }
         }
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
@@ -343,7 +365,14 @@ open class InternalInterpreter(
 
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLog { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+            renderLog {
+                LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                    logSourceProducer,
+                    ProgramUsageType.SymbolTable,
+                    SymbolTableAction.LOAD.name,
+                    loadElapsed,
+                )
+            }
         }
     }
 
@@ -359,15 +388,17 @@ open class InternalInterpreter(
      * @return the result name associated with the matching parameter, or `null` if no match is found
      */
     private fun AbstractDataDefinition.getResultNameByFactor1(compilationUnit: CompilationUnit): String? {
-        val resultName = compilationUnit.entryPlist?.params
-            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
-            ?.firstOrNull { plistParamFiltered ->
-                (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
-                    this.name,
-                    true
-                )
-            }
-            ?.result?.name
+        val resultName =
+            compilationUnit.entryPlist
+                ?.params
+                ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+                ?.firstOrNull { plistParamFiltered ->
+                    (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
+                        this.name,
+                        true,
+                    )
+                }?.result
+                ?.name
         return resultName
     }
 
@@ -382,34 +413,43 @@ open class InternalInterpreter(
      * @param compilationUnit the compilation unit whose entry PList is to be checked
      * @return `true` if the `AbstractDataDefinition` is present in the PList, otherwise `false`
      */
-    private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) = compilationUnit.entryPlist?.params
+    private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) =
+        compilationUnit.entryPlist
+            ?.params
             ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
             ?.any { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(this.name, true) } == true
 
-    private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
+    private fun toArrayValue(
+        compileTimeArray: CompileTimeArray,
+        arrayType: ArrayType,
+    ): Value {
         // It is not clear why the compileTimeRecordsPerLine on the array type is null
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
         val lines = arrayType.compileTimeRecordsPerLine ?: compileTimeArray.lines.size
         val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
+            compileTimeArray.lines
+                .chunkAs(lines, arrayType.element.size)
                 .map {
                     // force rpgle to zoned if is number type
-                    val elementType = if (arrayType.element is NumberType) {
-                        arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
-                    } else {
-                        arrayType.element
-                    }
+                    val elementType =
+                        if (arrayType.element is NumberType) {
+                            arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
+                        } else {
+                            arrayType.element
+                        }
                     coerce(StringValue(it), elementType)
-                }
-                .resizeTo(arrayType.nElements, arrayType.element.blank())
+                }.resizeTo(arrayType.nElements, arrayType.element.blank())
                 .toMutableList()
 
         return ConcreteArrayValue(l, arrayType.element)
     }
 
-    fun simplyInitialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+    fun simplyInitialize(
+        compilationUnit: CompilationUnit,
+        initialValues: Map<String, Value>,
+    ) {
         initialize(compilationUnit, initialValues)
     }
 
@@ -424,25 +464,31 @@ open class InternalInterpreter(
      */
     private fun execute(main: MainBody) {
         // Execute the main body
-        var throwable = kotlin.runCatching {
-            execute(main.stmts)
-        }.exceptionOrNull()
+        var throwable =
+            kotlin
+                .runCatching {
+                    execute(main.stmts)
+                }.exceptionOrNull()
 
         val unwrappedStatement = main.stmts.unwrap()
 
         // Recursive deal with top level goto flow
         while (throwable is GotoTopLevelException || throwable is GotoException) {
             // We need to know the statement unwrapped in order to jump directly into a nested tag
-            val (offset, tag) = when (throwable) {
-                is GotoException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
-                is GotoTopLevelException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
-                else -> Pair(-1, "")
-            }
-            if (unwrappedStatement.size <= offset || offset < 0)
+            val (offset, tag) =
+                when (throwable) {
+                    is GotoException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
+                    is GotoTopLevelException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
+                    else -> Pair(-1, "")
+                }
+            if (unwrappedStatement.size <= offset || offset < 0) {
                 main.error("GOTO offset $offset is not valid. Cannot find TAG '$tag'")
-            throwable = kotlin.runCatching {
-                executeUnwrappedAt(unwrappedStatement, offset)
-            }.exceptionOrNull()
+            }
+            throwable =
+                kotlin
+                    .runCatching {
+                        executeUnwrappedAt(unwrappedStatement, offset)
+                    }.exceptionOrNull()
         }
 
         // Deal with non GOTO exceptions
@@ -461,45 +507,47 @@ open class InternalInterpreter(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true,
-        callerParams: Map<String, Value> = initialValues
+        callerParams: Map<String, Value> = initialValues,
     ) {
-        kotlin.runCatching {
-            configureLogHandlers()
+        kotlin
+            .runCatching {
+                configureLogHandlers()
 
-            status.dataAreas = compilationUnit.getRelevantDataAreas()
-            status.displayFiles = compilationUnit.displayFiles
-            status.callerParams = callerParams.size
-            status.params = initialValues.size
-            initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
-            execINZSR(compilationUnit)
-            if (compilationUnit.minTimeOut == null) {
-                execute(compilationUnit.main)
-            } else {
-                val elapsed = measureNanoTime {
+                status.dataAreas = compilationUnit.getRelevantDataAreas()
+                status.displayFiles = compilationUnit.displayFiles
+                status.callerParams = callerParams.size
+                status.params = initialValues.size
+                initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
+                execINZSR(compilationUnit)
+                if (compilationUnit.minTimeOut == null) {
                     execute(compilationUnit.main)
-                }.nanoseconds
+                } else {
+                    val elapsed =
+                        measureNanoTime {
+                            execute(compilationUnit.main)
+                        }.nanoseconds
 
-                if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
-                    throw InterpreterTimeoutException(
-                        getInterpretationContext().currentProgramName,
-                        elapsed.inWholeMilliseconds,
-                        compilationUnit.minTimeOut!!
-                    )
-                }
-            }
-        }.onFailure {
-            if (it is ReturnException) {
-                status.returnValue = it.returnValue
-            } else {
-                if (!MainExecutionContext.getProgramStack().isEmpty()) {
-                    MainExecutionContext.getProgramStack().peek().cu.source?.apply {
-                        System.err.println(it.message)
-                        System.err.println(this.dumpSource())
+                    if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
+                        throw InterpreterTimeoutException(
+                            getInterpretationContext().currentProgramName,
+                            elapsed.inWholeMilliseconds,
+                            compilationUnit.minTimeOut!!,
+                        )
                     }
                 }
-                throw it
+            }.onFailure {
+                if (it is ReturnException) {
+                    status.returnValue = it.returnValue
+                } else {
+                    if (!MainExecutionContext.getProgramStack().isEmpty()) {
+                        MainExecutionContext.getProgramStack().peek().cu.source?.apply {
+                            System.err.println(it.message)
+                            System.err.println(this.dumpSource())
+                        }
+                    }
+                    throw it
+                }
             }
-        }
     }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
@@ -515,7 +563,10 @@ open class InternalInterpreter(
      * @param statements The list of statements to execute.
      * @param offset The starting offset.
      */
-    private fun executeAt(statements: List<Statement>, offset: Int) {
+    private fun executeAt(
+        statements: List<Statement>,
+        offset: Int,
+    ) {
         /*
          * FIXME:
          * This method has a lot of code duplicated with [executeUnwrappedAt] because it can be called
@@ -545,7 +596,10 @@ open class InternalInterpreter(
      * @param unwrappedStatements The unwrapped list of statements. It is up to the caller to ensure statements are unwrapped.
      * @param offset Offset to start the execution from.
      */
-    override fun executeUnwrappedAt(unwrappedStatements: List<UnwrappedStatementData>, offset: Int) {
+    override fun executeUnwrappedAt(
+        unwrappedStatements: List<UnwrappedStatementData>,
+        offset: Int,
+    ) {
         var index = offset
         while (index < unwrappedStatements.size) {
             val data = unwrappedStatements[index]
@@ -554,7 +608,10 @@ open class InternalInterpreter(
         }
     }
 
-    override fun fireErrorEvent(throwable: Throwable, position: Position?) {
+    override fun fireErrorEvent(
+        throwable: Throwable,
+        position: Position?,
+    ) {
         throwable.fireErrorEvent(position)
     }
 
@@ -609,7 +666,7 @@ open class InternalInterpreter(
                 executeMutes(
                     statement.muteAnnotations,
                     statement.ancestor(CompilationUnit::class.java)!!,
-                    statement.position.line()
+                    statement.position.line(),
                 )
             }
         }
@@ -624,31 +681,36 @@ open class InternalInterpreter(
     }
 
     // I use a chain of names, so I am sure that this attribute name depends on program stack too
-    private fun prevStmtAttributeMame(): String {
-        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${
+    private fun prevStmtAttributeMame(): String =
+        "$PREV_STMT_EXEC_LINE_ATTRIBUTE${
             MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }
         }"
-    }
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
-        if (!MainExecutionContext.getProgramStack()
-                .empty() && configuration.options.mustCreateCopyBlocks()
+        if (!MainExecutionContext
+                .getProgramStack()
+                .empty() &&
+            configuration.options.mustCreateCopyBlocks()
         ) {
-            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
+            val copyBlocks =
+                MainExecutionContext
+                    .getProgramStack()
+                    .peek()
+                    .cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
             copyBlocks.observeTransitions(
                 from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
                 to = currentStatementLine,
                 onEnter = { copyBlock ->
                     configuration.jarikoCallback.onEnterCopy.invoke(
-                        copyBlock.copyId
+                        copyBlock.copyId,
                     )
                 },
                 onExit = { copyBlock ->
                     configuration.jarikoCallback.onExitCopy.invoke(
-                        copyBlock.copyId
+                        copyBlock.copyId,
                     )
-                }
+                },
             )
             MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
@@ -657,21 +719,22 @@ open class InternalInterpreter(
     private fun executeMutes(
         muteAnnotations: MutableList<MuteAnnotation>,
         compilationUnit: CompilationUnit,
-        line: String
+        line: String,
     ) {
         val programName = getInterpretationContext().currentProgramName
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
-                    val exp: Expression = when (it.comparison) {
-                        EQ -> EqualityExpr(it.val1, it.val2, it.position)
-                        NE -> DifferentThanExpr(it.val1, it.val2, it.position)
-                        GT -> GreaterThanExpr(it.val1, it.val2, it.position)
-                        GE -> GreaterEqualThanExpr(it.val1, it.val2, it.position)
-                        LT -> LessThanExpr(it.val1, it.val2, it.position)
-                        LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
-                    }
+                    val exp: Expression =
+                        when (it.comparison) {
+                            EQ -> EqualityExpr(it.val1, it.val2, it.position)
+                            NE -> DifferentThanExpr(it.val1, it.val2, it.position)
+                            GT -> GreaterThanExpr(it.val1, it.val2, it.position)
+                            GE -> GreaterEqualThanExpr(it.val1, it.val2, it.position)
+                            LT -> LessThanExpr(it.val1, it.val2, it.position)
+                            LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
+                        }
                     val value1 = it.val1.evalWith(expressionEvaluation)
                     val value2 = it.val2.evalWith(expressionEvaluation)
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
@@ -695,8 +758,8 @@ open class InternalInterpreter(
                             value,
                             value1,
                             value2,
-                            line
-                        )
+                            line,
+                        ),
                     )
                 }
 
@@ -710,8 +773,8 @@ open class InternalInterpreter(
                         MuteTimeoutAnnotationExecuted(
                             this.getInterpretationContext().currentProgramName,
                             it.timeout,
-                            line
-                        )
+                            line,
+                        ),
                     )
                 }
 
@@ -726,8 +789,8 @@ open class InternalInterpreter(
                         MuteFailAnnotationExecuted(
                             this.getInterpretationContext().currentProgramName,
                             message,
-                            line
-                        )
+                            line,
+                        ),
                     )
                 }
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
@@ -741,7 +804,11 @@ open class InternalInterpreter(
         return if (negate) !indicator else indicator
     }
 
-    data class SolvedIndicatorCondition(val key: Int, val value: Boolean, val operator: String)
+    data class SolvedIndicatorCondition(
+        val key: Int,
+        val value: Boolean,
+        val operator: String,
+    )
 
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
         this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
@@ -808,7 +875,12 @@ open class InternalInterpreter(
             { eval(expression).asInt().value }
         }
 
-    override fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
+    override fun setIndicators(
+        statement: WithRightIndicators,
+        hi: BooleanValue,
+        lo: BooleanValue,
+        eq: BooleanValue,
+    ) {
         statement.hi?.let {
             getIndicators()[it] = hi
         }
@@ -820,24 +892,34 @@ open class InternalInterpreter(
         }
     }
 
-    override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
+    override fun fillDataFrom(
+        dbFile: EnrichedDBFile,
+        record: Record,
+    ) {
         if (!record.isEmpty()) {
             status.lastFound.set(true)
             record.forEach { field ->
                 // dbFieldName could be different by dataDefinition name if file definition has a prefix property
-                dbFile.getDataDefinitionName(field.key)?.let { name ->
-                    dataDefinitionByName(name)
-                }?.apply {
-                    assign(this, StringValue(field.value))
-                }
-                    ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
+                dbFile
+                    .getDataDefinitionName(field.key)
+                    ?.let { name ->
+                        dataDefinitionByName(name)
+                    }?.apply {
+                        assign(this, StringValue(field.value))
+                    }
+                    ?: System.err.println(
+                        "Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required",
+                    )
             }
         } else {
             status.lastFound.set(false)
         }
     }
 
-    override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
+    override fun dbFile(
+        name: String,
+        statement: Statement,
+    ): EnrichedDBFile {
         // Name could be file name or format name
         val dbFile = status.dbFileMap[name]
         require(dbFile != null) {
@@ -848,21 +930,31 @@ open class InternalInterpreter(
         return dbFile
     }
 
-    override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
+    override fun toSearchValues(
+        searchArgExpression: Expression,
+        fileMetadata: FileMetadata,
+    ): List<String> {
         val kListName = searchArgExpression.render().uppercase(Locale.getDefault())
         return getStatus().klists[kListName]!!.mapIndexed { index, name ->
             get(name).asString(fileMetadata.accessFieldsType[index])
         }
     }
 
-    override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+    override fun enterCondition(
+        index: Value,
+        end: Value,
+        downward: Boolean,
+    ): Boolean =
         if (downward) {
             isEqualOrGreater(index, end, localizationContext.charset)
         } else {
             isEqualOrSmaller(index, end, localizationContext.charset)
         }
 
-    override fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value {
+    override fun increment(
+        dataDefinition: AbstractDataDefinition,
+        amount: Long,
+    ): Value {
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
@@ -880,20 +972,20 @@ open class InternalInterpreter(
 
     override fun rawRender(values: List<Value>) = values.joinToString("") { rawRender(it) }
 
-    private fun rawRender(value: Value): String {
-        return when (value) {
+    private fun rawRender(value: Value): String =
+        when (value) {
             is NumberValue -> if (value.isNegative()) "${value.abs().render()}-" else value.render()
             else -> value.stringRepresentation()
         }
-    }
 
     override fun eval(expression: Expression): Value {
-        val value = when (expression) {
-            is AssignmentExpr -> {
-                assign(expression.target, expression.value)
+        val value =
+            when (expression) {
+                is AssignmentExpr -> {
+                    assign(expression.target, expression.value)
+                }
+                else -> expression.evalWith(expressionEvaluation)
             }
-            else -> expression.evalWith(expressionEvaluation)
-        }
 
         val programName = this.getInterpretationContext().currentProgramName
         val sourceProvider = { LogSourceData(programName, expression.startLine()) }
@@ -902,7 +994,10 @@ open class InternalInterpreter(
         return value
     }
 
-    override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    override fun assign(
+        dataDefinition: AbstractDataDefinition,
+        value: Value,
+    ): Value {
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
             // currently the only assignable value for a record format type is blank
@@ -934,12 +1029,18 @@ open class InternalInterpreter(
         }
     }
 
-    override fun assignEachElement(target: AssignableExpression, value: Value): Value {
+    override fun assignEachElement(
+        target: AssignableExpression,
+        value: Value,
+    ): Value {
         val arrayType = target.type().asArray()
         return assign(target, value.toArray(arrayType.nElements, arrayType.element))
     }
 
-    override fun assign(target: AssignableExpression, value: Value): Value {
+    override fun assign(
+        target: AssignableExpression,
+        value: Value,
+    ): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -974,12 +1075,13 @@ open class InternalInterpreter(
                 val length = target.length?.let { eval(it).asInt().value.toInt() }
                 val start = eval(target.start).asInt().value.toInt() - 1
 
-                val newValue = if (length == null) {
-                    StringValue(oldValue.replaceRange(start, oldValue.length, value.asString().value))
-                } else {
-                    val paddedValue = value.asString().value.padEnd(length)
-                    StringValue(oldValue.replaceRange(start, start + length, paddedValue))
-                }
+                val newValue =
+                    if (length == null) {
+                        StringValue(oldValue.replaceRange(start, oldValue.length, value.asString().value))
+                    } else {
+                        val paddedValue = value.asString().value.padEnd(length)
+                        StringValue(oldValue.replaceRange(start, start + length, paddedValue))
+                    }
 
                 return assign(target.string as AssignableExpression, newValue)
             }
@@ -990,11 +1092,12 @@ open class InternalInterpreter(
                 val numberOfElement: Int? =
                     if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
                 val array: ArrayValue = eval(target.array).asArray().copy()
-                val to: Int = if (numberOfElement == null) {
-                    array.arrayLength()
-                } else {
-                    (start) + numberOfElement
-                } - 1
+                val to: Int =
+                    if (numberOfElement == null) {
+                        array.arrayLength()
+                    } else {
+                        (start) + numberOfElement
+                    } - 1
                 // replace elements
                 var j = 1
                 for (i in start..to) {
@@ -1054,9 +1157,9 @@ open class InternalInterpreter(
     override fun assign(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator
-    ): Value {
-        return when (operator) {
+        operator: AssignmentOperator,
+    ): Value =
+        when (operator) {
             NORMAL_ASSIGNMENT -> {
                 if (target is DataRefExpr && value is PlusExpr && value.left.render() == target.render() && value.right is IntLiteral) {
                     val amount = (value.right as IntLiteral).value
@@ -1076,14 +1179,13 @@ open class InternalInterpreter(
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value, target.position)))
             EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value, target.position)))
         }
-    }
 
     override fun assignEachElement(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator
-    ): Value {
-        return when (operator) {
+        operator: AssignmentOperator,
+    ): Value =
+        when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
             PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value, target.position)))
             MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value, target.position)))
@@ -1091,9 +1193,11 @@ open class InternalInterpreter(
             DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value, target.position)))
             EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value, target.position)))
         }
-    }
 
-    private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+    private fun blankValue(
+        dataDefinition: DataDefinition,
+        forceElement: Boolean = false,
+    ): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
             is DataStructureType -> createBlankFor(dataDefinition)
@@ -1109,18 +1213,19 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return configuration.jarikoCallback.getActivationGroup.invoke(
-                    getInterpretationContext().currentProgramName, associatedActivationGroup
-                )?.assignedName ?: activationGroup
+                return configuration.jarikoCallback.getActivationGroup
+                    .invoke(
+                        getInterpretationContext().currentProgramName,
+                        associatedActivationGroup,
+                    )?.assignedName ?: activationGroup
             }
         }
     }
 
-    open fun getMemorySliceId(): MemorySliceId? {
-        return getActivationGroupAssignedName()?.let {
+    open fun getMemorySliceId(): MemorySliceId? =
+        getActivationGroupAssignedName()?.let {
             MemorySliceId(activationGroup = it, getInterpretationContext().currentProgramName)
         }
-    }
 
     /**
      * @return an instance of MemorySliceMgr, return null to disable serialization/deserialization
@@ -1141,7 +1246,6 @@ open class InternalInterpreter(
     }
 
     private fun isExitingInRTMode(): Boolean {
-
         // LR indicator 'ON' means stateless, doesn't matter if RT is 'ON' too, LR wins!
         // RT indicator 'ON' means statefull (ONLY if LR indicator is 'OFF', as described above)
 
@@ -1151,7 +1255,7 @@ open class InternalInterpreter(
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
         return configuration.jarikoCallback.exitInRT.invoke(
-            getInterpretationContext().currentProgramName
+            getInterpretationContext().currentProgramName,
         ) ?: exitRT
     }
 
@@ -1175,14 +1279,15 @@ open class InternalInterpreter(
         if (!status.inzsrExecuted.get()) {
             val name = "*INZSR"
             status.inzsrExecuted.set(true)
-            compilationUnit.subroutines.firstOrNull { subroutine ->
-                subroutine.name.equals(other = name, ignoreCase = true)
-            }?.let { subroutine ->
-                ExecuteSubroutine(
-                    subroutine = ReferenceByName(name, subroutine),
-                    position = subroutine.position
-                ).execute(this)
-            }
+            compilationUnit.subroutines
+                .firstOrNull { subroutine ->
+                    subroutine.name.equals(other = name, ignoreCase = true)
+                }?.let { subroutine ->
+                    ExecuteSubroutine(
+                        subroutine = ReferenceByName(name, subroutine),
+                        position = subroutine.position,
+                    ).execute(this)
+                }
         }
     }
 
@@ -1195,9 +1300,12 @@ open class InternalInterpreter(
         val trace = toTracePoint(statement)
 
         val internalExecute = {
-            val sourceProducer = if (loggingContext.logsEnabled) {
-                { LogSourceData(programName, statement.position.line()) }
-            } else null
+            val sourceProducer =
+                if (loggingContext.logsEnabled) {
+                    { LogSourceData(programName, statement.position.line()) }
+                } else {
+                    null
+                }
             sourceProducer?.let { loggingContext.openLoggingScope(statement, it) }
             val attachBeforeProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToNext)
             val attachAfterProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToPrevious)

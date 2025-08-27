@@ -27,9 +27,10 @@ import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.InputStream
 
-private val json = Json {
-    prettyPrint = true
-}
+private val json =
+    Json {
+        prettyPrint = true
+    }
 
 /**
  * This class is associated to a db field.
@@ -37,18 +38,23 @@ private val json = Json {
  * @see toDataDefinition
  * */
 @Serializable
-data class DbField(val fieldName: String, val type: Type) {
-
+data class DbField(
+    val fieldName: String,
+    val type: Type,
+) {
     /**
      * Creates a data definition associated to this
      * */
-    fun toDataDefinition(prefix: Prefix?, position: Position?, fromFile: Boolean = false) =
-        DataDefinition(
-            name = prefix?.applyReplacementRules(fieldName) ?: fieldName,
-            type = type,
-            position = position,
-            fromFile = fromFile
-        )
+    fun toDataDefinition(
+        prefix: Prefix?,
+        position: Position?,
+        fromFile: Boolean = false,
+    ) = DataDefinition(
+        name = prefix?.applyReplacementRules(fieldName) ?: fieldName,
+        type = type,
+        position = position,
+        fromFile = fromFile,
+    )
 }
 
 /**
@@ -66,21 +72,20 @@ data class FileMetadata(
     val tableName: String,
     val recordFormat: String,
     val fields: List<DbField>,
-    val accessFields: List<String>
+    val accessFields: List<String>,
 ) {
-
     @Transient
     private val fieldsByName: Map<String, DbField> = fields.map { it.fieldName to it }.toMap()
 
     @Transient
-    val accessFieldsType: List<Type> = accessFields.map { fieldName ->
-        fieldsByName[fieldName]!!.type
-    }
+    val accessFieldsType: List<Type> =
+        accessFields.map { fieldName ->
+            fieldsByName[fieldName]!!.type
+        }
 
     fun toJson(): String = json.encodeToString(this)
 
     companion object {
-
         /**
          * Create FileMetadataInstance from json
          * */
@@ -98,8 +103,8 @@ data class FileMetadata(
          * Create a json example including all jariko types
          * */
         @JvmStatic
-        fun createJsonExample(): String {
-            return FileMetadata(
+        fun createJsonExample(): String =
+            FileMetadata(
                 "MYTABLE",
                 "MYTABLE",
                 "MYRECORDFORMAT",
@@ -111,11 +116,10 @@ data class FileMetadata(
                     DbField(fieldName = "UNSIGNED", NumberType(entireDigits = 10, decimalDigits = 0, RpgType.UNSIGNED)),
                     DbField(fieldName = "ZONED", NumberType(entireDigits = 10, decimalDigits = 2, RpgType.ZONED)),
                     DbField(fieldName = "STRINGARRAY", ArrayType(element = StringType(10), nElements = 10)),
-                    DbField(fieldName = "BOOLEAN", BooleanType)
+                    DbField(fieldName = "BOOLEAN", BooleanType),
                 ),
-                accessFields = listOf("ALPHANUM", "BINARY")
+                accessFields = listOf("ALPHANUM", "BINARY"),
             ).toJson()
-        }
 
         /**
          * Print json example of metadata including all jariko types
@@ -128,13 +132,15 @@ data class FileMetadata(
 }
 
 fun FileMetadata.toReloadMetadata(): com.smeup.dbnative.model.FileMetadata {
-    val fileMetadata = com.smeup.dbnative.model.FileMetadata(
-        name = this.name,
-        tableName = this.tableName,
-        fields = fields.map {
-            Field(it.fieldName, numeric = it.type.isNumeric())
-        },
-        fileKeys = accessFields
-    )
+    val fileMetadata =
+        com.smeup.dbnative.model.FileMetadata(
+            name = this.name,
+            tableName = this.tableName,
+            fields =
+                fields.map {
+                    Field(it.fieldName, numeric = it.type.isNumeric())
+                },
+            fileKeys = accessFields,
+        )
     return fileMetadata
 }

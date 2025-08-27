@@ -45,7 +45,7 @@ fun div(
     isHalfAdjust: Boolean,
     interpreterCore: InterpreterCore,
     position: Position? = null,
-    mvrTarget: AssignableExpression? = null
+    mvrTarget: AssignableExpression? = null,
 ): Value {
     // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
     val dividend = BigDecimal(interpreterCore.eval(dividendExpr).render())
@@ -63,7 +63,7 @@ fun div(
         val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
         interpreterCore.assign(
             mvrTarget,
-            DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN))
+            DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)),
         )
     }
 

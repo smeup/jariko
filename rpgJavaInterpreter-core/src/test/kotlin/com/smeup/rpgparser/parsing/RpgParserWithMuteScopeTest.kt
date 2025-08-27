@@ -26,7 +26,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RpgParserWithMuteScopeTest : AbstractTest() {
-
     var printResults: Boolean = true
 
     // Useful display function for debugging
@@ -39,7 +38,10 @@ class RpgParserWithMuteScopeTest : AbstractTest() {
         }
     }
 
-    private fun getResolvedAnnotation(line: Int, annotations: List<MuteAnnotationResolved>): MuteAnnotationResolved? {
+    private fun getResolvedAnnotation(
+        line: Int,
+        annotations: List<MuteAnnotationResolved>,
+    ): MuteAnnotationResolved? {
         annotations.forEach {
             if (it.muteLine == line) {
                 return it

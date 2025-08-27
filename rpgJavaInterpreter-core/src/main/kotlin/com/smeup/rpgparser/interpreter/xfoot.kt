@@ -17,7 +17,10 @@ fun xfoot(array: ArrayValue): DecimalValue {
     return BigDecimal(sum).asValue()
 }
 
-fun xfoot(statement: XFootStmt, interpreterCore: InterpreterCore) {
+fun xfoot(
+    statement: XFootStmt,
+    interpreterCore: InterpreterCore,
+) {
     // ConcreteArrayValue
     val arrayValue = interpreterCore.eval(statement.left).asArray()
     val result = xfoot(arrayValue)

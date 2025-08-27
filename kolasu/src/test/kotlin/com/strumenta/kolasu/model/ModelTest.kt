@@ -3,10 +3,12 @@ package com.strumenta.kolasu.model
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
-class MyNode(override val name: String) : Node(), Named
+class MyNode(
+    override val name: String,
+) : Node(),
+    Named
 
 class ModelTest {
-
     @test fun referenceByNameUnsolvedToString() {
         val refUnsolved = ReferenceByName<MyNode>("foo")
         assertEquals("Ref(foo)[Unsolved]", refUnsolved.toString())

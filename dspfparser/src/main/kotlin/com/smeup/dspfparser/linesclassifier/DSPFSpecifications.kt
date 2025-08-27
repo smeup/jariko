@@ -6,33 +6,28 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFSpecifications(
-    override val records: MutableList<DSPFRecordSpecifications> = mutableListOf()
+    override val records: MutableList<DSPFRecordSpecifications> = mutableListOf(),
 ) : DSPF {
     companion object {
-        fun fromLines(
-            lines: MutableList<DSPFLine>
-        ): DSPFSpecifications {
-            return DSPFSpecificationsFactory(lines).create()
-        }
+        fun fromLines(lines: MutableList<DSPFLine>): DSPFSpecifications = DSPFSpecificationsFactory(lines).create()
     }
 
-    override fun getRecord(name: String): DSPFRecordSpecifications {
-        return this.records.first { it.name == name.uppercase() }
-    }
+    override fun getRecord(name: String): DSPFRecordSpecifications = this.records.first { it.name == name.uppercase() }
 
-    override fun getMutableFieldsFromRecord(name: String): MutableList<MutableField> {
-        return this.records.first { it.name == name.uppercase() }.mutables
-    }
+    override fun getMutableFieldsFromRecord(name: String): MutableList<MutableField> =
+        this.records
+            .first {
+                it.name == name.uppercase()
+            }.mutables
 
-    override fun getConstantFieldsFromRecord(name: String): List<ConstantField> {
-        return this.records.first { it.name == name.uppercase() }.constants
-    }
+    override fun getConstantFieldsFromRecord(name: String): List<ConstantField> =
+        this.records.first { it.name == name.uppercase() }.constants
 }
 
 private enum class CurrentContext {
     FILE,
     RECORD,
-    FIELD
+    FIELD,
 }
 
 private class DSPFSpecificationsFactory {
@@ -44,9 +39,7 @@ private class DSPFSpecificationsFactory {
         this.updateResultWith(lines)
     }
 
-    fun create(): DSPFSpecifications {
-        return this.result
-    }
+    fun create(): DSPFSpecifications = this.result
 
     private fun tryInsertNewRecord(line: DSPFLine) {
         if (this.currentLineType == LineType.RECORD) {
@@ -57,26 +50,38 @@ private class DSPFSpecificationsFactory {
 
     private fun tryInsertNewFieldOnRecordContext(line: DSPFLine) {
         if (this.context == CurrentContext.RECORD && this.currentLineType == LineType.FIELD) {
-            this.result.records.last().mutables.add(DSPFFieldSpecifications.fromLine(line) as MutableField)
+            this.result.records
+                .last()
+                .mutables
+                .add(DSPFFieldSpecifications.fromLine(line) as MutableField)
             this.context = CurrentContext.FIELD
         }
     }
 
     private fun tryInsertNewFieldOnFieldContext(line: DSPFLine) {
         if (this.context == CurrentContext.FIELD && this.currentLineType == LineType.FIELD) {
-            this.result.records.last().mutables.add(DSPFFieldSpecifications.fromLine(line) as MutableField)
+            this.result.records
+                .last()
+                .mutables
+                .add(DSPFFieldSpecifications.fromLine(line) as MutableField)
         }
     }
 
     private fun tryInsertNewConstantOnFieldContext(line: DSPFLine) {
         if (this.context == CurrentContext.FIELD && this.currentLineType == LineType.CONSTANT) {
-            this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line) as ConstantField)
+            this.result.records
+                .last()
+                .constants
+                .add(DSPFFieldSpecifications.fromLine(line) as ConstantField)
         }
     }
 
     private fun tryInsertNewConstantOnRecordContext(line: DSPFLine) {
         if (this.context == CurrentContext.RECORD && this.currentLineType == LineType.CONSTANT) {
-            this.result.records.last().constants.add(DSPFFieldSpecifications.fromLine(line) as ConstantField)
+            this.result.records
+                .last()
+                .constants
+                .add(DSPFFieldSpecifications.fromLine(line) as ConstantField)
             this.context = CurrentContext.FIELD
         }
     }

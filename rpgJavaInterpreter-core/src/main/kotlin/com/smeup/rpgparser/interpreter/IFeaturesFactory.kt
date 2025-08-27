@@ -15,6 +15,7 @@
  */
 
 @file:JvmName("StandardFeaturesFactory")
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -34,29 +35,25 @@ interface IFeaturesFactory {
      * @param create: default creation type implementation
      * @return the instance of type created
      */
-    fun createStringType(create: () -> StringType): Type {
-        return if (FeatureFlag.UnlimitedStringTypeFlag.isOn()) {
+    fun createStringType(create: () -> StringType): Type =
+        if (FeatureFlag.UnlimitedStringTypeFlag.isOn()) {
             UnlimitedStringType
-        } else create.invoke()
-    }
+        } else {
+            create.invoke()
+        }
 
     /**
      * @return true if the chain cache is enabled
      */
-    fun isChainCacheEnabled(): Boolean {
-        return FeatureFlag.ChainCacheFlag.isOn()
-    }
+    fun isChainCacheEnabled(): Boolean = FeatureFlag.ChainCacheFlag.isOn()
 
     /**
      * @return true if the Z-ADD legacy is enabled
      */
-    fun isZAddLegacyEnabled(): Boolean {
-        return FeatureFlag.ZAddLegacyFlag.isOn()
-    }
+    fun isZAddLegacyEnabled(): Boolean = FeatureFlag.ZAddLegacyFlag.isOn()
 }
 
 object FeaturesFactory {
-
     private fun dumpVersion() {
         versionFileContent?.let {
             println("JaRIKo - Java Rpg Interpreter written in Kotlin")
@@ -66,7 +63,8 @@ object FeaturesFactory {
     }
 
     private val versionFileContent: String? by lazy {
-        IFeaturesFactory::class.java.getResource("/META-INF/com.smeup.jariko/version.txt")
+        IFeaturesFactory::class.java
+            .getResource("/META-INF/com.smeup.jariko/version.txt")
             ?.let { it.readText() }
     }
 
@@ -79,8 +77,8 @@ object FeaturesFactory {
      *
      * @return A JarikoVersion object representing the version information of Jariko.
      */
-    fun getJarikoVersionVersion(): JarikoVersion {
-        return versionFileContent?.let { content ->
+    fun getJarikoVersionVersion(): JarikoVersion =
+        versionFileContent?.let { content ->
             val props = mutableMapOf<String, String>()
             content.split("\n").forEach {
                 if (it.startsWith("Version") || it.startsWith("Branch") || it.startsWith("Revision") || it.startsWith("Buildtime")) {
@@ -92,28 +90,33 @@ object FeaturesFactory {
                 version = props["Version"] ?: "",
                 branch = props["Branch"] ?: "",
                 revision = props["Revision"] ?: "",
-                buildtime = props["Buildtime"] ?: ""
+                buildtime = props["Buildtime"] ?: "",
             )
         } ?: JarikoVersion()
-    }
 
     private val factory: IFeaturesFactory by lazy {
         dumpVersion()
         val property = System.getProperty("jariko.featuresFactory", System.getProperty("featuresFactory", ""))
-        val featuresFactoryId = if (property == "") "default" else {
-            property
-        }
-        val featuresFactoryImpl = if (featuresFactoryId.contains('.', false)) {
-            featuresFactoryId
-        } else {
-            val mProperty = java.util.Properties()
-            IFeaturesFactory::class.java.getResource("/META-INF/com.smeup.jariko/features.properties")!!
-                .openStream()!!.use {
-                    mProperty.load(it)
-                }
-            mProperty.getProperty(featuresFactoryId)
-                ?: throw IllegalArgumentException("Not found factory identified by: $featuresFactoryId")
-        }
+        val featuresFactoryId =
+            if (property == "") {
+                "default"
+            } else {
+                property
+            }
+        val featuresFactoryImpl =
+            if (featuresFactoryId.contains('.', false)) {
+                featuresFactoryId
+            } else {
+                val mProperty = java.util.Properties()
+                IFeaturesFactory::class.java
+                    .getResource("/META-INF/com.smeup.jariko/features.properties")!!
+                    .openStream()!!
+                    .use {
+                        mProperty.load(it)
+                    }
+                mProperty.getProperty(featuresFactoryId)
+                    ?: throw IllegalArgumentException("Not found factory identified by: $featuresFactoryId")
+            }
 
         println("------------------------------------------------------------------------------------")
         println("Creating features factory: $featuresFactoryImpl")
@@ -131,7 +134,6 @@ object FeaturesFactory {
 }
 
 class StandardFeaturesFactory : IFeaturesFactory {
-
     override fun createSymbolTable() = SymbolTable()
 }
 
@@ -140,19 +142,22 @@ class StandardFeaturesFactory : IFeaturesFactory {
  *
  * @property on The default value of the feature flag. Defaults to false if not specified.
  */
-enum class FeatureFlag(val on: Boolean = false) {
-
+enum class FeatureFlag(
+    val on: Boolean = false,
+) {
     /**
      * If "on" the alphanumeric [RpgType.ZONED] is handled like [RpgType.UNLIMITED_STRING].
      * Currently, the [RpgType.CHARACTER] is not yet handled because this cause a regression in some tests.
      * Default off
      */
     UnlimitedStringTypeFlag(on = false),
+
     /**
      * If "on" the chain cache is enabled.
      * Default on
      */
     ChainCacheFlag(on = true),
+
     /**
      * if "on" Z-ADD follow the same behaviour of AS400,
      * by truncating number if the target is lower than source.
@@ -168,7 +173,11 @@ enum class FeatureFlag(val on: Boolean = false) {
      * the value returned by JarikoCallback.featureFlagIsOn is true
      * */
     fun isOn(): Boolean {
-        val isOn = MainExecutionContext.getConfiguration().jarikoCallback.featureFlagIsOn.invoke(this)
+        val isOn =
+            MainExecutionContext
+                .getConfiguration()
+                .jarikoCallback.featureFlagIsOn
+                .invoke(this)
         val property = System.getProperty(getPropertyName(), isOn.toString())
         return property.lowercase().matches(Regex("1|on|true"))
     }
@@ -186,5 +195,5 @@ data class JarikoVersion(
     val version: String = "UNKNOWN",
     val branch: String = "UNKNOWN",
     val revision: String = "UNKNOWN",
-    val buildtime: String = "UNKNOWN"
+    val buildtime: String = "UNKNOWN",
 )

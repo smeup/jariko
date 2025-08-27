@@ -30,7 +30,7 @@ enum class JarikoTraceKind {
     ExecuteSubroutine,
     FunctionCall,
     MainExecutionContext,
-    RpgProgram
+    RpgProgram,
 }
 
 /**
@@ -38,7 +38,7 @@ enum class JarikoTraceKind {
  */
 data class JarikoTrace(
     val kind: JarikoTraceKind,
-    val description: String = ""
+    val description: String = "",
 )
 
 /**
@@ -47,13 +47,17 @@ data class JarikoTrace(
 data class RpgTrace(
     val program: String,
     val description: String = "",
-    val line: Int
+    val line: Int,
 ) {
-    val fullName = run {
-        program + if (description.isNotBlank()) {
-            " - $description"
-        } else ""
-    }
+    val fullName =
+        run {
+            program +
+                if (description.isNotBlank()) {
+                    " - $description"
+                } else {
+                    ""
+                }
+        }
 
     override fun toString() = "$fullName at line $line"
 }
@@ -61,7 +65,10 @@ data class RpgTrace(
 /**
  * Open a trace block.
  */
-internal fun <T> JarikoCallback.traceBlock(trace: JarikoTrace, block: () -> T): T {
+internal fun <T> JarikoCallback.traceBlock(
+    trace: JarikoTrace,
+    block: () -> T,
+): T {
     val accepted = acceptJarikoTrace(trace)
     if (accepted) startJarikoTrace(trace)
     try {

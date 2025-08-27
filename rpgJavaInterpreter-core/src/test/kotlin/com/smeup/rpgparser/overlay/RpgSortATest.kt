@@ -26,7 +26,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 open class RpgSortATest : AbstractTest() {
-
     @Test
     fun encodeDecodeCp037() {
         val charset = Charset.forName("Cp037")
@@ -47,9 +46,11 @@ open class RpgSortATest : AbstractTest() {
         assertTrue(s1.compare(s2, charset, true) > 0)
     }
 
-    fun getField(field: FieldDefinition, value: StringValue): String {
-        return value.value.substring(field.startOffset, field.endOffset)
-    }
+    fun getField(
+        field: FieldDefinition,
+        value: StringValue,
+    ): String = value.value.substring(field.startOffset, field.endOffset)
+
     @Test
     fun executeSORTA() {
         val cu = assertASTCanBeProduced("overlay/SORTATEST", considerPosition = true, withMuteSupport = true)

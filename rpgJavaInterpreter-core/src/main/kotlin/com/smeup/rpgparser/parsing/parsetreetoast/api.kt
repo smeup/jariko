@@ -24,16 +24,16 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.specificProcess
 
-internal fun RpgParser.Dir_apiContext.toApiId(conf: ToAstConfiguration): ApiId {
-    return ApiId(
+internal fun RpgParser.Dir_apiContext.toApiId(conf: ToAstConfiguration): ApiId =
+    ApiId(
         position = toPosition(conf.considerPosition),
         library = this.library?.text,
         file = this.file?.text,
-        member = this.member.text)
-}
+        member = this.member.text,
+    )
 
-internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfiguration): Map<ApiId, ApiDescriptor>? {
-    return mutableMapOf<ApiId, ApiDescriptor>().let { apiDescriptors ->
+internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfiguration): Map<ApiId, ApiDescriptor>? =
+    mutableMapOf<ApiId, ApiDescriptor>().let { apiDescriptors ->
         forEach { statementContext ->
             statementContext.runParserRuleContext(conf = conf) {
                 statementContext.directive()?.dir_api()?.let { dirApicontext ->
@@ -48,10 +48,9 @@ internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfig
             apiDescriptors
         }
     }
-}
 
-private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
-    return apiId.runNode {
+private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit =
+    apiId.runNode {
         apiId.loadAndUse { api ->
             this.copy(
                 fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
@@ -61,14 +60,20 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
                 compileTimeArrays = this.compileTimeArrays.include(api.compilationUnit.compileTimeArrays),
                 directives = this.directives.include(api.compilationUnit.directives),
                 position = this.position,
-                apiDescriptors = api.compilationUnit.apiDescriptors?.let {
-                    this.apiDescriptors?.plus(it)
-                } ?: this.apiDescriptors,
-                procedures = this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(api.compilationUnit.procedures.let { it ?: listOf() })
+                apiDescriptors =
+                    api.compilationUnit.apiDescriptors?.let {
+                        this.apiDescriptors?.plus(it)
+                    } ?: this.apiDescriptors,
+                procedures =
+                    this.procedures.let { it ?: listOf() }.includeProceduresWithoutDuplicates(
+                        api.compilationUnit.procedures.let {
+                            it
+                                ?: listOf()
+                        },
+                    ),
             )
         }
     }
-}
 
 /**
  * Uses an API by loading it and applying the provided logic function.
@@ -89,9 +94,13 @@ internal fun <T> ApiId.loadAndUse(logic: (api: Api) -> T): T {
     val parentPgmName = MainExecutionContext.getExecutionProgramName()
     val apiId = this
     MainExecutionContext.setExecutionProgramName(this.toString())
-    val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).apply {
-        MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, this)
-    }.validate()
+    val api =
+        MainExecutionContext
+            .getSystemInterface()!!
+            .findApi(apiId)
+            .apply {
+                MainExecutionContext.getConfiguration().jarikoCallback.onApiInclusion(apiId, this)
+            }.validate()
     logic.invoke(api).let { result ->
         MainExecutionContext.setExecutionProgramName(parentPgmName)
         return result
@@ -102,18 +111,17 @@ internal fun CompilationUnit.postProcess(): CompilationUnit {
     var compilationUnit = this
     apiDescriptors?.let { apiDescriptors ->
         apiDescriptors.forEach { apiEntry ->
-            compilationUnit = when (apiEntry.value.loadApiPolicy) {
-                LoadApiPolicy.Static -> compilationUnit.includeApi(apiEntry.key)
-                else -> apiEntry.key.todo()
-            }
+            compilationUnit =
+                when (apiEntry.value.loadApiPolicy) {
+                    LoadApiPolicy.Static -> compilationUnit.includeApi(apiEntry.key)
+                    else -> apiEntry.key.todo()
+                }
         }
     }
     return compilationUnit
 }
 
-private fun <T : Node> List<T>.include(list: List<T>): List<T> {
-    return this + list
-}
+private fun <T : Node> List<T>.include(list: List<T>): List<T> = this + list
 
 /**
  * Merges two lists of elements, ensuring no duplicates based on the `name` property.
@@ -125,28 +133,28 @@ private fun <T : Node> List<T>.include(list: List<T>): List<T> {
  * @return A new list containing all elements from both lists, excluding duplicates
  *         based on the `name` property.
  */
-private fun <T> List<T>.merge(list: List<T>): List<T> where T : Node, T : Named {
-    return this + list.filter { elementToMerge -> elementToMerge.name != null && this.none { existingElement -> existingElement.name == elementToMerge.name } }
-}
+private fun <T> List<T>.merge(list: List<T>): List<T> where T : Node, T : Named =
+    this +
+        list.filter { elementToMerge ->
+            elementToMerge.name != null &&
+                this.none { existingElement -> existingElement.name == elementToMerge.name }
+        }
 
-private fun <F, D : Node> Map<F, List<D>>.include(map: Map<F, List<D>>): Map<F, List<D>> {
-    return this + map
-}
+private fun <F, D : Node> Map<F, List<D>>.include(map: Map<F, List<D>>): Map<F, List<D>> = this + map
 
 private fun Api.validate(): Api {
     require(compilationUnit.main.stmts.isEmpty()) { "The APIs containing statements are not handled yet" }
     return this
 }
 
-private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<CompilationUnit>): List<CompilationUnit> {
-    return this.map { procedure ->
+private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<CompilationUnit>): List<CompilationUnit> =
+    this.map { procedure ->
         if (procedure.isProcedurePrototype()) {
             from.firstOrNull { it.procedureName == procedure.procedureName } ?: procedure
         } else {
             procedure
         }
     }
-}
 
 /**
  * Invalidates the resolution of variable references within a list of `Subroutine` objects.
@@ -166,8 +174,7 @@ private fun List<CompilationUnit>.includeProceduresWithoutDuplicates(from: List<
  *
  * @return A new list of `Subroutine` objects with invalidated variable references.
  */
-private fun List<Subroutine>.invalidateResolution(): List<Subroutine> {
-    return this.map { subroutine ->
+private fun List<Subroutine>.invalidateResolution(): List<Subroutine> =
+    this.map { subroutine ->
         subroutine.specificProcess(DataRefExpr::class.java) { it.variable.referred = null }.let { subroutine }
     }
-}

@@ -22,7 +22,6 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 open class Chain2FilesDBTest : AbstractTest() {
-
     @Test
     open fun executeCHAIN2FILE() {
         assertEquals(
@@ -31,25 +30,30 @@ open class Chain2FilesDBTest : AbstractTest() {
                 "db/CHAIN2FILE",
                 listOf(createMetadata("FIRST"), createMetadata("SECOND")),
                 listOf(
-                    sqlCreateTestTable("FIRST"), recordFormatTestTable("FIRST"),
-                    sqlCreateTestTable("SECOND"), recordFormatTestTable("SECOND"), insertTestRecords("SECOND")
+                    sqlCreateTestTable("FIRST"),
+                    recordFormatTestTable("FIRST"),
+                    sqlCreateTestTable("SECOND"),
+                    recordFormatTestTable("SECOND"),
+                    insertTestRecords("SECOND"),
                 ),
-                mapOf("toFind" to StringValue("ABCDE"))
-            )
+                mapOf("toFind" to StringValue("ABCDE")),
+            ),
         )
     }
 
-    private fun createMetadata(name: String) = FileMetadata(
-        name = name,
-        tableName = name,
-        recordFormat = "TSTREC",
-        fields = listOf(
-            DbField("KEYTST", StringType(5)),
-            DbField("DESTST", StringType(40)),
-            DbField("NBRTST", NumberType(2, 0))
-        ),
-        listOf("KEYTST")
-    )
+    private fun createMetadata(name: String) =
+        FileMetadata(
+            name = name,
+            tableName = name,
+            recordFormat = "TSTREC",
+            fields =
+                listOf(
+                    DbField("KEYTST", StringType(5)),
+                    DbField("DESTST", StringType(40)),
+                    DbField("NBRTST", NumberType(2, 0)),
+                ),
+            listOf("KEYTST"),
+        )
 
     private fun sqlCreateTestTable(name: String) =
         """

@@ -28,7 +28,6 @@ import kotlinx.serialization.Transient
  */
 @Serializable
 sealed interface DataStructValueBuilder {
-
     /**
      * The length of the data structure string.
      */
@@ -41,7 +40,11 @@ sealed interface DataStructValueBuilder {
      * @param end The end index of the substring to replace.
      * @param replacingString The string to replace the substring with, which must have the same length as the substring being replaced.
      */
-    fun replace(start: Int, end: Int, replacingString: String)
+    fun replace(
+        start: Int,
+        end: Int,
+        replacingString: String,
+    )
 
     /**
      * Returns a substring from the data structure string.
@@ -50,7 +53,10 @@ sealed interface DataStructValueBuilder {
      * @param end The end index of the substring.
      * @return The substring from start to end.
      */
-    fun substring(start: Int, end: Int): String
+    fun substring(
+        start: Int,
+        end: Int,
+    ): String
 
     /**
      * Performs the given action on each character of the data structure string.
@@ -83,7 +89,6 @@ sealed interface DataStructValueBuilder {
     fun replaceAll(value: String): DataStructValueBuilder
 
     companion object {
-
         /**
          * Creates an instance of DataStructValueBuilder.
          * This method delegates the creation of the instance to the `JarikoCallback.createDataStructValueBuilder` method.
@@ -92,8 +97,13 @@ sealed interface DataStructValueBuilder {
          * @return An instance of DataStructValueBuilder.
          * @see com.smeup.rpgparser.execution.JarikoCallback.createDataStructValueBuilder
          */
-        fun create(value: String, type: DataStructureType) = MainExecutionContext.getConfiguration()
-            .jarikoCallback.createDataStructValueBuilder(value, type)
+        fun create(
+            value: String,
+            type: DataStructureType,
+        ) = MainExecutionContext
+            .getConfiguration()
+            .jarikoCallback
+            .createDataStructValueBuilder(value, type)
     }
 }
 
@@ -103,8 +113,9 @@ sealed interface DataStructValueBuilder {
  * @param value The initial value of the string builder.
  */
 @Serializable
-class StringBuilderWrapper(private val value: String) : DataStructValueBuilder {
-
+class StringBuilderWrapper(
+    private val value: String,
+) : DataStructValueBuilder {
     @Transient
     private val sb = StringBuilder(value)
 
@@ -117,7 +128,11 @@ class StringBuilderWrapper(private val value: String) : DataStructValueBuilder {
      * @param end The end index of the substring to replace.
      * @param replacingString The string to replace the substring with.
      */
-    override fun replace(start: Int, end: Int, replacingString: String) {
+    override fun replace(
+        start: Int,
+        end: Int,
+        replacingString: String,
+    ) {
         sb.replace(start, end, replacingString)
     }
 
@@ -128,21 +143,18 @@ class StringBuilderWrapper(private val value: String) : DataStructValueBuilder {
      * @param end The end index of the substring.
      * @return The substring from start to end.
      */
-    override fun substring(start: Int, end: Int): String {
-        return sb.substring(start, end)
-    }
+    override fun substring(
+        start: Int,
+        end: Int,
+    ): String = sb.substring(start, end)
 
     override fun forEach(action: (c: Char) -> Unit) {
         sb.forEach(action)
     }
 
-    override fun isBlank(): Boolean {
-        return sb.isBlank()
-    }
+    override fun isBlank(): Boolean = sb.isBlank()
 
-    override fun chunked(size: Int): List<String> {
-        return sb.chunked(size)
-    }
+    override fun chunked(size: Int): List<String> = sb.chunked(size)
 
     override fun replaceAll(value: String): DataStructValueBuilder {
         require(value.length <= sb.length) { "Value is longer than the initial wrapped value." }
@@ -155,9 +167,7 @@ class StringBuilderWrapper(private val value: String) : DataStructValueBuilder {
      *
      * @return The string representation of the string builder.
      */
-    override fun toString(): String {
-        return sb.toString()
-    }
+    override fun toString(): String = sb.toString()
 }
 
 /**
@@ -169,13 +179,16 @@ class StringBuilderWrapper(private val value: String) : DataStructValueBuilder {
  * @param chunksSize The size of the chunks
  */
 @Serializable
-class IndexedStringBuilder(private val value: String, val chunksSize: Int) : DataStructValueBuilder {
-
+class IndexedStringBuilder(
+    private val value: String,
+    val chunksSize: Int,
+) : DataStructValueBuilder {
     // The string is divided into chunks of a fixed size
     @Contextual
-    private val chunks: List<@Contextual StringBuilder> = List((value.length + chunksSize - 1) / chunksSize) { index ->
-        StringBuilder(value.substring(index * chunksSize, minOf((index + 1) * chunksSize, value.length)))
-    }
+    private val chunks: List<@Contextual StringBuilder> =
+        List((value.length + chunksSize - 1) / chunksSize) { index ->
+            StringBuilder(value.substring(index * chunksSize, minOf((index + 1) * chunksSize, value.length)))
+        }
 
     override val length = value.length
 
@@ -185,7 +198,11 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
      * @param start The start index of the substring to replace
      * @param end The end index of the substring to replace
      */
-    override fun replace(start: Int, end: Int, replacingString: String) {
+    override fun replace(
+        start: Int,
+        end: Int,
+        replacingString: String,
+    ) {
         require(end > start) { "End index must be greater than start index." }
         require(replacingString.length == end - start) { "Replacing string length must match the length of the substring being replaced." }
 
@@ -219,7 +236,10 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
      * @param end The end index of the substring
      * @return The substring from start to end
      */
-    override fun substring(start: Int, end: Int): String {
+    override fun substring(
+        start: Int,
+        end: Int,
+    ): String {
         require(end >= start) { "End index must be greater than or equal to start index." }
 
         if (start == end) return ""
@@ -250,13 +270,9 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
         chunks.forEach { it.forEach(action) }
     }
 
-    override fun isBlank(): Boolean {
-        return chunks.all { it.isBlank() }
-    }
+    override fun isBlank(): Boolean = chunks.all { it.isBlank() }
 
-    override fun chunked(size: Int): List<String> {
-        return toString().chunked(size)
-    }
+    override fun chunked(size: Int): List<String> = toString().chunked(size)
 
     override fun replaceAll(value: String): DataStructValueBuilder {
         require(value.length == this.length) { "Value length must be the same of wrapped value." }
@@ -268,9 +284,7 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
         return this
     }
 
-    override fun toString(): String {
-        return chunks.joinToString(separator = "") { it.toString() }
-    }
+    override fun toString(): String = chunks.joinToString(separator = "") { it.toString() }
 }
 
 /**
@@ -278,15 +292,11 @@ class IndexedStringBuilder(private val value: String, val chunksSize: Int) : Dat
  *
  * @return `true` if all fields in the data structure type are arrays, `false` otherwise.
  */
-internal fun DataStructureType.containsOnlyArrays(): Boolean {
-    return fields.all { it.type is ArrayType }
-}
+internal fun DataStructureType.containsOnlyArrays(): Boolean = fields.all { it.type is ArrayType }
 
 /**
  * Counts the number of fields in the data structure type.
  *
  * @return The total number of fields, including elements of array fields.
  */
-internal fun DataStructureType.totalFields(): Int {
-    return fields.sumOf { if (it.type is ArrayType) it.type.nElements else 1 }
-}
+internal fun DataStructureType.totalFields(): Int = fields.sumOf { if (it.type is ArrayType) it.type.nElements else 1 }

@@ -6,7 +6,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 internal class DSPFSpecificationsTest : DSPFSpecificationsLoader("./src/test/resources/RECORDS.dspf") {
-
     @Test
     fun recordsByName() {
         assertEquals("REC01", this.specifications.getRecord("REC01").name)

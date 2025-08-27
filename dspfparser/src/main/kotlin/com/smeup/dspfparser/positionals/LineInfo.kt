@@ -3,7 +3,10 @@ package com.smeup.dspfparser.positionals
 internal const val LAST_COLUMN = 5000
 internal const val CONDITION_LENGTH = 10
 
-internal enum class LineInfo(val from: Int, val to: Int) {
+internal enum class LineInfo(
+    val from: Int,
+    val to: Int,
+) {
     // last has to be one more because .substring is exclusive on endIndex
     SEQUENCE_NUMBER(0, 5),
     A(5, 6),
@@ -23,7 +26,11 @@ internal enum class LineInfo(val from: Int, val to: Int) {
 }
 
 // kept for reference
-private enum class LineInfoOriginal(val from: Int, val to: Int, val startingPosition: Int) {
+private enum class LineInfoOriginal(
+    val from: Int,
+    val to: Int,
+    val startingPosition: Int,
+) {
     SEQUENCE_NUMBER(1, 5, 1),
     A(6, 6, 6),
     COMMENT(7, 80, 7),
