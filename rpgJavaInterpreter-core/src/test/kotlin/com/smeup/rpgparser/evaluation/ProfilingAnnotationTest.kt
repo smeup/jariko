@@ -253,21 +253,21 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFOREDO" to 12,
-                "DOBODYSTART" to 14,
+                "BEFOREDO" to 13,
+                "DOBODYSTART" to 15,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFOREDO" to 13,
-                "DOBODYSTART" to 15,
+                "BEFOREDO" to 14,
+                "DOBODYSTART" to 16,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(16, 18))
-        assertSpanEndStatementPositions(cu, listOf(13, 15))
+        assertSpanEndAnnotationPositions(cu, listOf(17, 19))
+        assertSpanEndStatementPositions(cu, listOf(14, 16))
     }
 
     /**

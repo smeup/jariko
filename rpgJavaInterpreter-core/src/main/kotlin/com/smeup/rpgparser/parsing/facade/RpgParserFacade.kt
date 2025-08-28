@@ -642,24 +642,24 @@ class RpgParserFacade {
         val profiling: ProfilingMap = HashMap()
         val elapsed =
             measureNanoTime {
+                val profilingTokens = listOf("@starttrace", "@stoptrace")
                 val inputStream = code.bomInputStream()
                 val lexResult = lex(inputStream)
                 errors.addAll(lexResult.errors)
                 lexResult.root?.forEachIndexed { index, token0 ->
-                    val isInRange = index < lexResult.root.size - 2
+                    val isInRange = index < lexResult.root.size - 1
                     if (isInRange) {
                         val token1 = lexResult.root[index + 1]
-                        val token2 = lexResult.root[index + 2]
                         // Please note the leading spaces added
-                        if (token0.type == LEAD_WS5_Comments &&
-                            token0.text == "".padStart(2) + "PRO" &&
-                            token1.type == COMMENT_SPEC_FIXED &&
-                            token1.text == "F*" &&
-                            token2.type == COMMENTS_TEXT
+                        if (token0.type == COMMENT_SPEC_FIXED &&
+                            token0.text.endsWith("*") &&
+                            token1.type == COMMENTS_TEXT &&
+                            profilingTokens.any{token1.text.lowercase().trim().startsWith(it)}
+
                         ) {
                             // Please note the leading spaces added to the token
-                            val preproc = preprocess(token2.text)
-                            profiling[token2.line] = parseProfiling("".padStart(8) + preproc, errors)
+                            val preproc = preprocess(token1.text)
+                            profiling[token1.line] = parseProfiling("".padStart(8) + preproc, errors)
                         }
                     }
                 }
