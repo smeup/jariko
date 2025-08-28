@@ -7,7 +7,9 @@ private enum class ProcessorLineState {
     CLOSE,
 }
 
-internal class LinesProcessor(private val buffer: BufferedReader) {
+internal class LinesProcessor(
+    private val buffer: BufferedReader,
+) {
     private var state: ProcessorLineState = ProcessorLineState.CLOSE
     private var isLineDDS: Boolean = false
     private var isLineOpened: Boolean = false

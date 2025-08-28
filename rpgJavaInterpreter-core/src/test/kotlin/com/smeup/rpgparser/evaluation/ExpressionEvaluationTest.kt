@@ -7,7 +7,6 @@ import java.util.*
 import kotlin.test.assertEquals
 
 open class ExpressionEvaluationTest {
-
     @Test
     fun stringIsoDate() {
         val calendar = Calendar.getInstance()
@@ -37,21 +36,30 @@ open class ExpressionEvaluationTest {
     fun evaluateEqualityExprTrueCase() {
         val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(
-                BooleanValue(true),
-                interpret(EqualityExpr(IntLiteral(11), dataRefTo(dataDefinition)),
-                mapOf(dataDefinition to IntValue(11))))
+            BooleanValue(true),
+            interpret(
+                EqualityExpr(IntLiteral(11), dataRefTo(dataDefinition)),
+                mapOf(dataDefinition to IntValue(11)),
+            ),
+        )
     }
 
     @Test
     fun evaluateEqualityExprFalseCase() {
         val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(
-                BooleanValue(false),
-                interpret(EqualityExpr(IntLiteral(10), dataRefTo(dataDefinition)),
-                        mapOf(dataDefinition to IntValue(11))))
+            BooleanValue(false),
+            interpret(
+                EqualityExpr(IntLiteral(10), dataRefTo(dataDefinition)),
+                mapOf(dataDefinition to IntValue(11)),
+            ),
+        )
     }
 
-    private fun interpret(expr: Expression, initializations: Map<AbstractDataDefinition, Value> = mapOf()): Value {
+    private fun interpret(
+        expr: Expression,
+        initializations: Map<AbstractDataDefinition, Value> = mapOf(),
+    ): Value {
         val systemInterface = DummySystemInterface
         val interpreter = InternalInterpreter(systemInterface)
         initializations.forEach {

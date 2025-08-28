@@ -23,10 +23,11 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     @Test
     fun executeMUDRNRAPU001129() {
         val messages = mutableListOf<String>()
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ -> messages.add(message) }
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, _ -> messages.add(message) }
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+            }
         executePgm(programName = "smeup/MUDRNRAPU001129", systemInterface = systemInterface)
 
         val expected = listOf("3")
@@ -40,10 +41,11 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     @Test
     fun executeMUDRNRAPU001130() {
         val messages = mutableListOf<String>()
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ -> messages.add(message) }
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, _ -> messages.add(message) }
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+            }
         executePgm(programName = "smeup/MUDRNRAPU001130", systemInterface = systemInterface)
 
         val expected = listOf("11")
@@ -58,10 +60,11 @@ open class MULANGT18ProcedureTest : MULANGTTest() {
     @Test
     fun executeMUDRNRAPU001131() {
         val messages = mutableListOf<String>()
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ -> messages.add(message) }
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, _ -> messages.add(message) }
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+            }
         executePgm(programName = "smeup/MUDRNRAPU001131", systemInterface = systemInterface)
 
         val expected = listOf("2", "73")

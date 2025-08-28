@@ -27,7 +27,6 @@ import org.junit.Test
 import java.io.File
 
 open class RpgParserOverlayTest03 : AbstractTest() {
-
     @Test
     fun parseMUTE03_09_syntax() {
         assertCanBeParsed("overlay/MUTE03_09", withMuteSupport = true)
@@ -48,9 +47,12 @@ open class RpgParserOverlayTest03 : AbstractTest() {
         val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 
-        val interpreter = InternalInterpreter(JavaSystemInterface().apply {
-            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
-        })
+        val interpreter =
+            InternalInterpreter(
+                JavaSystemInterface().apply {
+                    rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+                },
+            )
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)

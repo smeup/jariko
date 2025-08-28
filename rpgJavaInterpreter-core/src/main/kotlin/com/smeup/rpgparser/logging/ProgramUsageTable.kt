@@ -14,7 +14,7 @@ enum class ProgramUsageType {
     SymbolTable,
     Parsing,
     LogRendering,
-    Interpretation
+    Interpretation,
 }
 
 /**
@@ -37,7 +37,11 @@ typealias ProgramUsageTable = HashMap<String, ProgramUsageStats>
  * Records the execution of a statement.
  * @see ILoggableStatement
  */
-fun ProgramUsageTable.recordStatement(program: String, entity: String, time: Duration) {
+fun ProgramUsageTable.recordStatement(
+    program: String,
+    entity: String,
+    time: Duration,
+) {
     val programStats = this.getOrPut(program) { ProgramUsageStats() }
     val measurement = programStats.statements.getOrDefault(entity, UsageMeasurement.new())
     programStats.statements[entity] = measurement.hit(time)
@@ -69,7 +73,11 @@ fun ProgramUsageTable.recordStatement(program: String, entity: String, time: Dur
  * Records the execution of an expression.
  * @see ILoggableExpression
  */
-fun ProgramUsageTable.recordExpression(program: String, entity: String, time: Duration) {
+fun ProgramUsageTable.recordExpression(
+    program: String,
+    entity: String,
+    time: Duration,
+) {
     val programStats = this.getOrPut(program) { ProgramUsageStats() }
     val measurement = programStats.expressions.getOrDefault(entity, UsageMeasurement.new())
     programStats.expressions[entity] = measurement.hit(time)
@@ -79,7 +87,11 @@ fun ProgramUsageTable.recordExpression(program: String, entity: String, time: Du
  * Records an interaction with the symbol table.
  * @see SymbolTableAction
  */
-fun ProgramUsageTable.recordSymbolTableAction(program: String, action: SymbolTableAction, time: Duration) {
+fun ProgramUsageTable.recordSymbolTableAction(
+    program: String,
+    action: SymbolTableAction,
+    time: Duration,
+) {
     val programStats = this.getOrPut(program) { ProgramUsageStats() }
     val measurement = programStats.symbolTableActions.getOrDefault(action, UsageMeasurement.new())
     programStats.symbolTableActions[action] = measurement.hit(time)
@@ -89,7 +101,11 @@ fun ProgramUsageTable.recordSymbolTableAction(program: String, action: SymbolTab
  * Records a parsing step.
  * @see SymbolTableAction
  */
-fun ProgramUsageTable.recordParsing(program: String, step: String, time: Duration) {
+fun ProgramUsageTable.recordParsing(
+    program: String,
+    step: String,
+    time: Duration,
+) {
     val programStats = this.getOrPut(program) { ProgramUsageStats() }
     val measurement = programStats.parsingSteps.getOrDefault(step, UsageMeasurement.new())
     programStats.parsingSteps[step] = measurement.hit(time)

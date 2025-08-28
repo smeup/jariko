@@ -35,7 +35,7 @@ private fun stringBuilderVsDataStructStringBuilder(
     debugInformation: Boolean = false,
     stringSize: Int,
     fields: Int,
-    iterations: Int
+    iterations: Int,
 ) {
     require(stringSize >= fields) { "stringSize must be greater than or equal to elements" }
     require(stringSize % fields == 0) { "stringSize: $stringSize must a multiple of fields: $fields" }
@@ -43,8 +43,10 @@ private fun stringBuilderVsDataStructStringBuilder(
     val chunksSize = stringSize / fields
 
     if (printHeader) {
-        println("stringSize, fields${if (debugInformation) ", chunksSize" else ""}, ratio(sb/indexed_sb), " +
-                "ratio(sb/ds_string_value)${if (debugInformation) ", duration(ms)" else ""}")
+        println(
+            "stringSize, fields${if (debugInformation) ", chunksSize" else ""}, ratio(sb/indexed_sb), " +
+                "ratio(sb/ds_string_value)${if (debugInformation) ", duration(ms)" else ""}",
+        )
     }
 
     print("$stringSize, $fields${if (debugInformation) ", $chunksSize" else ""}")
@@ -52,32 +54,39 @@ private fun stringBuilderVsDataStructStringBuilder(
     val replacingString = "b".repeat(stringSize / fields)
 
     // Measure the duration for StringBuilder
-    val sbDuration = measureTime {
-        val sb = StringBuilder("a".repeat(stringSize))
-        for (i in 0 until iterations) {
-            val replacingChars = stringSize / fields
-            for (j in 0 until fields) {
-                val start: Int = j * replacingChars
-                val end: Int = start + replacingChars
-                sb.replace(start, end, replacingString)
+    val sbDuration =
+        measureTime {
+            val sb = StringBuilder("a".repeat(stringSize))
+            for (i in 0 until iterations) {
+                val replacingChars = stringSize / fields
+                for (j in 0 until fields) {
+                    val start: Int = j * replacingChars
+                    val end: Int = start + replacingChars
+                    sb.replace(start, end, replacingString)
+                }
             }
         }
-    }
 
     // Measure the duration for IndexedBuilderBuilder
-    val indexedSbDuration = measureTime {
-        val indexedSb = IndexedStringBuilder("a".repeat(stringSize), chunksSize)
-        for (i in 0 until iterations) {
-            val replacingChars = stringSize / fields
-            for (j in 0 until fields) {
-                val start: Int = j * replacingChars
-                val end: Int = start + replacingChars
-                indexedSb.replace(start, end, replacingString)
+    val indexedSbDuration =
+        measureTime {
+            val indexedSb = IndexedStringBuilder("a".repeat(stringSize), chunksSize)
+            for (i in 0 until iterations) {
+                val replacingChars = stringSize / fields
+                for (j in 0 until fields) {
+                    val start: Int = j * replacingChars
+                    val end: Int = start + replacingChars
+                    indexedSb.replace(start, end, replacingString)
+                }
             }
         }
-    }
 
-    val ratioSbIndexed = sbDuration.div(indexedSbDuration).toBigDecimal().setScale(2, RoundingMode.HALF_DOWN).toDouble()
+    val ratioSbIndexed =
+        sbDuration
+            .div(indexedSbDuration)
+            .toBigDecimal()
+            .setScale(2, RoundingMode.HALF_DOWN)
+            .toDouble()
     println(", $ratioSbIndexed${if (debugInformation) ", ${sbDuration.plus(indexedSbDuration).toLong(DurationUnit.MILLISECONDS)}" else ""}")
 }
 
@@ -111,7 +120,14 @@ private fun createPerformanceComparisonDataset() {
                 printHeader = stringSize == startStringSizeValue && fields == 1,
                 stringSize = stringSize,
                 fields = fields,
-                iterations = if (stringSize * fields < 100_000) 1_000_000 else if (stringSize * fields < 1_000_000) 100_000 else 100
+                iterations =
+                    if (stringSize * fields < 100_000) {
+                        1_000_000
+                    } else if (stringSize * fields < 1_000_000) {
+                        100_000
+                    } else {
+                        100
+                    },
             )
         }
     }

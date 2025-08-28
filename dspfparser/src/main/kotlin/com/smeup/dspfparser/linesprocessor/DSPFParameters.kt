@@ -22,20 +22,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFParameters(
-    val arguments: MutableList<String> = mutableListOf()
+    val arguments: MutableList<String> = mutableListOf(),
 ) {
     companion object {
-        fun fromString(text: String): DSPFParameters {
-            return DSPFParameters(this.getArguments(text))
-        }
+        fun fromString(text: String): DSPFParameters = DSPFParameters(this.getArguments(text))
 
-        private fun removeBrackets(text: String): String {
-            return text.removeFirst('(').removeLast(')')
-        }
+        private fun removeBrackets(text: String): String = text.removeFirst('(').removeLast(')')
 
-        private fun removeSingleQuotes(text: String): String {
-            return text.removeFirst('\'').removeLast('\'')
-        }
+        private fun removeSingleQuotes(text: String): String = text.removeFirst('\'').removeLast('\'')
 
         private fun getArguments(text: String): MutableList<String> {
             val arguments: MutableList<String> = mutableListOf()

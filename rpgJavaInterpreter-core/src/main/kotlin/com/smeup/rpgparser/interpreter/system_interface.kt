@@ -18,9 +18,7 @@ import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
 
-fun Collection<InterpreterLogHandler>.isErrorChannelConfigured(): Boolean {
-    return find { it is ErrorLogHandler } != null
-}
+fun Collection<InterpreterLogHandler>.isErrorChannelConfigured(): Boolean = find { it is ErrorLogHandler } != null
 
 fun consoleVerboseConfiguration(): LoggingConfiguration {
     val props = Properties()
@@ -57,32 +55,55 @@ fun consoleVerboseConfiguration(): LoggingConfiguration {
  */
 interface SystemInterface {
     fun display(value: String)
+
     fun findProgram(name: String): Program?
-    fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function?
+
+    fun findFunction(
+        globalSymbolTable: ISymbolTable,
+        name: String,
+    ): Function?
+
     fun findCopy(copyId: CopyId): Copy?
+
     /**
      * @return API descriptor
      * */
     fun findApiDescriptor(apiId: ApiId): ApiDescriptor
+
     /**
      * @return API
      * */
     fun findApi(apiId: ApiId): Api
+
     fun loggingConfiguration(): LoggingConfiguration?
+
     fun addExtraLogHandlers(logHandlers: List<InterpreterLogHandler>): SystemInterface {
         extraLogHandlers.addAll(logHandlers)
         return this
     }
 
     val extraLogHandlers: MutableList<InterpreterLogHandler>
-    fun getAllLogHandlers() = (configureLog(
-        this.loggingConfiguration() ?: defaultLoggingConfiguration()
-    ) + this.extraLogHandlers).toMutableList()
+
+    fun getAllLogHandlers() =
+        (
+            configureLog(
+                this.loggingConfiguration() ?: defaultLoggingConfiguration(),
+            ) + this.extraLogHandlers
+        ).toMutableList()
 
     val executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted>
+
     fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted>
-    fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
-    fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
+
+    fun addExecutedAnnotation(
+        line: Int,
+        annotation: MuteAnnotationExecuted,
+    )
+
+    fun registerProgramExecutionStart(
+        program: Program,
+        params: Map<String, Value>,
+    ) {
         // do nothing by default
     }
 
@@ -102,13 +123,12 @@ object DummySystemInterface : SystemInterface {
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
 
-    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
-        return null
-    }
+    override fun findFunction(
+        globalSymbolTable: ISymbolTable,
+        name: String,
+    ): Function? = null
 
-    override fun findProgram(name: String): Program? {
-        return null
-    }
+    override fun findProgram(name: String): Program? = null
 
     override fun findCopy(copyId: CopyId): Copy? {
         TODO("'DummySystemInterface.findCopy' is not yet implemented")
@@ -118,13 +138,14 @@ object DummySystemInterface : SystemInterface {
         // doing nothing
     }
 
-    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+    override fun addExecutedAnnotation(
+        line: Int,
+        annotation: MuteAnnotationExecuted,
+    ) {
         executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
-        return executedAnnotationInternal
-    }
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> = executedAnnotationInternal
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
         TODO("'DummySystemInterface.findApiDescriptor' is not yet implemented")
@@ -138,7 +159,7 @@ object DummySystemInterface : SystemInterface {
 class SimpleSystemInterface(
     var loggingConfiguration: LoggingConfiguration? = null,
     val programFinders: List<RpgProgramFinder> = emptyList(),
-    val output: PrintStream? = null
+    val output: PrintStream? = null,
 ) : SystemInterface {
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
         LinkedHashMap<Int, MuteAnnotationExecuted>()
@@ -146,9 +167,10 @@ class SimpleSystemInterface(
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
 
-    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
-        return null
-    }
+    override fun findFunction(
+        globalSymbolTable: ISymbolTable,
+        name: String,
+    ): Function? = null
 
     override fun findCopy(copyId: CopyId): Copy? {
         TODO("'SimpleSystemInterface.findCopy' is not yet implemented")
@@ -158,9 +180,11 @@ class SimpleSystemInterface(
 
     override fun findProgram(name: String): Program? {
         programs.computeIfAbsent(name) {
-            programFinders.asSequence().mapNotNull {
-                it.findRpgProgram(name)
-            }.firstOrNull()
+            programFinders
+                .asSequence()
+                .mapNotNull {
+                    it.findRpgProgram(name)
+                }.firstOrNull()
         }
         return programs[name]
     }
@@ -178,13 +202,14 @@ class SimpleSystemInterface(
         return this
     }
 
-    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+    override fun addExecutedAnnotation(
+        line: Int,
+        annotation: MuteAnnotationExecuted,
+    ) {
         executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
-        return executedAnnotationInternal
-    }
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> = executedAnnotationInternal
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
         TODO("'SimpleSystemInterface.findApiDescriptor' is not yet implemented")

@@ -25,16 +25,19 @@ import kotlin.test.assertEquals
 import org.junit.Test as test
 
 class FileDefinitionTest : AbstractTest() {
-
     @test fun singleFileParsing() {
         val cu = parseFragmentToCompilationUnit("FQATOCHOST if   e           k disk")
         cu.assertFileDefinitionIsPresent("QATOCHOST")
     }
 
     @test fun multipleFileParsing() {
-        val cu = parseFragmentToCompilationUnit(listOf(
-                "FFirst     if   e           k disk ",
-                "FSecond    if   e           k disk    rename(TSTREC:TSTREC2)"))
+        val cu =
+            parseFragmentToCompilationUnit(
+                listOf(
+                    "FFirst     if   e           k disk ",
+                    "FSecond    if   e           k disk    rename(TSTREC:TSTREC2)",
+                ),
+            )
         cu.assertFileDefinitionIsPresent("First")
         cu.assertFileDefinitionIsPresent("Second")
         val secondFileDefinition = cu.getFileDefinition("Second")
@@ -48,7 +51,8 @@ class FileDefinitionTest : AbstractTest() {
             considerPosition = true,
             afterAstCreation = { compilationUnit ->
                 assertEquals(listOf(), compilationUnit.resolveAndValidate())
-            })
+            },
+        )
     }
 
     @Test
@@ -58,7 +62,8 @@ class FileDefinitionTest : AbstractTest() {
             considerPosition = true,
             afterAstCreation = { compilationUnit ->
                 assertEquals(listOf(), compilationUnit.resolveAndValidate())
-            })
+            },
+        )
     }
 
     @Test
@@ -68,7 +73,8 @@ class FileDefinitionTest : AbstractTest() {
             considerPosition = true,
             afterAstCreation = { compilationUnit ->
                 assertEquals(listOf(), compilationUnit.resolveAndValidate())
-            })
+            },
+        )
     }
 
     @Test
@@ -78,7 +84,8 @@ class FileDefinitionTest : AbstractTest() {
             considerPosition = true,
             afterAstCreation = { compilationUnit ->
                 assertEquals(listOf(), compilationUnit.resolveAndValidate())
-            })
+            },
+        )
     }
 
     @Test
@@ -88,6 +95,7 @@ class FileDefinitionTest : AbstractTest() {
             considerPosition = true,
             afterAstCreation = { compilationUnit ->
                 assertEquals(listOf(), compilationUnit.resolveAndValidate())
-            })
+            },
+        )
     }
 }

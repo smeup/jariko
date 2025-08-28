@@ -45,7 +45,7 @@ enum class AstHandlingPhase {
     CompileTimeArraysCreation,
     DirectivesCreation,
     ProceduresCreation,
-    Resolution
+    Resolution,
 }
 
 data class ToAstConfiguration(
@@ -55,12 +55,24 @@ data class ToAstConfiguration(
      * Called in case of error occurred after the AstHandlingPhase, it must be return
      * if to continue or not. Default continue excepts after Resolution
      * */
-    var afterPhaseErrorContinue: (phase: AstHandlingPhase) -> Boolean = { phase -> phase != AstHandlingPhase.Resolution }
+    var afterPhaseErrorContinue: (phase: AstHandlingPhase) -> Boolean = { phase -> phase != AstHandlingPhase.Resolution },
 )
 
 fun List<Node>.position(): Position? {
-    val start = this.asSequence().map { it.position?.start }.filterNotNull().sorted().toList()
-    val end = this.asSequence().map { it.position?.end }.filterNotNull().sorted().toList()
+    val start =
+        this
+            .asSequence()
+            .map { it.position?.start }
+            .filterNotNull()
+            .sorted()
+            .toList()
+    val end =
+        this
+            .asSequence()
+            .map { it.position?.end }
+            .filterNotNull()
+            .sorted()
+            .toList()
     return if (start.isEmpty() || end.isEmpty()) {
         null
     } else {
@@ -70,27 +82,35 @@ fun List<Node>.position(): Position? {
 
 internal interface DataDefinitionProvider {
     fun isReady(): Boolean
+
     fun toDataDefinition(): DataDefinition
 }
-private data class DataDefinitionHolder(val dataDefinition: DataDefinition) : DataDefinitionProvider {
+
+private data class DataDefinitionHolder(
+    val dataDefinition: DataDefinition,
+) : DataDefinitionProvider {
     override fun isReady() = true
+
     override fun toDataDefinition() = dataDefinition
 }
-private data class DataDefinitionCalculator(val calculator: () -> DataDefinition) : DataDefinitionProvider {
+
+private data class DataDefinitionCalculator(
+    val calculator: () -> DataDefinition,
+) : DataDefinitionProvider {
     override fun isReady() = false
+
     override fun toDataDefinition() = calculator()
 }
 
 internal object KnownDataDefinition {
-    fun getInstance(): KnownDataDefinitionInstance {
-        return if (MainExecutionContext.getParsingProgramStack().empty()) {
+    fun getInstance(): KnownDataDefinitionInstance =
+        if (MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getAttributes()
         } else {
             MainExecutionContext.getParsingProgramStack().peek().attributes
         }.computeIfAbsent("com.smeup.rpgparser.parsing.parsetreetoast.KnownDataDefinition") {
             mutableMapOf<String, DataDefinition>()
         } as MutableMap<String, DataDefinition>
-    }
 }
 
 typealias KnownDataDefinitionInstance = MutableMap<String, DataDefinition>
@@ -101,7 +121,7 @@ private fun List<StatementContext?>.getDataDefinition(
     inputSpecifications: List<InputSpecificationGroup> = emptyList(),
     parentDataDefinitions: List<DataDefinition>? = null,
     useKnownDataDefinitionInstance: Boolean = false,
-    procedureName: String? = null
+    procedureName: String? = null,
 ): Pair<MutableList<DataDefinitionProvider>, KnownDataDefinitionInstance> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
@@ -121,37 +141,40 @@ private fun List<StatementContext?>.getDataDefinition(
      * Step 1: Move the D specs with like because depending on other D specs definitions
      * Step 2: Split statements marked as CONST from the rest
      */
-    val (constants, sortedStatements) = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf).splitConstants()
+        val (constants, sortedStatements) = this.filterNotNull().moveLikeStatementToTheEnd(conf = conf).splitConstants()
 
     // Define constants
-    val constantProviders = constants.getValidDataDefinitionHolders(
-        conf = conf,
-        knownDataDefinitions = knownDataDefinitions,
-        fileDefinitions = fileDefinitions,
-        parentDataDefinitions = parentDataDefinitions,
-        procedureName = procedureName
-    )
+    val constantProviders =
+        constants.getValidDataDefinitionHolders(
+            conf = conf,
+            knownDataDefinitions = knownDataDefinitions,
+            fileDefinitions = fileDefinitions,
+            parentDataDefinitions = parentDataDefinitions,
+            procedureName = procedureName,
+        )
     dataDefinitionProviders.addOrReplaceAll(constantProviders)
 
     // First pass ignore exception and all the know definitions
-    val firstPassProviders = sortedStatements.mapNotNull {
-        it.toDataDefinitionProvider(
-            conf = conf,
-            knownDataDefinitions = knownDataDefinitions,
-            parentDataDefinitions = parentDataDefinitions,
-            fileDefinitions = fileDefinitions
-        )
-    }
+    val firstPassProviders =
+        sortedStatements.mapNotNull {
+            it.toDataDefinitionProvider(
+                conf = conf,
+                knownDataDefinitions = knownDataDefinitions,
+                parentDataDefinitions = parentDataDefinitions,
+                fileDefinitions = fileDefinitions,
+            )
+        }
     dataDefinitionProviders.addOrReplaceAll(firstPassProviders)
 
     // Second pass, everything, I mean everything
-    val secondPassProviders = sortedStatements.getValidDataDefinitionHolders(
-        conf = conf,
-        knownDataDefinitions = knownDataDefinitions,
-        fileDefinitions = fileDefinitions,
-        parentDataDefinitions = parentDataDefinitions,
-        procedureName = procedureName
-    )
+    val secondPassProviders =
+        sortedStatements.getValidDataDefinitionHolders(
+            conf = conf,
+            knownDataDefinitions = knownDataDefinitions,
+            fileDefinitions = fileDefinitions,
+            parentDataDefinitions = parentDataDefinitions,
+            procedureName = procedureName,
+        )
     dataDefinitionProviders.addOrReplaceAll(secondPassProviders)
 
     return Pair(dataDefinitionProviders, knownDataDefinitions)
@@ -173,7 +196,13 @@ private fun List<StatementContext?>.getDataDefinition(
  */
 private fun MutableList<DataDefinitionProvider>.addOrReplaceAll(dataDefinitions: List<DataDefinitionProvider>) {
     val dataDefinitionsMutable = dataDefinitions.toMutableList()
-    this.replaceAll { old -> dataDefinitionsMutable.firstOrNull { new -> old.toDataDefinition().name.equals(new.toDataDefinition().name, ignoreCase = true) }?.also { dataDefinitionsMutable.remove(it) } ?: old }
+    this.replaceAll { old ->
+        dataDefinitionsMutable
+            .firstOrNull { new ->
+                old.toDataDefinition().name.equals(new.toDataDefinition().name, ignoreCase = true)
+            }?.also { dataDefinitionsMutable.remove(it) }
+            ?: old
+    }
     this.addAll(dataDefinitionsMutable)
 }
 
@@ -182,46 +211,50 @@ private fun List<StatementContext>.getValidDataDefinitionHolders(
     knownDataDefinitions: KnownDataDefinitionInstance,
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
     parentDataDefinitions: List<DataDefinition>? = null,
-    procedureName: String? = null
-): List<DataDefinitionHolder> {
-    return this.mapNotNullOrError {
+    procedureName: String? = null,
+): List<DataDefinitionHolder> =
+    this.mapNotNullOrError {
         when {
             it.dspec() != null -> {
-                it.dspec().toAst(
-                    conf = conf,
-                    knownDataDefinitions = knownDataDefinitions.values.toList(),
-                    parentDataDefinitions = parentDataDefinitions,
-                    fileDefinitions = fileDefinitions,
-                    procedureName = procedureName
-                ).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                it
+                    .dspec()
+                    .toAst(
+                        conf = conf,
+                        knownDataDefinitions = knownDataDefinitions.values.toList(),
+                        parentDataDefinitions = parentDataDefinitions,
+                        fileDefinitions = fileDefinitions,
+                        procedureName = procedureName,
+                    ).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
             }
             it.dcl_c() != null -> it.dcl_c().toAst(conf).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
             else -> null
         }
     }
-}
 
 private fun RContext.getDataDefinitions(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
-    inputSpecifications: List<InputSpecificationGroup> = emptyList()
+    inputSpecifications: List<InputSpecificationGroup> = emptyList(),
 ): List<DataDefinition> {
-    val (providers) = this.statement().getDataDefinition(
-        conf = conf,
-        fileDefinitions = fileDefinitions,
-        inputSpecifications = inputSpecifications,
-        useKnownDataDefinitionInstance = true
-    )
+    val (providers) =
+        this.statement().getDataDefinition(
+            conf = conf,
+            fileDefinitions = fileDefinitions,
+            inputSpecifications = inputSpecifications,
+            useKnownDataDefinitionInstance = true,
+        )
     return providers.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
 }
 
 private fun List<StatementContext>.moveLikeStatementToTheEnd(conf: ToAstConfiguration): List<StatementContext> {
-    val likeStatements = this.filter {
-        it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false
-    }
-    val otherStatements = this.filter {
-        !(it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false)
-    }
+    val likeStatements =
+        this.filter {
+            it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false
+        }
+    val otherStatements =
+        this.filter {
+            !(it.dcl_ds()?.useLikeDs(conf = conf) ?: it.dspec()?.useLike() ?: false)
+        }
     return otherStatements + likeStatements
 }
 
@@ -232,16 +265,19 @@ private fun List<StatementContext>.splitConstants(): Pair<List<StatementContext>
     return Pair(constantStatements, otherStatements)
 }
 
-private fun StatementContext.isConstant() = when {
-    this.dcl_c() != null -> this.dcl_c().keyword_const() != null
-    this.dspec() != null -> this.dspec().keyword().any { keyword -> keyword.keyword_const() != null } || this.dspec().dspecConstant() != null
-    else -> false
-}
+private fun StatementContext.isConstant() =
+    when {
+        this.dcl_c() != null -> this.dcl_c().keyword_const() != null
+        this.dspec() != null ->
+            this.dspec().keyword().any { keyword -> keyword.keyword_const() != null } ||
+                this.dspec().dspecConstant() != null
+        else -> false
+    }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
-    knownDataDefinitions: MutableMap<String, DataDefinition>
+    knownDataDefinitions: MutableMap<String, DataDefinition>,
 ): DataDefinitionHolder {
-        knownDataDefinitions.addIfNotPresent(this)
+    knownDataDefinitions.addIfNotPresent(this)
     return DataDefinitionHolder(this)
 }
 
@@ -257,7 +293,12 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
     if (
         old == null ||
         (old.type is RecordFormatType && dataDefinition.type is DataStructureType) ||
-        (old.fromFile && old.type is StringType && (dataDefinition.type is DataStructureType || dataDefinition.type is StringType) && old.type.size == dataDefinition.type.size)
+        (
+            old.fromFile &&
+                old.type is StringType &&
+                (dataDefinition.type is DataStructureType || dataDefinition.type is StringType) &&
+                old.type.size == dataDefinition.type.size
+        )
     ) {
         put(dataDefinition.name, dataDefinition)
     } else {
@@ -265,41 +306,46 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
     }
 }
 
-private fun FileDefinition.loadMetadata(): FileMetadata {
-    return when {
+private fun FileDefinition.loadMetadata(): FileMetadata =
+    when {
         fileType == FileType.PRINTER -> {
             FileMetadata(
                 name = this.name,
                 tableName = this.name,
                 recordFormat = this.internalFormatName ?: this.name,
                 fields = emptyList(),
-                accessFields = emptyList()
+                accessFields = emptyList(),
             )
         }
         (fileType == FileType.DB || MainExecutionContext.getConfiguration().dspfConfig == null) -> {
-            val reloadConfig = MainExecutionContext.getConfiguration()
-                .reloadConfig
-                ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+            val reloadConfig =
+                MainExecutionContext
+                    .getConfiguration()
+                    .reloadConfig
+                    ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
 
-            kotlin.runCatching {
-                reloadConfig.metadataProducer.invoke(name)
-            }.onFailure { error ->
-                error("Not found metadata for $this", error)
-            }.getOrNull() ?: error("Not found metadata for $this")
+            kotlin
+                .runCatching {
+                    reloadConfig.metadataProducer.invoke(name)
+                }.onFailure { error ->
+                    error("Not found metadata for $this", error)
+                }.getOrNull() ?: error("Not found metadata for $this")
         }
         (fileType == FileType.VIDEO) -> {
-            val dspfConfig = MainExecutionContext.getConfiguration()
-                .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
+            val dspfConfig =
+                MainExecutionContext
+                    .getConfiguration()
+                    .dspfConfig ?: error("Not found metadata for $this because missing property dspfConfig in configuration")
 
-            kotlin.runCatching {
-                dspfConfig.metadataProducer.invoke(name)
-            }.onFailure { error ->
-                error("Not found metadata for $this", error)
-            }.getOrNull() ?: error("Not found metadata for $this")
+            kotlin
+                .runCatching {
+                    dspfConfig.metadataProducer.invoke(name)
+                }.onFailure { error ->
+                    error("Not found metadata for $this", error)
+                }.getOrNull() ?: error("Not found metadata for $this")
         }
         else -> error("Unhandled file type $fileType")
     }
-}
 
 internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     val dataDefinitions = mutableListOf<DataDefinition>()
@@ -312,24 +358,26 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             dbField.toDataDefinition(prefix = prefix, position = position, fromFile = true).apply {
                 createDbFieldDataDefinitionRelation(dbField.fieldName, name)
             }
-        }
+        },
     )
 
     // These are the fields related the record format, these fields will
     // be used in assignment operation to lookup for the DataDefinitions related these fields
-    val fieldsDefinition = dataDefinitions.map {
-        // explicitStartOffset and explicitEndOffsets set to zero are wanted
-        FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
-    }
+    val fieldsDefinition =
+        dataDefinitions.map {
+            // explicitStartOffset and explicitEndOffsets set to zero are wanted
+            FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
+        }
     // record format possibly for file video is unuseful
     if (fileType == FileType.DB) {
-        val recordFormatDefinition = DataDefinition(
-            internalFormatName!!,
-            type = RecordFormatType,
-            position = position,
-            fields = fieldsDefinition,
-            fromFile = true
-        )
+        val recordFormatDefinition =
+            DataDefinition(
+                internalFormatName!!,
+                type = RecordFormatType,
+                position = position,
+                fields = fieldsDefinition,
+                fromFile = true,
+            )
 
         dataDefinitions.add(recordFormatDefinition)
     }
@@ -337,24 +385,44 @@ internal fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
     return dataDefinitions
 }
 
-fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
-    val fileDefinitions = this.statement()
-        .mapNotNull { statement ->
-            when {
-                statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
-                    kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
+fun RContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    source: String? = null,
+    copyBlocks: CopyBlocks? = null,
+): CompilationUnit {
+    val fileDefinitions =
+        this
+            .statement()
+            .mapNotNull { statement ->
+                when {
+                    statement.fspec_fixed() != null ->
+                        statement.fspec_fixed().runParserRuleContext(conf) { context ->
+                            kotlin
+                                .runCatching {
+                                    context.toAst(conf).let { dataDefinition ->
+                                        dataDefinition to dataDefinition.toDataDefinitions()
+                                    }
+                                }.getOrNull()
+                        }
+                    statement.dcl_ds()?.useExtName() ?: false ->
+                        statement.dcl_ds().runParserRuleContext(conf) { context ->
+                            kotlin
+                                .runCatching {
+                                    context.toAstWithParameters(conf).let { extNameDefinition ->
+                                        extNameDefinition to
+                                            extNameDefinition.toDataDefinitions()
+                                    }
+                                }.getOrNull()
+                        }
+                    else -> null
                 }
-                statement.dcl_ds()?.useExtName() ?: false -> statement.dcl_ds().runParserRuleContext(conf) { context ->
-                    kotlin.runCatching { context.toAstWithParameters(conf).let { extNameDefinition -> extNameDefinition to extNameDefinition.toDataDefinitions() } }.getOrNull()
-                }
-                else -> null
-            }
-        }.toMap()
+            }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
-    val inputSpecifications = this.findAllDescendants(Ispec_fixedContext::class).mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    }
+    val inputSpecifications =
+        this.findAllDescendants(Ispec_fixedContext::class).mapNotNull {
+            it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+        }
     checkAstCreationErrors(phase = AstHandlingPhase.InputSpecificationsCreation)
 
     val dataDefinitions = getDataDefinitions(conf, fileDefinitions, inputSpecifications.grouped())
@@ -362,55 +430,73 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     val displayFiles = fileDefinitions.keys.toList().toDSPF()
 
-    val mainStmts = this.statement().mapNotNull {
-        when {
-            it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
-                kotlin.runCatching { context.toAst(conf) }.getOrNull()
+    val mainStmts =
+        this.statement().mapNotNull {
+            when {
+                it.cspec_fixed() != null ->
+                    it.cspec_fixed().runParserRuleContext(conf) { context ->
+                        kotlin.runCatching { context.toAst(conf) }.getOrNull()
+                    }
+                it.block() != null ->
+                    it.block().runParserRuleContext(conf) { context ->
+                        kotlin.runCatching { context.toAst(conf) }.getOrNull()
+                    }
+                it.free() != null ->
+                    it.free().runParserRuleContext(conf) { context ->
+                        kotlin.runCatching { context.toAst(conf) }.getOrNull()
+                    }
+                else -> null
             }
-            it.block() != null -> it.block().runParserRuleContext(conf) { context ->
-                kotlin.runCatching { context.toAst(conf) }.getOrNull()
-            }
-            it.free() != null -> it.free().runParserRuleContext(conf) { context ->
-                kotlin.runCatching { context.toAst(conf) }.getOrNull()
-            }
-            else -> null
         }
-    }
     checkAstCreationErrors(phase = AstHandlingPhase.MainStatementsCreation)
 
-    val subroutines = this.subroutine().mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    }
+    val subroutines =
+        this.subroutine().mapNotNull {
+            it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+        }
     checkAstCreationErrors(phase = AstHandlingPhase.SubroutinesCreation)
 
-    val compileTimeArrays = this.endSourceBlock()?.endSource()?.mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    } ?: emptyList()
+    val compileTimeArrays =
+        this.endSourceBlock()?.endSource()?.mapNotNull {
+            it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+        } ?: emptyList()
     checkAstCreationErrors(phase = AstHandlingPhase.CompileTimeArraysCreation)
 
-    val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
-    }.flatten()
+    val directives =
+        this
+            .findAllDescendants(Hspec_fixedContext::class)
+            .mapNotNull {
+                it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+            }.flatten()
     checkAstCreationErrors(phase = AstHandlingPhase.DirectivesCreation)
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
-    var procedures = this.procedure().mapNotNull {
-        it.runParserRuleContext(conf) {
-            context -> kotlin.runCatching {
-                context.toAst(conf, dataDefinitions, fileDefinitions.keys.filter { !it.justExtName }.toList())
-            }.getOrNull()
-        }
-    }.let {
-        if (it.isEmpty()) null
-        else it
-    }
+    var procedures =
+        this
+            .procedure()
+            .mapNotNull {
+                it.runParserRuleContext(conf) { context ->
+                    kotlin
+                        .runCatching {
+                            context.toAst(conf, dataDefinitions, fileDefinitions.keys.filter { !it.justExtName }.toList())
+                        }.getOrNull()
+                }
+            }.let {
+                if (it.isEmpty()) {
+                    null
+                } else {
+                    it
+                }
+            }
     checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
-    val procedurePrototypes = getProcedurePrototypes(rContext = this,
-        conf = conf,
-        dataDefinitions = dataDefinitions,
-        procedures = procedures
-    )
+    val procedurePrototypes =
+        getProcedurePrototypes(
+            rContext = this,
+            conf = conf,
+            dataDefinitions = dataDefinitions,
+            procedures = procedures,
+        )
 
     if (null == procedures) {
         if (procedurePrototypes.isNotEmpty()) {
@@ -420,7 +506,11 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         (procedures as ArrayList).addAll(procedurePrototypes)
     }
 
-    val dataAreas = mainStmts.explode(false).filterIsInstance<DefineDataAreaStmt>().associate { stmt -> stmt.internalName to stmt.externalName }
+    val dataAreas =
+        mainStmts.explode(false).filterIsInstance<DefineDataAreaStmt>().associate { stmt ->
+            stmt.internalName to
+                stmt.externalName
+        }
 
     return CompilationUnit(
         // in fileDefinitions must go only FileDefinition related to F specs
@@ -436,7 +526,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         source = source,
         copyBlocks = copyBlocks,
         displayFiles = displayFiles,
-        dataAreas = dataAreas
+        dataAreas = dataAreas,
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
@@ -451,7 +541,7 @@ private fun getProcedurePrototypes(
     rContext: RContext,
     conf: ToAstConfiguration,
     dataDefinitions: List<DataDefinition>,
-    procedures: List<CompilationUnit>?
+    procedures: List<CompilationUnit>?,
 ): List<CompilationUnit> {
     /*
      * Could be prototype procedures definition. The construction is performed:
@@ -463,18 +553,24 @@ private fun getProcedurePrototypes(
             .filterIsInstance<Dcl_prContext>()
             .filter { procedures?.firstOrNull { p -> p.procedureName == it.getName() } == null }
             .associate { it ->
-                val procedureName: String = it.children.firstOrNull { it is PrBeginContext }.let { (it as PrBeginContext).ds_name().NAME().text }
-                val procedureDataDefinitions = it.children.filterIsInstance<Parm_fixedContext>().map {
-                    val dataDefinition: DataDefinition = it.toAst(conf, dataDefinitions.toList())
-                    dataDefinition.paramPassedBy = it.getParamPassedBy()
-                    dataDefinition.paramOptions = it.getParamOptions()
+                val procedureName: String =
+                    it.children.firstOrNull { it is PrBeginContext }.let {
+                        (it as PrBeginContext)
+                            .ds_name()
+                            .NAME()
+                            .text
+                    }
+                val procedureDataDefinitions =
+                    it.children.filterIsInstance<Parm_fixedContext>().map {
+                        val dataDefinition: DataDefinition = it.toAst(conf, dataDefinitions.toList())
+                        dataDefinition.paramPassedBy = it.getParamPassedBy()
+                        dataDefinition.paramOptions = it.getParamOptions()
 
-                    dataDefinition
-                }
+                        dataDefinition
+                    }
 
                 procedureName to procedureDataDefinitions
-            }
-            .toMap()
+            }.toMap()
 
     return prototypeProcedures.map {
         CompilationUnit(
@@ -488,7 +584,7 @@ private fun getProcedurePrototypes(
             position = null,
             apiDescriptors = null,
             procedureName = it.key,
-            proceduresParamsDataDefinitions = it.value
+            proceduresParamsDataDefinitions = it.value,
         )
     }
 }
@@ -496,7 +592,11 @@ private fun getProcedurePrototypes(
 /**
  * Gets the name of procedure
  */
-private fun Dcl_prContext.getName(): String = this.children.firstOrNull { it is PrBeginContext }.let { (it as PrBeginContext).ds_name().NAME().text }
+private fun Dcl_prContext.getName(): String =
+    this.children
+        .firstOrNull {
+            it is PrBeginContext
+        }.let { (it as PrBeginContext).ds_name().NAME().text }
 
 /**
  * Gets how the param is passed. If isn't set Const or Value, the param is passed by Reference.
@@ -516,14 +616,18 @@ private fun Parm_fixedContext.getParamPassedBy(): ParamPassedBy {
 /**
  * Get a list of param options, if they exist.
  */
-private fun Parm_fixedContext.getParamOptions(): List<ParamOption> {
-    return this.keyword().filter { it.keyword_options() != null }.flatMap { it ->
+private fun Parm_fixedContext.getParamOptions(): List<ParamOption> =
+    this.keyword().filter { it.keyword_options() != null }.flatMap { it ->
         it.keyword_options().identifier().map {
-            val keyword = it.free_identifier().idOrKeyword().ID().toString()
+            val keyword =
+                it
+                    .free_identifier()
+                    .idOrKeyword()
+                    .ID()
+                    .toString()
             ParamOption.getByKeyword(keyword)
         }
     }
-}
 
 private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
     val keywordLikeDs = this.keyword_likeds()
@@ -533,18 +637,18 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
     return (this.keyword().any { it.keyword_likeds() != null })
 }
 
-private fun DspecContext.useLike(): Boolean {
-    return this.keyword().any { it.keyword_like() != null }
-}
+private fun DspecContext.useLike(): Boolean = this.keyword().any { it.keyword_like() != null }
 
-private fun Dcl_dsContext.useExtName(): Boolean {
-    return this.keyword().any { it.keyword_extname() != null }
-}
+private fun Dcl_dsContext.useExtName(): Boolean = this.keyword().any { it.keyword_extname() != null }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
     fun cName(s: String) =
         if (s.trim().matches(Regex("^\\*\\*[\\s]*(CTDATA)*([\\s]+[\\S]+)\$"))) {
-            s.substringAfter("**").trim().substringAfter("CTDATA").trim()
+            s
+                .substringAfter("**")
+                .trim()
+                .substringAfter("CTDATA")
+                .trim()
         } else {
             s.replace(s, "")
         }
@@ -552,65 +656,85 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     return CompileTimeArray(
         cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA name
         this.endSourceLine().map { it.endSourceLineText().text },
-        toPosition(conf.considerPosition)
+        toPosition(conf.considerPosition),
     )
 }
 
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
-    val statements = this.statement().mapNotNull {
-        kotlin.runCatching {
-            it.runParserRuleContext(conf) { context -> context.toAst(conf) }
-        }.getOrNull()
-    }
+    val statements =
+        this.statement().mapNotNull {
+            kotlin
+                .runCatching {
+                    it.runParserRuleContext(conf) { context -> context.toAst(conf) }
+                }.getOrNull()
+        }
     return Subroutine(
-        this.begsr().csBEGSR().factor1.text,
+        this
+            .begsr()
+            .csBEGSR()
+            .factor1.text,
         statements,
-        this.endsr().csENDSR().factor1.text,
-        toPosition(conf.considerPosition)
+        this
+            .endsr()
+            .csENDSR()
+            .factor1.text,
+        toPosition(conf.considerPosition),
     )
 }
 
 internal fun ProcedureContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     parentDataDefinitions: List<DataDefinition>,
-    parentFileDefinitions: List<FileDefinition>
+    parentFileDefinitions: List<FileDefinition>,
 ): CompilationUnit {
-    val procedureName = this.beginProcedure().psBegin().ps_name().text
-    MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
+    val procedureName =
+        this
+            .beginProcedure()
+            .psBegin()
+            .ps_name()
+            .text
+    MainExecutionContext
+        .getParsingProgramStack()
+        .peek()
+        .parsingFunctionNameStack
+        .push(procedureName)
 
     // FileDefinitions
     val fileDefinitions = parentFileDefinitions
 
     // DataDefinitions
-    val dataDefinitions = getDataDefinitions(
-        conf = conf,
-        parentDataDefinitions = parentDataDefinitions,
-        procedureName = procedureName
-    )
+    val dataDefinitions =
+        getDataDefinitions(
+            conf = conf,
+            parentDataDefinitions = parentDataDefinitions,
+            procedureName = procedureName,
+        )
 
     // Procedure Parameters DataDefinitions
     val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
 
     // MainBody (list of Statements)
-    val mainStmts = this.subprocedurestatement().mapNotNull {
-        if (null != it.statement()) {
+    val mainStmts =
+        this.subprocedurestatement().mapNotNull {
+            if (null != it.statement()) {
+                when {
+                    it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
+                    it.statement().block() != null -> it.statement().block().toAst(conf)
+                    it.statement().free() != null -> it.statement().free().toAst(conf)
+                    else -> null
+                }
+            } else {
+                null
+            }
+        }
+
+    val subroutines =
+        this.subprocedurestatement().mapNotNull {
             when {
-                it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
-                it.statement().block() != null -> it.statement().block().toAst(conf)
-                it.statement().free() != null -> it.statement().free().toAst(conf)
+                it.subroutine() != null -> it.subroutine().toAst(conf)
                 else -> null
             }
-        } else {
-            null
         }
-    }
-
-    val subroutines = this.subprocedurestatement().mapNotNull {
-        when {
-            it.subroutine() != null -> it.subroutine().toAst(conf)
-            else -> null
-        }
-    }
 
     // TODO Data areas
 
@@ -632,8 +756,14 @@ internal fun ProcedureContext.toAst(
         apiDescriptors = null,
         procedures = null,
         procedureName = procedureName,
-        proceduresParamsDataDefinitions = proceduresParamsDataDefinitions
-    ).apply { MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.pop() }
+        proceduresParamsDataDefinitions = proceduresParamsDataDefinitions,
+    ).apply {
+        MainExecutionContext
+            .getParsingProgramStack()
+            .peek()
+            .parsingFunctionNameStack
+            .pop()
+    }
 }
 
 fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
@@ -641,15 +771,21 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
 
     // Get parmDefinition matching from internal (Procedure scope) dataDefinitions and PI parm definition.
     dataDefinitions.forEach { dataDefinition ->
-        this.dcl_pi().pi_parm_fixed()
+        this
+            .dcl_pi()
+            .pi_parm_fixed()
             .asSequence()
             .filter {
-                it.parm_fixed().ds_name().NAME().text == dataDefinition.name
-            }
-            .forEach {
-            it.parm_fixed()
-                .keyword()
-                .forEach { keywordContext ->
+                it
+                    .parm_fixed()
+                    .ds_name()
+                    .NAME()
+                    .text == dataDefinition.name
+            }.forEach {
+                it
+                    .parm_fixed()
+                    .keyword()
+                    .forEach { keywordContext ->
                         if (keywordContext.keyword_const() != null) {
                             dataDefinition.const = true
                             dataDefinition.paramPassedBy = ParamPassedBy.Const
@@ -658,15 +794,20 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
                         }
                         if (keywordContext.keyword_options() != null) {
                             keywordContext.keyword_options().identifier().forEach {
-                                val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                val keyword =
+                                    it
+                                        .free_identifier()
+                                        .idOrKeyword()
+                                        .ID()
+                                        .toString()
                                 val paramOption = ParamOption.getByKeyword(keyword)
                                 (dataDefinition.paramOptions as ArrayList).add(paramOption)
                             }
                         }
                     }
-                    proceduresParamsDataDefinitions.add(dataDefinition)
-                }
-        }
+                proceduresParamsDataDefinitions.add(dataDefinition)
+            }
+    }
 
     return proceduresParamsDataDefinitions
 }
@@ -675,78 +816,92 @@ private fun StatementContext.toDataDefinitionProvider(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: MutableMap<String, DataDefinition>,
     parentDataDefinitions: List<DataDefinition>?,
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
-): DataDefinitionProvider? {
-    return when {
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?,
+): DataDefinitionProvider? =
+    when {
         this.dcl_ds() != null -> {
-            kotlin.runCatching {
-                try {
-                    this.dcl_ds()
-                        .toAst(
-                            conf = conf,
-                            knownDataDefinitions = knownDataDefinitions.values,
-                            parentDataDefinitions = parentDataDefinitions,
-                            fileDefinitions = fileDefinitions
-                        ).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    // these errors can be caught because they don't introduce sneaky errors
-                } catch (e: CannotRetrieveDataStructureElementSizeException) {
-                    null
-                } catch (e: ParseTreeToAstError) {
-                    null
-                } catch (e: Exception) {
-                    throw e.fireErrorEvent(this.dcl_ds().toPosition(conf.considerPosition))
-                }
-            }.getOrNull()
+            kotlin
+                .runCatching {
+                    try {
+                        this
+                            .dcl_ds()
+                            .toAst(
+                                conf = conf,
+                                knownDataDefinitions = knownDataDefinitions.values,
+                                parentDataDefinitions = parentDataDefinitions,
+                                fileDefinitions = fileDefinitions,
+                            ).updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        // these errors can be caught because they don't introduce sneaky errors
+                    } catch (e: CannotRetrieveDataStructureElementSizeException) {
+                        null
+                    } catch (e: ParseTreeToAstError) {
+                        null
+                    } catch (e: Exception) {
+                        throw e.fireErrorEvent(this.dcl_ds().toPosition(conf.considerPosition))
+                    }
+                }.getOrNull()
         }
         else -> null
     }
-}
 
-private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>, procedureName: String): List<DataDefinition> {
-    val (providers, knownDataDefinitions) = this.subprocedurestatement()
-        .map { it.statement() }
-        .getDataDefinition(
-            conf = conf,
-            parentDataDefinitions = parentDataDefinitions,
-            procedureName = procedureName
-        )
+private fun ProcedureContext.getDataDefinitions(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    parentDataDefinitions: List<DataDefinition>,
+    procedureName: String,
+): List<DataDefinition> {
+    val (providers, knownDataDefinitions) =
+        this
+            .subprocedurestatement()
+            .map { it.statement() }
+            .getDataDefinition(
+                conf = conf,
+                parentDataDefinitions = parentDataDefinitions,
+                procedureName = procedureName,
+            )
 
     // PROCEDURE PARAMETERS pass
-    val paramProviders = this.dcl_pi().pi_parm_fixed()
-        .mapNotNull {
-            kotlin.runCatching {
-                when {
-                    it.parm_fixed() != null -> {
-                        it.parm_fixed()
-                            .toAst(conf, knownDataDefinitions.values.toList())
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    else -> null
-                }
-            }.onFailure { error ->
-                it.error("Error on dataDefinitionProviders creation", error, conf)
-            }.getOrThrow()
-        }
+    val paramProviders =
+        this
+            .dcl_pi()
+            .pi_parm_fixed()
+            .mapNotNull {
+                kotlin
+                    .runCatching {
+                        when {
+                            it.parm_fixed() != null -> {
+                                it
+                                    .parm_fixed()
+                                    .toAst(conf, knownDataDefinitions.values.toList())
+                                    .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                            }
+                            else -> null
+                        }
+                    }.onFailure { error ->
+                        it.error("Error on dataDefinitionProviders creation", error, conf)
+                    }.getOrThrow()
+            }
     providers.addAll(paramProviders)
 
     return providers.map { it.toDataDefinition() }
 }
 
-internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when (this.functionName().text.uppercase(Locale.getDefault())) {
+internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression =
+    when (this.functionName().text.uppercase(Locale.getDefault())) {
         "NOT" -> {
             if (this.args().expression().size != 1) {
                 throw IllegalStateException("Not should have just one parameter")
             }
             NotExpr(this.args().expression()[0].toAst(conf), toPosition(conf.considerPosition))
         }
-        else -> FunctionCall(
-            ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(conf) }, toPosition(
-                conf.considerPosition
+        else ->
+            FunctionCall(
+                ReferenceByName(this.functionName().text),
+                this.args().expression().map { it.toAst(conf) },
+                toPosition(
+                    conf.considerPosition,
+                ),
             )
-        )
     }
-}
 
 internal fun String.isInt() = this.matches(Regex("^-?[0-9]+$"))
 
@@ -760,13 +915,12 @@ internal fun String.isNumber() = this.isInt() || this.isDecimal()
 
 internal fun Boolean.toInt() = if (this) 1 else 0
 
-internal fun ParserRuleContext.rContext(): RContext {
-    return if (this.parent == null) {
+internal fun ParserRuleContext.rContext(): RContext =
+    if (this.parent == null) {
         this as RContext
     } else {
         (this.parent as ParserRuleContext).rContext()
     }
-}
 
 internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     val position = this.toPosition(conf.considerPosition)
@@ -788,14 +942,15 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
 
 fun literalToNumber(
     text: String,
-    position: Position?
+    position: Position?,
 ): NumberLiteral {
     // fix minus at right
-    val value = if (text.endsWith('-')) {
-        "-" + text.replaceFirst("-", "")
-    } else {
-        text
-    }
+    val value =
+        if (text.endsWith('-')) {
+            "-" + text.replaceFirst("-", "")
+        } else {
+            text
+        }
     return when {
         // When assigning a value to a numeric field we could either use
         // a comma or a dot as decimal separators
@@ -826,13 +981,18 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
         this.SPLAT_JUL() != null -> JulFormatExpr(position)
         this.SPLAT_INDICATOR() != null -> {
             IndicatorExpr(
-                index = children[0].text.uppercase().replace("*IN", "").toIndicatorKey(),
-                position = position
+                index =
+                    children[0]
+                        .text
+                        .uppercase()
+                        .replace("*IN", "")
+                        .toIndicatorKey(),
+                position = position,
             )
         }
         this.SPLAT_ALL_INDICATORS() != null -> {
             GlobalIndicatorExpr(
-                position = position
+                position = position,
             )
         }
         this.SPLAT_ALL() != null -> {
@@ -847,8 +1007,8 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     }
 }
 
-internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return when {
+internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    when {
         this.cspec_fixed_standard() != null ->
             // we need capture error inside runParserRuleContext in order
             // to avoid that some errors pass silently
@@ -865,30 +1025,41 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
             }
         else -> todo(conf = conf)
     }
-}
 
-internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return when {
-        this.csEXSR() != null -> this.csEXSR()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    when {
+        this.csEXSR() != null ->
+            this
+                .csEXSR()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
         this.csEVALR() != null -> this.csEVALR().toAst(conf)
 
-        this.csCALL() != null -> this.csCALL()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCALL() != null ->
+            this
+                .csCALL()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSETON() != null -> this.csSETON()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSETON() != null ->
+            this
+                .csSETON()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSETOFF() != null -> this.csSETOFF()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSETOFF() != null ->
+            this
+                .csSETOFF()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csPLIST() != null -> this.csPLIST()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csPLIST() != null ->
+            this
+                .csPLIST()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCLEAR() != null -> this.csCLEAR()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCLEAR() != null ->
+            this
+                .csCLEAR()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
 
@@ -898,174 +1069,284 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
 
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
 
-        this.csDSPLY() != null -> this.csDSPLY()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csDSPLY() != null ->
+            this
+                .csDSPLY()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csMOVE() != null -> this.csMOVE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csMOVE() != null ->
+            this
+                .csMOVE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csMOVEA() != null -> this.csMOVEA()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csMOVEA() != null ->
+            this
+                .csMOVEA()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csMOVEL() != null -> this.csMOVEL()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csMOVEL() != null ->
+            this
+                .csMOVEL()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csTIME() != null -> this.csTIME()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csTIME() != null ->
+            this
+                .csTIME()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSUBDUR() != null -> this.csSUBDUR()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSUBDUR() != null ->
+            this
+                .csSUBDUR()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csZ_ADD() != null -> this.csZ_ADD()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csZ_ADD() != null ->
+            this
+                .csZ_ADD()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csADD() != null -> this.csADD()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csADD() != null ->
+            this
+                .csADD()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csZ_SUB() != null -> this.csZ_SUB()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csZ_SUB() != null ->
+            this
+                .csZ_SUB()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSUB() != null -> this.csSUB()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSUB() != null ->
+            this
+                .csSUB()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCHAIN() != null -> this.csCHAIN()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCHAIN() != null ->
+            this
+                .csCHAIN()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCHECK() != null -> this.csCHECK()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCHECK() != null ->
+            this
+                .csCHECK()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCHECKR() != null -> this.csCHECKR()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCHECKR() != null ->
+            this
+                .csCHECKR()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csKLIST() != null -> this.csKLIST()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csKLIST() != null ->
+            this
+                .csKLIST()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSETLL() != null -> this.csSETLL()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSETLL() != null ->
+            this
+                .csSETLL()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSETGT() != null -> this.csSETGT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSETGT() != null ->
+            this
+                .csSETGT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csREAD() != null -> this.csREAD()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csREAD() != null ->
+            this
+                .csREAD()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csREADP() != null -> this.csREADP()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csREADP() != null ->
+            this
+                .csREADP()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csREADE() != null -> this.csREADE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csREADE() != null ->
+            this
+                .csREADE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csREADPE() != null -> this.csREADPE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csREADPE() != null ->
+            this
+                .csREADPE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csWRITE() != null -> this.csWRITE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csWRITE() != null ->
+            this
+                .csWRITE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csUPDATE() != null -> this.csUPDATE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csUPDATE() != null ->
+            this
+                .csUPDATE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csDELETE() != null -> this.csDELETE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csDELETE() != null ->
+            this
+                .csDELETE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCOMP() != null -> this.csCOMP()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCOMP() != null ->
+            this
+                .csCOMP()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csMULT() != null -> this.csMULT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csMULT() != null ->
+            this
+                .csMULT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csDIV() != null -> this.csDIV()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csDIV() != null ->
+            this
+                .csDIV()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
 
-        this.csTAG() != null -> this.csTAG()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csTAG() != null ->
+            this
+                .csTAG()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csGOTO() != null -> this.csGOTO()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csGOTO() != null ->
+            this
+                .csGOTO()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csSORTA() != null -> this.csSORTA().toAst(conf)
 
-        this.csDEFINE() != null -> this.csDEFINE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csDEFINE() != null ->
+            this
+                .csDEFINE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCAT() != null -> this.csCAT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCAT() != null ->
+            this
+                .csCAT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csLOOKUP() != null -> this.csLOOKUP()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csLOOKUP() != null ->
+            this
+                .csLOOKUP()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCAB() != null -> this.csCAB()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCAB() != null ->
+            this
+                .csCAB()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCABLE() != null -> this.csCABLE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCABLE() != null ->
+            this
+                .csCABLE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCABLT() != null -> this.csCABLT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCABLT() != null ->
+            this
+                .csCABLT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCABEQ() != null -> this.csCABEQ()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCABEQ() != null ->
+            this
+                .csCABEQ()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCABNE() != null -> this.csCABNE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCABNE() != null ->
+            this
+                .csCABNE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCABGE() != null -> this.csCABGE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCABGE() != null ->
+            this
+                .csCABGE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCABGT() != null -> this.csCABGT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCABGT() != null ->
+            this
+                .csCABGT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csXFOOT() != null -> this.csXFOOT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csXFOOT() != null ->
+            this
+                .csXFOOT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSCAN() != null -> this.csSCAN()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSCAN() != null ->
+            this
+                .csSCAN()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSUBST() != null -> this.csSUBST()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csSUBST() != null ->
+            this
+                .csSUBST()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csOCCUR() != null -> this.csOCCUR()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csOCCUR() != null ->
+            this
+                .csOCCUR()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csOPEN() != null -> this.csOPEN()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csOPEN() != null ->
+            this
+                .csOPEN()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csCLOSE() != null -> this.csCLOSE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csCLOSE() != null ->
+            this
+                .csCLOSE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csXLATE() != null -> this.csXLATE()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csXLATE() != null ->
+            this
+                .csXLATE()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csRESET() != null -> this.csRESET()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csRESET() != null ->
+            this
+                .csRESET()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csEXFMT() != null -> this.csEXFMT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csEXFMT() != null ->
+            this
+                .csEXFMT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csREADC() != null -> this.csREADC()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csREADC() != null ->
+            this
+                .csREADC()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csUNLOCK() != null -> this.csUNLOCK()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csUNLOCK() != null ->
+            this
+                .csUNLOCK()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csEXCEPT() != null -> this.csEXCEPT()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csEXCEPT() != null ->
+            this
+                .csEXCEPT()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csFEOD() != null -> this.csFEOD()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csFEOD() != null ->
+            this
+                .csFEOD()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csBITON() != null -> this.csBITON()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csBITON() != null ->
+            this
+                .csBITON()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csBITOFF() != null -> this.csBITOFF()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csBITOFF() != null ->
+            this
+                .csBITOFF()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csTESTN() != null -> this.csTESTN()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csTESTN() != null ->
+            this
+                .csTESTN()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csDEALLOC() != null -> this.csDEALLOC()
-            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+        this.csDEALLOC() != null ->
+            this
+                .csDEALLOC()
+                .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csIN() != null -> this.csIN().let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -1073,33 +1354,36 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
 
         else -> todo(conf = conf)
     }
-}
 
-internal fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: ToAstConfiguration): Statement {
+internal fun Cspec_fixed_standard_partsContext.validate(
+    stmt: Statement,
+    conf: ToAstConfiguration,
+): Statement {
     val position = toPosition(conf.considerPosition)
     if (result.text.isNotBlank()) {
         toDataDefinition(result.text, position, conf)?.let {
-            if (stmt !is StatementThatCanDefineData) result.todo(
-                message = "${stmt::class.java.name} must implement ${StatementThatCanDefineData::class.java.name} ",
-                conf = conf
-            )
+            if (stmt !is StatementThatCanDefineData) {
+                result.todo(
+                    message = "${stmt::class.java.name} must implement ${StatementThatCanDefineData::class.java.name} ",
+                    conf = conf,
+                )
+            }
         }
     }
     return stmt
 }
 
-internal fun Cspec_fixed_sqlContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return when {
+internal fun Cspec_fixed_sqlContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    when {
         this.CS_ExecSQL() != null -> ExecSqlStmt(toPosition(conf.considerPosition))
         this.CSQL_TEXT() != null -> CsqlTextStmt(toPosition(conf.considerPosition))
         this.CSQL_END() != null -> CsqlEndStmt(toPosition(conf.considerPosition))
         else -> todo(conf = conf)
     }
-}
 
 private fun annidatedReferenceExpression(
     text: String,
-    position: Position?
+    position: Position?,
 ): AssignableExpression {
     // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
     //        in the grammar
@@ -1118,10 +1402,11 @@ private fun annidatedReferenceExpression(
         return IndicatorExpr(index.toIndicatorKey(), position)
     }
 
-    var expr: Expression = text.indexOf("(").let {
-        val varName = if (it == -1) text else text.substring(0, it)
-        DataRefExpr(ReferenceByName(varName), position)
-    }
+    var expr: Expression =
+        text.indexOf("(").let {
+            val varName = if (it == -1) text else text.substring(0, it)
+            DataRefExpr(ReferenceByName(varName), position)
+        }
 
     if (text.contains("(")) {
         // TODO support annidated parenthesis, if necessary
@@ -1141,41 +1426,53 @@ private fun annidatedReferenceExpression(
     return expr as AssignableExpression
 }
 
-private fun computeNewPosition(position: Position?, text: String) =
-    if (position == null) {
-        null
-    } else {
-        Position(
-            position.start.plus(text.substring(0, text.indexOf("("))),
-            position.start.plus(text.substring(0, text.lastIndexOf(")")))
-        )
-    }
+private fun computeNewPosition(
+    position: Position?,
+    text: String,
+) = if (position == null) {
+    null
+} else {
+    Position(
+        position.start.plus(text.substring(0, text.indexOf("("))),
+        position.start.plus(text.substring(0, text.lastIndexOf(")"))),
+    )
+}
 
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
 
 internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): KListStmt {
     val position = toPosition(conf.considerPosition)
-    val factor1 = this.factor1Context()?.content?.text ?: throw UnsupportedOperationException("Line ${position?.line()}: KLIST operation requires factor 1: ${this.text}")
-    val fields = this.csKFLD().map {
-        it.cspec_fixed_standard_parts().result.text
-    }
+    val factor1 =
+        this.factor1Context()?.content?.text
+            ?: throw UnsupportedOperationException("Line ${position?.line()}: KLIST operation requires factor 1: ${this.text}")
+    val fields =
+        this.csKFLD().map {
+            it.cspec_fixed_standard_parts().result.text
+        }
 
-    val dataDefinitions = this.csKFLD().mapNotNull {
-        val parts = it.cspec_fixed_standard_parts()
-        val name = parts.result.text
-        parts.toDataDefinition(name, position, conf)
-    }
+    val dataDefinitions =
+        this.csKFLD().mapNotNull {
+            val parts = it.cspec_fixed_standard_parts()
+            val name = parts.result.text
+            parts.toDataDefinition(name, position, conf)
+        }
 
     return KListStmt(factor1, fields, dataDefinitions, position)
 }
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
     val left = leftExpr(conf)
-    val right = if (this.cspec_fixed_standard_parts()?.result?.text?.isNotBlank() ?: false) {
-        this.cspec_fixed_standard_parts().result.toAst(conf)
-    } else {
-        null
-    }
+    val right =
+        if (this
+                .cspec_fixed_standard_parts()
+                ?.result
+                ?.text
+                ?.isNotBlank() ?: false
+        ) {
+            this.cspec_fixed_standard_parts().result.toAst(conf)
+        } else {
+            null
+        }
     require(left != null || right != null)
     return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
@@ -1192,7 +1489,10 @@ internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     }
 }
 
-private fun handleParsingOfTargets(code: String, position: Position?): AssignableExpression {
+private fun handleParsingOfTargets(
+    code: String,
+    position: Position?,
+): AssignableExpression {
     require(!code.contains("(") && !code.contains(")"))
     val parts = code.split(".")
     require(parts.isNotEmpty())
@@ -1203,7 +1503,7 @@ private fun handleParsingOfTargets(code: String, position: Position?): Assignabl
         QualifiedAccessExpr(
             container = handleParsingOfTargets(containerCode, position),
             field = ReferenceByName(parts.last()),
-            position = position
+            position = position,
         )
     }
 }
@@ -1213,7 +1513,7 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return PlistStmt(
         this.csPARM().map { it.toAst(conf) },
         isEntry,
-        toPosition(conf.considerPosition)
+        toPosition(conf.considerPosition),
     )
 }
 
@@ -1233,13 +1533,14 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
      * - when control transfers to called program, the contents of the Result field is placed in
      *    the Factor 1 field. So, is considered Result Value.
      */
-    val initializationValue = if (this.parent is CsCALLContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
-        factor2Expression
-    } else if (this.parent is CsPLISTContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
-        annidatedReferenceExpression(resultName, resultPosition)
-    } else {
-        null
-    }
+    val initializationValue =
+        if (this.parent is CsCALLContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
+            factor2Expression
+        } else if (this.parent is CsPLISTContext && this.cspec_fixed_standard_parts().len.asInt() == null) {
+            annidatedReferenceExpression(resultName, resultPosition)
+        } else {
+            null
+        }
 
     val position = toPosition(conf.considerPosition)
     return PlistParam(
@@ -1249,10 +1550,10 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         this.cspec_fixed_standard_parts().toDataDefinition(
             resultName,
             position,
-            conf
+            conf,
         ),
         position,
-        initializationValue
+        initializationValue,
     )
 }
 
@@ -1284,7 +1585,7 @@ fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration)
 internal fun Cspec_fixed_standard_partsContext.toDataDefinition(
     name: String,
     position: Position?,
-    conf: ToAstConfiguration
+    conf: ToAstConfiguration,
 ): InStatementDataDefinition? {
     val len = this.len.asInt() ?: return null
     val decimals = this.decimalPositions.asInt()
@@ -1292,7 +1593,10 @@ internal fun Cspec_fixed_standard_partsContext.toDataDefinition(
     return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
 }
 
-private fun dataType(len: Int, decimals: Int?): Type =
+private fun dataType(
+    len: Int,
+    decimals: Int?,
+): Type =
     if (decimals == null) {
         StringType(len, false)
     } else {
@@ -1311,9 +1615,11 @@ internal fun Token.asInt(): Int? {
 internal fun CsSETONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetStmt {
     try {
         return SetStmt(
-            SetStmt.ValueSet.ON, indicators(this.cspec_fixed_standard_parts(), conf.considerPosition), toPosition(
-                conf.considerPosition
-            )
+            SetStmt.ValueSet.ON,
+            indicators(this.cspec_fixed_standard_parts(), conf.considerPosition),
+            toPosition(
+                conf.considerPosition,
+            ),
         )
     } catch (e: Exception) {
         throw RuntimeException("Problem translating ${this.text} at ${this.toPosition(true)}", e)
@@ -1323,79 +1629,129 @@ internal fun CsSETONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun CsSETOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetStmt {
     try {
         return SetStmt(
-            SetStmt.ValueSet.OFF, indicators(this.cspec_fixed_standard_parts(), conf.considerPosition), toPosition(
-                conf.considerPosition
-            )
+            SetStmt.ValueSet.OFF,
+            indicators(this.cspec_fixed_standard_parts(), conf.considerPosition),
+            toPosition(
+                conf.considerPosition,
+            ),
         )
     } catch (e: Exception) {
         throw RuntimeException("Problem translating ${this.text} at ${this.toPosition(true)}", e)
     }
 }
 
-internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosition: Boolean = true): List<AssignableExpression> {
-    return listOf(cspecs.hi, cspecs.lo, cspecs.eq)
-            .asSequence()
-            .map { it.text }
-            .filter { !it.isNullOrBlank() }
-            .map(String::uppercase)
-            .map {
-                IndicatorExpr(it.toIndicatorKey(), cspecs.toPosition(considerPosition))
-            }
-            .toList()
-}
+internal fun indicators(
+    cspecs: Cspec_fixed_standard_partsContext,
+    considerPosition: Boolean = true,
+): List<AssignableExpression> =
+    listOf(cspecs.hi, cspecs.lo, cspecs.eq)
+        .asSequence()
+        .map { it.text }
+        .filter { !it.isNullOrBlank() }
+        .map(String::uppercase)
+        .map {
+            IndicatorExpr(it.toIndicatorKey(), cspecs.toPosition(considerPosition))
+        }.toList()
 
 internal fun CsEXSRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ExecuteSubroutine {
     val subroutineName = this.cspec_fixed_standard_parts().factor2.text
-    require(this.cspec_fixed_standard_parts().decimalPositions.text.isBlank())
-    require(this.cspec_fixed_standard_parts().eq.text.isBlank())
-    require(this.cspec_fixed_standard_parts().hi.text.isBlank())
-    require(this.cspec_fixed_standard_parts().len.text.isBlank())
-    require(this.cspec_fixed_standard_parts().lo.text.isBlank())
-    require(this.cspec_fixed_standard_parts().result.text.isBlank())
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .decimalPositions.text
+            .isBlank(),
+    )
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .eq.text
+            .isBlank(),
+    )
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .hi.text
+            .isBlank(),
+    )
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .len.text
+            .isBlank(),
+    )
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .lo.text
+            .isBlank(),
+    )
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .result.text
+            .isBlank(),
+    )
     return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(conf.considerPosition))
 }
 
-internal fun CsRETURNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReturnStmt {
-    return ReturnStmt(this.fixedexpression?.expression()?.toAst(conf), toPosition(conf.considerPosition))
-}
+internal fun CsRETURNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReturnStmt =
+    ReturnStmt(this.fixedexpression?.expression()?.toAst(conf), toPosition(conf.considerPosition))
 
 internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalStmt {
-    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
-    val flags = EvalFlags(
-        halfAdjust = 'H' in extenders,
-        maximumNumberOfDigitsRule = 'M' in extenders,
-        resultDecimalPositionRule = 'R' in extenders
-    )
+    val extenders =
+        this.operationExtender
+            ?.extender
+            ?.text
+            ?.uppercase(Locale.getDefault())
+            ?.toCharArray() ?: CharArray(0)
+    val flags =
+        EvalFlags(
+            halfAdjust = 'H' in extenders,
+            maximumNumberOfDigitsRule = 'M' in extenders,
+            resultDecimalPositionRule = 'R' in extenders,
+        )
     return EvalStmt(
         this.target().toAst(conf),
         this.fixedexpression.expression().toAst(conf),
         operator = this.operator.toAssignmentOperator(),
         flags = flags,
-        position = toPosition(conf.considerPosition)
+        position = toPosition(conf.considerPosition),
     )
 }
 
 internal fun CsEVALRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalRStmt {
-    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
-    val flags = EvalFlags(
-        halfAdjust = 'H' in extenders,
-        maximumNumberOfDigitsRule = 'M' in extenders,
-        resultDecimalPositionRule = 'R' in extenders
-    )
+    val extenders =
+        this.operationExtender
+            ?.extender
+            ?.text
+            ?.uppercase(Locale.getDefault())
+            ?.toCharArray() ?: CharArray(0)
+    val flags =
+        EvalFlags(
+            halfAdjust = 'H' in extenders,
+            maximumNumberOfDigitsRule = 'M' in extenders,
+            resultDecimalPositionRule = 'R' in extenders,
+        )
     return EvalRStmt(
         this.target().toAst(conf),
         this.fixedexpression.expression().toAst(conf),
         flags = flags,
-        position = toPosition(conf.considerPosition)
+        position = toPosition(conf.considerPosition),
     )
 }
 
 internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubDurStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: ${this.text} - ${position.atLine()}")
     // TODO handle duration code after the :
-    val target = this.cspec_fixed_standard_parts().result.text.split(":")
+    val target =
+        this
+            .cspec_fixed_standard_parts()
+            .result.text
+            .split(":")
     val durationCode = if (target.size > 1) target[1].toDuration() else DurationInMSecs
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(target.first(), position, conf)
 
@@ -1416,8 +1772,12 @@ private fun String.toDuration(): DurationCode =
 
 internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: ${this.text} - ${position.atLine()}")
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor1 =
+        this.factor1Context()?.content?.toAst(conf)
+            ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: ${this.text} - ${position.atLine()}")
     val hi = this.cspec_fixed_standard_parts().hi.toIndicatorKey()
     val lo = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
     return ChainStmt(factor1, factor2, hi, lo, position)
@@ -1426,7 +1786,9 @@ internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     val loIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
     val eqIndicator = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
@@ -1436,7 +1798,9 @@ internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsREADPContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("READP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     val loIndicator = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
     val eqIndicator = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
@@ -1447,7 +1811,9 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
     val factor1 = this.factor1Context()?.content?.toAst(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     val lo = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
     val eq = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
@@ -1458,7 +1824,9 @@ internal fun CsREADPEContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
     val factor1 = this.factor1Context()?.content?.toAst(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READPE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("READPE operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     val lo = this.cspec_fixed_standard_parts().lo.toIndicatorKey()
     val eq = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
@@ -1472,7 +1840,9 @@ internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     require(factor1 != null) {
         "SETLL operation requires factor 1: ${this.text} - ${position.atLine()}"
     }
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("SETLL operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("SETLL operation requires factor 2: ${this.text} - ${position.atLine()}")
     return SetllStmt(factor1, factor2, position)
 }
 
@@ -1483,25 +1853,33 @@ internal fun CsSETGTContext.toAst(conf: ToAstConfiguration): Statement {
     require(factor1 != null) {
         "SETGT operation requires factor 1: ${this.text} - ${position.atLine()}"
     }
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("SETGT operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("SETGT operation requires factor 2: ${this.text} - ${position.atLine()}")
     return SetgtStmt(factor1, factor2, position)
 }
 
 internal fun CsWRITEContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("WRITE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("WRITE operation requires factor 2: ${this.text} - ${position.atLine()}")
     return WriteStmt(factor2, position)
 }
 
 internal fun CsUPDATEContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("WRITE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("WRITE operation requires factor 2: ${this.text} - ${position.atLine()}")
     return UpdateStmt(factor2, position)
 }
 
 internal fun CsDELETEContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("DELETE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("DELETE operation requires factor 2: ${this.text} - ${position.atLine()}")
     return DeleteStmt(factor2, position)
 }
 
@@ -1528,13 +1906,15 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         target = target,
         rightIndicators = rightIndicators,
         dataDefinition = dataDefinition,
-        position = position
+        position = position,
     )
 }
 
 internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor1 =
+        this.factor1Context()?.content?.toAst(conf)
+            ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
     val (expression, startExpression) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
 
     val result = this.cspec_fixed_standard_parts().result
@@ -1542,11 +1922,12 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 
     val eqIndicator = this.cspec_fixed_standard_parts().resultIndicator(2)?.text
 
-    val wrongCharExpression = when {
-        result != null && result.text.isNotBlank() -> result.toAst(conf)
-        !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
-        else -> null
-    }
+    val wrongCharExpression =
+        when {
+            result != null && result.text.isNotBlank() -> result.toAst(conf)
+            !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
+            else -> null
+        }
 
     return CheckStmt(
         factor1,
@@ -1554,13 +1935,15 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
         startExpression,
         wrongCharExpression,
         dataDefinition,
-        position
+        position,
     )
 }
 
 internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor1 =
+        this.factor1Context()?.content?.toAst(conf)
+            ?: throw UnsupportedOperationException("CHECKR operation requires factor 1: ${this.text} - ${position.atLine()}")
     val factor2 = this.cspec_fixed_standard_parts().factor2
     val (expression, positionExpression) = factor2.toIndexedExpression(conf)
 
@@ -1569,11 +1952,12 @@ internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
 
     val eqIndicator = this.cspec_fixed_standard_parts().resultIndicator(2)?.text
 
-    val wrongCharExpression = when {
-        result != null && result.text.isNotBlank() -> result.toAst(conf)
-        !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
-        else -> null
-    }
+    val wrongCharExpression =
+        when {
+            result != null && result.text.isNotBlank() -> result.toAst(conf)
+            !eqIndicator.isNullOrBlank() -> IndicatorExpr(eqIndicator.toIndicatorKey(), position)
+            else -> null
+        }
 
     return CheckrStmt(
         factor1,
@@ -1581,7 +1965,7 @@ internal fun CsCHECKRContext.toAst(conf: ToAstConfiguration): Statement {
         positionExpression,
         wrongCharExpression,
         dataDefinition,
-        position
+        position,
     )
 }
 
@@ -1589,34 +1973,46 @@ private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Ex
     // factor is formed by TEXT:B
     // where "TEXT" is the content to be referenced positionally
     val expression = this.factorContent(0).toAst(conf)
-    val positionExpression = if (this.factorContent().size > 1) {
-        this.factorContent(1).toAst(conf)
-    } else null
+    val positionExpression =
+        if (this.factorContent().size > 1) {
+            this.factorContent(1).toAst(conf)
+        } else {
+            null
+        }
 
     return expression to positionExpression
 }
 
-private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
+private fun FactorContext.toDoubleExpression(
+    conf: ToAstConfiguration,
+    index: Int,
+): Expression =
     if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index) else this.content.toAst(conf)
 
-private fun String.toDoubleExpression(position: Position?, index: Int): Expression {
+private fun String.toDoubleExpression(
+    position: Position?,
+    index: Int,
+): Expression {
     val quoteAwareSplitPattern = Regex(""":(?=([^']*'[^']*')*[^']*$)""")
     val baseStringTokens = this.split(quoteAwareSplitPattern)
     var reference = baseStringTokens[index]
 
     val regexp = Regex("'(.*?)'")
-    val ret = if (reference.matches(regexp)) {
-        reference = reference.replace("'", "")
-        StringLiteral(reference, position)
-    } else {
-        DataRefExpr(ReferenceByName(reference), position)
-    }
+    val ret =
+        if (reference.matches(regexp)) {
+            reference = reference.replace("'", "")
+            StringLiteral(reference, position)
+        } else {
+            DataRefExpr(ReferenceByName(reference), position)
+        }
     return ret
 }
 
 internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveAStmt {
     val position = toPosition(conf.considerPosition)
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVEA operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val expression =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("MOVEA operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
@@ -1625,13 +2021,16 @@ internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         target = resultExpression,
         expression = expression,
         dataDefinition = dataDefinition,
-        position = position)
+        position = position,
+    )
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
     val operationExtender = this.operationExtender?.text
     val position = toPosition(conf.considerPosition)
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val expression =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
@@ -1640,13 +2039,15 @@ internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         target = resultExpression,
         expression = expression,
         dataDefinition = dataDefinition,
-        position = position
+        position = position,
     )
 }
 
 internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveLStmt {
     val position = toPosition(conf.considerPosition)
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val expression =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
@@ -1657,14 +2058,16 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         dataDefinition = dataDefinition,
         value = expression,
         dataAttributes = dataAttributes,
-        position = position
+        position = position,
     )
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
     val position = toPosition(conf.considerPosition)
     val name = this.cspec_fixed_standard_parts().result.text
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "Z-ADD operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    val expression =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: this.todo(message = "Z-ADD operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZAddStmt(this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, expression, position)
 }
@@ -1673,9 +2076,16 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
+    val extenders =
+        this.operationExtender
+            ?.extender
+            ?.text
+            ?.uppercase(Locale.getDefault())
+            ?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return MultStmt(
         target = this.cspec_fixed_standard_parts().result.toAst(conf),
@@ -1683,7 +2093,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         factor1 = factor1,
         factor2 = factor2,
         dataDefinition = dataDefinition,
-        position = position
+        position = position,
     )
 }
 
@@ -1691,9 +2101,16 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
+    val extenders =
+        this.operationExtender
+            ?.extender
+            ?.text
+            ?.uppercase(Locale.getDefault())
+            ?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return DivStmt(
         target = this.cspec_fixed_standard_parts().result.toAst(conf),
@@ -1702,30 +2119,31 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         factor2 = factor2,
         mvrStatement = this.csMVR()?.toAst(conf),
         dataDefinition = dataDefinition,
-        position = position
+        position = position,
     )
 }
 
 internal fun CsMVRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MvrStmt {
     val result = this.cspec_fixed_standard_parts().result.text
-    val target = result?.let {
-        DataRefExpr(ReferenceByName(it), toPosition(conf.considerPosition))
-    }
-    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(
-        name = result,
-        position = toPosition(conf.considerPosition),
-        conf = conf
-    )
+    val target =
+        result?.let {
+            DataRefExpr(ReferenceByName(it), toPosition(conf.considerPosition))
+        }
+    val dataDefinition =
+        this.cspec_fixed_standard_parts().toDataDefinition(
+            name = result,
+            position = toPosition(conf.considerPosition),
+            conf = conf,
+        )
     return MvrStmt(
         target = target,
         position = toPosition(conf.considerPosition),
-        dataDefinition = dataDefinition
+        dataDefinition = dataDefinition,
     )
 }
 
-internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TagStmt {
-    return TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
-}
+internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TagStmt =
+    TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
 
 /**
  * If FactorContext contains symbolicConstants convert it to expression
@@ -1740,7 +2158,12 @@ private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
     this.factor1Context().toAstIfSymbolicConstant()?.let {
         return it
     }
-    return if (this.factor1Context()?.content?.text?.isNotBlank() == true) {
+    return if (this
+            .factor1Context()
+            ?.content
+            ?.text
+            ?.isNotBlank() == true
+    ) {
         // Exception catching is wanted to not make blocking the creating ast exceptions
         kotlin.runCatching { this.factor1Context().content.toAst(conf) }.getOrNull()
     } else {
@@ -1748,60 +2171,54 @@ private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
     }
 }
 
-internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
-    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
-}
+internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt =
+    GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
 
-internal fun CsCABContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(null, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(null, this.cspec_fixed_standard_parts(), conf)
 
-internal fun CsCABLEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(ComparisonOperator.LE, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABLEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(ComparisonOperator.LE, this.cspec_fixed_standard_parts(), conf)
 
-internal fun CsCABLTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(ComparisonOperator.LT, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABLTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(ComparisonOperator.LT, this.cspec_fixed_standard_parts(), conf)
 
-internal fun CsCABEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(ComparisonOperator.EQ, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(ComparisonOperator.EQ, this.cspec_fixed_standard_parts(), conf)
 
-internal fun CsCABNEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(ComparisonOperator.NE, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABNEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(ComparisonOperator.NE, this.cspec_fixed_standard_parts(), conf)
 
-internal fun CsCABGTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(ComparisonOperator.GT, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABGTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(ComparisonOperator.GT, this.cspec_fixed_standard_parts(), conf)
 
-internal fun CsCABGEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(ComparisonOperator.GE, this.cspec_fixed_standard_parts(), conf)
-}
+internal fun CsCABGEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt =
+    cabStatement(ComparisonOperator.GE, this.cspec_fixed_standard_parts(), conf)
 
 fun Cspec_fixed_standard_partsContext.rightIndicators() =
     RightIndicators(
         hi.asIntOrNull(),
         lo.asIntOrNull(),
-        eq.asIntOrNull()
+        eq.asIntOrNull(),
     )
 
 fun ParserRuleContext.cabStatement(
     comparison: ComparisonOperator?,
     cspecFixedStandardParts: Cspec_fixed_standard_partsContext,
-    conf: ToAstConfiguration
+    conf: ToAstConfiguration,
 ): CabStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 1 - $text")
-    val right = cspecFixedStandardParts.factor2Expression(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
+    val right =
+        cspecFixedStandardParts.factor2Expression(conf)
+            ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
     return CabStmt(
         left,
         right,
         comparison,
         cspecFixedStandardParts.result.text,
         cspecFixedStandardParts.rightIndicators(),
-        position
+        position,
     )
 }
 
@@ -1809,14 +2226,18 @@ internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "ADD operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    val right =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: this.todo(message = "ADD operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return AddStmt(left, this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, right, position)
 }
 
 internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZSubStmt {
     val position = toPosition(conf.considerPosition)
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "Z-SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    val expression =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: this.todo(message = "Z-SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val name = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZSubStmt(this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, expression, position)
@@ -1826,7 +2247,9 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
+    val right =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return SubStmt(left, this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, right, position)
 }
@@ -1836,13 +2259,15 @@ internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNu
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
-    val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right =
+        cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     return CompStmt(
         left,
         right,
         cspec_fixed_standard_parts().rightIndicators(),
-        position
+        position,
     )
 }
 
@@ -1852,7 +2277,7 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return ClearStmt(
         annidatedReferenceExpression(name, toPosition(conf.considerPosition)),
         this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
-        position
+        position,
     )
 }
 
@@ -1883,47 +2308,50 @@ internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return OutStmt(dataReference, indicators, position)
 }
 
-private fun QualifiedTargetContext.getFieldName(): String {
-    return if (this.fieldName != null) {
+private fun QualifiedTargetContext.getFieldName(): String =
+    if (this.fieldName != null) {
         this.fieldName.text
     } else {
         this.field.ID().text
     }
-}
 
 internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {
         is SimpleTargetContext -> DataRefExpr(ReferenceByName(this.name.text), toPosition(conf.considerPosition))
-        is IndexedTargetContext -> ArrayAccessExpr(
-            array = this.base.toAst(conf),
-            index = this.index.toAst(conf),
-            position = toPosition(conf.considerPosition)
-        )
+        is IndexedTargetContext ->
+            ArrayAccessExpr(
+                array = this.base.toAst(conf),
+                index = this.index.toAst(conf),
+                position = toPosition(conf.considerPosition),
+            )
         is SubstTargetContext -> this.bif_subst().toAst(conf)
         is SubarrTargetContext -> this.bif_subarr().toAst(conf)
         is LenTargetContext -> this.bif_len().toAst(conf)
-        is QualifiedTargetContext -> QualifiedAccessExpr(
-            DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
-            ReferenceByName(this.getFieldName()),
-            toPosition(conf.considerPosition)
-        )
-        is IndicatorTargetContext -> IndicatorExpr(
-            this.indic.text.indicatorIndex()!!,
-            toPosition(conf.considerPosition)
-        )
+        is QualifiedTargetContext ->
+            QualifiedAccessExpr(
+                DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
+                ReferenceByName(this.getFieldName()),
+                toPosition(conf.considerPosition),
+            )
+        is IndicatorTargetContext ->
+            IndicatorExpr(
+                this.indic.text.indicatorIndex()!!,
+                toPosition(conf.considerPosition),
+            )
         is IndexedIndicatorTargetContext -> {
             val index: Expression = this.index.toAst(conf = conf)
             return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
         }
-        is GlobalIndicatorTargetContext -> GlobalIndicatorExpr(
-            toPosition(conf.considerPosition)
-        )
+        is GlobalIndicatorTargetContext ->
+            GlobalIndicatorExpr(
+                toPosition(conf.considerPosition),
+            )
         else -> todo(conf = conf)
     }
 }
 
-internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
-    return when {
+internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator =
+    when {
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
         this.CPLUS() != null -> PLUS_ASSIGNMENT
         this.CMINUS() != null -> MINUS_ASSIGNMENT
@@ -1932,27 +2360,46 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
         this.CEXP() != null -> EXP_ASSIGNMENT
         else -> throw UnsupportedOperationException(this.text)
     }
-}
 
 internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallStmt {
     val position = this.toPosition(true)
-    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .factor()
+            .factorContent()
+            .size == 1,
+    ) {
         "Missing factor 1 in call statement at line ${position.line()}"
     }
-    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    val literal =
+        this
+            .cspec_fixed_standard_parts()
+            .factor()
+            .factorContent()[0]
+            .literal()
     val functionCalled: Expression?
-    functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
+    functionCalled = literal?.toAst(conf) ?: this
+        .cspec_fixed_standard_parts()
+        .factor2.content
+        .toAst(conf)
     return CallStmt(
         functionCalled,
         this.csPARM().map { it.toAst(conf) },
         this.cspec_fixed_standard_parts().lo.asIndex(),
-        toPosition(conf.considerPosition)
+        toPosition(conf.considerPosition),
     )
 }
 
 internal fun Cspec_fixed_x2Context.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallPStmt {
     val position = toPosition(conf.considerPosition)
-    require(this.c_free().expression().function().functionName() != null) {
+    require(
+        this
+            .c_free()
+            .expression()
+            .function()
+            .functionName() != null,
+    ) {
         "Missing functionName in callp statement at line ${position.line()}"
     }
 
@@ -1963,7 +2410,7 @@ internal fun Cspec_fixed_x2Context.toAst(conf: ToAstConfiguration = ToAstConfigu
     return CallPStmt(
         functionCalled,
         errorIndicator,
-        position
+        position,
     )
 }
 
@@ -1971,6 +2418,7 @@ internal fun CsSORTAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val expr = this.fixedexpression.expression().toAst(conf)
     return SortAStmt(expr, toPosition(conf.considerPosition))
 }
+
 internal fun ResultIndicatorContext.asIndex(): Int? {
     // TODO: verify if we should cover other cases (e.g. external indicators)
     return this.GeneralIndicator()?.text?.toIntOrNull()
@@ -1980,11 +2428,22 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val operationExtender = this.operationExtender?.text
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     val blanksInBetweenExpression: Expression? =
-        if (this.cspec_fixed_standard_parts().factor2.factorContent().size > 1) {
-            this.cspec_fixed_standard_parts().factor2.factorContent(1).toAst(conf)
+        if (this
+                .cspec_fixed_standard_parts()
+                .factor2
+                .factorContent()
+                .size > 1
+        ) {
+            this
+                .cspec_fixed_standard_parts()
+                .factor2
+                .factorContent(1)
+                .toAst(conf)
         } else {
             null
         }
@@ -1999,14 +2458,16 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         blanksInBetween = blanksInBetweenExpression,
         position = position,
         dataDefinition = dataDefinition,
-        operationExtender = operationExtender
+        operationExtender = operationExtender,
     )
 }
 
 internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 1: ${this.text}")
-    val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right =
+        cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
     require(!rightIndicators.allPresent()) {
@@ -2016,84 +2477,98 @@ internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
         left,
         right,
         rightIndicators,
-        position
+        position,
     )
 }
 
 internal fun CsXFOOTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): XFootStmt {
     val position = toPosition(conf.considerPosition)
-    val array2sumup = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("XFOOT operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val array2sumup =
+        this.cspec_fixed_standard_parts().factor2Expression(conf)
+            ?: throw UnsupportedOperationException("XFOOT operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val name = this.cspec_fixed_standard_parts().result.text
+
     /**
      *
-    XFOOT adds the elements of an array together and places the sum into the field
-    specified as the result field. Factor 2 contains the name of the array.
-    If half-adjust is specified, the rounding occurs after all elements are summed and
-    before the results are moved into the result field. If the result field is an element of
-    the array specified in factor 2, the value of the element before the XFOOT
-    operation is used to calculate the total of the array.
-    If the array is float, XFOOT will be performed as follows: When the array is in
-    descending sequence, the elements will be added together in reverse order.
-    Otherwise, the elements will be added together starting with the first elements of
-    the array.
+     XFOOT adds the elements of an array together and places the sum into the field
+     specified as the result field. Factor 2 contains the name of the array.
+     If half-adjust is specified, the rounding occurs after all elements are summed and
+     before the results are moved into the result field. If the result field is an element of
+     the array specified in factor 2, the value of the element before the XFOOT
+     operation is used to calculate the total of the array.
+     If the array is float, XFOOT will be performed as follows: When the array is in
+     descending sequence, the elements will be added together in reverse order.
+     Otherwise, the elements will be added together starting with the first elements of
+     the array.
      *
-    https://docs.asna.com/documentation/Help120/AVR/_HTML/XFOOT.htm
-    0017.00      C                   xfoot     arr2          sum               4 0
+     https://docs.asna.com/documentation/Help120/AVR/_HTML/XFOOT.htm
+     0017.00      C                   xfoot     arr2          sum               4 0
      *
-    Pos
-    Optional.  Turned on if the value of Result is a positive number.
-    Neg
-    Optional.  Turned on if the value of Result is a negative number.
-    Zero
-    Optional.  Turned on if the value of Result is zero.
-    */
+     Pos
+     Optional.  Turned on if the value of Result is a positive number.
+     Neg
+     Optional.  Turned on if the value of Result is a negative number.
+     Zero
+     Optional.  Turned on if the value of Result is zero.
+     */
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
     return XFootStmt(
-        array2sumup, resultExpression, rightIndicators, this.cspec_fixed_standard_parts().toDataDefinition(
+        array2sumup,
+        resultExpression,
+        rightIndicators,
+        this.cspec_fixed_standard_parts().toDataDefinition(
             name,
             position,
-            conf
-        ), position
+            conf,
+        ),
+        position,
     )
 }
 
-internal fun FreeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return when {
-        this.baseExpression().op().op_dsply() != null -> this.baseExpression().op().op_dsply().toAst(conf)
-        this.baseExpression().op().op_eval() != null -> this.baseExpression().op().op_eval().toAst(conf)
+internal fun FreeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    when {
+        this.baseExpression().op().op_dsply() != null ->
+            this
+                .baseExpression()
+                .op()
+                .op_dsply()
+                .toAst(conf)
+        this.baseExpression().op().op_eval() != null ->
+            this
+                .baseExpression()
+                .op()
+                .op_eval()
+                .toAst(conf)
         else -> todo(conf = conf)
     }
-}
 
 internal fun Op_dsplyContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val expression = this.expression()[0].toAst(conf = conf)
     return DisplayStmt(expression, null, toPosition(conf.considerPosition))
 }
 
-internal fun Op_evalContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return this.evalExpression().toAst(conf = conf)
-}
+internal fun Op_evalContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement = this.evalExpression().toAst(conf = conf)
 
-internal fun EvalExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    return if (assignmentExpression() != null) {
+internal fun EvalExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement =
+    if (assignmentExpression() != null) {
         assignmentExpression().toAst(conf = conf)
     } else {
         todo(conf = conf)
     }
-}
 
 internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
-    val target = when {
-        this.simpleExpression() != null -> this.simpleExpression().toAst(conf = conf)
-        this.expression() != null -> this.expression().toAst(conf = conf)
-        else -> todo(conf = conf)
-    }
+    val target =
+        when {
+            this.simpleExpression() != null -> this.simpleExpression().toAst(conf = conf)
+            this.expression() != null -> this.expression().toAst(conf = conf)
+            else -> todo(conf = conf)
+        }
     require(target is AssignableExpression)
     return EvalStmt(
         target = target,
         expression = expression().toAst(conf = conf),
-        operator = NORMAL_ASSIGNMENT
+        operator = NORMAL_ASSIGNMENT,
     )
 }
 
@@ -2114,12 +2589,11 @@ internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
         operationExtender = this.operationExtender?.text,
         position = position,
-        dataDefinition = dataDefinition
+        dataDefinition = dataDefinition,
     )
 }
 
 internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OccurStmt {
-
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
@@ -2132,7 +2606,7 @@ internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         operationExtender = this.operationExtender?.text,
         position = position,
         dataDefinition = dataDefinition,
-        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex(),
     )
 }
 
@@ -2152,39 +2626,54 @@ internal fun CsXLATEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         target = this.cspec_fixed_standard_parts().result.toAst(conf),
         rightIndicators = rightIndicators,
         dataDefinition = dataDefinition,
-        position = position
+        position = position,
     )
 }
 
 internal fun CsOPENContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
     return OpenStmt(
         name = factor2,
         position = position,
         operationExtender = this.operationExtender?.text,
-        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex(),
     )
 }
 
 internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
     return CloseStmt(
         name = factor2,
         position = position,
         operationExtender = this.operationExtender?.text,
-        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex(),
     )
 }
 
 internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
 
-    require(this.cspec_fixed_standard_parts().factor().text.isEmptyTrim()) {
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .factor()
+            .text
+            .isEmptyTrim(),
+    ) {
         "RESET operation does not support factor1"
     }
-    require(this.cspec_fixed_standard_parts().factor2.text.isEmptyTrim()) {
+    require(
+        this
+            .cspec_fixed_standard_parts()
+            .factor2.text
+            .isEmptyTrim(),
+    ) {
         "RESET operation does not support factor2"
     }
     val result = this.cspec_fixed_standard_parts().result.text
@@ -2197,14 +2686,16 @@ internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return ResetStmt(
         name = result,
         dataDefinition = dataDefinition,
-        position = position
+        position = position,
     )
 }
 
 // TODO
 internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("Line ${position?.line()}: EXFMT operation requires factor 2: ${this.text}")
+    val factor2 =
+        this.cspec_fixed_standard_parts().factor2.text
+            ?: throw UnsupportedOperationException("Line ${position?.line()}: EXFMT operation requires factor 2: ${this.text}")
     return ExfmtStmt(position, factor2)
 }
 
@@ -2245,7 +2736,7 @@ internal fun CsBITONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     return BitOnStmt(
         dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
-        position = position
+        position = position,
     )
 }
 
@@ -2254,7 +2745,7 @@ internal fun CsBITOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     val position = toPosition(conf.considerPosition)
     return BitOffStmt(
         dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(this.cspec_fixed_standard_parts().result.text, position, conf),
-        position = position
+        position = position,
     )
 }
 
@@ -2267,32 +2758,43 @@ internal fun CsDEALLOCContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
  * Run a block. In case of error throws an error encapsulating useful information
  * like node position
  */
-fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, block: (T) -> R): R {
-    return kotlin.runCatching {
-        block.invoke(this)
-    }.onFailure {
-        // to avoid duplicated errors
-        if (it !is ParseTreeToAstError) this.error(it.message, it, conf)
-    }.getOrThrow()
-}
+fun <T : ParserRuleContext, R> T.runParserRuleContext(
+    conf: ToAstConfiguration,
+    block: (T) -> R,
+): R =
+    kotlin
+        .runCatching {
+            block.invoke(this)
+        }.onFailure {
+            // to avoid duplicated errors
+            if (it !is ParseTreeToAstError) this.error(it.message, it, conf)
+        }.getOrThrow()
 
 /**
  * Run a block related AST node. In case of error throws an error encapsulating useful information
  * like node position
  */
-fun <T : Node, R> T.runNode(block: (T) -> R): R {
-    return kotlin.runCatching {
-        block.invoke(this)
-    }.onFailure {
-        // to avoid duplicated errors
-        if (it !is AstResolutionError) this.error(it.message, it)
-    }.getOrThrow()
-}
+fun <T : Node, R> T.runNode(block: (T) -> R): R =
+    kotlin
+        .runCatching {
+            block.invoke(this)
+        }.onFailure {
+            // to avoid duplicated errors
+            if (it !is AstResolutionError) this.error(it.message, it)
+        }.getOrThrow()
 
 private typealias ProgramNameToCopyBlocks = Pair<String?, CopyBlocks?>
 
 internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
-    val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
+    val programName =
+        if (MainExecutionContext.getParsingProgramStack().empty()) {
+            null
+        } else {
+            MainExecutionContext
+                .getParsingProgramStack()
+                .peek()
+                .name
+        }
     val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
     return ProgramNameToCopyBlocks(programName, copyBlocks)
 }
@@ -2303,17 +2805,17 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
     return removeUnnecessaryRecordFormat()
         .removeStandaloneDefinedAsFieldOfUnqualifiedDs()
         .filter {
-        val dataDefinition = dataDefinitionMap[it.name]
-        if (dataDefinition == null) {
-            dataDefinitionMap[it.name] = it
-            true
-        } else {
-            it.require(it.matchType(dataDefinition)) {
-                "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
+            val dataDefinition = dataDefinitionMap[it.name]
+            if (dataDefinition == null) {
+                dataDefinitionMap[it.name] = it
+                true
+            } else {
+                it.require(it.matchType(dataDefinition)) {
+                    "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
+                }
+                false
             }
-            false
         }
-    }
 }
 
 internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefinition): Boolean {
@@ -2338,28 +2840,31 @@ internal fun AbstractDataDefinition.matchType(dataDefinition: AbstractDataDefini
     return when {
         dataDefinition.type.matchType(this.type) -> true
         dataDefinition.elementSize() == this.elementSize() -> {
-            dataDefinition.type is StringType && this.type is DataStructureType ||
-            dataDefinition.type is DataStructureType && this.type is StringType ||
-            dataDefinition.type is BooleanType && this.type is StringType ||
-            dataDefinition.type is StringType && this.type is BooleanType
+            dataDefinition.type is StringType &&
+                this.type is DataStructureType ||
+                dataDefinition.type is DataStructureType &&
+                this.type is StringType ||
+                dataDefinition.type is BooleanType &&
+                this.type is StringType ||
+                dataDefinition.type is StringType &&
+                this.type is BooleanType
         }
         else -> false
     }
 }
 
 /**
-  * This function is used to remove unnecessary record formats from a list of data definitions.
-  * Data definitions of type RecordFormatType are necessary where in the AST we don't have a DS
-  * named like the record format, and we have operations such as CLEAR RECORD_FORMAT_NAME.
-  * In that case the record format in the data definitions list is necessary just to retrieve the fields that must be clean.
-  *
-  * @return A list of data definitions excluding the ones of type `RecordFormat`.
+ * This function is used to remove unnecessary record formats from a list of data definitions.
+ * Data definitions of type RecordFormatType are necessary where in the AST we don't have a DS
+ * named like the record format, and we have operations such as CLEAR RECORD_FORMAT_NAME.
+ * In that case the record format in the data definitions list is necessary just to retrieve the fields that must be clean.
+ *
+ * @return A list of data definitions excluding the ones of type `RecordFormat`.
  */
-private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat(): List<T> {
-    return this.filterNot { dataDef ->
+private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat(): List<T> =
+    this.filterNot { dataDef ->
         dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
     }
-}
 
 /**
  * Removes "standalone" `DataDefinition` objects that are also defined as fields within
@@ -2388,8 +2893,10 @@ private fun <T : AbstractDataDefinition> List<T>.removeStandaloneDefinedAsFieldO
     val fieldsInRoot = this.filterIsInstance<FieldDefinition>()
     return this.filterNot { dataDefinition ->
         dataDefinition is DataDefinition &&
-                fieldsInRoot
-                    .any { fieldInRoot -> dataDefinition.name.equals(fieldInRoot.name, ignoreCase = true)
+            fieldsInRoot
+                .any { fieldInRoot ->
+                    dataDefinition.name
+                        .equals(fieldInRoot.name, ignoreCase = true)
                         .also {
                             if (it) {
                                 dataDefinition.require(dataDefinition.matchType(fieldInRoot)) {
@@ -2397,7 +2904,7 @@ private fun <T : AbstractDataDefinition> List<T>.removeStandaloneDefinedAsFieldO
                                 }
                             }
                         }
-                    }
+                }
     }
 }
 
@@ -2415,6 +2922,7 @@ private fun List<InputSpecification>.grouped(): List<InputSpecificationGroup> {
     val output: MutableList<InputSpecificationGroup> = ArrayList<InputSpecificationGroup>(files.size)
 
     var lastFile = files.first()
+
     fun addGroup(index: Int) {
         val nestedSpecifications = this.slice(lastFile.index + 1 until index)
         val group = InputSpecificationGroup(lastFile.value as FileNameInputSpecification, nestedSpecifications)
@@ -2432,7 +2940,9 @@ private fun List<InputSpecification>.grouped(): List<InputSpecificationGroup> {
     return output
 }
 
-private fun Map<FileDefinition, List<DataDefinition>>.processWithSpecifications(specifications: List<InputSpecificationGroup>): Map<FileDefinition, List<DataDefinition>> {
+private fun Map<FileDefinition, List<DataDefinition>>.processWithSpecifications(
+    specifications: List<InputSpecificationGroup>,
+): Map<FileDefinition, List<DataDefinition>> {
     val buffer = this.toMutableMap()
     specifications.forEach {
         val target = buffer.entries.firstOrNull { entry -> (entry.key.internalFormatName ?: entry.key.name) == it.fileName.name }

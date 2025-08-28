@@ -17,7 +17,7 @@ interface ILoggableStatement : ILoggable {
 
     fun getStatementLogRenderer(
         source: LogSourceProvider,
-        action: String
+        action: String,
     ): LazyLogEntry {
         val entry = LogEntry(source, LogChannel.STATEMENT.getPropertyName(), action)
         return LazyLogEntry.produceMessage(entry, this.loggableEntityName)

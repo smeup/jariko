@@ -47,6 +47,8 @@ import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
+import org.reflections.Reflections
+import org.reflections.scanners.SubTypesScanner
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -57,61 +59,68 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
-import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
 
 interface PerformanceTest
+
 interface DBPerformanceTest
 
-val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
-    if (!this.exists()) {
-        this.mkdirs()
+val testCompiledDir =
+    File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
+        if (!this.exists()) {
+            this.mkdirs()
+        }
     }
-}
 
 private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle")!!.file).parent
 
 // All programs for which we can ignore compilation programs
-private val whiteListRegexp = Regex(
-    "QILEGEN,CPERR.*|ERROR.*|APIERR.*|CALCFIB2.*|JDATWD.*|JD_001.*|JD_008.*|JD_URL.*|" +
+private val whiteListRegexp =
+    Regex(
+        "QILEGEN,CPERR.*|ERROR.*|APIERR.*|CALCFIB2.*|JDATWD.*|JD_001.*|JD_008.*|JD_URL.*|" +
             "JFTCPR.*|JRANDOMA.*|LOSER_PR.*|LOSER_PR.*|PROCEDURE_N.*|PROCEDURE_O.*|PROOF.*|TSTCPY05.*|TSTCPY07.*" +
-            "£�MU1API.*|MUTE03_09.*|MUTE12_01.*|MUTE13_26.*|MUTE15_02.*|MUTE_ERROR.*")
+            "£�MU1API.*|MUTE03_09.*|MUTE12_01.*|MUTE13_26.*|MUTE15_02.*|MUTE_ERROR.*",
+    )
 
 // All api declared not valid (compilation unit will not be validated before the inclusion)
-private val notValidApi = listOf(
-    "QILEGEN,£C5PES", "QILEGEN,£PRZ"
-)
+private val notValidApi =
+    listOf(
+        "QILEGEN,£C5PES",
+        "QILEGEN,£PRZ",
+    )
 
 fun parseFragmentToCompilationUnit(
     code: String,
-    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false),
 ): CompilationUnit {
-    val completeCode = """
+    val completeCode =
+        """
 |     H*/COPY QILEGEN,£INIZH
 |      *---------------------------------------------------------------
 |     I*/COPY QILEGEN,£TABB£1DS
 |     I*/COPY QILEGEN,£PDS
 |     $code
         """.trimMargin("|")
-    val configuration = Configuration().apply {
-        reloadConfig = ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
-            metadataProducer = { dbFile ->
-                FileMetadata(
-                    name = dbFile,
-                    tableName = dbFile,
-                    recordFormat = dbFile,
-                    fields = emptyList(),
-                    accessFields = emptyList()
+    val configuration =
+        Configuration().apply {
+            reloadConfig =
+                ReloadConfig(
+                    nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+                    metadataProducer = { dbFile ->
+                        FileMetadata(
+                            name = dbFile,
+                            tableName = dbFile,
+                            recordFormat = dbFile,
+                            fields = emptyList(),
+                            accessFields = emptyList(),
+                        )
+                    },
                 )
-            }
-        )
-        // every error during ast creation must be thrown
-        options.toAstConfiguration.afterPhaseErrorContinue = { _ -> false }
-    }
+            // every error during ast creation must be thrown
+            options.toAstConfiguration.afterPhaseErrorContinue = { _ -> false }
+        }
     return MainExecutionContext.execute(configuration = configuration, systemInterface = JavaSystemInterface()) {
         val rContext = assertCodeCanBeParsed(completeCode)
         rContext.toAst(toAstConfiguration)
@@ -120,13 +129,16 @@ fun parseFragmentToCompilationUnit(
 
 fun parseFragmentToCompilationUnit(
     codeLines: List<String>,
-    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false),
 ): CompilationUnit {
     val codeLinesAsSingleString = codeLines.joinToString("\n|     ")
     return parseFragmentToCompilationUnit(codeLinesAsSingleString, toAstConfiguration)
 }
 
-fun assertIsIntValue(value: Value, intValue: Long) {
+fun assertIsIntValue(
+    value: Value,
+    intValue: Long,
+) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
     assertEquals(intValue, value.value)
 }
@@ -137,29 +149,34 @@ fun inputStreamFor(exampleName: String): InputStream {
     return BOMInputStream(resourceStream)
 }
 
-fun inputStreamForCode(code: String): InputStream {
-    return code.byteInputStream(StandardCharsets.UTF_8)
-}
+fun inputStreamForCode(code: String): InputStream = code.byteInputStream(StandardCharsets.UTF_8)
 
-fun assertExampleCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): List<Token> {
-    return assertCanBeLexed(inputStreamFor(exampleName), onlyVisibleTokens)
-}
+fun assertExampleCanBeLexed(
+    exampleName: String,
+    onlyVisibleTokens: Boolean = true,
+): List<Token> = assertCanBeLexed(inputStreamFor(exampleName), onlyVisibleTokens)
 
-fun assertCodeCanBeLexed(code: String, onlyVisibleTokens: Boolean = true): List<Token> {
-    return assertCanBeLexed(inputStreamForCode(code), onlyVisibleTokens)
-}
+fun assertCodeCanBeLexed(
+    code: String,
+    onlyVisibleTokens: Boolean = true,
+): List<Token> = assertCanBeLexed(inputStreamForCode(code), onlyVisibleTokens)
 
-fun assertCanBeLexed(file: File, onlyVisibleTokens: Boolean = true): List<Token> {
-    return assertCanBeLexed(FileInputStream(file), onlyVisibleTokens)
-}
+fun assertCanBeLexed(
+    file: File,
+    onlyVisibleTokens: Boolean = true,
+): List<Token> = assertCanBeLexed(FileInputStream(file), onlyVisibleTokens)
 
-fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true): List<Token> {
-    val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
-        RpgParserFacade().lex(inputStream)
-    }
+fun assertCanBeLexed(
+    inputStream: InputStream,
+    onlyVisibleTokens: Boolean = true,
+): List<Token> {
+    val result =
+        MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+            RpgParserFacade().lex(inputStream)
+        }
     assertTrue(
         result.correct,
-        message = "Errors: ${result.errors.joinToString(separator = ", ")}"
+        message = "Errors: ${result.errors.joinToString(separator = ", ")}",
     )
     return if (onlyVisibleTokens) {
         result.root!!.filter { it.channel != Lexer.HIDDEN }
@@ -168,28 +185,32 @@ fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true
     }
 }
 
-fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false): RContext {
-    return MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
-        val result = RpgParserFacade()
-            .apply { this.muteSupport = withMuteSupport }
-            .parse(inputStream)
+fun assertCanBeParsed(
+    inputStream: InputStream,
+    withMuteSupport: Boolean = false,
+): RContext =
+    MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
+        val result =
+            RpgParserFacade()
+                .apply { this.muteSupport = withMuteSupport }
+                .parse(inputStream)
         assertTrue(
             result.correct,
-            message = result.dumpError()
+            message = result.dumpError(),
         )
         result.root!!.rContext
     }
-}
 
-fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, withProfilingSupport: Boolean = false, printTree: Boolean = false): RContext {
-    return assertCanBeParsedResult(exampleName, withMuteSupport, withProfilingSupport, printTree).root!!.rContext
-}
+fun assertCanBeParsed(
+    exampleName: String,
+    withMuteSupport: Boolean = false,
+    withProfilingSupport: Boolean = false,
+    printTree: Boolean = false,
+): RContext = assertCanBeParsedResult(exampleName, withMuteSupport, withProfilingSupport, printTree).root!!.rContext
 
 private class TestJavaSystemInterface : JavaSystemInterface() {
-
-    override fun findCopy(copyId: CopyId): Copy? {
-
-        return getExecutionProgramNameWithNoExtension().let {
+    override fun findCopy(copyId: CopyId): Copy? =
+        getExecutionProgramNameWithNoExtension().let {
             // println("Finding copy: $copyId for program: $it")
             if (it == "" || it.matches(Regex("JD_001.*|JD_002|JD_003|JD_000.*"))) {
                 println("Returning null copy for program: $it just to avoid test units regression".yellow())
@@ -199,36 +220,34 @@ private class TestJavaSystemInterface : JavaSystemInterface() {
                 super.findCopy(copyId)
             }
         }
-    }
 }
 
-private fun createJavaSystemInterface(): JavaSystemInterface {
-    return TestJavaSystemInterface().apply {
+private fun createJavaSystemInterface(): JavaSystemInterface =
+    TestJavaSystemInterface().apply {
         rpgSystem.addProgramFinder(DirRpgProgramFinder(File(rpgTestSrcDir)))
         rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/")))
     }
-}
 
 fun assertCanBeParsedResult(
     exampleName: String,
     withMuteSupport: Boolean = false,
     withProfilingSupport: Boolean = false,
-    printTree: Boolean = false
+    printTree: Boolean = false,
 ): RpgParserResult {
-    val result = MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
-        it.executionProgramName = exampleName
-        RpgParserFacade()
-            .apply {
-                this.muteSupport = withMuteSupport
-                this.profilingSupport = withProfilingSupport
-            }
-            .parse(inputStreamFor(exampleName))
-    }
+    val result =
+        MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
+            it.executionProgramName = exampleName
+            RpgParserFacade()
+                .apply {
+                    this.muteSupport = withMuteSupport
+                    this.profilingSupport = withProfilingSupport
+                }.parse(inputStreamFor(exampleName))
+        }
 
     if (printTree) println(result.toTreeString())
     assertTrue(
         result.correct,
-        message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}"
+        message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}",
     )
     return result
 }
@@ -236,13 +255,15 @@ fun assertCanBeParsedResult(
 /**
  * This test does not provide copy directive inclusion
  * */
-fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
-    return assertCanBeParsed(inputStreamFor(exampleName), withMuteSupport)
-}
+fun assertCanBeParsed(
+    exampleName: String,
+    withMuteSupport: Boolean = false,
+): RContext = assertCanBeParsed(inputStreamFor(exampleName), withMuteSupport)
 
-fun assertCanBeParsed(file: File, withMuteSupport: Boolean = false): RContext {
-    return assertCanBeParsed(FileInputStream(file), withMuteSupport)
-}
+fun assertCanBeParsed(
+    file: File,
+    withMuteSupport: Boolean = false,
+): RContext = assertCanBeParsed(FileInputStream(file), withMuteSupport)
 
 fun assertASTCanBeProduced(
     exampleName: String,
@@ -252,25 +273,27 @@ fun assertASTCanBeProduced(
     printTree: Boolean = false,
     compiledProgramsDir: File?,
     afterAstCreation: (ast: CompilationUnit) -> Unit = {},
-    reloadConfig: ReloadConfig = ReloadConfig(
-        nativeAccessConfig = DBNativeAccessConfig(emptyList()),
-        metadataProducer = { dbFile ->
-            {}.javaClass.getResourceAsStream("/db/metadata/$dbFile.json").use {
-                it?.let { FileMetadata.createInstance(it) } ?: error("resource /db/metadata/$dbFile.json not found")
-            }
-        }
-    )
+    reloadConfig: ReloadConfig =
+        ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            metadataProducer = { dbFile ->
+                {}.javaClass.getResourceAsStream("/db/metadata/$dbFile.json").use {
+                    it?.let { FileMetadata.createInstance(it) } ?: error("resource /db/metadata/$dbFile.json not found")
+                }
+            },
+        ),
 ): CompilationUnit {
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
     if (printTree) {
         val result = assertCanBeParsedResult(exampleName, withMuteSupport, withProfilingSupport, printTree)
         val parseTreeRoot = result.root!!.rContext
-        ast = parseTreeRoot.toAst(
-            ToAstConfiguration(
-                considerPosition = considerPosition
+        ast =
+            parseTreeRoot.toAst(
+                ToAstConfiguration(
+                    considerPosition = considerPosition,
+                ),
             )
-        )
         if (withMuteSupport) {
             if (!considerPosition) {
                 throw IllegalStateException("Mute annotations can be injected only when retaining the position")
@@ -286,18 +309,22 @@ fun assertASTCanBeProduced(
         afterAstCreation.invoke(ast)
     } else {
         val configuration =
-            Configuration(options = Options(
-                muteSupport = withMuteSupport,
-                profilingSupport = withProfilingSupport,
-                compiledProgramsDir = compiledProgramsDir,
-                toAstConfiguration = ToAstConfiguration(considerPosition)),
+            Configuration(
+                options =
+                    Options(
+                        muteSupport = withMuteSupport,
+                        profilingSupport = withProfilingSupport,
+                        compiledProgramsDir = compiledProgramsDir,
+                        toAstConfiguration = ToAstConfiguration(considerPosition),
+                    ),
                 jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation),
-                reloadConfig = reloadConfig
+                reloadConfig = reloadConfig,
             )
-        ast = MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
-            it.executionProgramName = exampleName
-            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
-        }
+        ast =
+            MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
+                it.executionProgramName = exampleName
+                RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
+            }
     }
     return ast
 }
@@ -306,7 +333,7 @@ fun assertCodeCanBeParsed(code: String): RContext {
     val result = RpgParserFacade().parse(inputStreamForCode(code))
     assertTrue(
         result.correct,
-        message = "Errors: ${result.errors.joinToString(separator = "\n")}"
+        message = "Errors: ${result.errors.joinToString(separator = "\n")}",
     )
     return result.root!!.rContext
 }
@@ -315,12 +342,15 @@ fun assertExpressionCanBeParsed(code: String): ExpressionContext {
     val result = RpgParserFacade().parseExpression(inputStreamForCode(code), printTree = true)
     assertTrue(
         result.correct,
-        message = "Errors: ${result.errors.joinToString(separator = "\n")}"
+        message = "Errors: ${result.errors.joinToString(separator = "\n")}",
     )
     return result.root!!
 }
 
-fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): StatementContext {
+fun assertStatementCanBeParsed(
+    code: String,
+    addPrefix: Boolean = false,
+): StatementContext {
     val codeToUse = if (addPrefix) "     C                   $code" else code
     val result = RpgParserFacade().parseStatement(inputStreamForCode(codeToUse))
     if (!result.correct) {
@@ -337,7 +367,7 @@ fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): Statem
     }
     assertTrue(
         result.correct,
-        message = "Errors: ${result.errors.joinToString(separator = ", ")}"
+        message = "Errors: ${result.errors.joinToString(separator = ", ")}",
     )
     return result.root!!
 }
@@ -345,8 +375,8 @@ fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): Statem
 fun CompilationUnit.assertNrOfMutesAre(expected: Int) {
     val actual =
         this.allDataDefinitions.map { it.muteAnnotations.size }.sum() +
-                this.main.stmts.nrOfMutes() +
-                this.subroutines.map { it.stmts.nrOfMutes() }.sum()
+            this.main.stmts.nrOfMutes() +
+            this.subroutines.map { it.stmts.nrOfMutes() }.sum()
     assertEquals(expected, actual, "Expected $expected mutes, but were $actual")
 }
 
@@ -355,7 +385,7 @@ fun List<Statement>.nrOfMutes() = this.map { it.muteAnnotations.size }.sum()
 fun CompilationUnit.assertDataDefinitionIsPresent(
     name: String,
     dataType: Type,
-    fields: List<FieldDefinition> = emptyList()
+    fields: List<FieldDefinition> = emptyList(),
 ): DataDefinition {
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
@@ -363,13 +393,13 @@ fun CompilationUnit.assertDataDefinitionIsPresent(
     assertEquals(
         fields.size,
         dataDefinition.fields.size,
-        "Expected ${fields.size} fields, found ${dataDefinition.fields.size}"
+        "Expected ${fields.size} fields, found ${dataDefinition.fields.size}",
     )
     for (i in 0 until fields.size) {
         assertEquals(
             fields[i],
             dataDefinition.fields[i],
-            "Expected field $i was ${fields[i]}, found ${dataDefinition.fields[i]}"
+            "Expected field $i was ${fields[i]}, found ${dataDefinition.fields[i]}",
         )
     }
     assertEquals(fields, dataDefinition.fields)
@@ -382,7 +412,12 @@ fun CompilationUnit.assertFileDefinitionIsPresent(name: String): FileDefinition 
     return fileDefinition
 }
 
-fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
+fun assertToken(
+    expectedTokenType: Int,
+    expectedTokenText: String,
+    token: Token,
+    trimmed: Boolean = true,
+) {
     assertEquals(expectedTokenType, token.type)
     if (trimmed) {
         val expected = expectedTokenText.trim()
@@ -397,15 +432,13 @@ fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(
     var loggingConfiguration: LoggingConfiguration? = null,
-    private val copySource: (copyId: CopyId) -> Copy? = { null }
+    private val copySource: (copyId: CopyId) -> Copy? = { null },
 ) : SystemInterface {
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
         LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
-    override fun loggingConfiguration(): LoggingConfiguration? {
-        return this.loggingConfiguration
-    }
+    override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
 
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
@@ -419,9 +452,12 @@ open class CollectorSystemInterface(
         // in real environment, moreover in the future I would remove it
         val program = programs[name]
         return if (program == null) {
-            val foundProgram = kotlin.runCatching {
-                SingletonRpgSystem.getProgram(name)
-            }.onFailure { it.printStackTrace() }.getOrNull()
+            val foundProgram =
+                kotlin
+                    .runCatching {
+                        SingletonRpgSystem.getProgram(name)
+                    }.onFailure { it.printStackTrace() }
+                    .getOrNull()
             if (foundProgram != null) {
                 programs[name] = foundProgram
                 foundProgram
@@ -432,7 +468,11 @@ open class CollectorSystemInterface(
             program
         }
     }
-    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
+
+    override fun findFunction(
+        globalSymbolTable: ISymbolTable,
+        name: String,
+    ): Function? {
         // this way I enable function searching also within compilation unit
         return functions.computeIfAbsent(name) {
             findFunctionInPackages(name) ?: RpgFunction.fromCurrentProgram(name)
@@ -445,44 +485,47 @@ open class CollectorSystemInterface(
         if (javaInteropPackages.isEmpty()) {
             javaInteropPackages.add("com.smeup.rpgparser.jvminterop")
         }
-        return javaInteropPackages.asSequence().map { packageName ->
-            try {
-                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
-                instantiateFunction(javaClass)
-            } catch (e: Throwable) {
-                null
-            }
-        }.filter {
-            it != null
-        }.firstOrNull()
+        return javaInteropPackages
+            .asSequence()
+            .map { packageName ->
+                try {
+                    val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                    instantiateFunction(javaClass)
+                } catch (e: Throwable) {
+                    null
+                }
+            }.filter {
+                it != null
+            }.firstOrNull()
     }
 
-    open fun instantiateFunction(javaClass: Class<*>): Function? {
-        return if (javaClass.kotlin.isSubclassOf(Function::class)) {
-            javaClass.kotlin.constructors.filter {
-                it.parameters.isEmpty()
-            }.first().call() as Function
+    open fun instantiateFunction(javaClass: Class<*>): Function? =
+        if (javaClass.kotlin.isSubclassOf(Function::class)) {
+            javaClass.kotlin.constructors
+                .filter {
+                    it.parameters.isEmpty()
+                }.first()
+                .call() as Function
         } else {
             null
         }
-    }
 
-    override fun findCopy(copyId: CopyId): Copy? {
-        return copies.computeIfAbsent(copyId) {
+    override fun findCopy(copyId: CopyId): Copy? =
+        copies.computeIfAbsent(copyId) {
             copySource.invoke(copyId)
         }
-    }
 
     override fun display(value: String) {
         displayed.add(value)
         if (printOutput) println(value)
     }
 
-    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
-        return this.executedAnnotationInternal
-    }
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> = this.executedAnnotationInternal
 
-    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+    override fun addExecutedAnnotation(
+        line: Int,
+        annotation: MuteAnnotationExecuted,
+    ) {
         executedAnnotationInternal[line] = annotation
     }
 
@@ -500,7 +543,7 @@ fun execute(
     initialValues: Map<String, Value>,
     systemInterface: SystemInterface? = null,
     logHandlers: List<InterpreterLogHandler> = emptyList(),
-    programName: String = "<UNSPECIFIED>"
+    programName: String = "<UNSPECIFIED>",
 ): InternalInterpreter {
     val si = systemInterface ?: DummySystemInterface
     if (si == DummySystemInterface) {
@@ -510,17 +553,16 @@ fun execute(
     val interpreter = InternalInterpreter(si)
     try {
         // create just to pass to interpreter programName
-        val interpretationContext = object : InterpretationContext {
-            override val currentProgramName: String
-                get() = programName
-            override var dataWrapUpChoice: DataWrapUpChoice?
-                get() = null
-                set(value) {}
+        val interpretationContext =
+            object : InterpretationContext {
+                override val currentProgramName: String
+                    get() = programName
+                override var dataWrapUpChoice: DataWrapUpChoice?
+                    get() = null
+                    set(value) {}
 
-            override fun shouldReinitialize(): Boolean {
-                return true
+                override fun shouldReinitialize(): Boolean = true
             }
-        }
         interpreter.setInterpretationContext(interpretationContext)
         interpreter.execute(cu, initialValues)
         interpreter.doSomethingAfterExecution()
@@ -530,7 +572,10 @@ fun execute(
     return interpreter
 }
 
-fun assertStartsWith(lines: List<String>, value: String) {
+fun assertStartsWith(
+    lines: List<String>,
+    value: String,
+) {
     if (lines.isEmpty()) {
         fail("Empty output")
     }
@@ -557,10 +602,17 @@ fun outputOf(
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     compiledProgramsDir: File?,
     configuration: Configuration = Configuration(),
-    trimEnd: Boolean = true
+    trimEnd: Boolean = true,
 ): List<String> {
-    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
-        compiledProgramsDir = compiledProgramsDir, configuration = configuration)
+    execute(
+        programName,
+        initialValues,
+        logHandlers = SimpleLogHandler.fromFlag(TRACE),
+        printTree = printTree,
+        si = si,
+        compiledProgramsDir = compiledProgramsDir,
+        configuration = configuration,
+    )
     return if (trimEnd) si.displayed.map(String::trimEnd) else si.displayed
 }
 
@@ -574,30 +626,32 @@ fun execute(
     printTree: Boolean = false,
     compiledProgramsDir: File?,
     // TODO inject configuration even for program without procedures
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
 ): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
     cu.resolveAndValidate()
     si.addExtraLogHandlers(logHandlers)
-        // if we have some procedures we have to push in programstack current program see RpgFunction.fromCurrentProgram
+    // if we have some procedures we have to push in programstack current program see RpgFunction.fromCurrentProgram
     return MainExecutionContext.execute(systemInterface = si, configuration = configuration) { mainExecutionContext ->
-            mainExecutionContext.executionProgramName = programName
-            mainExecutionContext.programStack.push(RpgProgram(cu, programName).apply {
+        mainExecutionContext.executionProgramName = programName
+        mainExecutionContext.programStack.push(
+            RpgProgram(cu, programName).apply {
                 // setup activationGroup is mandatory
                 // view InternalInterpreter.getActivationGroupAssignedName
-                activationGroup = ActivationGroup(
-                    type = NamedActivationGroup(configuration.defaultActivationGroupName),
-                    assignedName = configuration.defaultActivationGroupName)
-            })
-            val interpreter = execute(cu, initialValues, si, programName = programName)
-            mainExecutionContext.programStack.pop()
-            interpreter
-        }
+                activationGroup =
+                    ActivationGroup(
+                        type = NamedActivationGroup(configuration.defaultActivationGroupName),
+                        assignedName = configuration.defaultActivationGroupName,
+                    )
+            },
+        )
+        val interpreter = execute(cu, initialValues, si, programName = programName)
+        mainExecutionContext.programStack.pop()
+        interpreter
+    }
 }
 
-fun rpgProgram(name: String): RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle")!!, name)
-}
+fun rpgProgram(name: String): RpgProgram = RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle")!!, name)
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
     var failed = 0
@@ -612,18 +666,17 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
     return failed
 }
 
-class DummyProgramFinder(private val path: String) : RpgProgramFinder {
-
+class DummyProgramFinder(
+    private val path: String,
+) : RpgProgramFinder {
     fun getFile(name: String) = File(Dummy::class.java.getResource("$path$name.rpgle")!!.file)
 
-    fun rpgSourceInputStream(nameOrSource: String): InputStream? =
-        Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
+    fun rpgSourceInputStream(nameOrSource: String): InputStream? = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
 
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
-        return rpgSourceInputStream(nameOrSource)?.let {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? =
+        rpgSourceInputStream(nameOrSource)?.let {
             RpgProgram.fromInputStream(it, nameOrSource)
         }
-    }
 
     override fun findCopy(copyId: CopyId): Copy? {
         TODO("Not yet implemented")
@@ -638,9 +691,9 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
     }
 }
 
-open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockProgram> = emptyList()) :
-    CollectorSystemInterface() {
-
+open class ExtendedCollectorSystemInterface(
+    val jvmMockPrograms: List<JvmMockProgram> = emptyList(),
+) : CollectorSystemInterface() {
     val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
     private val nameToMockPrograms: Map<String, Program>
@@ -649,15 +702,12 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
         nameToMockPrograms = jvmMockPrograms.map { it.name to it }.toMap()
     }
 
-    override fun findProgram(name: String): Program? {
-        return nameToMockPrograms[name] ?: super.findProgram(name) ?: findWithFinders(name)
-    }
+    override fun findProgram(name: String): Program? = nameToMockPrograms[name] ?: super.findProgram(name) ?: findWithFinders(name)
 
-    private fun findWithFinders(name: String): Program {
-        return rpgPrograms.getOrPut(name) {
+    private fun findWithFinders(name: String): Program =
+        rpgPrograms.getOrPut(name) {
             find(name)
         }
-    }
 
     private fun find(name: String): RpgProgram {
         programFinders.forEach {
@@ -672,7 +722,7 @@ fun compileAllMutes(
     dirs: List<String>,
     format: Format = Format.BIN,
     metadataPaths: List<String> = emptyList(),
-    copyPaths: List<String> = emptyList()
+    copyPaths: List<String> = emptyList(),
 ) {
     println("Deleting $testCompiledDir")
     testCompiledDir.deleteRecursively()
@@ -683,71 +733,80 @@ fun compileAllMutes(
         val srcDir = File(rpgTestSrcDir, it)
         println("Compiling dir ${srcDir.absolutePath} with muteSupport: $muteSupport")
 
-        val configuration = Configuration().apply {
-            reloadConfig = ReloadConfig(
-                nativeAccessConfig = DBNativeAccessConfig(emptyList()),
-                metadataProducer = { dbFile ->
-                    metadataPaths.asSequence()
-                        .map { Path.of(rpgTestSrcDir, it) }
-                        .map { it.resolve("$dbFile.json").toFile() }
-                        .firstOrNull { it.exists() }
-                        ?.let { FileMetadata.createInstance(it.inputStream()) }
-                        ?: error("resource $dbFile.json not found in $metadataPaths")
-                }
-            )
+        val configuration =
+            Configuration().apply {
+                reloadConfig =
+                    ReloadConfig(
+                        nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+                        metadataProducer = { dbFile ->
+                            metadataPaths
+                                .asSequence()
+                                .map { Path.of(rpgTestSrcDir, it) }
+                                .map { it.resolve("$dbFile.json").toFile() }
+                                .firstOrNull { it.exists() }
+                                ?.let { FileMetadata.createInstance(it.inputStream()) }
+                                ?: error("resource $dbFile.json not found in $metadataPaths")
+                        },
+                    )
 
-            dspfConfig = DspfConfig(
-                metadataProducer = { displayFile ->
-                metadataPaths.asSequence()
-                    .map { Path.of(rpgTestSrcDir, it) }
-                    .map { it.resolve("$displayFile.dspf").toFile() }
-                    .firstOrNull { it.exists() }?.let {
-                        SimpleDspfConfig(displayFilePath = it!!.parent).getMetadata(displayFile)
-                    } ?: error("resource $displayFile.dspf not found in $metadataPaths")
+                dspfConfig =
+                    DspfConfig(
+                        metadataProducer = { displayFile ->
+                            metadataPaths
+                                .asSequence()
+                                .map { Path.of(rpgTestSrcDir, it) }
+                                .map { it.resolve("$displayFile.dspf").toFile() }
+                                .firstOrNull { it.exists() }
+                                ?.let {
+                                    SimpleDspfConfig(displayFilePath = it!!.parent).getMetadata(displayFile)
+                                } ?: error("resource $displayFile.dspf not found in $metadataPaths")
+                        },
+                        dspfProducer = { displayFile ->
+                            metadataPaths
+                                .asSequence()
+                                .map { Path.of(rpgTestSrcDir, it) }
+                                .map { it.resolve("$displayFile.dspf").toFile() }
+                                .firstOrNull { it.exists() }
+                                ?.let {
+                                    SimpleDspfConfig(displayFilePath = it!!.parent).dspfProducer(displayFile)
+                                } ?: error("resource $displayFile.dspf not found in $metadataPaths")
+                        },
+                    )
+
+                options = Options(debuggingInformation = true)
+                jarikoCallback.onError = { error ->
+                    error.sourceReference?.let { sourceReference ->
+                        if (!whiteListRegexp.matches(sourceReference.sourceId)) {
+                            System.err.println(error)
+                        }
+                    } ?: System.err.println(error)
+                }
+                jarikoCallback.onApiInclusion = { apiId, api ->
+                    if (!notValidApi.contains(apiId.toString())) {
+                        api.compilationUnit.resolveAndValidate()
+                    }
+                }
+            }
+        val compiled =
+            compile(
+                src = srcDir,
+                compiledProgramsDir = testCompiledDir,
+                muteSupport = muteSupport,
+                format = format,
+                systemInterface = { dir ->
+                    TestJavaSystemInterface().apply {
+                        rpgSystem.addProgramFinder(DirRpgProgramFinder(dir))
+                        // To avoid duplication, I add copyDir as further program finder only if different from program dir
+                        copyDirs.filter { copyDir -> copyDir != dir }.forEach { copyDir ->
+                            rpgSystem.addProgramFinder(DirRpgProgramFinder(copyDir))
+                        }
+                    }
                 },
-                dspfProducer = { displayFile ->
-                    metadataPaths.asSequence()
-                        .map { Path.of(rpgTestSrcDir, it) }
-                        .map { it.resolve("$displayFile.dspf").toFile() }
-                        .firstOrNull { it.exists() }?.let {
-                            SimpleDspfConfig(displayFilePath = it!!.parent).dspfProducer(displayFile)
-                        } ?: error("resource $displayFile.dspf not found in $metadataPaths")
-                }
+                // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
+                allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") },
+                configuration = configuration,
+                allowCompilationError = { file, _ -> whiteListRegexp.matches(file.name) },
             )
-
-            options = Options(debuggingInformation = true)
-            jarikoCallback.onError = { error ->
-                error.sourceReference?.let { sourceReference ->
-                    if (!whiteListRegexp.matches(sourceReference.sourceId)) {
-                        System.err.println(error)
-                    }
-                } ?: System.err.println(error)
-            }
-            jarikoCallback.onApiInclusion = { apiId, api ->
-                if (!notValidApi.contains(apiId.toString())) {
-                    api.compilationUnit.resolveAndValidate()
-                }
-            }
-        }
-        val compiled = compile(
-            src = srcDir,
-            compiledProgramsDir = testCompiledDir,
-            muteSupport = muteSupport,
-            format = format,
-            systemInterface = { dir ->
-                TestJavaSystemInterface().apply {
-                    rpgSystem.addProgramFinder(DirRpgProgramFinder(dir))
-                    // To avoid duplication, I add copyDir as further program finder only if different from program dir
-                    copyDirs.filter { copyDir -> copyDir != dir }.forEach { copyDir ->
-                        rpgSystem.addProgramFinder(DirRpgProgramFinder(copyDir))
-                    }
-                }
-            },
-            // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
-            allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") },
-            configuration = configuration,
-            allowCompilationError = { file, _ -> whiteListRegexp.matches(file.name) }
-        )
         // now errors are displayed during the compilation
         val withErrors = compiled.filter { it.error != null }.map { it.srcFile.name }
         if (withErrors.isNotEmpty()) {
@@ -756,33 +815,42 @@ fun compileAllMutes(
     }
 }
 
-private class CompileAllMutes : CliktCommand(
-    help = "Compile all rpg programs located in resources",
-    name = "compileAllMutes"
-
-) {
+private class CompileAllMutes :
+    CliktCommand(
+        help = "Compile all rpg programs located in resources",
+        name = "compileAllMutes",
+    ) {
     private val dirs: String by option(
         "-dirs",
-        help = "list of relative directories containing programs relative to path: $rpgTestSrcDir"
+        help = "list of relative directories containing programs relative to path: $rpgTestSrcDir",
     ).default(
         listOf(
-            ".", "data/ds", "data/interop", "primitives", "logging", "mute",
-            "overlay", "performance", "performance-ast", "struct", "smeup"
-        ).joinToString()
+            ".",
+            "data/ds",
+            "data/interop",
+            "primitives",
+            "logging",
+            "mute",
+            "overlay",
+            "performance",
+            "performance-ast",
+            "struct",
+            "smeup",
+        ).joinToString(),
     )
     private val format: String by option(
         "-format",
-        help = "Compiled file format: [BIN|JSON]"
+        help = "Compiled file format: [BIN|JSON]",
     ).default("BIN")
 
     private val metadataPaths: String by option(
         "-metadataPaths",
-        help = "list of relative directories containing metadata relative to path: $rpgTestSrcDir"
+        help = "list of relative directories containing metadata relative to path: $rpgTestSrcDir",
     ).default(
         listOf(
             "db/metadata",
-            "smeup/metadata"
-        ).joinToString()
+            "smeup/metadata",
+        ).joinToString(),
     )
 
     override fun run() {
@@ -790,7 +858,7 @@ private class CompileAllMutes : CliktCommand(
             dirs = dirs.split(",").map { it.trim() },
             format = Format.valueOf(format),
             metadataPaths = metadataPaths.split(",").map { it.trim() },
-            copyPaths = listOf(".", "smeup")
+            copyPaths = listOf(".", "smeup"),
         )
     }
 }
@@ -799,7 +867,6 @@ private class CompileAllMutes : CliktCommand(
  * Introduced only for compatibility with test cases that used still RpgSystem as singleton object
  * */
 object SingletonRpgSystem : RpgSystem() {
-
     init {
         SINGLETON_RPG_SYSTEM = this
     }
@@ -816,7 +883,10 @@ object SingletonRpgSystem : RpgSystem() {
  * @param baseClass The base class whose subclasses are to be found.
  * @return A set of classes that are subclasses of the specified base class.
  */
-fun getAllSubclasses(packageName: String, baseClass: Class<*>): Set<Class<*>> {
+fun getAllSubclasses(
+    packageName: String,
+    baseClass: Class<*>,
+): Set<Class<*>> {
     val reflections = Reflections(packageName, SubTypesScanner(false))
     return reflections.getSubTypesOf(baseClass).toSet()
 }

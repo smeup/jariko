@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * */
 object MainExecutionContext {
-
     // default values in case jariko is not called from the command line program
     private val context: ThreadLocal<Context> by lazy { ThreadLocal<Context>() }
     private val noContextIdProvider: AtomicInteger by lazy { AtomicInteger() }
@@ -62,39 +61,43 @@ object MainExecutionContext {
     fun <T> execute(
         configuration: Configuration = Configuration(),
         systemInterface: SystemInterface,
-        mainProgram: (context: Context) -> T
+        mainProgram: (context: Context) -> T,
     ): T {
         val isRootContext = context.get() == null
         if (denyRecursiveMainContextExecution) {
             require(context.get() == null) { "Context execution already created" }
         }
-        val memorySliceMgr = if (isRootContext) {
-            if (configuration.memorySliceStorage == null) {
-                null
+        val memorySliceMgr =
+            if (isRootContext) {
+                if (configuration.memorySliceStorage == null) {
+                    null
+                } else {
+                    MemorySliceMgr(configuration.memorySliceStorage)
+                }
             } else {
-                MemorySliceMgr(configuration.memorySliceStorage)
+                null
             }
-        } else null
         try {
             if (isRootContext) {
                 context.set(
                     Context(
                         configuration = configuration,
                         memorySliceMgr = memorySliceMgr,
-                        systemInterface = systemInterface
-                    )
+                        systemInterface = systemInterface,
+                    ),
                 )
             }
-            return mainProgram.runCatching {
-                val ctx = context.get()
-                val callback = ctx.configuration.jarikoCallback
-                val trace = JarikoTrace(JarikoTraceKind.MainExecutionContext)
-                callback.traceBlock(trace) { invoke(ctx) }
-            }.onFailure {
-                if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(false)
-            }.onSuccess {
-                if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(true)
-            }.getOrThrow()
+            return mainProgram
+                .runCatching {
+                    val ctx = context.get()
+                    val callback = ctx.configuration.jarikoCallback
+                    val trace = JarikoTrace(JarikoTraceKind.MainExecutionContext)
+                    callback.traceBlock(trace) { invoke(ctx) }
+                }.onFailure {
+                    if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(false)
+                }.onSuccess {
+                    if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(true)
+                }.getOrThrow()
         } finally {
             if (isRootContext) {
                 context.get()?.dbFileFactory?.close()
@@ -116,8 +119,8 @@ object MainExecutionContext {
     /**
      * @return a new unique identifier
      */
-    fun newId(): Int {
-        return if (context.get() != null) {
+    fun newId(): Int =
+        if (context.get() != null) {
             context.get().idProvider.getAndIncrement()
         } else {
             // In many tests, the parsing is called outside the execution context
@@ -132,7 +135,6 @@ object MainExecutionContext {
             }
             noContextIdProvider.getAndIncrement()
         }
-    }
 
     /**
      * @return an instance of jariko configuration.
@@ -234,9 +236,10 @@ data class Context(
     var executionProgramName: String? = null,
     var executionFunctionName: String? = null,
     val parsingProgramStack: Stack<ParsingProgram> = Stack<ParsingProgram>(),
-    val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
-        DBFileFactory(it.nativeAccessConfig)
-    }
+    val dbFileFactory: DBFileFactory? =
+        configuration.reloadConfig?.let {
+            DBFileFactory(it.nativeAccessConfig)
+        },
 ) {
     val logHandlers: MutableList<InterpreterLogHandler> by lazy {
         systemInterface.getAllLogHandlers()
@@ -249,7 +252,9 @@ data class Context(
     val isLoggingEnabled get() = logHandlers.isNotEmpty()
 }
 
-data class ParsingProgram(val name: String) {
+data class ParsingProgram(
+    val name: String,
+) {
     val parsingFunctionNameStack = Stack<String>()
     var copyBlocks: CopyBlocks? = null
     var sourceLines: List<String>? = null

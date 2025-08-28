@@ -27,7 +27,9 @@ import java.util.Date
 import kotlin.collections.HashMap
 import kotlin.math.max
 
-enum class RpgType(val rpgType: String) {
+enum class RpgType(
+    val rpgType: String,
+) {
     CHARACTER("A"),
     BOOLEAN("N"),
     DATE("D"),
@@ -38,37 +40,44 @@ enum class RpgType(val rpgType: String) {
     UNSIGNED("U"),
     BINARY("B"),
     UNLIMITED_STRING("0"),
-    POINTER("*")
+    POINTER("*"),
 }
 
 /**
  * See https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type.
  */
-enum class DateFormat(val dateFormat: String) {
+enum class DateFormat(
+    val dateFormat: String,
+) {
     JUL("*JUL"),
-    ISO("*ISO")
+    ISO("*ISO"),
     // TODO: Add more
 }
 
-internal enum class DSFieldInitKeywordType(val keyword: String, val type: Type) {
+internal enum class DSFieldInitKeywordType(
+    val keyword: String,
+    val type: Type,
+) {
     STATUS("*STATUS", NumberType(entireDigits = 5, decimalDigits = 0, rpgType = RpgType.ZONED)),
-    PARMS("*PARMS", NumberType(entireDigits = 3, decimalDigits = 0, rpgType = RpgType.ZONED));
+    PARMS("*PARMS", NumberType(entireDigits = 3, decimalDigits = 0, rpgType = RpgType.ZONED)),
 }
 
-internal data class DSFieldInitKeyword(val position: Position?, val dsFieldInitKeywordType: DSFieldInitKeywordType) {
-
-    internal fun toAst(): Expression {
-        return when (dsFieldInitKeywordType) {
+internal data class DSFieldInitKeyword(
+    val position: Position?,
+    val dsFieldInitKeywordType: DSFieldInitKeywordType,
+) {
+    internal fun toAst(): Expression =
+        when (dsFieldInitKeywordType) {
             DSFieldInitKeywordType.PARMS -> ParmsExpr(name = DSFieldInitKeywordType.PARMS.keyword, position = position)
             DSFieldInitKeywordType.STATUS -> StatusExpr(position = position)
         }
-    }
 }
 
 private fun RpgParser.Parm_fixedContext.toDSFieldInitKeyword(conf: ToAstConfiguration): DSFieldInitKeyword? {
     val fromPositionTest = FROM_POSITION().text.trim()
     val position = toPosition(conf.considerPosition)
-    return DSFieldInitKeywordType.values()
+    return DSFieldInitKeywordType
+        .values()
         .firstOrNull { dsFieldInitKeyword -> dsFieldInitKeyword.keyword.equals(fromPositionTest, ignoreCase = true) }
         ?.let { DSFieldInitKeyword(position = position, dsFieldInitKeywordType = it) }
 }
@@ -85,15 +94,16 @@ private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
 
 internal fun RpgParser.Dcl_dsContext.elementSizeOf(
     knownDataDefinitions: Collection<DataDefinition>,
-    fields: List<FieldInfo> = emptyList()
+    fields: List<FieldInfo> = emptyList(),
 ): Int {
     val fieldsList = this.calculateFieldInfos(knownDataDefinitions, fields)
-    val toPosition = if (this.nameIsInFirstLine) {
-        this.TO_POSITION().text
-    } else {
-        val header = this.parm_fixed().first()
-        header.TO_POSITION().text
-    }
+    val toPosition =
+        if (this.nameIsInFirstLine) {
+            this.TO_POSITION().text
+        } else {
+            val header = this.parm_fixed().first()
+            header.TO_POSITION().text
+        }
     return if (toPosition.isBlank()) {
         inferDsSizeFromFieldLines(fieldsList)
     } else {
@@ -104,22 +114,30 @@ internal fun RpgParser.Dcl_dsContext.elementSizeOf(
 internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.fs_keyword().mapNotNull { it.keyword_prefix() }
 
-    val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
-        Prefix(
-            prefix = prefixContexts[0].prefix.text,
-            numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.text?.toInt()
-        )
-    } else {
-        null
-    }
-    val isPrinter = this.FS_Device().text.trim().uppercase() == "PRINTER" || this.fs_keyword().any { it.keyword_printer() != null }
+    val prefix: Prefix? =
+        if (prefixContexts.isNotEmpty()) {
+            Prefix(
+                prefix = prefixContexts[0].prefix.text,
+                numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.text?.toInt(),
+            )
+        } else {
+            null
+        }
+    val isPrinter =
+        this
+            .FS_Device()
+            .text
+            .trim()
+            .uppercase() == "PRINTER" ||
+            this.fs_keyword().any { it.keyword_printer() != null }
     val fileType = if (isPrinter) FileType.PRINTER else FileType.getByKeyword(this.FS_Type().text.trim())
-    val fileDefinition = FileDefinition(
-        name = this.FS_RecordName().text.trim(),
-        position = this.toPosition(conf.considerPosition),
-        prefix = prefix,
-        fileType = fileType
-    )
+    val fileDefinition =
+        FileDefinition(
+            name = this.FS_RecordName().text.trim(),
+            position = this.toPosition(conf.considerPosition),
+            prefix = prefix,
+            fileType = fileType,
+        )
     val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
     if (rename.isNotEmpty()) {
         // TODO Should we evaluate rename[0].int_format ???
@@ -129,31 +147,32 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     return fileDefinition
 }
 
-internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
-    return FileDefinition(
+internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition =
+    FileDefinition(
         name = getExtName(),
         position = toPosition(conf.considerPosition),
-        justExtName = true
+        justExtName = true,
     )
-}
 
 internal fun RpgParser.Dcl_dsContext.toAstWithParameters(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.keyword().mapNotNull { it.keyword_prefix() }
-    val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
-        Prefix(
-            prefix = prefixContexts[0].prefix.text,
-            numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.text?.toInt()
-        )
-    } else {
-        null
-    }
+    val prefix: Prefix? =
+        if (prefixContexts.isNotEmpty()) {
+            Prefix(
+                prefix = prefixContexts[0].prefix.text,
+                numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.text?.toInt(),
+            )
+        } else {
+            null
+        }
     val extNameContexts = this.keyword().mapNotNull { it.keyword_extname() }.firstOrNull()
-    val fileDefinition = FileDefinition(
-        name = extNameContexts?.getExtName() ?: "",
-        position = toPosition(conf.considerPosition),
-        justExtName = true,
-        prefix = prefix
-    )
+    val fileDefinition =
+        FileDefinition(
+            name = extNameContexts?.getExtName() ?: "",
+            position = toPosition(conf.considerPosition),
+            justExtName = true,
+            prefix = prefix,
+        )
     return fileDefinition
 }
 
@@ -162,12 +181,13 @@ private val RpgParser.Parm_fixedContext.decimalPositions
 
 internal fun RpgParser.Parm_fixedContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: List<DataDefinition>
+    knownDataDefinitions: List<DataDefinition>,
 ): DataDefinition {
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
-        knownDataDefinitions = knownDataDefinitions,
-        delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-    )
+    val compileTimeInterpreter =
+        InjectableCompileTimeInterpreter(
+            knownDataDefinitions = knownDataDefinitions,
+            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter,
+        )
 
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
@@ -220,79 +240,107 @@ internal fun RpgParser.Parm_fixedContext.toAst(
         }
     }
 
-    val elementSize = when {
-        like != null -> {
-            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf, null)
+    val elementSize =
+        when {
+            like != null -> {
+                compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf, null)
+            }
+            else ->
+                this
+                    .TO_POSITION()
+                    .text
+                    .trim()
+                    .let { if (it.isBlank()) null else it.toInt() }
         }
-        else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
-    }
 
     val baseType =
-        when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
+        when (
+            this
+                .DATA_TYPE()
+                ?.text
+                ?.trim()
+                ?.uppercase()
+        ) {
             null -> todo(conf = conf)
-            "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-                /* TODO should be packed? */
-                NumberType(elementSize!! - decimalPositions, decimalPositions)
-            } else {
-                if (like != null) {
-                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+            "" ->
+                if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+                    // TODO should be packed?
+                    NumberType(elementSize!! - decimalPositions, decimalPositions)
                 } else {
-                    StringType(elementSize!!, varying)
+                    if (like != null) {
+                        compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+                    } else {
+                        StringType(elementSize!!, varying)
+                    }
                 }
-            }
             RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
             RpgType.BOOLEAN.rpgType -> BooleanType
             RpgType.TIMESTAMP.rpgType -> TimeStampType
-            /* TODO should be zoned? */
+            // TODO should be zoned?
             RpgType.ZONED.rpgType -> {
-                /* Zoned Type */
+                // Zoned Type
                 NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
             }
             RpgType.PACKED.rpgType -> {
-                /* Packed Type */
+                // Packed Type
                 NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
             }
             RpgType.BINARY.rpgType -> {
-                /* Binary */
+                // Binary
                 NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
             }
             RpgType.INTEGER.rpgType -> {
-                /* Integer Type */
+                // Integer Type
                 NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
             }
             RpgType.UNSIGNED.rpgType -> {
-                /* Unsigned Type */
+                // Unsigned Type
                 NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
             }
             else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
         }
 
-    val type = if (dim != null) {
-        var compileTimeRecordsPerLine: Int? = null
-        if (compileTimeArray) {
-            if (elementsPerLineExpression != null) {
-                compileTimeRecordsPerLine = compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
-            } else {
-                compileTimeRecordsPerLine = 1
+    val type =
+        if (dim != null) {
+            var compileTimeRecordsPerLine: Int? = null
+            if (compileTimeArray) {
+                if (elementsPerLineExpression != null) {
+                    compileTimeRecordsPerLine =
+                        compileTimeInterpreter
+                            .evaluate(this.rContext(), elementsPerLineExpression!!)
+                            .asInt()
+                            .value
+                            .toInt()
+                } else {
+                    compileTimeRecordsPerLine = 1
+                }
+                require(compileTimeRecordsPerLine > 0)
             }
-            require(compileTimeRecordsPerLine > 0)
-        }
 
-        if (!baseType.isArray()) {
-            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-                it.ascend = ascend
+            if (!baseType.isArray()) {
+                ArrayType(
+                    baseType,
+                    compileTimeInterpreter
+                        .evaluate(this.rContext(), dim!!)
+                        .asInt()
+                        .value
+                        .toInt(),
+                    compileTimeRecordsPerLine,
+                ).also {
+                    it.ascend = ascend
+                }
+            } else {
+                baseType
             }
         } else {
             baseType
         }
-    } else {
-        baseType
-    }
     return DataDefinition(
         this.ds_name().text,
         type,
         initializationValue = initializationValue,
-        position = this.toPosition(true))
+        position = this.toPosition(true),
+    )
 }
 
 internal fun RpgParser.DspecContext.toAst(
@@ -300,21 +348,23 @@ internal fun RpgParser.DspecContext.toAst(
     knownDataDefinitions: List<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>? = null,
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>? = null,
-    procedureName: String? = null
+    procedureName: String? = null,
 ): DataDefinition {
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
-        knownDataDefinitions = knownDataDefinitions,
-        // If we have a parent data definition we can use it to resolve the variable through the delegate
-        delegatedCompileTimeInterpreter = parentDataDefinitions?.let {
-            InjectableCompileTimeInterpreter(
-                knownDataDefinitions = it,
-                fileDefinitions = fileDefinitions,
-                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-            )
-        } ?: conf.compileTimeInterpreter,
-        fileDefinitions = fileDefinitions
-    )
+    val compileTimeInterpreter =
+        InjectableCompileTimeInterpreter(
+            knownDataDefinitions = knownDataDefinitions,
+            // If we have a parent data definition we can use it to resolve the variable through the delegate
+            delegatedCompileTimeInterpreter =
+                parentDataDefinitions?.let {
+                    InjectableCompileTimeInterpreter(
+                        knownDataDefinitions = it,
+                        fileDefinitions = fileDefinitions,
+                        delegatedCompileTimeInterpreter = conf.compileTimeInterpreter,
+                    )
+                } ?: conf.compileTimeInterpreter,
+            fileDefinitions = fileDefinitions,
+        )
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -343,7 +393,7 @@ internal fun RpgParser.DspecContext.toAst(
     var len: Expression? = null
     var based: Expression? = null
 
-    /* Default value is ISO. */
+    // Default value is ISO.
     var dateFormat: DateFormat = DateFormat.ISO
 
     this.keyword().forEach {
@@ -375,11 +425,12 @@ internal fun RpgParser.DspecContext.toAst(
             static = true
         }
         it.keyword_datfmt()?.let {
-            dateFormat = when (it.simpleExpression()?.toAst(conf)) {
-                is IsoFormatExpr -> DateFormat.ISO
-                is JulFormatExpr -> DateFormat.JUL
-                else -> this.todo(message = "${it.simpleExpression().text} like Date format", conf = conf)
-            }
+            dateFormat =
+                when (it.simpleExpression()?.toAst(conf)) {
+                    is IsoFormatExpr -> DateFormat.ISO
+                    is JulFormatExpr -> DateFormat.JUL
+                    else -> this.todo(message = "${it.simpleExpression().text} like Date format", conf = conf)
+                }
         }
         it.keyword_len()?.let {
             len = it.simpleExpression().toAst(conf)
@@ -389,39 +440,60 @@ internal fun RpgParser.DspecContext.toAst(
         }
     }
 
-    val elementSize = when {
-        like != null -> {
-            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf, procedureName)
+    val elementSize =
+        when {
+            like != null -> {
+                compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf, procedureName)
+            }
+            else ->
+                this
+                    .TO_POSITION()
+                    .text
+                    .trim()
+                    .let { if (it.isBlank()) null else it.toInt() }
         }
-        else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
-    }
 
     val baseType =
-        when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
+        when (
+            this
+                .DATA_TYPE()
+                ?.text
+                ?.trim()
+                ?.uppercase()
+        ) {
             null -> todo(conf = conf)
-            "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-                /* TODO should be packed? */
-                NumberType(elementSize!! - decimalPositions, decimalPositions)
-            } else {
-                if (like != null) {
-                    val baseType = compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
-
-                    // When LIKE is used on a DS we must declare a string with size == to the DS size
-                    if (baseType is DataStructureType) {
-                        StringType.createInstance(elementSize!!, varying)
-                    } else baseType
+            "" ->
+                if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+                    // TODO should be packed?
+                    NumberType(elementSize!! - decimalPositions, decimalPositions)
                 } else {
-                    StringType.createInstance(elementSize!!, varying)
+                    if (like != null) {
+                        val baseType = compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf, procedureName)
+
+                        // When LIKE is used on a DS we must declare a string with size == to the DS size
+                        if (baseType is DataStructureType) {
+                            StringType.createInstance(elementSize!!, varying)
+                        } else {
+                            baseType
+                        }
+                    } else {
+                        StringType.createInstance(elementSize!!, varying)
+                    }
                 }
-            }
             RpgType.CHARACTER.rpgType -> {
                 // see: https://www.ibm.com/docs/en/i/7.4?topic=lenlength-rules-len-keyword
-                val lenSize = len?.let {
-                    compileTimeInterpreter.evaluate(rContext(), it)
-                }?.asInt()?.value?.toInt()
-                if (elementSize != null && lenSize != null) error(
-                    "The LEN keyword cannot be specified if the Length entry is specified, or if the From and To entries are specified for subfields"
-                )
+                val lenSize =
+                    len
+                        ?.let {
+                            compileTimeInterpreter.evaluate(rContext(), it)
+                        }?.asInt()
+                        ?.value
+                        ?.toInt()
+                if (elementSize != null && lenSize != null) {
+                    error(
+                        "The LEN keyword cannot be specified if the Length entry is specified, or if the From and To entries are specified for subfields",
+                    )
+                }
                 StringType(lenSize ?: elementSize!!, varying)
             }
             RpgType.BOOLEAN.rpgType -> BooleanType
@@ -430,13 +502,19 @@ internal fun RpgParser.DspecContext.toAst(
                 val type = DateType(dateFormat)
 
                 if (initializationValue != null) {
-                    if (!(initializationValue as StringLiteral).value.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}"))) error(message = "Initialization value is incorrect. Must be 'YYYY-MM-DD'", conf = conf)
+                    if (!(initializationValue as StringLiteral).value.matches(
+                            Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}"),
+                        )
+                    ) {
+                        error(message = "Initialization value is incorrect. Must be 'YYYY-MM-DD'", conf = conf)
+                    }
                     val dateInzSplit = (initializationValue as StringLiteral).value.split("-").map { it.toInt() }
                     val dateInz = Date(dateInzSplit[0] - 1900, dateInzSplit[1] - 1, dateInzSplit[2])
-                    initializationValue = IntLiteral(
-                        value = dateInz.time,
-                        position = initializationValue?.position
-                    )
+                    initializationValue =
+                        IntLiteral(
+                            value = dateInz.time,
+                            position = initializationValue?.position,
+                        )
 
                     /*
                      * Every date format has a valid range:
@@ -445,36 +523,42 @@ internal fun RpgParser.DspecContext.toAst(
                      * For more information, or if you want to add another format, see: https://www.ibm.com/docs/en/i/7.5?topic=formats-date-data-type
                      */
                     when (type.format) {
-                        DateFormat.JUL -> if (
-                            !dateInz.after(Date(1939 - 1900, 11, 31)) || !dateInz.before(Date(2040 - 1900, 0, 1))
-                        ) error(message = "For JUL format the date must be between 1940 and 2039", conf = conf)
-                        DateFormat.ISO -> if (
-                            !dateInz.after(Date(-1900, 11, 31)) || !dateInz.before(Date(9999 - 1900, 0, 1))
-                        ) error(message = "For ISO format the date must be between 0001 and 9999", conf = conf)
+                        DateFormat.JUL ->
+                            if (
+                                !dateInz.after(Date(1939 - 1900, 11, 31)) || !dateInz.before(Date(2040 - 1900, 0, 1))
+                            ) {
+                                error(message = "For JUL format the date must be between 1940 and 2039", conf = conf)
+                            }
+                        DateFormat.ISO ->
+                            if (
+                                !dateInz.after(Date(-1900, 11, 31)) || !dateInz.before(Date(9999 - 1900, 0, 1))
+                            ) {
+                                error(message = "For ISO format the date must be between 0001 and 9999", conf = conf)
+                            }
                     }
                 }
 
                 DateType(dateFormat)
             }
-            /* TODO should be zoned? */
+            // TODO should be zoned?
             RpgType.ZONED.rpgType -> {
-                /* Zoned Type */
+                // Zoned Type
                 NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
             }
             RpgType.PACKED.rpgType -> {
-                /* Packed Type */
+                // Packed Type
                 NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
             }
             RpgType.BINARY.rpgType -> {
-                /* Binary */
+                // Binary
                 NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
             }
             RpgType.INTEGER.rpgType -> {
-                /* Integer Type */
+                // Integer Type
                 NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
             }
             RpgType.UNSIGNED.rpgType -> {
-                /* Unsigned Type */
+                // Unsigned Type
                 NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
             }
             RpgType.UNLIMITED_STRING.rpgType -> {
@@ -482,64 +566,80 @@ internal fun RpgParser.DspecContext.toAst(
             }
             RpgType.POINTER.rpgType -> PointerType
             else -> todo("Unknown type: <${this.DATA_TYPE().text}>", conf)
-    }
-
-    val type = if (dim != null) {
-        var compileTimeRecordsPerLine: Int? = null
-        if (compileTimeArray) {
-            if (elementsPerLineExpression != null) {
-                compileTimeRecordsPerLine = compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
-            } else {
-                compileTimeRecordsPerLine = 1
-            }
-            require(compileTimeRecordsPerLine > 0)
         }
 
-        if (!baseType.isArray()) {
-            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-                it.ascend = ascend
+    val type =
+        if (dim != null) {
+            var compileTimeRecordsPerLine: Int? = null
+            if (compileTimeArray) {
+                if (elementsPerLineExpression != null) {
+                    compileTimeRecordsPerLine =
+                        compileTimeInterpreter
+                            .evaluate(this.rContext(), elementsPerLineExpression!!)
+                            .asInt()
+                            .value
+                            .toInt()
+                } else {
+                    compileTimeRecordsPerLine = 1
+                }
+                require(compileTimeRecordsPerLine > 0)
+            }
+
+            if (!baseType.isArray()) {
+                ArrayType(
+                    baseType,
+                    compileTimeInterpreter
+                        .evaluate(this.rContext(), dim!!)
+                        .asInt()
+                        .value
+                        .toInt(),
+                    compileTimeRecordsPerLine,
+                ).also {
+                    it.ascend = ascend
+                }
+            } else {
+                val el =
+                    compileTimeInterpreter
+                        .evaluate(this.rContext(), dim!!)
+                        .asInt()
+                        .value
+                        .toInt()
+                (baseType as ArrayType).copy(nElements = el)
             }
         } else {
-            val el = compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt()
-            (baseType as ArrayType).copy(nElements = el)
+            baseType
         }
-    } else {
-        baseType
-    }
     return DataDefinition(
         name = this.ds_name().text,
         type = type,
         initializationValue = initializationValue,
         position = this.toPosition(true),
         static = static,
-        basedOn = based
+        basedOn = based,
     )
 }
 
-internal fun RpgParser.DspecConstantContext.toAst(
-    conf: ToAstConfiguration = ToAstConfiguration()
-): DataDefinition {
+internal fun RpgParser.DspecConstantContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     val initializationValue = this.number().toAst(conf)
     val type = initializationValue.type()
 
     return DataDefinition(
-            this.ds_name().text,
-            type,
-            initializationValue = initializationValue,
-            position = this.toPosition(true))
+        this.ds_name().text,
+        type,
+        initializationValue = initializationValue,
+        position = this.toPosition(true),
+    )
 }
 
-internal fun RpgParser.Dcl_cContext.toAst(
-    conf: ToAstConfiguration = ToAstConfiguration()
-): DataDefinition {
+internal fun RpgParser.Dcl_cContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     val initializationValueExpression = this.keyword_const()?.simpleExpression()?.toAst(conf) ?: this.literal().toAst(conf)
     val type = initializationValueExpression.type()
     return DataDefinition(
-            this.ds_name().text,
-            type,
-            initializationValue = initializationValueExpression,
-            position = this.toPosition(true),
-            const = true
+        this.ds_name().text,
+        type,
+        initializationValue = initializationValueExpression,
+        position = this.toPosition(true),
+        const = true,
     )
 }
 
@@ -548,7 +648,11 @@ private val RpgParser.DspecContext.decimalPositions
 
 val RpgParser.Dcl_dsContext.nameIsInFirstLine: Boolean
     get() {
-        return this.ds_name().text.trim().isNotEmpty()
+        return this
+            .ds_name()
+            .text
+            .trim()
+            .isNotEmpty()
     }
 
 val RpgParser.Dcl_dsContext.name: String
@@ -565,40 +669,61 @@ val RpgParser.Dcl_dsContext.name: String
 internal fun RpgParser.Dcl_dsContext.type(
     size: Int? = null,
     fieldsList: FieldsList,
-    conf: ToAstConfiguration = ToAstConfiguration()
+    conf: ToAstConfiguration = ToAstConfiguration(),
 ): Type {
-    val explicitSize = this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
+    val explicitSize =
+        this
+            .TO_POSITION()
+            .text
+            .trim()
+            .let { if (it.isBlank()) null else it.toInt() }
     val keywords = this.keyword()
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val occurs: Int? = keywords.asSequence().mapNotNull { it.keyword_occurs()?.evaluate(conf) }.firstOrNull()
-    val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
-    val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType() }
-    val calculatedElementSize = fieldsList.fields.map {
-        if (it.overlayInfo == null) {
-            if (it.arraySizeDeclared == null) {
-                it.endOffset!!
-            } else {
-                if (it.explicitStartOffset != null && it.explicitEndOffset != null) {
-                    it.endOffset!!
-                } else {
-                    it.startOffset!! + (it.elementSize!! * it.arraySizeDeclared!!)
-                }
-            }
+    val nElements =
+        if (dim != null) {
+            conf.compileTimeInterpreter
+                .evaluate(this.rContext(), dim)
+                .asInt()
+                .value
+                .toInt()
         } else {
-            0
+            null
         }
-    }.maxOrNull()
-    val elementSize = explicitSize
+    val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType() }
+    val calculatedElementSize =
+        fieldsList.fields
+            .map {
+                if (it.overlayInfo == null) {
+                    if (it.arraySizeDeclared == null) {
+                        it.endOffset!!
+                    } else {
+                        if (it.explicitStartOffset != null && it.explicitEndOffset != null) {
+                            it.endOffset!!
+                        } else {
+                            it.startOffset!! + (it.elementSize!! * it.arraySizeDeclared!!)
+                        }
+                    }
+                } else {
+                    0
+                }
+            }.maxOrNull()
+    val elementSize =
+        explicitSize
             ?: calculatedElementSize
-            ?: throw CannotRetrieveDataStructureElementSizeException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
-    val dataStructureType = DataStructureType(
-        fields = fieldTypes,
-        elementSize = size ?: elementSize,
-        isQualified = keywords.any { it.keyword_qualified() != null }
-    )
-    val baseType = occurs?.let {
-        OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
-    } ?: dataStructureType
+            ?: throw CannotRetrieveDataStructureElementSizeException(
+                "No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size",
+            )
+    val dataStructureType =
+        DataStructureType(
+            fields = fieldTypes,
+            elementSize = size ?: elementSize,
+            isQualified = keywords.any { it.keyword_qualified() != null },
+        )
+    val baseType =
+        occurs?.let {
+            OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
+        } ?: dataStructureType
     return if (nElements == null) {
         baseType
     } else {
@@ -609,19 +734,25 @@ internal fun RpgParser.Dcl_dsContext.type(
 /**
  * Evaluates the OCCURS keyword between a number or an expression to evaluate at runtime.
  */
-internal fun RpgParser.Keyword_occursContext.evaluate(conf: ToAstConfiguration = ToAstConfiguration()): Int? {
-    return if (this.expr != null) {
-        val injectableCompileTimeInterpreter = InjectableCompileTimeInterpreter(
-            knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
-            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-        )
-        injectableCompileTimeInterpreter.evaluate(rContext(), this.expr.toAst(conf)).asInt().value.toInt()
+internal fun RpgParser.Keyword_occursContext.evaluate(conf: ToAstConfiguration = ToAstConfiguration()): Int? =
+    if (this.expr != null) {
+        val injectableCompileTimeInterpreter =
+            InjectableCompileTimeInterpreter(
+                knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
+                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter,
+            )
+        injectableCompileTimeInterpreter
+            .evaluate(rContext(), this.expr.toAst(conf))
+            .asInt()
+            .value
+            .toInt()
     } else {
         null
     }
-}
 
-internal class CannotRetrieveDataStructureElementSizeException(override val message: String) : IllegalStateException(message)
+internal class CannotRetrieveDataStructureElementSizeException(
+    override val message: String,
+) : IllegalStateException(message)
 
 private val RpgParser.Parm_fixedContext.name: String
     get() = this.ds_name().text
@@ -647,9 +778,8 @@ data class FieldInfo(
     val initializationValue: Expression? = null,
     val descend: Boolean = false,
     val position: Position?,
-    val compileTimeRecordsPerLine: Int? = null
+    val compileTimeRecordsPerLine: Int? = null,
 ) {
-
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
 
     // In case of an array it indicated the end of the first element
@@ -658,9 +788,14 @@ data class FieldInfo(
     // In case this is not an array this is the same as endOffset, otherwise the end
     // of the array
     val endOffsetIncludingAllElement: Int?
-        get() = if (endOffset == null) null else if (this.arraySizeDeclared == null) endOffset!! else {
-            (startOffset!! + (elementSize!! * arraySizeDeclared!!))
-        }
+        get() =
+            if (endOffset == null) {
+                null
+            } else if (this.arraySizeDeclared == null) {
+                endOffset!!
+            } else {
+                (startOffset!! + (elementSize!! * arraySizeDeclared!!))
+            }
 
     var calculatedElementSize: Int? = null
     var calculatedElementType: Type? = null
@@ -676,45 +811,51 @@ data class FieldInfo(
             return explicitElementType ?: (calculatedElementType ?: throw IllegalStateException("No element type available for $name"))
         }
 
-    fun type(): Type {
-        return if (arraySizeDeclared == null) {
+    fun type(): Type =
+        if (arraySizeDeclared == null) {
             elementType
         } else {
             ArrayType(elementType, arraySizeDeclared!!, compileTimeRecordsPerLine)
         }
-    }
 
-    data class OverlayInfo(val targetFieldName: String, val isNext: Boolean, val posValue: Long?)
+    data class OverlayInfo(
+        val targetFieldName: String,
+        val isNext: Boolean,
+        val posValue: Long?,
+    )
 
-    fun toFieldType(): FieldType {
-        return FieldType(name, type())
-    }
+    fun toFieldType(): FieldType = FieldType(name, type())
 
-    fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
-        return FieldDefinition(this.name,
-                type(),
-                explicitStartOffset = this.explicitStartOffset,
-                explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
-                calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
-                calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
-                initializationValue = this.initializationValue,
-                descend = this.descend,
-                position = if (conf.considerPosition) this.position else null,
-                declaredArrayInLineOnThisField = arraySizeDeclaredOnThisField)
-    }
+    fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition =
+        FieldDefinition(
+            this.name,
+            type(),
+            explicitStartOffset = this.explicitStartOffset,
+            explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
+            calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
+            calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
+            initializationValue = this.initializationValue,
+            descend = this.descend,
+            position = if (conf.considerPosition) this.position else null,
+            declaredArrayInLineOnThisField = arraySizeDeclaredOnThisField,
+        )
 }
 
 internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(conf: ToAstConfiguration): Int? {
     if (this.keyword().any { it.keyword_dim() != null }) {
-        val compileTimeInterpreter = InjectableCompileTimeInterpreter(
-            knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
-            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-        )
+        val compileTimeInterpreter =
+            InjectableCompileTimeInterpreter(
+                knownDataDefinitions = KnownDataDefinition.getInstance().values.toList(),
+                delegatedCompileTimeInterpreter = conf.compileTimeInterpreter,
+            )
         val dims = this.keyword().mapNotNull { it.keyword_dim() }
         require(dims.size == 1)
         val dim = dims[0]
-        return compileTimeInterpreter.evaluate(this.rContext(), dim.simpleExpression().toAst(conf))
-            .asInt().value.toInt()
+        return compileTimeInterpreter
+            .evaluate(this.rContext(), dim.simpleExpression().toAst(conf))
+            .asInt()
+            .value
+            .toInt()
     }
     return null
 }
@@ -723,44 +864,64 @@ data class TypeInfo(
     val stringCode: String?,
     val integerPositions: Int?,
     val decimalPositions: Int?,
-    val isPackEven: Boolean
+    val isPackEven: Boolean,
 )
 
 fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
     this.FROM_POSITION()
     this.TO_POSITION()
     return TypeInfo(
-            stringCode = DATA_TYPE()?.text?.trim(),
-            integerPositions = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null,
-            decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null,
-            isPackEven = keyword().any { it.keyword_packeven() != null }
+        stringCode = DATA_TYPE()?.text?.trim(),
+        integerPositions = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null,
+        decimalPositions =
+            if (DECIMAL_POSITIONS().text.isNotBlank()) {
+                with(DECIMAL_POSITIONS().text.trim()) {
+                    if (isEmpty()) 0 else toInt()
+                }
+            } else {
+                null
+            },
+        isPackEven = keyword().any { it.keyword_packeven() != null },
     )
 }
 
-internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?, conf: ToAstConfiguration): Type? {
+internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(
+    arraySizeDeclared: Int?,
+    conf: ToAstConfiguration,
+): Type? {
     val rpgCodeType = DATA_TYPE()?.text?.trim() ?: RpgType.ZONED.rpgType
-    val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
+    val decimalPositions =
+        if (DECIMAL_POSITIONS().text.isNotBlank()) {
+            with(DECIMAL_POSITIONS().text.trim()) {
+                if (isEmpty()) 0 else toInt()
+            }
+        } else {
+            null
+        }
     val isPackEven = keyword().any { it.keyword_packeven() != null }
     val isVarying = keyword().any { it.keyword_varying() != null }
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
-    val precision = if (startPosition != null && endPosition != null) {
-        endPosition - startPosition.toInt()
-    } else {
-        if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
-    }
-    val totalSize = when {
-        startPosition == null -> null
-        endPosition == null -> endPosition
-        else -> endPosition - startPosition.toInt()
-    }
-    val explicitElementSize = if (arraySizeDeclared != null) {
-        totalSize?.let {
-            it / arraySizeDeclared(conf)!!
+    val precision =
+        if (startPosition != null && endPosition != null) {
+            endPosition - startPosition.toInt()
+        } else {
+            if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
         }
-    } else {
-        totalSize
-    }
+    val totalSize =
+        when {
+            startPosition == null -> null
+            endPosition == null -> endPosition
+            else -> endPosition - startPosition.toInt()
+        }
+    val explicitElementSize =
+        if (arraySizeDeclared != null) {
+            totalSize?.let {
+                it / arraySizeDeclared(conf)!!
+            }
+        } else {
+            totalSize
+        }
 
     val dsFieldInitKeyword = toDSFieldInitKeyword(conf)
 
@@ -828,19 +989,24 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
  */
 internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
     knownDataDefinitions: Collection<DataDefinition>,
-    fieldsExtname: List<FieldInfo> = listOf()
+    fieldsExtname: List<FieldInfo> = listOf(),
 ): FieldsList {
     val caughtErrors = mutableListOf<Throwable>()
-    val fieldsList = FieldsList(fieldsExtname + this.parm_fixed().mapNotNull {
-        kotlin.runCatching {
-            it.toFieldInfo(
-                knownDataDefinitions = knownDataDefinitions,
-                fieldsExtname = fieldsExtname
-            )
-        }.onFailure {
-            caughtErrors.add(it)
-        }.getOrNull()
-    })
+    val fieldsList =
+        FieldsList(
+            fieldsExtname +
+                this.parm_fixed().mapNotNull {
+                    kotlin
+                        .runCatching {
+                            it.toFieldInfo(
+                                knownDataDefinitions = knownDataDefinitions,
+                                fieldsExtname = fieldsExtname,
+                            )
+                        }.onFailure {
+                            caughtErrors.add(it)
+                        }.getOrNull()
+                },
+        )
     if (caughtErrors.isNotEmpty()) {
         throw caughtErrors[0]
     }
@@ -865,13 +1031,15 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(
 private fun RpgParser.Parm_fixedContext.toFieldInfo(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: Collection<DataDefinition>,
-    fieldsExtname: List<FieldInfo>? = emptyList()
+    fieldsExtname: List<FieldInfo>? = emptyList(),
 ): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
-    val like = this.keyword()
-        .firstOrNull { it.keyword_like() != null }
-        .let { if (it != null) it.keyword_like()?.simpleExpression()?.toAst(conf) as DataRefExpr else null }
+    val like =
+        this
+            .keyword()
+            .firstOrNull { it.keyword_like() != null }
+            .let { if (it != null) it.keyword_like()?.simpleExpression()?.toAst(conf) as DataRefExpr else null }
 
     // Set the SORTA order
     val descend = this.keyword().find { it.keyword_descend() != null } != null
@@ -880,13 +1048,23 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     val compileTimeArray = this.keyword().find { it.keyword_ctdata() != null } != null
 
     // Set the PERRCD flag
-    val elementsPerLineExpression = this.keyword().find { it.keyword_perrcd() != null }.let { it?.keyword_perrcd()?.simpleExpression()?.toAst(conf) }
+    val elementsPerLineExpression =
+        this
+            .keyword()
+            .find {
+                it.keyword_perrcd() != null
+            }.let { it?.keyword_perrcd()?.simpleExpression()?.toAst(conf) }
 
     // Calculating compile time records per line
     var compileTimeRecordsPerLine: Int? = null
     if (compileTimeArray) {
         if (elementsPerLineExpression != null) {
-            compileTimeRecordsPerLine = conf.compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression).asInt().value.toInt()
+            compileTimeRecordsPerLine =
+                conf.compileTimeInterpreter
+                    .evaluate(this.rContext(), elementsPerLineExpression)
+                    .asInt()
+                    .value
+                    .toInt()
         } else {
             compileTimeRecordsPerLine = 1
         }
@@ -907,60 +1085,64 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(
     val hasInitValue = this.keyword().find { it.keyword_inz() != null }
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val varName = like?.variable?.name ?: this.name
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
-        knownDataDefinitions = knownDataDefinitions.toList(),
-        delegatedCompileTimeInterpreter = conf.compileTimeInterpreter
-    )
-    val explicitElementType: Type? = this.calculateExplicitElementType(arraySizeDeclared, conf)
-        ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
-        ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
-        ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
-        ?: like?.let { compileTimeInterpreter.evaluateTypeOf(this.rContext(), it, conf) }
-        ?: compileTimeInterpreter.evaluateTypeOfDefine(this.rContext(), varName, conf, null)
+    val compileTimeInterpreter =
+        InjectableCompileTimeInterpreter(
+            knownDataDefinitions = knownDataDefinitions.toList(),
+            delegatedCompileTimeInterpreter = conf.compileTimeInterpreter,
+        )
+    val explicitElementType: Type? =
+        this.calculateExplicitElementType(arraySizeDeclared, conf)
+            ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type
+            ?: knownDataDefinitions.flatMap { it.fields }.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) }?.type
+            ?: fieldsExtname?.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.elementType
+            ?: like?.let { compileTimeInterpreter.evaluateTypeOf(this.rContext(), it, conf) }
+            ?: compileTimeInterpreter.evaluateTypeOfDefine(this.rContext(), varName, conf, null)
 
     if (hasInitValue != null) {
-        initializationValue = if (hasInitValue.keyword_inz().simpleExpression() != null) {
-            hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
-        } else {
-            // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
-            when {
-                arraySizeDeclared != null -> null
-                this.toTypeInfo().decimalPositions != null -> RealLiteral(BigDecimal.ZERO, position = toPosition())
-                else -> StringLiteral("", position = toPosition())
+        initializationValue =
+            if (hasInitValue.keyword_inz().simpleExpression() != null) {
+                hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+            } else {
+                // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
+                when {
+                    arraySizeDeclared != null -> null
+                    this.toTypeInfo().decimalPositions != null -> RealLiteral(BigDecimal.ZERO, position = toPosition())
+                    else -> StringLiteral("", position = toPosition())
+                }
             }
-        }
     } else {
         this.toDSFieldInitKeyword(conf = conf)?.apply {
             initializationValue = this.toAst()
         }
     }
 
-    return FieldInfo(this.name, overlayInfo = overlayInfo,
-            explicitStartOffset = this.explicitStartOffset(),
-            explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-            explicitElementType = explicitElementType,
-            arraySizeDeclared = this.arraySizeDeclared(conf),
-            arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
-            initializationValue = initializationValue,
-            descend = descend,
-            position = this.toPosition(conf.considerPosition),
-            compileTimeRecordsPerLine = compileTimeRecordsPerLine
+    return FieldInfo(
+        this.name,
+        overlayInfo = overlayInfo,
+        explicitStartOffset = this.explicitStartOffset(),
+        explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
+        explicitElementType = explicitElementType,
+        arraySizeDeclared = this.arraySizeDeclared(conf),
+        arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
+        initializationValue = initializationValue,
+        descend = descend,
+        position = this.toPosition(conf.considerPosition),
+        compileTimeRecordsPerLine = compileTimeRecordsPerLine,
     )
 }
 
-fun RpgParser.Dcl_dsContext.declaredSize(): Int? {
-    return if (TO_POSITION().text.trim().isNotEmpty()) {
+fun RpgParser.Dcl_dsContext.declaredSize(): Int? =
+    if (TO_POSITION().text.trim().isNotEmpty()) {
         TO_POSITION().text.asInt()
     } else {
         null
     }
-}
 
-class FieldsList(val fields: List<FieldInfo>) {
-
-    fun fieldsOverlayingOn(targetField: FieldInfo): List<FieldInfo> {
-        return fields.filter { it.overlayInfo != null && it.overlayInfo.targetFieldName == targetField.name }
-    }
+class FieldsList(
+    val fields: List<FieldInfo>,
+) {
+    fun fieldsOverlayingOn(targetField: FieldInfo): List<FieldInfo> =
+        fields.filter { it.overlayInfo != null && it.overlayInfo.targetFieldName == targetField.name }
 
     // This should hopefully works because overlays should refer only to previous fields
     private fun considerOverlaysFirstRound(dataDefinitionName: String) {
@@ -971,7 +1153,6 @@ class FieldsList(val fields: List<FieldInfo>) {
 
         fields.forEach { currFieldInfo ->
             if (currFieldInfo.overlayInfo != null) {
-
                 // The overlay refers to the data definition, for example:
                 // D SSFLD                        600
                 // D  APPNAME                      02    OVERLAY(SSFLD:1)
@@ -980,7 +1161,8 @@ class FieldsList(val fields: List<FieldInfo>) {
                     // D SSFLD                        600
                     // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
                     // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
-                    val targetFieldDefinition: FieldInfo = fields.find { it.name == currFieldInfo.overlayInfo.targetFieldName }
+                    val targetFieldDefinition: FieldInfo =
+                        fields.find { it.name == currFieldInfo.overlayInfo.targetFieldName }
                             ?: throw RuntimeException("Target of overlay not found: ${currFieldInfo.overlayInfo.targetFieldName}")
 
                     // We should consider that on overlay which does overlay of a field which is an array
@@ -996,18 +1178,24 @@ class FieldsList(val fields: List<FieldInfo>) {
                         }
                     }
 
-                    val extraOffset: Int = if (currFieldInfo.overlayInfo.posValue == null) {
-                        if (currFieldInfo.overlayInfo.isNext) {
-                            sizeSoFar.getOrDefault(targetFieldDefinition.name, 0)
+                    val extraOffset: Int =
+                        if (currFieldInfo.overlayInfo.posValue == null) {
+                            if (currFieldInfo.overlayInfo.isNext) {
+                                sizeSoFar.getOrDefault(targetFieldDefinition.name, 0)
+                            } else {
+                                0
+                            }
                         } else {
-                            0
+                            (currFieldInfo.overlayInfo.posValue - 1).toInt()
                         }
-                    } else {
-                        (currFieldInfo.overlayInfo.posValue - 1).toInt()
-                    }
                     // refers to a non overlayed field
                     if (currFieldInfo.startOffset == null) {
-                        currFieldInfo.startOffset = (targetFieldDefinition.startOffset ?: throw IllegalStateException("No start offset for ${targetFieldDefinition.name}")) + extraOffset
+                        currFieldInfo.startOffset =
+                            (
+                                targetFieldDefinition.startOffset
+                                    ?: throw IllegalStateException("No start offset for ${targetFieldDefinition.name}")
+                            ) +
+                            extraOffset
                     } else {
                         currFieldInfo.startOffset = targetFieldDefinition.startOffset!! + extraOffset
                     }
@@ -1025,25 +1213,24 @@ class FieldsList(val fields: List<FieldInfo>) {
         // var nextOffset: Long = 0L
         val sizeSoFar = HashMap<String, Int>()
         fields.forEach {
-
             // Size of the data struct field
 
             if (it.overlayInfo != null) {
-
                 // The overlay refers to the data definition, for example:
                 // D SSFLD                        600
                 // D  APPNAME                      02    OVERLAY(SSFLD:1)
                 if (it.overlayInfo.targetFieldName == dataDefinitionName) {
-                    val extraOffset: Long = if (it.overlayInfo.posValue == null) {
-                        // consider *NEXT
-                        if (it.overlayInfo.isNext) {
-                            sizeSoFar.getOrDefault(it.overlayInfo.targetFieldName, 0).toLong()
+                    val extraOffset: Long =
+                        if (it.overlayInfo.posValue == null) {
+                            // consider *NEXT
+                            if (it.overlayInfo.isNext) {
+                                sizeSoFar.getOrDefault(it.overlayInfo.targetFieldName, 0).toLong()
+                            } else {
+                                0
+                            }
                         } else {
-                            0
+                            it.overlayInfo.posValue - 1
                         }
-                    } else {
-                        it.overlayInfo.posValue - 1
-                    }
                     it.startOffset = extraOffset.toInt()
                     if (it.endOffset == null && it.elementSize != null) {
                         it.endOffset = (it.startOffset!! + it.elementSize!!)
@@ -1058,9 +1245,15 @@ class FieldsList(val fields: List<FieldInfo>) {
         fields.forEach {
             if (it.explicitElementSize == null) {
                 val overlayingFields = this.fieldsOverlayingOn(it)
-                check(overlayingFields.isNotEmpty()) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
+                check(
+                    overlayingFields.isNotEmpty(),
+                ) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
                 val overlayingFieldsWithoutEndOffset = overlayingFields.filter { it.endOffset == null }
-                check(overlayingFieldsWithoutEndOffset.isEmpty()) { "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(separator = ", ") { it.name }}" }
+                check(overlayingFieldsWithoutEndOffset.isEmpty()) {
+                    "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(
+                        separator = ", ",
+                    ) { it.name }}"
+                }
                 val lastOffset = overlayingFields.map { it.endOffset!! }.maxOrNull()!!
                 it.calculatedElementSize = lastOffset
 
@@ -1149,31 +1342,33 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: Collection<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>?,
-    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>?,
 ): DataDefinition {
     // Using `LIKEDS`
     if (this.keyword().any { it.keyword_likeds() != null }) {
         val referredDs = this.findDs(knownDataDefinitions, parentDataDefinitions, conf)
 
-        val type = if (referredDs.type is DataStructureType) {
+        val type =
+            if (referredDs.type is DataStructureType) {
             /*
              * Found referred, type of new DS must be like the other DS but object references have to be new.
              * This avoids any change from source to new, or from new to source.
              */
-            (referredDs.type as DataStructureType).copy(
-                fields = (referredDs.type as DataStructureType).fields.map { field -> field.copy() },
-                isQualified = true
-            )
-        } else {
-            referredDs.type
-        }
+                (referredDs.type as DataStructureType).copy(
+                    fields = (referredDs.type as DataStructureType).fields.map { field -> field.copy() },
+                    isQualified = true,
+                )
+            } else {
+                referredDs.type
+            }
 
-        val dataDefinition = DataDefinition(
-            this.name,
-            type,
-            referredDs.fields,
-            position = this.toPosition(true)
-        )
+        val dataDefinition =
+            DataDefinition(
+                this.name,
+                type,
+                referredDs.fields,
+                position = this.toPosition(true),
+            )
         dataDefinition.newFields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         return dataDefinition
     }
@@ -1189,13 +1384,15 @@ internal fun RpgParser.Dcl_dsContext.toAst(
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().firstOrNull { it.keyword_inz() != null }
 
-    val dataDefinition = DataDefinition(
-        this.name,
-        type,
-        fields = fieldsList.fields.map { it.toAst(conf) },
-        initializationValue = initializationValue,
-        inz = inz != null,
-        position = this.toPosition(true))
+    val dataDefinition =
+        DataDefinition(
+            this.name,
+            type,
+            fields = fieldsList.fields.map { it.toAst(conf) },
+            initializationValue = initializationValue,
+            inz = inz != null,
+            position = this.toPosition(true),
+        )
 
     // Set the "overlayingOn" value for all field definitions.
     fieldsList.fields.forEach { fieldInfo ->
@@ -1220,14 +1417,21 @@ internal fun RpgParser.Dcl_dsContext.toAst(
 private fun RpgParser.Dcl_dsContext.findDs(
     knownDataDefinitions: Collection<DataDefinition>,
     parentDataDefinitions: List<DataDefinition>?,
-    conf: ToAstConfiguration
+    conf: ToAstConfiguration,
 ): DataDefinition {
-    val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() })
-        .first().data_structure_name.identifier().free_identifier()
-        .idOrKeyword().ID().text
-    val referredDataDefinition = knownDataDefinitions.find { it.name == likeDsName }
-        ?: parentDataDefinitions?.find { it.name == likeDsName }
-        ?: this.error("Data definition $likeDsName not found", conf = conf)
+    val likeDsName =
+        (this.keyword().mapNotNull { it.keyword_likeds() })
+            .first()
+            .data_structure_name
+            .identifier()
+            .free_identifier()
+            .idOrKeyword()
+            .ID()
+            .text
+    val referredDataDefinition =
+        knownDataDefinitions.find { it.name == likeDsName }
+            ?: parentDataDefinitions?.find { it.name == likeDsName }
+            ?: this.error("Data definition $likeDsName not found", conf = conf)
 
     return referredDataDefinition
 }
@@ -1241,18 +1445,19 @@ private fun RpgParser.Dcl_dsContext.findDs(
  */
 private fun RpgParser.Dcl_dsContext.extractFieldsFromFile(
     dataDefinitions: List<DataDefinition>,
-    conf: ToAstConfiguration
+    conf: ToAstConfiguration,
 ): List<FieldInfo> {
     var offset = 0
-    val fields = dataDefinitions.map {
-        FieldDefinition(
-            name = it.name,
-            type = it.type,
-            explicitStartOffset = offset,
-            explicitEndOffset = offset + it.type.size,
-            position = toPosition(conf.considerPosition)
-        ).apply { offset += type.size }
-    }
+    val fields =
+        dataDefinitions.map {
+            FieldDefinition(
+                name = it.name,
+                type = it.type,
+                explicitStartOffset = offset,
+                explicitEndOffset = offset + it.type.size,
+                position = toPosition(conf.considerPosition),
+            ).apply { offset += type.size }
+        }
 
     return fields.map {
         FieldInfo(
@@ -1260,7 +1465,7 @@ private fun RpgParser.Dcl_dsContext.extractFieldsFromFile(
             explicitStartOffset = it.explicitStartOffset,
             explicitEndOffset = it.explicitEndOffset,
             explicitElementType = it.type,
-            position = it.position
+            position = it.position,
         )
     }
 }
@@ -1270,9 +1475,10 @@ internal fun DataDefinition.setOverlayOn(fieldDefinition: FieldDefinition) {
         if (it == this.name) {
             fieldDefinition.overlayingOn = this
         } else {
-            fieldDefinition.overlayingOn = this.fields.find { fieldDefinition ->
-                fieldDefinition.name == it
-            }
+            fieldDefinition.overlayingOn =
+                this.fields.find { fieldDefinition ->
+                    fieldDefinition.name == it
+                }
         }
     }
 }
@@ -1289,7 +1495,7 @@ internal fun RpgParser.Dcl_dsContext.hasExtname() = this.keyword().any { it.keyw
 
 internal fun RpgParser.Dcl_dsContext.getExtnameFields(
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
-    conf: ToAstConfiguration
+    conf: ToAstConfiguration,
 ): List<FieldInfo> {
     if (!hasExtname()) return emptyList()
     val keywordExtName = getKeywordExtName()
@@ -1299,15 +1505,17 @@ internal fun RpgParser.Dcl_dsContext.getExtnameFields(
     val prefixName = keywordPrefix?.getPrefixName()
 
     val fileDataDefinitions =
-        fileDefinitions.filter {
-            val nameMatches = it.key.name.uppercase() == extName.uppercase()
-            val prefixIsNull = keywordPrefix == null && it.key.prefix == null
-            val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
-            val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
-            val isForExtname = it.key.justExtName
+        fileDefinitions
+            .filter {
+                val nameMatches = it.key.name.uppercase() == extName.uppercase()
+                val prefixIsNull = keywordPrefix == null && it.key.prefix == null
+                val prefixIsValid = keywordPrefix != null && it.key.prefix != null && it.key.prefix is Prefix
+                val prefixMatches = prefixIsValid && it.key.prefix?.prefix == prefixName
+                val isForExtname = it.key.justExtName
 
-            nameMatches && (prefixIsNull || prefixMatches) && isForExtname
-        }.values.flatten()
+                nameMatches && (prefixIsNull || prefixMatches) && isForExtname
+            }.values
+            .flatten()
 
     if (fileDataDefinitions.isEmpty()) return emptyList()
     return extractFieldsFromFile(fileDataDefinitions, conf)

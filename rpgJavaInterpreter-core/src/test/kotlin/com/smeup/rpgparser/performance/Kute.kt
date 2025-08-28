@@ -5,26 +5,36 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 
 open class Kute {
-
     private val localizationContext: LocalizationContext = LocalizationContext()
     var globalSymbolTable = SymbolTable()
 
-    fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
-            if (downward) {
-                isEqualOrGreater(index, end, localizationContext.charset)
-            } else {
-                isEqualOrSmaller(index, end, localizationContext.charset)
-            }
-
-    fun step(byValue: Expression, downward: Boolean): Long {
-        val sign = if (downward) {
-            return eval(byValue).asInt().value * -1
+    fun enterCondition(
+        index: Value,
+        end: Value,
+        downward: Boolean,
+    ): Boolean =
+        if (downward) {
+            isEqualOrGreater(index, end, localizationContext.charset)
         } else {
-            return eval(byValue).asInt().value * 1
+            isEqualOrSmaller(index, end, localizationContext.charset)
         }
+
+    fun step(
+        byValue: Expression,
+        downward: Boolean,
+    ): Long {
+        val sign =
+            if (downward) {
+                return eval(byValue).asInt().value * -1
+            } else {
+                return eval(byValue).asInt().value * 1
+            }
     }
 
-    fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
+    fun increment(
+        dataDefinition: AbstractDataDefinition,
+        amount: Long = 1,
+    ) {
         val value = this[dataDefinition]
         if (value is IntValue) {
             this[dataDefinition] = IntValue(value.value + amount)
@@ -34,24 +44,27 @@ open class Kute {
     }
 
     fun optimizedIntExpression(expression: Expression): () -> Long =
-            if (expression is IntLiteral || expression is FigurativeConstantRef) {
-                val constValue = eval(expression).asInt().value
-                { constValue }
-            } else {
-                { eval(expression).asInt().value }
-            }
+        if (expression is IntLiteral || expression is FigurativeConstantRef) {
+            val constValue = eval(expression).asInt().value
+            { constValue }
+        } else {
+            { eval(expression).asInt().value }
+        }
 
-    fun eval(expression: Expression): Value {
-        return when (expression) {
+    fun eval(expression: Expression): Value =
+        when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
             else -> interpret(expression)
         }
-    }
 
-    fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = NORMAL_ASSIGNMENT): Value {
-        return when (operator) {
+    fun assign(
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT,
+    ): Value =
+        when (operator) {
             NORMAL_ASSIGNMENT -> assign(target, eval(value))
             PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
@@ -59,15 +72,20 @@ open class Kute {
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
             EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
         }
-    }
 
-    fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    fun assign(
+        dataDefinition: AbstractDataDefinition,
+        value: Value,
+    ): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
         return coercedValue
     }
 
-    fun assign(target: AssignableExpression, value: Value): Value {
+    fun assign(
+        target: AssignableExpression,
+        value: Value,
+    ): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -76,7 +94,10 @@ open class Kute {
         }
     }
 
-    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+    fun assignEachElement(
+        target: AssignableExpression,
+        value: Value,
+    ): Value {
         val arrayType = target.type().asArray()
         return assign(target, value.toArray(arrayType.nElements, arrayType.element))
     }
@@ -84,17 +105,16 @@ open class Kute {
     fun assignEachElement(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator = NORMAL_ASSIGNMENT
-    ): Value {
-    return when (operator) {
-        NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
-        PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
-        MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
-        MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
-        DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
-        EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
-    }
-    }
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT,
+    ): Value =
+        when (operator) {
+            NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
+        }
 
     private fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
@@ -106,10 +126,13 @@ open class Kute {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
-            is DataRefExpr -> get(
+            is DataRefExpr ->
+                get(
                     expression.variable.referred
-                            ?: throw IllegalStateException("[Kute] Unsolved reference ${expression.variable.name} at ${expression.position}")
-            )
+                        ?: throw IllegalStateException(
+                            "[Kute] Unsolved reference ${expression.variable.name} at ${expression.position}",
+                        ),
+                )
             is LessThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -143,12 +166,18 @@ open class Kute {
     }
 
     fun execute(statement: EvalStmt) {
-        val result = if (statement.target.type().isArray() &&
-                statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
-            assignEachElement(statement.target, statement.expression, statement.operator)
-        } else {
-            assign(statement.target, statement.expression, statement.operator)
-        }
+        val result =
+            if (statement.target.type().isArray() &&
+                statement.target
+                    .type()
+                    .asArray()
+                    .element
+                    .canBeAssigned(statement.expression.type())
+            ) {
+                assignEachElement(statement.target, statement.expression, statement.operator)
+            } else {
+                assign(statement.target, statement.expression, statement.operator)
+            }
     }
 
     inline fun measureTimeMillis(block: () -> Unit): Long {
@@ -157,13 +186,14 @@ open class Kute {
         return System.currentTimeMillis() - start
     }
 
-    operator fun get(data: AbstractDataDefinition): Value {
-        return globalSymbolTable[data]
-    }
+    operator fun get(data: AbstractDataDefinition): Value = globalSymbolTable[data]
 
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
-    operator fun set(data: AbstractDataDefinition, value: Value) {
+    operator fun set(
+        data: AbstractDataDefinition,
+        value: Value,
+    ) {
         require(data.canBeAssigned(value)) {
             "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
         }
@@ -183,8 +213,14 @@ open class Kute {
                     for (i in 1..maxElements) {
                         // Added coerce
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
-                        dataStructValue.setSubstring(startOffset, startOffset + size,
-                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                        dataStructValue.setSubstring(
+                            startOffset,
+                            startOffset + size,
+                            data.type
+                                .asArray()
+                                .element
+                                .toDataStructureValue(valueToAssign),
+                        )
                         startOffset += data.stepSize.toInt()
                     }
                 } else {

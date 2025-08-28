@@ -48,9 +48,7 @@ object DBServer : Server() {
         shutdown()
     }
 
-    fun isRunning(): Boolean {
-        return running
-    }
+    fun isRunning(): Boolean = running
 }
 
 private val connection: Connection by lazy {
@@ -63,7 +61,7 @@ private fun getConnectionConfig(): ConnectionConfig =
         url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
         user = "SA",
         password = "",
-        driver = "org.hsqldb.jdbc.JDBCDriver"
+        driver = "org.hsqldb.jdbc.JDBCDriver",
     )
 
 private fun setSQLLog(on: Boolean) {
@@ -104,9 +102,8 @@ fun outputOfDBPgm(
     initialSQL: List<String>,
     inputParms: Map<String, Value> = mapOf(),
     configuration: Configuration,
-    trimEnd: Boolean = true
+    trimEnd: Boolean = true,
 ): List<String> {
-
     val si = CollectorSystemInterface()
 
     execute(initialSQL)
@@ -129,7 +126,7 @@ fun outputOfDBPgm(
         nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
         metadataProducer = { dbFile ->
             metadata.first { it.name == dbFile }
-        }
+        },
     )
     commandLineProgram.singleCall(parms, configuration)
     return if (trimEnd) si.displayed.map { it.trimEnd() } else si.displayed

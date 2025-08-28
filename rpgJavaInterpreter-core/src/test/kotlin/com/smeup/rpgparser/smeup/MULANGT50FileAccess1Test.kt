@@ -86,16 +86,26 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001102() {
-        ST02DbMock().usePopulated({
-                val expected = listOf(
-                    "01", "", "", "", "",
-                    "01", "2009", "", "", "1234007"
-                )
+        ST02DbMock().usePopulated(
+            {
+                val expected =
+                    listOf(
+                        "01",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "01",
+                        "2009",
+                        "",
+                        "",
+                        "1234007",
+                    )
                 assertEquals(expected, "smeup/MUDRNRAPU001102".outputOf(configuration = smeupConfig))
             },
             listOf(
-                mapOf("ST02F1" to "01", "ST02F2" to "2009", "ST02F3" to "", "ST02F4" to "", "ST02F5" to "1234007")
-            )
+                mapOf("ST02F1" to "01", "ST02F2" to "2009", "ST02F3" to "", "ST02F4" to "", "ST02F5" to "1234007"),
+            ),
         )
     }
 
@@ -105,15 +115,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001103() {
-        ST02DbMock().usePopulated({
+        ST02DbMock().usePopulated(
+            {
                 val expected = listOf("A003", "A547", "A634")
                 assertEquals(expected, "smeup/MUDRNRAPU001103".outputOf(configuration = smeupConfig))
             },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -123,15 +134,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001120() {
-        ST02DbMock().usePopulated({
+        ST02DbMock().usePopulated(
+            {
                 val expected = listOf("A003", "A547", "A634", "LEAVE")
                 assertEquals(expected, "smeup/MUDRNRAPU001120".outputOf(configuration = smeupConfig))
             },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -141,12 +153,15 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00294() {
-        MULANGTLDbMock().usePopulated({
-            val expected = listOf(".000000000")
-            assertEquals(expected, "smeup/MUDRNRAPU00294".outputOf(configuration = smeupConfig))
-        }, listOf(
-            mapOf<String, Any>("MLNNAT" to "0E-09")
-        ))
+        MULANGTLDbMock().usePopulated(
+            {
+                val expected = listOf(".000000000")
+                assertEquals(expected, "smeup/MUDRNRAPU00294".outputOf(configuration = smeupConfig))
+            },
+            listOf(
+                mapOf<String, Any>("MLNNAT" to "0E-09"),
+            ),
+        )
     }
 
     /**
@@ -155,15 +170,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001132() {
-        ST02DbMock().usePopulated({
+        ST02DbMock().usePopulated(
+            {
                 val expected = listOf("A003", "A003")
                 assertEquals(expected, "smeup/MUDRNRAPU001132".outputOf(configuration = smeupConfig))
             },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -173,15 +189,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001133() {
-        ST02DbMock().usePopulated({
+        ST02DbMock().usePopulated(
+            {
                 val expected = listOf("A003", "A547", "A634")
                 assertEquals(expected, "smeup/MUDRNRAPU001133".outputOf(configuration = smeupConfig))
             },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -191,15 +208,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001134() {
-        ST02DbMock().usePopulated({
-            val expected = listOf("A003", "A547", "A634")
-            assertEquals(expected, "smeup/MUDRNRAPU001134".outputOf(configuration = smeupConfig))
-        },
+        ST02DbMock().usePopulated(
+            {
+                val expected = listOf("A003", "A547", "A634")
+                assertEquals(expected, "smeup/MUDRNRAPU001134".outputOf(configuration = smeupConfig))
+            },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -209,15 +227,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001135() {
-        ST02DbMock().usePopulated({
+        ST02DbMock().usePopulated(
+            {
                 val expected = listOf("A003", "A003")
                 assertEquals(expected, "smeup/MUDRNRAPU001135".outputOf(configuration = smeupConfig))
             },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -227,15 +246,16 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001136() {
-        ST02DbMock().usePopulated({
-            val expected = listOf("A003", "A547", "A634")
-            assertEquals(expected, "smeup/MUDRNRAPU001136".outputOf(configuration = smeupConfig))
-        },
+        ST02DbMock().usePopulated(
+            {
+                val expected = listOf("A003", "A547", "A634")
+                assertEquals(expected, "smeup/MUDRNRAPU001136".outputOf(configuration = smeupConfig))
+            },
             listOf(
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A003"),
                 mapOf("ST02F1" to "CNFOR", "ST02F2" to "A547"),
-                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634")
-            )
+                mapOf("ST02F1" to "CNFOR", "ST02F2" to "A634"),
+            ),
         )
     }
 
@@ -259,11 +279,12 @@ open class MULANGT50FileAccess1Test : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001139() {
-        C5RREG1LDbMock().usePopulated({
-            val expected = emptyList<String>()
-            assertEquals(expected, "smeup/MUDRNRAPU001139".outputOf(configuration = smeupConfig))
-        },
-            emptyList()
+        C5RREG1LDbMock().usePopulated(
+            {
+                val expected = emptyList<String>()
+                assertEquals(expected, "smeup/MUDRNRAPU001139".outputOf(configuration = smeupConfig))
+            },
+            emptyList(),
         )
     }
 }

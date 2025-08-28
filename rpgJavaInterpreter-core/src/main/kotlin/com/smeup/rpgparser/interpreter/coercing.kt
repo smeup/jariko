@@ -23,8 +23,8 @@ import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-private fun coerceBlanks(type: Type): Value {
-    return when (type) {
+private fun coerceBlanks(type: Type): Value =
+    when (type) {
         is StringType -> {
             blankString(type.length)
         }
@@ -61,7 +61,6 @@ private fun coerceBlanks(type: Type): Value {
         }
         else -> TODO("Converting BlanksValue to $type")
     }
-}
 
 // TODO: is it correct?
 private fun String.toNumberSize(size: Int): String {
@@ -72,7 +71,10 @@ private fun String.toNumberSize(size: Int): String {
     return result
 }
 
-private fun coerceString(value: StringValue, type: Type): Value {
+private fun coerceString(
+    value: StringValue,
+    type: Type,
+): Value {
     return when (type) {
         is StringType -> {
             if (value.value.length > type.length) {
@@ -82,11 +84,12 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 // If varying, can be empty (length=0)
                 true -> StringValue(value.value, true)
                 // If not varying, cannot be empty but must be sized ad type.length
-                else -> if (value.value.isEmpty()) {
-                    StringValue(" ".repeat(type.length), false)
-                } else {
-                    StringValue(value.value.padEnd(type.size, ' '), false)
-                }
+                else ->
+                    if (value.value.isEmpty()) {
+                        StringValue(" ".repeat(type.length), false)
+                    } else {
+                        StringValue(value.value.padEnd(type.size, ' '), false)
+                    }
             }
 
             // return StringValue(value.value, type.varying)
@@ -99,8 +102,10 @@ private fun coerceString(value: StringValue, type: Type): Value {
 
                 val elementSize = type.element.size
                 createArrayValue(type.element, type.nElements) {
-                    val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length))
-                        .padEnd(elementSize)
+                    val valueForArray =
+                        value.value
+                            .substring(0, Math.min(elementSize, value.value.length))
+                            .padEnd(elementSize)
                     StringValue(valueForArray)
                 }
             } else {
@@ -178,9 +183,11 @@ private fun coerceString(value: StringValue, type: Type): Value {
                                 }
 
                                 val numberPaddedLeft = decimalValue.padStart(type.entireDigits, '0')
-                                val numberWithDot = StringBuilder(numberPaddedLeft).apply {
-                                    insert(numberPaddedLeft.length - type.decimalDigits, ".")
-                                }.toString()
+                                val numberWithDot =
+                                    StringBuilder(numberPaddedLeft)
+                                        .apply {
+                                            insert(numberPaddedLeft.length - type.decimalDigits, ".")
+                                        }.toString()
 
                                 DecimalValue(numberWithDot.toBigDecimal())
                             } else {
@@ -220,7 +227,10 @@ private fun coerceString(value: StringValue, type: Type): Value {
     }
 }
 
-private fun coerceBoolean(value: BooleanValue, type: Type): Value {
+private fun coerceBoolean(
+    value: BooleanValue,
+    type: Type,
+): Value {
     // TODO: Add more coercion rules
     return when (type) {
         is BooleanType -> value
@@ -234,7 +244,10 @@ private fun coerceBoolean(value: BooleanValue, type: Type): Value {
     }
 }
 
-fun coerce(value: Value, type: Type): Value {
+fun coerce(
+    value: Value,
+    type: Type,
+): Value {
     // TODO to be completed
     return when (value) {
         is BlanksValue -> {
@@ -252,7 +265,7 @@ fun coerce(value: Value, type: Type): Value {
                     }
                     StringValue(
                         result.value.padEnd(type.length, ' '),
-                        type.varying
+                        type.varying,
                     )
                 }
                 is ArrayType -> {
@@ -266,9 +279,12 @@ fun coerce(value: Value, type: Type): Value {
                     } else {
                         if (value.elements().size == type.nElements) {
                             // coerce elements and set new type creating new instance
-                            val values: MutableList<Value> = value.elements().map {
-                                coerce(it, type.element)
-                            }.toMutableList()
+                            val values: MutableList<Value> =
+                                value
+                                    .elements()
+                                    .map {
+                                        coerce(it, type.element)
+                                    }.toMutableList()
                             ConcreteArrayValue(values, type.element)
                         } else {
                             // create an array blank and set element
@@ -300,7 +316,11 @@ fun coerce(value: Value, type: Type): Value {
                     ConcreteArrayValue(MutableList(type.nElements) { coercedValue }, type.element)
                 }
                 is DataStructureType -> {
-                    val coercedValue = value.value.toString().replace(".", "").padStart(type.size, '0')
+                    val coercedValue =
+                        value.value
+                            .toString()
+                            .replace(".", "")
+                            .padStart(type.size, '0')
                     DataStructValue(coercedValue, type)
                 }
                 else -> TODO("Converting DecimalValue to $type")
@@ -363,8 +383,11 @@ fun coerce(value: Value, type: Type): Value {
  * @param type the target Type to which the value is coerced
  * @return a Value instance after applying the necessary transformations
  */
-private fun coerceDataStruct(value: DataStructValue, type: Type): Value {
-    return when (type) {
+private fun coerceDataStruct(
+    value: DataStructValue,
+    type: Type,
+): Value =
+    when (type) {
         is StringType -> {
             val valueAsString: StringValue = value.asString().copy()
             if (type.varying && valueAsString.length() < type.length) {
@@ -382,10 +405,9 @@ private fun coerceDataStruct(value: DataStructValue, type: Type): Value {
         }
         else -> TODO("Converting DataStructValue to $type")
     }
-}
 
-fun Type.lowValue(): Value {
-    return when (this) {
+fun Type.lowValue(): Value =
+    when (this) {
         is NumberType -> computeLowValue(this)
         is StringType -> computeLowValue(this)
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
@@ -397,10 +419,9 @@ fun Type.lowValue(): Value {
         is RecordFormatType -> BlanksValue
         else -> TODO("Converting LowValValue to $this")
     }
-}
 
-fun Type.hiValue(): Value {
-    return when (this) {
+fun Type.hiValue(): Value =
+    when (this) {
         is NumberType -> computeHiValue(this)
         is StringType -> computeHiValue(this)
         is ArrayType -> createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
@@ -412,14 +433,12 @@ fun Type.hiValue(): Value {
         is RecordFormatType -> BlanksValue
         else -> TODO("Converting HiValValue to $this")
     }
-}
 
-fun Value.hiValue(): Value {
-    return when (this) {
+fun Value.hiValue(): Value =
+    when (this) {
         is StringValue -> StringValue(hiValueString(this.value.length))
         else -> TODO("Converting HiValValue to $this")
     }
-}
 
 private fun computeHiValue(type: NumberType): Value {
     // Packed and Zone

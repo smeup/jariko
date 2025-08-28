@@ -36,7 +36,7 @@ fun sub(
     minuendExpr: Expression,
     subtrahendExpr: Expression,
     interpreterCore: InterpreterCore,
-    position: Position? = null
+    position: Position? = null,
 ): Value {
     val minuendValue = interpreterCore.eval(minuendExpr)
     require(minuendValue is NumberValue) {
@@ -49,8 +49,14 @@ fun sub(
 
     return when {
         minuendValue is IntValue && subtrahendValue is IntValue -> IntValue(minuendValue.asInt().value.minus(subtrahendValue.asInt().value))
-        minuendValue is IntValue && subtrahendValue is DecimalValue -> DecimalValue(minuendValue.asDecimal().value.minus(subtrahendValue.value))
-        minuendValue is DecimalValue && subtrahendValue is IntValue -> DecimalValue(minuendValue.value.minus(subtrahendValue.asDecimal().value))
+        minuendValue is IntValue && subtrahendValue is DecimalValue ->
+            DecimalValue(
+                minuendValue.asDecimal().value.minus(subtrahendValue.value),
+            )
+        minuendValue is DecimalValue && subtrahendValue is IntValue ->
+            DecimalValue(
+                minuendValue.value.minus(subtrahendValue.asDecimal().value),
+            )
         minuendValue is DecimalValue && subtrahendValue is DecimalValue -> DecimalValue(minuendValue.value.minus(subtrahendValue.value))
         else -> throw UnsupportedOperationException("I do not know how to sum $minuendValue and $subtrahendValue at $position")
     }

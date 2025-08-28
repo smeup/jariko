@@ -106,14 +106,14 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
         class MySystemInterface : JavaSystemInterface() {
             val displayed = LinkedList<String>()
 
-            override fun findProgram(name: String): Program? {
-                return if (name == "DOPEDPGM") {
+            override fun findProgram(name: String): Program? =
+                if (name == "DOPEDPGM") {
                     object : Program {
                         override fun params() = emptyList<ProgramParam>()
 
                         override fun execute(
                             systemInterface: SystemInterface,
-                            params: LinkedHashMap<String, Value>
+                            params: LinkedHashMap<String, Value>,
                         ): List<Value> {
                             error("todo")
                         }
@@ -121,7 +121,6 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
                 } else {
                     super.findProgram(name)
                 }
-            }
 
             override fun display(value: String) {
                 displayed.add(value)
@@ -131,15 +130,16 @@ open class MULANGT03IndicatorTest : MULANGTTest() {
 
         val systemInterface = MySystemInterface()
         var myInterpreter: InterpreterCore? = null
-        val configuration = Configuration().apply {
-            jarikoCallback.onInterpreterCreation = { interpreter ->
-                myInterpreter = interpreter
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.onInterpreterCreation = { interpreter ->
+                    myInterpreter = interpreter
+                }
             }
-        }
         executePgm(
             programName = "smeup/MUDRNRAPU00292",
             systemInterface = systemInterface,
-            configuration = configuration
+            configuration = configuration,
         )
         assertEquals(expected, systemInterface.displayed)
         assertTrue(myInterpreter!!.getIndicators()[37]?.value == true) {

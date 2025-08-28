@@ -26,40 +26,44 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.utils.compile
 import java.io.File
 
-data class Fun(val program: String, val function: String, val method: String) {
+data class Fun(
+    val program: String,
+    val function: String,
+    val method: String,
+) {
     constructor(program: String) : this(program, "", "")
 }
 
-fun Fun.dsEntries(): Map<String, Value> {
-    return mapOf(
+fun Fun.dsEntries(): Map<String, Value> =
+    mapOf(
         "£UIBPG" to StringValue(program, false),
         "£UIBFU" to StringValue(function, false),
-        "£UIBME" to StringValue(method, false)
+        "£UIBME" to StringValue(method, false),
     )
-}
 
-data class SmeupObj(val type: String, val parameter: String, val code: String)
+data class SmeupObj(
+    val type: String,
+    val parameter: String,
+    val code: String,
+)
 
-fun SmeupObj.dsEntries(): Map<String, Value> {
-    return mapOf(
+fun SmeupObj.dsEntries(): Map<String, Value> =
+    mapOf(
         "£UIBPG" to StringValue(type, false),
         "£UIBFU" to StringValue(parameter, false),
-        "£UIBME" to StringValue(code, false)
+        "£UIBME" to StringValue(code, false),
     )
-}
 
 class DopedProgram(
     val params: List<ProgramParam>,
-    private val execute: (systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>
+    private val execute: (systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>,
 ) : Program {
+    override fun params(): List<ProgramParam> = params
 
-    override fun params(): List<ProgramParam> {
-        return params
-    }
-
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-        return execute.invoke(systemInterface, params)
-    }
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value> = execute.invoke(systemInterface, params)
 }
 
 fun AbstractDataDefinition.toProgramParam() = ProgramParam(name = name, type = type)
@@ -67,38 +71,46 @@ fun AbstractDataDefinition.toProgramParam() = ProgramParam(name = name, type = t
 fun Type.toProgramParam(name: String) = ProgramParam(name = name, type = this)
 
 private class MockSystemInterface : JavaSystemInterface() {
-
     lateinit var cu: CompilationUnit
 
-    override fun findProgram(name: String): Program? {
-        return when (name) {
-            "B£INZ0" -> DopedProgram(params = listOf(
-                StringType(10).toProgramParam("£INZFU"),
-                StringType(10).toProgramParam("£INZME"),
-                cu.getDataOrFieldDefinition("£INZDS").toProgramParam(),
-                StringType(10).toProgramParam("£INZCO")
-            )) { _, _ ->
-                emptyList()
-            }
-            "£JAX_IMP0" -> DopedProgram(params = listOf()) { _, _ ->
-                emptyList()
-            }
-            "£JAX_ADDO" -> DopedProgram(params = listOf(
-                StringType(length = 2).toProgramParam("£JAXT1"),
-                StringType(length = 10).toProgramParam("£JAXP1"),
-                StringType(length = 1000).toProgramParam("£JAXK1"),
-                StringType(length = 1000).toProgramParam("£JAXD1"),
-                StringType(length = 1000).toProgramParam("£JAXOP"),
-                StringType(length = 10).toProgramParam("£JAXEN")
-            )) { _, _ ->
-                emptyList()
-            }
-            "£JAX_FIN0" -> DopedProgram(params = listOf()) { _, _ ->
-                emptyList()
-            }
+    override fun findProgram(name: String): Program? =
+        when (name) {
+            "B£INZ0" ->
+                DopedProgram(
+                    params =
+                        listOf(
+                            StringType(10).toProgramParam("£INZFU"),
+                            StringType(10).toProgramParam("£INZME"),
+                            cu.getDataOrFieldDefinition("£INZDS").toProgramParam(),
+                            StringType(10).toProgramParam("£INZCO"),
+                        ),
+                ) { _, _ ->
+                    emptyList()
+                }
+            "£JAX_IMP0" ->
+                DopedProgram(params = listOf()) { _, _ ->
+                    emptyList()
+                }
+            "£JAX_ADDO" ->
+                DopedProgram(
+                    params =
+                        listOf(
+                            StringType(length = 2).toProgramParam("£JAXT1"),
+                            StringType(length = 10).toProgramParam("£JAXP1"),
+                            StringType(length = 1000).toProgramParam("£JAXK1"),
+                            StringType(length = 1000).toProgramParam("£JAXD1"),
+                            StringType(length = 1000).toProgramParam("£JAXOP"),
+                            StringType(length = 10).toProgramParam("£JAXEN"),
+                        ),
+                ) { _, _ ->
+                    emptyList()
+                }
+            "£JAX_FIN0" ->
+                DopedProgram(params = listOf()) { _, _ ->
+                    emptyList()
+                }
             else -> super.findProgram(name)
         }
-    }
 }
 
 fun main() {
@@ -113,12 +125,16 @@ fun main() {
     compile(src = srcDir, compiledProgramsDir = compiledProgramsDir, force = true, configuration = config)
     val programFinders = listOf(DirRpgProgramFinder(File(System.getProperty("java.io.tmpdir"))))
     val systemInterface = MockSystemInterface()
-    getProgram(program, systemInterface = systemInterface, programFinders = programFinders).singleCall(parmsProducer = {
-            compilationUnit ->
+    getProgram(program, systemInterface = systemInterface, programFinders = programFinders).singleCall(parmsProducer = { compilationUnit ->
         systemInterface.cu = compilationUnit
         val datastructFiels = `fun`.dsEntries() + param.dsEntries()
-        mapOf("£UIBDS" to DataStructValue.createInstance(
-            compilationUnit = compilationUnit, dataStructName = "£UIBDS", values = datastructFiels)
+        mapOf(
+            "£UIBDS" to
+                DataStructValue.createInstance(
+                    compilationUnit = compilationUnit,
+                    dataStructName = "£UIBDS",
+                    values = datastructFiels,
+                ),
         )
     })
 }

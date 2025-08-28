@@ -25,6 +25,7 @@ class SymbolTable : ISymbolTable {
     private val names = mutableMapOf<String, AbstractDataDefinition>()
 
     override operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
+
     override operator fun contains(data: AbstractDataDefinition): Boolean = data in values
 
     override var parentSymbolTable: ISymbolTable? = null
@@ -48,24 +49,27 @@ class SymbolTable : ISymbolTable {
                 .asSequence()
                 .filter { name ->
                     name.value.type is DataStructureType &&
-                            !(name.value.type as AbstractDataStructureType).isQualified &&
-                            name.value is DataDefinition
-                }
-                .map { it.value }
+                        !(name.value.type as AbstractDataStructureType).isQualified &&
+                        name.value is DataDefinition
+                }.map { it.value }
                 .flatMap { dataStructure -> (dataStructure as DataDefinition).fields }
                 .firstOrNull { field -> field.name.equals(key, ignoreCase = true) } as AbstractDataDefinition?
         } ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
-        ?: programSymbolTable.let { (programSymbolTable as SymbolTable).names[dataName.uppercase()] }
+            ?: programSymbolTable.let { (programSymbolTable as SymbolTable).names[dataName.uppercase()] }
     }
 
-    override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
+    override operator fun set(
+        data: AbstractDataDefinition,
+        value: Value,
+    ): Value? {
         val start = System.nanoTime()
 
-        val output = when (data.scope.visibility) {
-            Visibility.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
-            Visibility.Local -> setLocal(data, value)
-            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).setLocal(data, value)
-        }
+        val output =
+            when (data.scope.visibility) {
+                Visibility.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
+                Visibility.Local -> setLocal(data, value)
+                Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).setLocal(data, value)
+            }
 
         val elapsed = System.nanoTime() - start
         if (MainExecutionContext.isLoggingEnabled) {
@@ -75,14 +79,17 @@ class SymbolTable : ISymbolTable {
                     { LogSourceData.fromProgram(programName) },
                     ProgramUsageType.SymbolTable,
                     SymbolTableAction.SET.name,
-                    elapsed.nanoseconds
-                )
+                    elapsed.nanoseconds,
+                ),
             )
         }
         return output
     }
 
-    private fun setLocal(data: AbstractDataDefinition, value: Value): Value? {
+    private fun setLocal(
+        data: AbstractDataDefinition,
+        value: Value,
+    ): Value? {
         // replaced "data.name in this" with "data.name in names" because I must search for local name
         // whereas "data.name in this" search for name also in parent symbol table
         // remember that this function set a local scope variable
@@ -112,7 +119,9 @@ class SymbolTable : ISymbolTable {
                         return coerce(containerValue.value()[data], data.type)
                     }
                     else -> {
-                        throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+                        throw IllegalStateException(
+                            "The container value is expected to be a DataStructValue, instead it is $containerValue",
+                        )
                     }
                 }
             }
@@ -122,9 +131,7 @@ class SymbolTable : ISymbolTable {
         }
     }
 
-    override fun getValues(): Map<AbstractDataDefinition, Value> {
-        return values
-    }
+    override fun getValues(): Map<AbstractDataDefinition, Value> = values
 
     /**
      * Clear symbol table
@@ -139,11 +146,12 @@ class SymbolTable : ISymbolTable {
      * */
     override fun isEmpty() = values.isEmpty()
 
-    private fun getInternal(data: AbstractDataDefinition): Value = when (data.scope.visibility) {
-        Visibility.Program -> (programSymbolTable as SymbolTable).getLocal(data)
-        Visibility.Local -> getLocal(data)
-        Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).getLocal(data)
-    }
+    private fun getInternal(data: AbstractDataDefinition): Value =
+        when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).getLocal(data)
+            Visibility.Local -> getLocal(data)
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).getLocal(data)
+        }
 
     private fun getInternal(dataName: String): Value {
         val data = dataDefinitionByName(dataName)
@@ -166,8 +174,8 @@ class SymbolTable : ISymbolTable {
                 { LogSourceData.fromProgram(programName) },
                 ProgramUsageType.SymbolTable,
                 SymbolTableAction.GET.name,
-                elapsed.nanoseconds
-            )
+                elapsed.nanoseconds,
+            ),
         )
 
         return value
@@ -184,8 +192,8 @@ class SymbolTable : ISymbolTable {
                 { LogSourceData.fromProgram(programName) },
                 ProgramUsageType.SymbolTable,
                 SymbolTableAction.GET.name,
-                elapsed.nanoseconds
-            )
+                elapsed.nanoseconds,
+            ),
         )
 
         return value
@@ -203,7 +211,9 @@ class SymbolTable : ISymbolTable {
                     when (containerValue) {
                         is DataStructValue -> return coerce(containerValue[data], data.type)
                         else -> {
-                            throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+                            throw IllegalStateException(
+                                "The container value is expected to be a DataStructValue, instead it is $containerValue",
+                            )
                         }
                     }
                 }
@@ -217,9 +227,10 @@ class SymbolTable : ISymbolTable {
         values
             .filterKeys { it is DataDefinition }
             .forEach {
-                val field = (it.key as DataDefinition).fields.firstOrNull {
-                        field -> field.name.equals(dataName, ignoreCase = true) && field.canBeUsedUnqualified()
-                }
+                val field =
+                    (it.key as DataDefinition).fields.firstOrNull { field ->
+                        field.name.equals(dataName, ignoreCase = true) && field.canBeUsedUnqualified()
+                    }
                 if (field != null) {
                     return if (it.key.type is ArrayType) {
                         TODO("We do not yet handle top level values of array type")

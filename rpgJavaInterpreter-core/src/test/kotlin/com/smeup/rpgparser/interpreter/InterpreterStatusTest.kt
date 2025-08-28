@@ -16,16 +16,15 @@
 
 package com.smeup.rpgparser.interpreter
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import com.smeup.dbnative.sql.SQLDBFile
 import com.smeup.dbnative.model.FileMetadata
+import com.smeup.dbnative.sql.SQLDBFile
 import com.smeup.rpgparser.db.utilities.DBServer
 import java.sql.DriverManager
 import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class InterpreterStatusTest {
-
     lateinit var connection: java.sql.Connection
     lateinit var mainSymbolTable: SymbolTable
     lateinit var interpreterStatus: InterpreterStatus
@@ -40,16 +39,17 @@ class InterpreterStatusTest {
         connection = DriverManager.getConnection("jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb", "SA", "")
         mainSymbolTable = SymbolTable()
         interpreterStatus = InterpreterStatus(symbolTable = mainSymbolTable, indicators = HashMap(), mapOf())
-        functionStatus = InterpreterStatus(symbolTable = SymbolTable(), indicators = HashMap(), mapOf()).apply {
-            indicators = interpreterStatus.indicators
-            klists = interpreterStatus.klists
-            dbFileMap = interpreterStatus.dbFileMap
-            lastDBFile = interpreterStatus.lastDBFile
-            inzsrExecuted = interpreterStatus.inzsrExecuted
-            displayFiles = interpreterStatus.displayFiles
-            lastFound = interpreterStatus.lastFound
-            mainSymbolTable.parentSymbolTable = interpreterStatus.symbolTable
-        }
+        functionStatus =
+            InterpreterStatus(symbolTable = SymbolTable(), indicators = HashMap(), mapOf()).apply {
+                indicators = interpreterStatus.indicators
+                klists = interpreterStatus.klists
+                dbFileMap = interpreterStatus.dbFileMap
+                lastDBFile = interpreterStatus.lastDBFile
+                inzsrExecuted = interpreterStatus.inzsrExecuted
+                displayFiles = interpreterStatus.displayFiles
+                lastFound = interpreterStatus.lastFound
+                mainSymbolTable.parentSymbolTable = interpreterStatus.symbolTable
+            }
     }
 
     @Test
@@ -76,11 +76,12 @@ class InterpreterStatusTest {
 
     @Test
     fun lastDbFileShouldBeShared() {
-        val lastDBFile = SQLDBFile(
-            name = "TEST",
-            fileMetadata = FileMetadata(name = "MYFILE", tableName = "MYTABLE", fields = emptyList(), fileKeys = emptyList()),
-            connection = connection
-        )
+        val lastDBFile =
+            SQLDBFile(
+                name = "TEST",
+                fileMetadata = FileMetadata(name = "MYFILE", tableName = "MYTABLE", fields = emptyList(), fileKeys = emptyList()),
+                connection = connection,
+            )
         // If I set the last DB file in the interpreter status, it should be reflected in the function status
         interpreterStatus.lastDBFile.set(lastDBFile)
         assertEquals(lastDBFile, functionStatus.lastDBFile.get())

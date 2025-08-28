@@ -8,8 +8,11 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toDecimal
 import java.math.BigDecimal
 import kotlin.math.min
 
-private fun clear(value: String, type: Type): String {
-    return when (type) {
+private fun clear(
+    value: String,
+    type: Type,
+): String =
+    when (type) {
         is NumberType -> "0".repeat(type.numberOfDigits)
         is StringType -> {
             if (type.varying) {
@@ -24,7 +27,6 @@ private fun clear(value: String, type: Type): String {
 
         else -> " ".repeat(type.size)
     }
-}
 
 /**
  * Performs RPGLE `MOVEL` operation by assigning `value` (Factor 2) to `target`,
@@ -54,9 +56,9 @@ fun movel(
     target: AssignableExpression,
     value: Expression,
     dataAttributes: Expression?,
-    interpreterCore: InterpreterCore
-): Value {
-    return if (value !is FigurativeConstantRef) {
+    interpreterCore: InterpreterCore,
+): Value =
+    if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
             movelFactorAsArray(operationExtender, target, value, dataAttributes, interpreterCore)
         } else {
@@ -65,7 +67,6 @@ fun movel(
     } else {
         interpreterCore.assign(target, interpreterCore.eval(value))
     }
-}
 
 /**
  * Handles `MOVEL` operation when `source` (Factor 2) is an array type, assigning its elements
@@ -93,9 +94,9 @@ fun movelFactorAsArray(
     target: AssignableExpression,
     source: Expression,
     dataAttributes: Expression?,
-    interpreterCore: InterpreterCore
-): Value {
-    return when (target.type()) {
+    interpreterCore: InterpreterCore,
+): Value =
+    when (target.type()) {
         is ArrayType -> {
             val arraySourceValue: ArrayValue = interpreterCore.eval(source) as ArrayValue
             val arrayTargetValue: ArrayValue = interpreterCore.eval(target) as ArrayValue
@@ -109,16 +110,17 @@ fun movelFactorAsArray(
                     valueToString(arraySourceValue.getElement(i), arraySourceType),
                     valueToString(arrayTargetValue.getElement(i), arrayTargetType),
                     arrayTargetType,
-                    operationExtender
+                    operationExtender,
                 )
             }
             interpreterCore.assign(target, arrayTargetValue)
         }
         else -> {
-            throw UnsupportedOperationException("Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${source.type()} to Result as ${target.type()}.")
+            throw UnsupportedOperationException(
+                "Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${source.type()} to Result as ${target.type()}.",
+            )
         }
     }
-}
 
 /**
  * Performs `MOVEL` operation when `value` (Factor 2) is a scalar, assigning it to `target`.
@@ -144,7 +146,7 @@ fun movelFactorAsScalar(
     target: AssignableExpression,
     value: Expression,
     dataAttributes: Expression?,
-    interpreterCore: InterpreterCore
+    interpreterCore: InterpreterCore,
 ): Value {
     if (value.type() is DateType) {
         return interpreterCore.assign(target, dateToString(value, dataAttributes, interpreterCore))
@@ -162,7 +164,7 @@ fun movelFactorAsScalar(
                     valueToMove,
                     valueToString(el, valueToApplyMoveElementType),
                     valueToApplyMoveElementType,
-                    operationExtender
+                    operationExtender,
                 )
             }
             interpreterCore.assign(target, arrayValue)
@@ -173,8 +175,8 @@ fun movelFactorAsScalar(
                 target,
                 stringToValue(
                     movel(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                    target.type()
-                )
+                    target.type(),
+                ),
             )
         }
     }
@@ -184,11 +186,13 @@ fun move(
     operationExtender: String?,
     target: AssignableExpression,
     value: Expression,
-    interpreterCore: InterpreterCore
+    interpreterCore: InterpreterCore,
 ): Value {
     if (value !is FigurativeConstantRef) {
         if (value.type() is ArrayType) {
-            throw UnsupportedOperationException("Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${value.type()} to Result as ${target.type()}.")
+            throw UnsupportedOperationException(
+                "Not implemented MOVEL/MOVEL(P) statement between Factor 2 as ${value.type()} to Result as ${target.type()}.",
+            )
         }
         val valueToMove: String = getStringOfValueBaseOfTarget(target, interpreterCore, value)
         if (target.type() is ArrayType) {
@@ -197,15 +201,16 @@ fun move(
             val valueToApplyMoveElementType: Type = (target.type() as ArrayType).element
             arrayValue.elements.forEachIndexed { index, el ->
                 arrayValue.setElement(
-                    index + 1, stringToValue(
+                    index + 1,
+                    stringToValue(
                         move(
                             valueToMove,
                             valueToString(el, valueToApplyMoveElementType),
                             valueToApplyMoveElementType,
-                            operationExtender != null
+                            operationExtender != null,
                         ),
-                        valueToApplyMoveElementType
-                    )
+                        valueToApplyMoveElementType,
+                    ),
                 )
             }
             return interpreterCore.assign(target, arrayValue)
@@ -215,8 +220,8 @@ fun move(
                 target,
                 stringToValue(
                     move(valueToMove, valueToApplyMove, target.type(), operationExtender != null),
-                    target.type()
-                )
+                    target.type(),
+                ),
             )
         }
     } else {
@@ -227,30 +232,31 @@ fun move(
 private fun getStringOfValueBaseOfTarget(
     target: AssignableExpression,
     interpreterCore: InterpreterCore,
-    value: Expression
-): String = when (target.type()) {
-    is BooleanType -> {
-        val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
-        when {
-            (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> valueInterpreted
-            (valueInterpreted.isDecimal() && valueInterpreted.toDecimal() in 0.0..1.0) -> "0"
-            valueInterpreted.isBlank() -> "0"
-            else -> throw UnsupportedOperationException("MOVE/MOVEL for ${target.type()} have to be 0, 1 or blank")
+    value: Expression,
+): String =
+    when (target.type()) {
+        is BooleanType -> {
+            val valueInterpreted: String = (interpreterCore.eval(value)).asString().value
+            when {
+                (valueInterpreted.isInt() && valueInterpreted.toInt() in 0..1) -> valueInterpreted
+                (valueInterpreted.isDecimal() && valueInterpreted.toDecimal() in 0.0..1.0) -> "0"
+                valueInterpreted.isBlank() -> "0"
+                else -> throw UnsupportedOperationException("MOVE/MOVEL for ${target.type()} have to be 0, 1 or blank")
+            }
         }
+        is DataStructureType -> {
+            value.type().toDataStructureValue(interpreterCore.eval(value)).value
+        }
+        else -> valueToString(interpreterCore.eval(value), value.type())
     }
-    is DataStructureType -> {
-        value.type().toDataStructureValue(interpreterCore.eval(value)).value
-    }
-    else -> valueToString(interpreterCore.eval(value), value.type())
-}
 
 private fun movel(
     valueToMove: String,
     valueToApplyMove: String,
     valueToApplyMoveType: Type,
-    withClear: Boolean = false
-): String {
-    return if (valueToApplyMoveType is UnlimitedStringType) {
+    withClear: Boolean = false,
+): String =
+    if (valueToApplyMoveType is UnlimitedStringType) {
         valueToMove
     } else if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
@@ -267,29 +273,34 @@ private fun movel(
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(0, valueToApplyMove.length)
     }
-}
 
 private fun move(
     valueToMove: String,
     valueToApplyMove: String,
     valueToApplyMoveType: Type,
-    withClear: Boolean = false
-): String {
-    return if (valueToMove.length <= valueToApplyMove.length) {
+    withClear: Boolean = false,
+): String =
+    if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
             result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
-        if (valueToApplyMoveType is BooleanType) valueToMove
-            else result.substring(0, result.length - valueToMove.length) + valueToMove
+        if (valueToApplyMoveType is BooleanType) {
+            valueToMove
+        } else {
+            result.substring(0, result.length - valueToMove.length) + valueToMove
+        }
     } else {
         // overwrite valueToMove to valueToApplyMove
         valueToMove.substring(valueToMove.length - valueToApplyMove.length)
     }
-}
 
-private fun dateToString(source: Expression, destinationFormat: Expression?, interpreterCore: InterpreterCore): Value {
+private fun dateToString(
+    source: Expression,
+    destinationFormat: Expression?,
+    interpreterCore: InterpreterCore,
+): Value {
     val sourceEvaluated: DateValue = interpreterCore.eval(source) as DateValue
     if (destinationFormat == null) {
         return sourceEvaluated.asString()
@@ -302,7 +313,10 @@ private fun dateToString(source: Expression, destinationFormat: Expression?, int
     }
 }
 
-private fun valueToString(value: Value, type: Type): String {
+private fun valueToString(
+    value: Value,
+    type: Type,
+): String {
     var s = value.asString().value
     return when (type) {
         is StringType -> {
@@ -343,7 +357,10 @@ private fun valueToString(value: Value, type: Type): String {
     }
 }
 
-private fun stringToValue(value: String, type: Type): Value {
+private fun stringToValue(
+    value: String,
+    type: Type,
+): Value {
     when (type) {
         is StringType -> {
             return if (type.varying) {
@@ -399,16 +416,23 @@ private fun stringToValue(value: String, type: Type): Value {
  *
  * @throws IndexOutOfBoundsException if `index` is outside the bounds of the array.
  */
-private fun ArrayValue.setElement(index: Int, sourceValueAsString: String, targetValueAsString: String, targetType: Type, operationExtender: String?) {
+private fun ArrayValue.setElement(
+    index: Int,
+    sourceValueAsString: String,
+    targetValueAsString: String,
+    targetType: Type,
+    operationExtender: String?,
+) {
     this.setElement(
-        index, stringToValue(
+        index,
+        stringToValue(
             movel(
                 sourceValueAsString,
                 targetValueAsString,
                 targetType,
-                operationExtender != null
+                operationExtender != null,
             ),
-            targetType
-        )
+            targetType,
+        ),
     )
 }

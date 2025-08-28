@@ -25,9 +25,10 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
 
-private val json = Json {
-    prettyPrint = true
-}
+private val json =
+    Json {
+        prettyPrint = true
+    }
 
 /**
  * Helper class used to load reload configuration from json file
@@ -35,8 +36,10 @@ private val json = Json {
  * @param connectionConfigs List of connection config.
  * */
 @Serializable
-internal data class SimpleReloadConfig(var metadataPath: String? = null, val connectionConfigs: List<ConnectionConfig>) {
-
+internal data class SimpleReloadConfig(
+    var metadataPath: String? = null,
+    val connectionConfigs: List<ConnectionConfig>,
+) {
     internal fun getMetadata(dbFile: String): FileMetadata {
         val metadataFile = File(metadataPath, "$dbFile.json")
         require(metadataFile.exists()) {
@@ -48,7 +51,6 @@ internal data class SimpleReloadConfig(var metadataPath: String? = null, val con
     internal fun toJson() = json.encodeToString(this)
 
     companion object {
-
         /**
          * Create SimpleReloadConfig from json
          * */
@@ -81,34 +83,34 @@ internal data class ConnectionConfig(
     val password: String,
     val driver: String? = null,
     val impl: String? = null,
-    val properties: Map<String, String> = mutableMapOf()
+    val properties: Map<String, String> = mutableMapOf(),
 )
 
 /**
  * Create a simple reload config example to use as template
  * @return Simple reload config in json format
  * */
-fun createJsonSimpleReloadConfig(): String {
-    return SimpleReloadConfig(
+fun createJsonSimpleReloadConfig(): String =
+    SimpleReloadConfig(
         metadataPath = "Path of file metadata",
-        connectionConfigs = listOf(
-            ConnectionConfig(
-                fileName = "*",
-                url = "jdbc:as400://defaultserver/RELEASE_LIB",
-                user = "releaseUser",
-                password = "releasePassword",
-                driver = "com.ibm.as400.access.AS400JDBCDriver"
+        connectionConfigs =
+            listOf(
+                ConnectionConfig(
+                    fileName = "*",
+                    url = "jdbc:as400://defaultserver/RELEASE_LIB",
+                    user = "releaseUser",
+                    password = "releasePassword",
+                    driver = "com.ibm.as400.access.AS400JDBCDriver",
+                ),
+                ConnectionConfig(
+                    fileName = "*",
+                    url = "jdbc:as400://customserver/CUSTOM_LIB",
+                    user = "customUser",
+                    password = "customPassword",
+                    driver = "com.ibm.as400.access.AS400JDBCDriver",
+                ),
             ),
-            ConnectionConfig(
-                fileName = "*",
-                url = "jdbc:as400://customserver/CUSTOM_LIB",
-                user = "customUser",
-                password = "customPassword",
-                driver = "com.ibm.as400.access.AS400JDBCDriver"
-            )
-        )
     ).toJson()
-}
 
 private fun main() {
     println(createJsonSimpleReloadConfig())

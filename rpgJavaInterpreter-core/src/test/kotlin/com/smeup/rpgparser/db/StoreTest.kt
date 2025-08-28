@@ -27,8 +27,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 
-open class StoreTest() : AbstractTest() {
-
+open class StoreTest : AbstractTest() {
     companion object {
         lateinit var server: Server
     }
@@ -47,7 +46,7 @@ open class StoreTest() : AbstractTest() {
     fun testWrite() {
         outputOfDBPgm(
             programName = "db/WRITE01",
-            metadata = listOf(createEmployeeMetadata())
+            metadata = listOf(createEmployeeMetadata()),
         )
     }
 
@@ -55,7 +54,7 @@ open class StoreTest() : AbstractTest() {
     fun testWriteTableNameDifferentByName() {
         outputOfDBPgm(
             programName = "db/WRITE02",
-            metadata = listOf(createEmployeeMetadata(name = "EMPLVIEW"))
+            metadata = listOf(createEmployeeMetadata(name = "EMPLVIEW")),
         )
     }
 
@@ -63,7 +62,7 @@ open class StoreTest() : AbstractTest() {
     fun testWriteRecordFormatDifferentByName() {
         outputOfDBPgm(
             programName = "db/WRITE01",
-            metadata = listOf(createEmployeeMetadata(recordFormat = "EMPLOYRF"))
+            metadata = listOf(createEmployeeMetadata(recordFormat = "EMPLOYRF")),
         )
     }
 
@@ -73,7 +72,7 @@ open class StoreTest() : AbstractTest() {
     fun testUpdate() {
         outputOfDBPgm(
             programName = "db/UPDATE01",
-            metadata = listOf(createEmployeeMetadata())
+            metadata = listOf(createEmployeeMetadata()),
         )
     }
 }

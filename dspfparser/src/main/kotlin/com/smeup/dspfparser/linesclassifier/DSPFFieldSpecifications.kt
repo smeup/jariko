@@ -24,16 +24,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFFieldSpecifications(
     override val x: Int?,
-    override val y: Int?
+    override val y: Int?,
 ) : DSPFField {
-
     companion object {
         fun fromLine(declaration: DSPFLine): DSPFField {
             if (declaration.type == LineType.CONSTANT) {
                 return ConstantField(
                     value = ConstantValue(declaration.keywords!!.getConstantValue()),
                     x = declaration.x,
-                    y = declaration.y
+                    y = declaration.y,
                 )
             } else {
                 val isNumeric = declaration.decimalsPositions != null
@@ -46,13 +45,13 @@ internal data class DSPFFieldSpecifications(
                     precision = declaration.decimalsPositions,
                     type = this.getType(declaration),
                     x = declaration.x,
-                    y = declaration.y
+                    y = declaration.y,
                 )
             }
         }
 
-        private fun getType(declaration: DSPFLine): DSPFFieldType {
-            return when (declaration.fieldType) {
+        private fun getType(declaration: DSPFLine): DSPFFieldType =
+            when (declaration.fieldType) {
                 FieldType.I -> DSPFFieldType.INPUT
                 FieldType.O -> DSPFFieldType.OUTPUT
                 FieldType.B -> DSPFFieldType.INPUT_OUTPUT
@@ -61,6 +60,5 @@ internal data class DSPFFieldSpecifications(
                 FieldType.P -> DSPFFieldType.PROGRAM_TO_SYSTEM
                 FieldType.BLANK -> DSPFFieldType.DEFAULT
             }
-        }
     }
 }

@@ -4,14 +4,25 @@ import java.util.LinkedList
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
-data class A(val s: String) : Node()
-data class B(val a: A, val manyAs: List<A>) : Node()
+data class A(
+    val s: String,
+) : Node()
 
-data class AW(var s: String) : Node()
-data class BW(var a: AW, val manyAs: MutableList<AW>) : Node()
+data class B(
+    val a: A,
+    val manyAs: List<A>,
+) : Node()
+
+data class AW(
+    var s: String,
+) : Node()
+
+data class BW(
+    var a: AW,
+    val manyAs: MutableList<AW>,
+) : Node()
 
 class ProcessingTest {
-
     @test(expected = ImmutablePropertyException::class)
     fun replaceSingleOnReadOnly() {
         val a1 = A("1")

@@ -38,8 +38,11 @@ import kotlin.collections.component2
 import kotlin.collections.forEach
 import kotlin.collections.iterator
 
-fun ProfilingParser.ProfilingLineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), position: Position? = null): ProfilingAnnotation {
-    return when (val annotation = this.profilingAnnotation()) {
+fun ProfilingParser.ProfilingLineContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    position: Position? = null,
+): ProfilingAnnotation =
+    when (val annotation = this.profilingAnnotation()) {
         is ProfilingParser.ProfilingSpanStartAnnotationContext -> {
             val name = annotation.TELEMETRY_SPAN_ID().text.trim()
             val comment = annotation.TELEMETRY_SPAN_COMMENT()?.text?.trim()
@@ -50,7 +53,6 @@ fun ProfilingParser.ProfilingLineContext.toAst(conf: ToAstConfiguration = ToAstC
         }
         else -> TODO(this.text.toString())
     }
-}
 
 fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
     // Process the main body statements
@@ -58,7 +60,7 @@ fun Statement.injectProfilingAnnotations(profiling: ProfilingImmutableMap) {
         listOf(this),
         this.position!!.start.line,
         this.position!!.end.line,
-        profiling
+        profiling,
     )
 }
 
@@ -76,10 +78,11 @@ fun CompilationUnit.injectProfilingAnnotations(profiling: ProfilingImmutableMap)
     // so we want to expand the research area to cover preceding annotations
     // In a mute with no statements, as can happen for program with only
     // D SPEC, the function stmts.position() returns null and then this fragments raises error
-    val resolved = this.main.stmts.position()?.let { position ->
-        val start = position.start.line.expandStartLineWithAnnotations(profiling)
-        injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, optimized, profiling)
-    } ?: emptyList()
+    val resolved =
+        this.main.stmts.position()?.let { position ->
+            val start = position.start.line.expandStartLineWithAnnotations(profiling)
+            injectProfilingAnnotationsToStatements(this.main.stmts, start, position.end.line, optimized, profiling)
+        } ?: emptyList()
 
     resolved.forEach {
         toResolve.remove(it.profilingLine)
@@ -104,7 +107,7 @@ fun injectProfilingAnnotationsToStatements(
     start: Int,
     end: Int,
     candidates: ProfilingImmutableMap,
-    annotations: ProfilingImmutableMap = candidates
+    annotations: ProfilingImmutableMap = candidates,
 ): List<ProfilingAnnotationResolved> {
     // Consider only the annotation in the scope
     val filteredCandidates: ProfilingImmutableMap = candidates.filterKeys { it in start..end }.toSortedMap()
@@ -116,8 +119,14 @@ fun injectProfilingAnnotationsToStatements(
 
     // Visit each statement
     statements.forEach {
-        val candidateStartForStatement = it.position!!.start.line.expandStartLineWithAnnotations(filteredAnnotations)
-        val candidateEndForStatement = it.position!!.end.line.expandEndLineWithAnnotations(filteredAnnotations)
+        val candidateStartForStatement =
+            it.position!!
+                .start.line
+                .expandStartLineWithAnnotations(filteredAnnotations)
+        val candidateEndForStatement =
+            it.position!!
+                .end.line
+                .expandEndLineWithAnnotations(filteredAnnotations)
         val resolved = it.acceptProfiling(profilingAnnotationsToProcess, candidateStartForStatement, candidateEndForStatement)
         profilingAnnotationsResolved.addAll(resolved)
 
@@ -175,7 +184,10 @@ internal fun Int.expandEndLineWithAnnotations(profiling: ProfilingImmutableMap):
  * @param body The list of statement to which we should apply profiling annotations.
  * @param profiling The profiling annotation map.
  */
-fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap): MutableList<ProfilingAnnotationResolved> {
+fun acceptProfilingBody(
+    body: List<Statement>,
+    profiling: ProfilingMap,
+): MutableList<ProfilingAnnotationResolved> {
     val (start, end) = body.lineBounds().expandWithAnnotations(profiling)
     return acceptProfilingBody(body, profiling, start, end)
 }
@@ -188,7 +200,12 @@ fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap): Mutable
  * @param start The start line.
  * @param end The end line.
  */
-fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap, start: Int = 0, end: Int): MutableList<ProfilingAnnotationResolved> {
+fun acceptProfilingBody(
+    body: List<Statement>,
+    profiling: ProfilingMap,
+    start: Int = 0,
+    end: Int,
+): MutableList<ProfilingAnnotationResolved> {
     val attached: MutableList<ProfilingAnnotationResolved> = mutableListOf()
 
     // Process the body statements
@@ -212,8 +229,14 @@ fun acceptProfilingBody(body: List<Statement>, profiling: ProfilingMap, start: I
  * @param profiling The profiling annotation map.
  */
 internal fun Statement.boundsIncludingProfiling(profiling: ProfilingMap): Pair<Int, Int> {
-    val start = this.position!!.start.line.expandStartLineWithAnnotations(profiling)
-    val end = this.position!!.end.line.expandEndLineWithAnnotations(profiling)
+    val start =
+        this.position!!
+            .start.line
+            .expandStartLineWithAnnotations(profiling)
+    val end =
+        this.position!!
+            .end.line
+            .expandEndLineWithAnnotations(profiling)
 
     return start to end
 }

@@ -40,7 +40,7 @@ fun mult(
     targetType: Type,
     isHalfAdjust: Boolean,
     interpreterCore: InterpreterCore,
-    position: Position? = null
+    position: Position? = null,
 ): Value {
     // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
     val leftValue = BigDecimal(interpreterCore.eval(leftExpr).render())

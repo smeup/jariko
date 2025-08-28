@@ -30,7 +30,6 @@ import kotlin.time.*
 import org.junit.Test as test
 
 open class DataDefinitionTest : AbstractTest() {
-
     @test fun singleDataParsing() {
         val cu = parseFragmentToCompilationUnit("D U\$FUNZ          S             10")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", StringType(10))
@@ -89,46 +88,71 @@ open class DataDefinitionTest : AbstractTest() {
     }
 
     @test fun structParsing() {
-        val cu = parseFragmentToCompilationUnit(listOf(
-                "D                 DS",
-                "D \$\$SVAR                      1050    DIM(200)",
-                "D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name",
-                "D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value"))
-        cu.assertDataDefinitionIsPresent("@UNNAMED_DS_5", DataStructureType(
+        val cu =
+            parseFragmentToCompilationUnit(
                 listOf(
-                        FieldType("\$\$SVAR", ArrayType(StringType(1050), 200)),
-                        FieldType("\$\$SVARCD", ArrayType(StringType(50), 200)),
-                        FieldType("\$\$SVARVA", ArrayType(StringType(1000), 200))),
-                210000),
-                fields = listOf(
-                        FieldDefinition("\$\$SVAR", ArrayType(StringType(1050), 200),
-                                explicitStartOffset = null,
-                                calculatedStartOffset = 0,
-                                calculatedEndOffset = 1050,
-                                declaredArrayInLineOnThisField = 200),
-                        FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200),
-                                explicitStartOffset = null,
-                                calculatedStartOffset = 0,
-                                calculatedEndOffset = 50,
-                                declaredArrayInLineOnThisField = null,
-                                overlayTarget = "\$\$SVAR"),
-                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200),
-                                explicitStartOffset = null,
-                                calculatedStartOffset = 50,
-                                calculatedEndOffset = 1050,
-                                declaredArrayInLineOnThisField = null,
-                                overlayTarget = "\$\$SVAR")
-                ))
+                    "D                 DS",
+                    "D \$\$SVAR                      1050    DIM(200)",
+                    "D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name",
+                    "D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value",
+                ),
+            )
+        cu.assertDataDefinitionIsPresent(
+            "@UNNAMED_DS_5",
+            DataStructureType(
+                listOf(
+                    FieldType("\$\$SVAR", ArrayType(StringType(1050), 200)),
+                    FieldType("\$\$SVARCD", ArrayType(StringType(50), 200)),
+                    FieldType("\$\$SVARVA", ArrayType(StringType(1000), 200)),
+                ),
+                210000,
+            ),
+            fields =
+                listOf(
+                    FieldDefinition(
+                        "\$\$SVAR",
+                        ArrayType(StringType(1050), 200),
+                        explicitStartOffset = null,
+                        calculatedStartOffset = 0,
+                        calculatedEndOffset = 1050,
+                        declaredArrayInLineOnThisField = 200,
+                    ),
+                    FieldDefinition(
+                        "\$\$SVARCD",
+                        ArrayType(StringType(50), 200),
+                        explicitStartOffset = null,
+                        calculatedStartOffset = 0,
+                        calculatedEndOffset = 50,
+                        declaredArrayInLineOnThisField = null,
+                        overlayTarget = "\$\$SVAR",
+                    ),
+                    FieldDefinition(
+                        "\$\$SVARVA",
+                        ArrayType(StringType(1000), 200),
+                        explicitStartOffset = null,
+                        calculatedStartOffset = 50,
+                        calculatedEndOffset = 1050,
+                        declaredArrayInLineOnThisField = null,
+                        overlayTarget = "\$\$SVAR",
+                    ),
+                ),
+        )
     }
 
     @test
     fun likeAndDimClauseParsing() {
-        val cu = parseFragmentToCompilationUnit(
+        val cu =
+            parseFragmentToCompilationUnit(
                 "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",
-                toAstConfiguration = ToAstConfiguration(considerPosition = false,
-                        compileTimeInterpreter = InjectableCompileTimeInterpreter().apply {
-                            this.overrideDecl("\$\$SVAR", ArrayType(StringType(12), 38))
-                        }))
+                toAstConfiguration =
+                    ToAstConfiguration(
+                        considerPosition = false,
+                        compileTimeInterpreter =
+                            InjectableCompileTimeInterpreter().apply {
+                                this.overrideDecl("\$\$SVAR", ArrayType(StringType(12), 38))
+                            },
+                    ),
+            )
         cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 38))
     }
 
@@ -158,24 +182,33 @@ open class DataDefinitionTest : AbstractTest() {
     }
 
     @test fun dsNotArrayWithOffsets() {
-        val cu = parseFragmentToCompilationUnit("D DSDX3           DS            50       \n" +
-                "     D  \$TIPO                  1      2       \n" +
-                "     D  \$OBBL                  3      3       \n" +
-                "     D  \$INDI                  4      5       \n" +
-                "     D  \$PARA                 21     30")
-        val dataDef = cu.assertDataDefinitionIsPresent("DSDX3", DataStructureType(
-                listOf(
+        val cu =
+            parseFragmentToCompilationUnit(
+                "D DSDX3           DS            50       \n" +
+                    "     D  \$TIPO                  1      2       \n" +
+                    "     D  \$OBBL                  3      3       \n" +
+                    "     D  \$INDI                  4      5       \n" +
+                    "     D  \$PARA                 21     30",
+            )
+        val dataDef =
+            cu.assertDataDefinitionIsPresent(
+                "DSDX3",
+                DataStructureType(
+                    listOf(
                         FieldType("\$TIPO", StringType(2)),
                         FieldType("\$OBBL", StringType(1)),
                         FieldType("\$INDI", StringType(2)),
-                        FieldType("\$PARA", StringType(10))),
-                50),
+                        FieldType("\$PARA", StringType(10)),
+                    ),
+                    50,
+                ),
                 listOf(
-                        FieldDefinition("\$TIPO", StringType(2), 0, 2),
-                        FieldDefinition("\$OBBL", StringType(1), 2, 3),
-                        FieldDefinition("\$INDI", StringType(2), 3, 5),
-                        FieldDefinition("\$PARA", StringType(10), 20, 30)
-                ))
+                    FieldDefinition("\$TIPO", StringType(2), 0, 2),
+                    FieldDefinition("\$OBBL", StringType(1), 2, 3),
+                    FieldDefinition("\$INDI", StringType(2), 3, 5),
+                    FieldDefinition("\$PARA", StringType(10), 20, 30),
+                ),
+            )
         assertEquals(0, dataDef.fields[0].startOffset)
         assertEquals(2, dataDef.fields[0].endOffset)
         assertEquals(2, dataDef.fields[1].startOffset)
@@ -268,7 +301,8 @@ open class DataDefinitionTest : AbstractTest() {
         assertEquals(4, FI19.elementSize())
         assertEquals(8, FI20.elementSize())
 
-        val allFieldsElementSize = FI01.elementSize() +
+        val allFieldsElementSize =
+            FI01.elementSize() +
                 FI02.elementSize() +
                 FI03.elementSize() +
                 FI04.elementSize() +
@@ -307,9 +341,16 @@ open class DataDefinitionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolveAndValidate()
         val unnamedDs = cu.getDataDefinition("@UNNAMED_DS_48")
-        assertEquals(DataStructureType(listOf(
-                FieldType("LOG1", StringType(14)),
-                FieldType("LOG", ArrayType(StringType(2), 7))), 14), unnamedDs.type)
+        assertEquals(
+            DataStructureType(
+                listOf(
+                    FieldType("LOG1", StringType(14)),
+                    FieldType("LOG", ArrayType(StringType(2), 7)),
+                ),
+                14,
+            ),
+            unnamedDs.type,
+        )
 
         val LOG1 = unnamedDs.getFieldByName("LOG1")
         assertEquals(StringType(14), LOG1.type)
@@ -348,18 +389,25 @@ open class DataDefinitionTest : AbstractTest() {
         assertEquals(0, logValue.startOffset)
         assertEquals(2, logValue.step)
         assertEquals(7, logValue.arrayLength)
-        assertEquals(ConcreteArrayValue(mutableListOf(StringValue("0F"),
-                StringValue("0L"),
-                StringValue("1L"),
-                StringValue("2L"),
-                StringValue("3L"),
-                StringValue("4L"),
-                StringValue("5L")), StringType(2)) as ArrayValue, logValue)
+        assertEquals(
+            ConcreteArrayValue(
+                mutableListOf(
+                    StringValue("0F"),
+                    StringValue("0L"),
+                    StringValue("1L"),
+                    StringValue("2L"),
+                    StringValue("3L"),
+                    StringValue("4L"),
+                    StringValue("5L"),
+                ),
+                StringType(2),
+            ) as ArrayValue,
+            logValue,
+        )
     }
 }
 
 class DataDefinitionPerformanceTest : AbstractTest() {
-
     @Test(timeout = 10_000)
     @Category(PerformanceTest::class)
     fun decodeFromDS() {
@@ -397,11 +445,12 @@ class DataDefinitionPerformanceTest : AbstractTest() {
         val valueTo = "9".repeat(21).plus(".").plus("9".repeat(9)).toBigDecimal()
         val randomNumbers = List(nRandomNumbers) { Random.nextDouble(valueFrom.toDouble(), valueTo.toDouble()) }
 
-        val timeMeasurements = measureTime {
-            randomNumbers.forEach { randomNumber ->
-                decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
+        val timeMeasurements =
+            measureTime {
+                randomNumbers.forEach { randomNumber ->
+                    decodeFromPacked(encodeToPacked(randomNumber.toBigDecimal(), 30, 9), 30, 9)
+                }
             }
-        }
 
         println("Time execution of encoding/decoding for $nRandomNumbers random numbers is: $timeMeasurements.")
     }

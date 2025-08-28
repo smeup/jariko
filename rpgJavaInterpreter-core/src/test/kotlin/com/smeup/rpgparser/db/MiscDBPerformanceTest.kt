@@ -37,11 +37,9 @@ import java.time.LocalDateTime
  * All methods should be annotated with [com.smeup.rpgparser.DBPerformanceTest]
  * */
 open class MiscDBPerformanceTest : AbstractTest() {
-
     @Test(timeout = 3600000)
     @Category(DBPerformanceTest::class)
     open fun testEXEC_MUTE() {
-
         // Set if you want print output csv
         val print = true
 
@@ -49,38 +47,59 @@ open class MiscDBPerformanceTest : AbstractTest() {
             val current = LocalDateTime.now()
             val dateString = current.toString().replace(":", ".")
             var jrkCsvOutputDir = System.getProperty("jrkCsvOutputDir", System.getProperty("java.io.tmpdir"))
-            val testPerfWriter: PrintWriter? = if (print) File("$jrkCsvOutputDir/Test-Performance_$dateString.csv").apply {
-            println("Creating ${this.path}") }.printWriter() else null
-            val i40d5Writer: PrintWriter? = if (print) File("$jrkCsvOutputDir/I40D5_$dateString.csv").apply {
-                println("Creating ${this.path}") }.printWriter() else null
+            val testPerfWriter: PrintWriter? =
+                if (print) {
+                    File("$jrkCsvOutputDir/Test-Performance_$dateString.csv")
+                        .apply {
+                            println("Creating ${this.path}")
+                        }.printWriter()
+                } else {
+                    null
+                }
+            val i40d5Writer: PrintWriter? =
+                if (print) {
+                    File("$jrkCsvOutputDir/I40D5_$dateString.csv")
+                        .apply {
+                            println("Creating ${this.path}")
+                        }.printWriter()
+                } else {
+                    null
+                }
             val jrkExecMuteRepeat = System.getProperty("jrkEXEC_MUTErepeat", "1")
             println("execution mute repeat: $jrkExecMuteRepeat")
-            val si = JavaSystemInterface().apply {
-                loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE)
-                // capture messages and write them in CSV files
-                onDisplay = { message, _ ->
-                    println("Handling displayed message: $message")
-                    if (!message.contains(";")) {
-                        testPerfWriter?.println(message)
-                        testPerfWriter?.flush()
-                        i40d5Writer?.println(message)
-                        i40d5Writer?.flush()
+            val si =
+                JavaSystemInterface().apply {
+                    loggingConfiguration = consoleLoggingConfiguration(LogChannel.PERFORMANCE)
+                    // capture messages and write them in CSV files
+                    onDisplay = { message, _ ->
+                        println("Handling displayed message: $message")
+                        if (!message.contains(";")) {
+                            testPerfWriter?.println(message)
+                            testPerfWriter?.flush()
+                            i40d5Writer?.println(message)
+                            i40d5Writer?.flush()
+                        }
                     }
                 }
-            }
 
-            val params = CommandLineParms(
-                mapOf(
-                    "EXEC_DB" to StringValue(reloadConfig.nativeAccessConfig.connectionsConfig[0].driver.toString()),
-                    "EXEC_NM" to IntValue(jrkExecMuteRepeat.toLong())
+            val params =
+                CommandLineParms(
+                    mapOf(
+                        "EXEC_DB" to
+                            StringValue(
+                                reloadConfig.nativeAccessConfig.connectionsConfig[0]
+                                    .driver
+                                    .toString(),
+                            ),
+                        "EXEC_NM" to IntValue(jrkExecMuteRepeat.toLong()),
+                    ),
                 )
-            )
             try {
                 executePgm(
                     programName = "db/EXEC_MUTE",
                     params = params,
                     configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
-                    systemInterface = si
+                    systemInterface = si,
                 )
             } finally {
                 testPerfWriter?.close()

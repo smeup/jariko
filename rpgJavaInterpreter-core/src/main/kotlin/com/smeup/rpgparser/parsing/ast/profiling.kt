@@ -31,7 +31,7 @@ enum class ProfilingAnnotationAttachStrategy {
     AttachToNext,
 
     /** Attach annotation to the statement preceding the annotation. */
-    AttachToPrevious
+    AttachToPrevious,
 }
 
 /**
@@ -40,7 +40,7 @@ enum class ProfilingAnnotationAttachStrategy {
 @Serializable
 abstract class ProfilingAnnotation(
     val attachStrategy: ProfilingAnnotationAttachStrategy,
-    @Transient override val position: Position? = null
+    @Transient override val position: Position? = null,
 ) : Node(position)
 
 /**
@@ -50,25 +50,32 @@ abstract class ProfilingAnnotation(
 data class ProfilingSpanStartAnnotation(
     val name: String,
     val comment: String?,
-    override val position: Position? = null
-) :
-    ProfilingAnnotation(ProfilingAnnotationAttachStrategy.AttachToNext, position) {
+    override val position: Position? = null,
+) : ProfilingAnnotation(ProfilingAnnotationAttachStrategy.AttachToNext, position) {
     val description
-        get() = comment?.let {
-            if (it.isEmpty()) name else "$name - $comment"
-        } ?: name
+        get() =
+            comment?.let {
+                if (it.isEmpty()) name else "$name - $comment"
+            } ?: name
 }
 
 /**
  * A span end annotation.
  */
 @Serializable
-data class ProfilingSpanEndAnnotation(override val position: Position? = null) : ProfilingAnnotation(
-    ProfilingAnnotationAttachStrategy.AttachToPrevious, position
-)
+data class ProfilingSpanEndAnnotation(
+    override val position: Position? = null,
+) : ProfilingAnnotation(
+        ProfilingAnnotationAttachStrategy.AttachToPrevious,
+        position,
+    )
 
 /**
  * A profiling annotation associated to a statement.
  */
 @Serializable
-data class ProfilingAnnotationResolved(val source: ProfilingAnnotation, val profilingLine: Int, val statementLine: Int)
+data class ProfilingAnnotationResolved(
+    val source: ProfilingAnnotation,
+    val profilingLine: Int,
+    val statementLine: Int,
+)

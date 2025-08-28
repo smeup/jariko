@@ -48,12 +48,12 @@ internal data class DSPFLineSubstrings(
     val x: String,
     val keywords: String,
     val line: String,
-    val continuationChar: Char? = null
+    val continuationChar: Char? = null,
 ) {
     companion object {
         fun from(
             count: Int,
-            line: String
+            line: String,
         ): DSPFLineSubstrings {
             // simulates multiline by extending writable range
             val extendedLine = line.removeNewLineAndExtend(' ', LAST_COLUMN)
@@ -76,7 +76,7 @@ internal data class DSPFLineSubstrings(
                 this.getX(extendedLine),
                 this.getKeywords(extendedLine),
                 line,
-                this.getContinuationChar(extendedLine)
+                this.getContinuationChar(extendedLine),
             )
         }
 
@@ -86,80 +86,48 @@ internal data class DSPFLineSubstrings(
             return null
         }
 
-        private fun getSequenceNumber(line: String): String {
-            return line.substring(LineInfo.SEQUENCE_NUMBER.from, LineInfo.SEQUENCE_NUMBER.to)
-        }
+        private fun getSequenceNumber(line: String): String = line.substring(LineInfo.SEQUENCE_NUMBER.from, LineInfo.SEQUENCE_NUMBER.to)
 
-        private fun getA(line: String): String {
-            return line.substring(LineInfo.A.from, LineInfo.A.to)
-        }
+        private fun getA(line: String): String = line.substring(LineInfo.A.from, LineInfo.A.to)
 
-        private fun getComment(line: String): String {
-            return line.substring(LineInfo.COMMENT.from, LineInfo.COMMENT.to).trim()
-        }
+        private fun getComment(line: String): String = line.substring(LineInfo.COMMENT.from, LineInfo.COMMENT.to).trim()
 
-        private fun getCondition(line: String): String {
-            return line.substring(LineInfo.CONDITION.from, LineInfo.CONDITION.to)
-        }
+        private fun getCondition(line: String): String = line.substring(LineInfo.CONDITION.from, LineInfo.CONDITION.to)
 
-        private fun getReserved(line: String): String {
-            return line.substring(LineInfo.RESERVED.from, LineInfo.RESERVED.to)
-        }
+        private fun getReserved(line: String): String = line.substring(LineInfo.RESERVED.from, LineInfo.RESERVED.to)
 
-        private fun getTypeOfName(line: String): String {
-            return line.substring(LineInfo.TYPE_OF_NAME.from, LineInfo.TYPE_OF_NAME.to)
-        }
+        private fun getTypeOfName(line: String): String = line.substring(LineInfo.TYPE_OF_NAME.from, LineInfo.TYPE_OF_NAME.to)
 
-        private fun getFieldName(line: String): String {
-            return line.substring(LineInfo.FIELD_NAME.from, LineInfo.FIELD_NAME.to)
-        }
+        private fun getFieldName(line: String): String = line.substring(LineInfo.FIELD_NAME.from, LineInfo.FIELD_NAME.to)
 
-        private fun getReference(line: String): String {
-            return line.substring(LineInfo.REFERENCE.from, LineInfo.REFERENCE.to)
-        }
+        private fun getReference(line: String): String = line.substring(LineInfo.REFERENCE.from, LineInfo.REFERENCE.to)
 
-        private fun getLength(line: String): String {
-            return line.substring(LineInfo.LENGTH.from, LineInfo.LENGTH.to)
-        }
+        private fun getLength(line: String): String = line.substring(LineInfo.LENGTH.from, LineInfo.LENGTH.to)
 
-        private fun getDataTypeKeyboardShift(line: String): String {
-            return line.substring(LineInfo.DTKBS.from, LineInfo.DTKBS.to)
-        }
+        private fun getDataTypeKeyboardShift(line: String): String = line.substring(LineInfo.DTKBS.from, LineInfo.DTKBS.to)
 
-        private fun getDecimalsPositions(line: String): String {
-            return line.substring(LineInfo.DECIMALS_POSITIONS.from, LineInfo.DECIMALS_POSITIONS.to)
-        }
+        private fun getDecimalsPositions(line: String): String =
+            line.substring(LineInfo.DECIMALS_POSITIONS.from, LineInfo.DECIMALS_POSITIONS.to)
 
-        private fun getFieldType(line: String): String {
-            return line.substring(LineInfo.FIELD_TYPE.from, LineInfo.FIELD_TYPE.to)
-        }
+        private fun getFieldType(line: String): String = line.substring(LineInfo.FIELD_TYPE.from, LineInfo.FIELD_TYPE.to)
 
-        private fun getY(line: String): String {
-            return line.substring(LineInfo.Y.from, LineInfo.Y.to)
-        }
+        private fun getY(line: String): String = line.substring(LineInfo.Y.from, LineInfo.Y.to)
 
-        private fun getX(line: String): String {
-            return line.substring(LineInfo.X.from, LineInfo.X.to)
-        }
+        private fun getX(line: String): String = line.substring(LineInfo.X.from, LineInfo.X.to)
 
-        private fun getKeywords(line: String): String {
-            return line.substring(LineInfo.KEYWORDS.from, LineInfo.KEYWORDS.to).trim().padEnd(1).padStart(1)
-        }
+        private fun getKeywords(line: String): String =
+            line
+                .substring(LineInfo.KEYWORDS.from, LineInfo.KEYWORDS.to)
+                .trim()
+                .padEnd(1)
+                .padStart(1)
     }
 
-    fun isComment(): Boolean {
-        return this.comment[0] == '*'
-    }
+    fun isComment(): Boolean = this.comment[0] == '*'
 
-    fun doesContinue(): Boolean {
-        return this.continuationChar != null
-    }
+    fun doesContinue(): Boolean = this.continuationChar != null
 
-    fun continuesAtColumn45(): Boolean {
-        return this.continuationChar == '-'
-    }
+    fun continuesAtColumn45(): Boolean = this.continuationChar == '-'
 
-    fun continuesAtAnyColumn(): Boolean {
-        return this.continuationChar == '+'
-    }
+    fun continuesAtAnyColumn(): Boolean = this.continuationChar == '+'
 }

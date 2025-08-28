@@ -1,6 +1,8 @@
 package com.smeup.dspfparser.positionals
 
-internal enum class DTKBS(val value: Char) {
+internal enum class DTKBS(
+    val value: Char,
+) {
     X('X'),
     A('A'),
     N('N'),

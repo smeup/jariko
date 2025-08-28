@@ -3,15 +3,20 @@ package com.smeup.rpgparser.utils
 import java.io.File
 import kotlin.test.assertEquals
 
-fun processFilesInDirectory(path: String, expectedNbOfFiles: Int? = null, processor: (File) -> Unit) {
+fun processFilesInDirectory(
+    path: String,
+    expectedNbOfFiles: Int? = null,
+    processor: (File) -> Unit,
+) {
     var counter = 0
     val dir = testDirectory(path)
-    dir.walkTopDown()
-            .filter { it.isFile && it.extension == "rpgle" }
-            .forEach {
-                processor(it)
-                counter++
-            }
+    dir
+        .walkTopDown()
+        .filter { it.isFile && it.extension == "rpgle" }
+        .forEach {
+            processor(it)
+            counter++
+        }
     if (expectedNbOfFiles != null) {
         assertEquals(expectedNbOfFiles, counter)
     }

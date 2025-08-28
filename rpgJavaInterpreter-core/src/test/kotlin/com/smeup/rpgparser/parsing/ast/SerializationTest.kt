@@ -19,20 +19,25 @@ import kotlin.test.assertEquals
 import kotlin.time.measureTime
 
 class SerializationTest {
-
     companion object {
         lateinit var timestamp: String
         lateinit var testFiles: Collection<File>
-        @BeforeClass @JvmStatic fun setup() {
+
+        @BeforeClass @JvmStatic
+        fun setup() {
             timestamp = SimpleDateFormat("yyyyMMddHHmmss").format(Date())
             val dir = File(javaClass.getResource("/performance-ast").path)
-            testFiles = dir.listFiles().filter {
-                it.name.endsWith(".rpgle") && it.name != ("MUTE_ERROR.rpgle")
-            }
+            testFiles =
+                dir.listFiles().filter {
+                    it.name.endsWith(".rpgle") && it.name != ("MUTE_ERROR.rpgle")
+                }
         }
     }
 
-    private fun createAstFromSource(fileName: String, inputStream: InputStream) = RpgParserFacade().parseAndProduceAst(inputStream)
+    private fun createAstFromSource(
+        fileName: String,
+        inputStream: InputStream,
+    ) = RpgParserFacade().parseAndProduceAst(inputStream)
 
     private fun String.timestampName() = "${timestamp}_$this"
 
@@ -46,15 +51,16 @@ class SerializationTest {
                 MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
                     val compilationUnit = createAstFromSource(file.name, inputStream)
                     println("Probing...")
-                    kotlin.runCatching {
-                        compilationUnit.encodeToString()
-                    }.onFailure { error ->
-                        if (errors.add(error.message)) {
-                            System.err.println(error.message)
+                    kotlin
+                        .runCatching {
+                            compilationUnit.encodeToString()
+                        }.onFailure { error ->
+                            if (errors.add(error.message)) {
+                                System.err.println(error.message)
+                            }
+                        }.onSuccess {
+                            println("Ok")
                         }
-                    }.onSuccess {
-                        println("Ok")
-                    }
                 }
             }
         }
@@ -104,10 +110,11 @@ class SerializationTest {
             file.writeBytes(astBySource.encodeToByteArray())
 
             // Read file and convert to bytes
-            val (binReadTime, bin) = measured {
-                val file = File(System.getProperty("java.io.tmpdir"), dec.name.timestampName())
-                file.readBytes()
-            }
+            val (binReadTime, bin) =
+                measured {
+                    val file = File(System.getProperty("java.io.tmpdir"), dec.name.timestampName())
+                    file.readBytes()
+                }
             println("Read byte[] time: ${binReadTime.inWholeMilliseconds}")
 
             // Convert bytes to compilation unit

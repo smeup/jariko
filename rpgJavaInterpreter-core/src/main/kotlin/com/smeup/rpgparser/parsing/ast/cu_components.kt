@@ -18,10 +18,10 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.AbstractDataStructureType
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.smeup.rpgparser.interpreter.AbstractDataStructureType
 import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
@@ -67,18 +67,19 @@ data class CompilationUnit(
     /** Copy blocks contained by this CU. */
     val copyBlocks: CopyBlocks? = null,
     /** The display files associated with this CU. */
-    val displayFiles: Map<String, DSPF>? = null
+    val displayFiles: Map<String, DSPF>? = null,
 ) : Node(position) {
     val isProcedure get() = procedureName != null
 
     val resolvedProfilingAnnotations: List<ProfilingAnnotationResolved> by lazy {
         val statements = main.stmts.explode(true)
-        statements.map { stmt ->
-            val statementLine = stmt.position?.start?.line ?: stmt.startLine().toIntOrNull() ?: 0
-            stmt.profilingAnnotations.map { annotation ->
-                ProfilingAnnotationResolved(annotation, annotation.position!!.start.line, statementLine)
-            }
-        }.flatten()
+        statements
+            .map { stmt ->
+                val statementLine = stmt.position?.start?.line ?: stmt.startLine().toIntOrNull() ?: 0
+                stmt.profilingAnnotations.map { annotation ->
+                    ProfilingAnnotationResolved(annotation, annotation.position!!.start.line, statementLine)
+                }
+            }.flatten()
     }
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
@@ -88,21 +89,23 @@ data class CompilationUnit(
     }
 
     companion object {
-        fun empty() = CompilationUnit(
-            fileDefinitions = emptyList(),
-            dataDefinitions = emptyList(),
-            main = MainBody(stmts = emptyList(), position = null),
-            subroutines = emptyList(),
-            compileTimeArrays = emptyList(),
-            directives = emptyList(),
-            dataAreas = mapOf(),
-            position = null,
-            procedures = emptyList()
-        )
+        fun empty() =
+            CompilationUnit(
+                fileDefinitions = emptyList(),
+                dataDefinitions = emptyList(),
+                main = MainBody(stmts = emptyList(), position = null),
+                subroutines = emptyList(),
+                compileTimeArrays = emptyList(),
+                directives = emptyList(),
+                dataAreas = mapOf(),
+                position = null,
+                procedures = emptyList(),
+            )
     }
 
     val entryPlist: PlistStmt?
-        get() = main.stmts.plist()
+        get() =
+            main.stmts.plist()
                 ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
     private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
@@ -116,9 +119,10 @@ data class CompilationUnit(
     @Derived
     val allDataDefinitions: List<AbstractDataDefinition> by lazy {
         // Unqualified DS sub-fields
-        val unqualified = dataDefinitions
-            .filter { it.type is AbstractDataStructureType && !(it.type as AbstractDataStructureType).isQualified }
-            .flatMap { it.fields }
+        val unqualified =
+            dataDefinitions
+                .filter { it.type is AbstractDataStructureType && !(it.type as AbstractDataStructureType).isQualified }
+                .flatMap { it.fields }
 
         val bucket = dataDefinitions + unqualified + inStatementsDataDefinitions
         bucket.removeDuplicatedDataDefinition()
@@ -148,38 +152,46 @@ data class CompilationUnit(
      * This returns `true` if this procedure is a prototype by its empty lists for file definition,
      *  data definition, subroutines, compile time arrays and directive.
      */
-    fun isProcedurePrototype(): Boolean {
-        return !this.procedureName.isNullOrBlank() &&
-                this.fileDefinitions.isEmpty() &&
-                this.dataDefinitions.isEmpty() &&
-                this.subroutines.isEmpty() &&
-                this.compileTimeArrays.isEmpty() &&
-                this.directives.isEmpty()
-    }
+    fun isProcedurePrototype(): Boolean =
+        !this.procedureName.isNullOrBlank() &&
+            this.fileDefinitions.isEmpty() &&
+            this.dataDefinitions.isEmpty() &&
+            this.subroutines.isEmpty() &&
+            this.compileTimeArrays.isEmpty() &&
+            this.directives.isEmpty()
 
     fun hasDataDefinition(name: String) = dataDefinitionsByName.containsKey(name.uppercase())
 
-    fun getDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = dataDefinitionsByName[name.uppercase()]
-            ?: throw IllegalArgumentException(errorMessage.invoke())
+    fun getDataDefinition(
+        name: String,
+        errorMessage: () -> String = { "Data definition $name was not found" },
+    ) = dataDefinitionsByName[name.uppercase()]
+        ?: throw IllegalArgumentException(errorMessage.invoke())
 
-    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
+    fun getDataOrFieldDefinition(name: String) =
+        dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
             ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
     fun hasAnyDataDefinition(name: String) = allDataDefinitionsByName.containsKey(name.uppercase())
 
-    fun getAnyDataDefinition(name: String) = allDataDefinitionsByName[name.uppercase()]
-        ?: throw IllegalArgumentException("Data definition $name was not found")
+    fun getAnyDataDefinition(name: String) =
+        allDataDefinitionsByName[name.uppercase()]
+            ?: throw IllegalArgumentException("Data definition $name was not found")
 
-    fun getAnyDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = allDataDefinitionsByName[name.uppercase()]
+    fun getAnyDataDefinition(
+        name: String,
+        errorMessage: () -> String = { "Data definition $name was not found" },
+    ) = allDataDefinitionsByName[name.uppercase()]
         ?: throw IllegalArgumentException(errorMessage.invoke())
 
     fun compileTimeArray(name: String): CompileTimeArray {
-        fun firstCompileTimeArray() = if (compileTimeArrays.isNotEmpty()) {
-            compileTimeArrays[0]
-        } else {
-            CompileTimeArray("", emptyList())
-        }
+        fun firstCompileTimeArray() =
+            if (compileTimeArrays.isNotEmpty()) {
+                compileTimeArrays[0]
+            } else {
+                CompileTimeArray("", emptyList())
+            }
         return compileTimeArraysByName[name.uppercase()] ?: firstCompileTimeArray()
     }
 
@@ -192,25 +204,44 @@ data class CompilationUnit(
 
     fun hasFileDefinition(name: String) = fileDefinitionsByName.containsKey(name.uppercase())
 
-    fun getFileDefinition(name: String) = fileDefinitionsByName[name.uppercase()]
-        ?: throw IllegalArgumentException("File definition $name was not found")
+    fun getFileDefinition(name: String) =
+        fileDefinitionsByName[name.uppercase()]
+            ?: throw IllegalArgumentException("File definition $name was not found")
 }
 
 @Serializable
-data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
+data class MainBody(
+    val stmts: List<Statement>,
+    override val position: Position? = null,
+) : Node(position)
 
 @Serializable
-data class Subroutine(override val name: String, val stmts: List<Statement>, val tag: String? = null, override val position: Position? = null) : Named, Node(position)
+data class Subroutine(
+    override val name: String,
+    val stmts: List<Statement>,
+    val tag: String? = null,
+    override val position: Position? = null,
+) : Node(position),
+    Named
 
 @Serializable
-data class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
+data class Function(
+    override val name: String,
+    override val position: Position? = null,
+) : Node(position),
+    Named
 
 @Serializable
-data class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)
+data class CompileTimeArray(
+    override val name: String,
+    val lines: List<String>,
+    override val position: Position? = null,
+) : Node(position),
+    Named
 
 enum class DataWrapUpChoice {
     LR,
-    RT
+    RT,
 }
 
 // A PList is a list of parameters

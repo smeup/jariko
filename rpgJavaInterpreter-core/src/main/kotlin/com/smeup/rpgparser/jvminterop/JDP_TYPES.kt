@@ -28,13 +28,10 @@ import com.smeup.rpgparser.interpreter.*
   so an exception will be thrown.
  */
 
-class JDP_TYPES() : JavaFunction {
-
+class JDP_TYPES : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        interpreterStatus: InterpreterStatus
-    ): Value {
-        return IntValue.ONE
-    }
+        interpreterStatus: InterpreterStatus,
+    ): Value = IntValue.ONE
 }

@@ -19,9 +19,13 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 
-class ProgramInterpreter(val systemInterface: SystemInterface) {
-
-    fun execute(rpgProgram: RpgProgram, initialValues: LinkedHashMap<String, Value>) {
+class ProgramInterpreter(
+    val systemInterface: SystemInterface,
+) {
+    fun execute(
+        rpgProgram: RpgProgram,
+        initialValues: LinkedHashMap<String, Value>,
+    ) {
         val stackIsEmpty = MainExecutionContext.getProgramStack().isEmpty()
         // This case is when a third party library implements CallProgramHandler interface and in the handleCall lambda
         // calls the same program again.

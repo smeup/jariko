@@ -35,19 +35,24 @@ fun createEMPLOYEE() =
 
 fun dropEMPLOYEE() = "DROP TABLE EMPLOYEE"
 
-fun createEmployeeMetadata(name: String = "EMPLOYEE", recordFormat: String = "EMPLOYEE"): FileMetadata = FileMetadata(
-    name = name,
-    tableName = "EMPLOYEE",
-    recordFormat = recordFormat,
-    fields = listOf(
-        DbField("EMPNO", StringType(6)),
-        DbField("FIRSTNME", StringType(12)),
-        DbField("MIDINIT", StringType(1)),
-        DbField("LASTNAME", StringType(15)),
-        DbField("WORKDEPT", StringType(3))
-    ),
-    accessFields = listOf("EMPNO")
-)
+fun createEmployeeMetadata(
+    name: String = "EMPLOYEE",
+    recordFormat: String = "EMPLOYEE",
+): FileMetadata =
+    FileMetadata(
+        name = name,
+        tableName = "EMPLOYEE",
+        recordFormat = recordFormat,
+        fields =
+            listOf(
+                DbField("EMPNO", StringType(6)),
+                DbField("FIRSTNME", StringType(12)),
+                DbField("MIDINIT", StringType(1)),
+                DbField("LASTNAME", StringType(15)),
+                DbField("WORKDEPT", StringType(3)),
+            ),
+        accessFields = listOf("EMPNO"),
+    )
 
 fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 
@@ -98,4 +103,4 @@ INSERT INTO EMPLOYEE (EMPNO, FIRSTNME, MIDINIT, LASTNAME, WORKDEPT) VALUES
 ('200310', 'MICHELLE', 'F', 'SPRINGER', 'E11'),
 ('200330', 'HELENA', '', 'WONG', 'E21'),
 ('200340', 'ROY', 'R', 'ALONZO', 'E21')         
-        """.trimIndent()
+    """.trimIndent()

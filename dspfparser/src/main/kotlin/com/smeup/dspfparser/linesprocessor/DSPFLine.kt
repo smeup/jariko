@@ -29,7 +29,7 @@ enum class LineType {
     HELP,
     RECORD,
     FIELD,
-    CONSTANT
+    CONSTANT,
 }
 
 @Serializable
@@ -48,76 +48,72 @@ internal data class DSPFLine(
     val y: Int? = null,
     val x: Int? = null,
     val keywords: DSPFKeywordsGroup? = null,
-    var type: LineType = LineType.NULL
+    var type: LineType = LineType.NULL,
 ) {
     companion object {
         fun from(lineSubstrings: DSPFLineSubstrings): DSPFLine {
-            val line = DSPFLine(
-                this.getCount(lineSubstrings),
-                this.getSequenceNumber(lineSubstrings),
-                this.getA(lineSubstrings),
-                this.getReserved(lineSubstrings),
-                this.getTypeOfName(lineSubstrings),
-                this.getFieldName(lineSubstrings),
-                this.getReference(lineSubstrings),
-                this.getLength(lineSubstrings),
-                this.getDataTypeKeyboardShift(lineSubstrings),
-                this.getDecimalsPositions(lineSubstrings),
-                this.getFieldType(lineSubstrings),
-                this.getY(lineSubstrings),
-                this.getX(lineSubstrings),
-                this.getKeywords(lineSubstrings)
-            )
+            val line =
+                DSPFLine(
+                    this.getCount(lineSubstrings),
+                    this.getSequenceNumber(lineSubstrings),
+                    this.getA(lineSubstrings),
+                    this.getReserved(lineSubstrings),
+                    this.getTypeOfName(lineSubstrings),
+                    this.getFieldName(lineSubstrings),
+                    this.getReference(lineSubstrings),
+                    this.getLength(lineSubstrings),
+                    this.getDataTypeKeyboardShift(lineSubstrings),
+                    this.getDecimalsPositions(lineSubstrings),
+                    this.getFieldType(lineSubstrings),
+                    this.getY(lineSubstrings),
+                    this.getX(lineSubstrings),
+                    this.getKeywords(lineSubstrings),
+                )
             return line
         }
 
-        private fun getCount(lineSubstrings: DSPFLineSubstrings): Int {
-            return lineSubstrings.count
-        }
+        private fun getCount(lineSubstrings: DSPFLineSubstrings): Int = lineSubstrings.count
 
-        private fun getSequenceNumber(lineSubstrings: DSPFLineSubstrings): String {
-            return lineSubstrings.sequenceNumber.trim()
-        }
+        private fun getSequenceNumber(lineSubstrings: DSPFLineSubstrings): String = lineSubstrings.sequenceNumber.trim()
 
-        private fun getA(lineSubstrings: DSPFLineSubstrings): Char {
-            return lineSubstrings.a[0]
-        }
+        private fun getA(lineSubstrings: DSPFLineSubstrings): Char = lineSubstrings.a[0]
 
         // Could-Have: getCondition
 
-        private fun getReserved(lineSubstrings: DSPFLineSubstrings): Reserved {
-            return Reserved.entries.first { it.value == lineSubstrings.reserved[0] }
-        }
+        private fun getReserved(lineSubstrings: DSPFLineSubstrings): Reserved =
+            Reserved.entries.first { it.value == lineSubstrings.reserved[0] }
 
-        private fun getTypeOfName(lineSubstrings: DSPFLineSubstrings): TypeOfName {
-            return TypeOfName.entries.first { it.value == lineSubstrings.typeOfName[0] }
-        }
+        private fun getTypeOfName(lineSubstrings: DSPFLineSubstrings): TypeOfName =
+            TypeOfName.entries.first {
+                it.value == lineSubstrings.typeOfName[0]
+            }
 
-        private fun getFieldName(lineSubstrings: DSPFLineSubstrings): String {
-            return lineSubstrings.fieldName.trim()
-        }
+        private fun getFieldName(lineSubstrings: DSPFLineSubstrings): String = lineSubstrings.fieldName.trim()
 
-        private fun getReference(lineSubstrings: DSPFLineSubstrings): Reference {
-            return Reference.entries.first { it.value == lineSubstrings.reference[0] }
-        }
+        private fun getReference(lineSubstrings: DSPFLineSubstrings): Reference =
+            Reference.entries.first {
+                it.value == lineSubstrings.reference[0]
+            }
 
         private fun getLength(lineSubstrings: DSPFLineSubstrings): Int? {
             if (lineSubstrings.length.trim().isBlank()) return null
             return lineSubstrings.length.trim().toInt()
         }
 
-        private fun getDataTypeKeyboardShift(lineSubstrings: DSPFLineSubstrings): DTKBS {
-            return DTKBS.entries.first { it.value == lineSubstrings.dataTypeKeyboardShift[0] }
-        }
+        private fun getDataTypeKeyboardShift(lineSubstrings: DSPFLineSubstrings): DTKBS =
+            DTKBS.entries.first {
+                it.value == lineSubstrings.dataTypeKeyboardShift[0]
+            }
 
         private fun getDecimalsPositions(lineSubstrings: DSPFLineSubstrings): Int? {
             if (lineSubstrings.decimalsPositions.trim().isBlank()) return null
             return lineSubstrings.decimalsPositions.trim().toInt()
         }
 
-        private fun getFieldType(lineSubstrings: DSPFLineSubstrings): FieldType {
-            return FieldType.entries.first { it.value == lineSubstrings.fieldType[0] }
-        }
+        private fun getFieldType(lineSubstrings: DSPFLineSubstrings): FieldType =
+            FieldType.entries.first {
+                it.value == lineSubstrings.fieldType[0]
+            }
 
         private fun getY(lineSubstrings: DSPFLineSubstrings): Int? {
             if (lineSubstrings.y.trim().isBlank()) return null
@@ -150,7 +146,7 @@ internal data class DSPFLine(
                 this.y != null &&
                 this.x != null &&
                 this.keywords?.areConstant() ?: false
-                    -> this.type = LineType.CONSTANT
+            -> this.type = LineType.CONSTANT
             else -> this.type = LineType.OTHER
         }
     }

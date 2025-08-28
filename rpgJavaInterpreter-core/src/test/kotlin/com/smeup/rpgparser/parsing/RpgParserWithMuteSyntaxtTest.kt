@@ -5,7 +5,6 @@ import com.smeup.rpgparser.assertCanBeParsedResult
 import org.junit.Test
 
 open class RpgParserWithMuteSyntaxtTest : AbstractTest() {
-
     @Test
     fun parseMUTE01_syntax() {
         assertCanBeParsedResult("mute/MUTE01_SYNTAX", withMuteSupport = true)

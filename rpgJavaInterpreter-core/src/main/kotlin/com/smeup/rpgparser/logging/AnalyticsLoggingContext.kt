@@ -70,38 +70,54 @@ class AnalyticsLoggingContext {
      * Records the execution of an expression.
      * @see ILoggableExpression
      */
-    fun recordExpressionExecution(program: String, entity: String, time: Duration) =
-        programUsageTable.recordExpression(program, entity, time)
+    fun recordExpressionExecution(
+        program: String,
+        entity: String,
+        time: Duration,
+    ) = programUsageTable.recordExpression(program, entity, time)
 
     /**
      * Records an interaction with the symbol table.
      * @see SymbolTableAction
      */
-    fun recordSymbolTableAccess(program: String, action: SymbolTableAction, time: Duration) =
-        programUsageTable.recordSymbolTableAction(program, action, time)
+    fun recordSymbolTableAccess(
+        program: String,
+        action: SymbolTableAction,
+        time: Duration,
+    ) = programUsageTable.recordSymbolTableAction(program, action, time)
 
     /**
      * Records a parsing step.
      */
-    fun recordParsing(program: String, step: String, time: Duration) =
-        programUsageTable.recordParsing(program, step, time)
+    fun recordParsing(
+        program: String,
+        step: String,
+        time: Duration,
+    ) = programUsageTable.recordParsing(program, step, time)
 
-    fun recordUsage(program: String, type: ProgramUsageType, entity: String, time: Duration) =
-        when (type) {
-            ProgramUsageType.Parsing -> recordParsing(program, entity, time)
-            ProgramUsageType.Statement -> recordStatementExecution(program, entity, time)
-            ProgramUsageType.Expression -> recordExpressionExecution(program, entity, time)
-            ProgramUsageType.SymbolTable -> recordSymbolTableAccess(program, SymbolTableAction.valueOf(entity), time)
-            ProgramUsageType.LogRendering -> recordRenderingDuration(time)
-            ProgramUsageType.Interpretation -> recordInterpretationDuration(time)
-        }
+    fun recordUsage(
+        program: String,
+        type: ProgramUsageType,
+        entity: String,
+        time: Duration,
+    ) = when (type) {
+        ProgramUsageType.Parsing -> recordParsing(program, entity, time)
+        ProgramUsageType.Statement -> recordStatementExecution(program, entity, time)
+        ProgramUsageType.Expression -> recordExpressionExecution(program, entity, time)
+        ProgramUsageType.SymbolTable -> recordSymbolTableAccess(program, SymbolTableAction.valueOf(entity), time)
+        ProgramUsageType.LogRendering -> recordRenderingDuration(time)
+        ProgramUsageType.Interpretation -> recordInterpretationDuration(time)
+    }
 
     /**
      * Records the execution of a statement.
      * @see ILoggableStatement
      */
-    fun recordStatementExecution(program: String, entity: String, time: Duration) =
-        programUsageTable.recordStatement(program, entity, time)
+    fun recordStatementExecution(
+        program: String,
+        entity: String,
+        time: Duration,
+    ) = programUsageTable.recordStatement(program, entity, time)
 
     /**
      * Records the execution of a nested statement.
@@ -120,7 +136,10 @@ class AnalyticsLoggingContext {
     /**
      * Records the execution of a call
      */
-    fun recordCall(program: String, time: Duration) {
+    fun recordCall(
+        program: String,
+        time: Duration,
+    ) {
         val measurement = programCalls.getOrPut(program) { UsageMeasurement.new() }
         programCalls[program] = measurement.hit(time)
     }
@@ -128,7 +147,10 @@ class AnalyticsLoggingContext {
     /**
      * Records the execution of a subroutine
      */
-    fun recordSubroutine(subroutine: String, time: Duration) {
+    fun recordSubroutine(
+        subroutine: String,
+        time: Duration,
+    ) {
         val measurement = subroutineCalls.getOrPut(subroutine) { UsageMeasurement.new() }
         subroutineCalls[subroutine] = measurement.hit(time)
     }
@@ -162,7 +184,9 @@ class AnalyticsLoggingContext {
         val logTimeEntry = generateLogTimeReportEntry()
         val interpretationTimeEntry = generateInterpretationReportEntry()
 
-        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + programCallEntries + subroutineCallEntries + logTimeEntry + interpretationTimeEntry
+        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + programCallEntries + subroutineCallEntries +
+            logTimeEntry +
+            interpretationTimeEntry
     }
 
     private fun generateLogTimeReportEntry(): LazyLogEntry {
@@ -185,8 +209,8 @@ class AnalyticsLoggingContext {
         }
     }
 
-    private fun generateProgramCallLogEntries(): Sequence<LazyLogEntry> {
-        return programCalls.asSequence().map {
+    private fun generateProgramCallLogEntries(): Sequence<LazyLogEntry> =
+        programCalls.asSequence().map {
             val programName = it.key
             val duration = it.value.duration
             val hit = it.value.hit
@@ -196,10 +220,9 @@ class AnalyticsLoggingContext {
                 "$programName$sep${duration.inWholeMicroseconds}${sep}$hit"
             }
         }
-    }
 
-    private fun generateSubroutineCallLogEntries(): Sequence<LazyLogEntry> {
-        return subroutineCalls.asSequence().map {
+    private fun generateSubroutineCallLogEntries(): Sequence<LazyLogEntry> =
+        subroutineCalls.asSequence().map {
             val subroutineName = it.key
             val duration = it.value.duration
             val hit = it.value.hit
@@ -209,5 +232,4 @@ class AnalyticsLoggingContext {
                 "$subroutineName$sep${duration.inWholeMicroseconds}${sep}$hit"
             }
         }
-    }
 }

@@ -24,170 +24,207 @@ import org.apache.logging.log4j.Logger
 /**
  * Log handler for the EXPR channel
  */
-class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class ExpressionLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.EXPRESSION.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("EXPR")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.EXPRESSION.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the PERF channel
  */
-class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class PerformanceLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.PERFORMANCE.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("PERF")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.PERFORMANCE.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the STMT channel
  */
-class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class StatementLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.STATEMENT.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("STMT")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.STATEMENT.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the DATA channel
  */
-class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class DataLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.DATA.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("DATA")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.DATA.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the LOOP channel
  */
-class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class LoopLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.LOOP.getPropertyName())
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("LOOP")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.LOOP.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the RESL channel
  */
-class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class ResolutionLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.RESOLUTION.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("RESL")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.RESOLUTION.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the PARS channel
  */
-class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class ParsingLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.PARSING.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("PARS")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.PARSING.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the ERR channel
  */
-class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class ErrorLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.ERROR.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("ERR")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.ERROR.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
 /**
  * Log handler for the ANALYTICS channel
  */
-class AnalyticsLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class AnalyticsLogHandler(
+    level: LogLevel,
+    sep: String,
+) : LogHandler(level, sep),
+    InterpreterLogHandler {
     private val logger = LogManager.getLogger(LogChannel.ANALYTICS.getPropertyName())
 
-    override fun render(renderer: LazyLogEntry): String {
-        return buildString {
+    override fun render(renderer: LazyLogEntry): String =
+        buildString {
             append(sep)
             append("ANALYTICS")
             append(sep)
             append(renderer.render(sep, withHeader = true, withScope = false))
         }
-    }
 
     override fun accepts(entry: LogEntry) = logger.checkChannelLoggingEnabled() && entry.scope == LogChannel.ANALYTICS.getPropertyName()
+
     override fun handle(renderer: LazyLogEntry) = logger.fireLogInfo(render(renderer))
 }
 
@@ -199,6 +236,8 @@ private fun Logger.fireLogInfo(message: String) {
     } ?: this.info(message)
 }
 
-private fun Logger.checkChannelLoggingEnabled(): Boolean {
-    return MainExecutionContext.getConfiguration().jarikoCallback.channelLoggingEnabled?.invoke(this.name) ?: this.isInfoEnabled
-}
+private fun Logger.checkChannelLoggingEnabled(): Boolean =
+    MainExecutionContext
+        .getConfiguration()
+        .jarikoCallback.channelLoggingEnabled
+        ?.invoke(this.name) ?: this.isInfoEnabled

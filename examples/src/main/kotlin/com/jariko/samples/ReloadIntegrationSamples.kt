@@ -7,23 +7,27 @@ import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.getProgram
 
 fun callJarikoWithReload() {
-
     // create connection config
-    val connectionsConfig = listOf(ConnectionConfig(
-            fileName = "*",
-            url = "jdbc:blabla",
-            user = "user",
-            password = "password",
-            driver = "myDriverclass"
-    )
-    )
+    val connectionsConfig =
+        listOf(
+            ConnectionConfig(
+                fileName = "*",
+                url = "jdbc:blabla",
+                user = "user",
+                password = "password",
+                driver = "myDriverclass",
+            ),
+        )
 
     // pass reloadConfig to jariko
-    val config = Configuration(
-        reloadConfig = ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(connectionsConfig),
-            metadataProducer = { error("'metadataProducer' for 'callJarikoWithReload' is not yet implemented") }
-        ))
+    val config =
+        Configuration(
+            reloadConfig =
+                ReloadConfig(
+                    nativeAccessConfig = DBNativeAccessConfig(connectionsConfig),
+                    metadataProducer = { error("'metadataProducer' for 'callJarikoWithReload' is not yet implemented") },
+                ),
+        )
 
     // call jariko
     val inlineProgram = """

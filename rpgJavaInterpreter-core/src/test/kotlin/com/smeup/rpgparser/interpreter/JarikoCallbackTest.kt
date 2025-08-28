@@ -41,15 +41,19 @@ import kotlin.test.DefaultAsserter.assertTrue
  * Test suite to test Jariko callback features
  * */
 class JarikoCallbackTest : AbstractTest() {
-
     @Test
     fun onEnterStatement() {
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
         var enteredTimes = 0
-        executePgm(systemInterface = systemInterface, programName = "HELLO", configuration = Configuration().apply {
-            jarikoCallback.onEnterStatement = { _: Int, _: SourceReference -> enteredTimes++ }
-            options = Options().apply { debuggingInformation = true }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "HELLO",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onEnterStatement = { _: Int, _: SourceReference -> enteredTimes++ }
+                    options = Options().apply { debuggingInformation = true }
+                },
+        )
         Assert.assertEquals(3, enteredTimes)
     }
 
@@ -58,13 +62,18 @@ class JarikoCallbackTest : AbstractTest() {
         val expectedEnteredTimes = mapOf("CAL01" to 5, "CAL02" to 4)
         val actualEnteredTimes = mutableMapOf("CAL01" to 0, "CAL02" to 0)
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        executePgm(systemInterface = systemInterface, programName = "CAL01", configuration = Configuration().apply {
-            jarikoCallback.onEnterStatement = { _: Int, sourceReference: SourceReference ->
-                println(sourceReference)
-                actualEnteredTimes[sourceReference.sourceId] = actualEnteredTimes[sourceReference.sourceId]!! + 1
-            }
-            options = Options().apply { debuggingInformation = true }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "CAL01",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onEnterStatement = { _: Int, sourceReference: SourceReference ->
+                        println(sourceReference)
+                        actualEnteredTimes[sourceReference.sourceId] = actualEnteredTimes[sourceReference.sourceId]!! + 1
+                    }
+                    options = Options().apply { debuggingInformation = true }
+                },
+        )
         Assert.assertEquals(expectedEnteredTimes, actualEnteredTimes)
     }
 
@@ -73,18 +82,21 @@ class JarikoCallbackTest : AbstractTest() {
         val enteredTimes = mutableMapOf("CAL04" to 0, "CAL02" to 0)
         val exitedTimes = mutableMapOf("CAL04" to 0, "CAL02" to 0)
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        executePgm(systemInterface = systemInterface, programName = "CAL04", configuration = Configuration().apply {
-            jarikoCallback.onEnterPgm = {
-                    programName: String, symbolTable: ISymbolTable ->
-                println("onEnterPgm - programName: $programName, symbolTable: $symbolTable")
-                enteredTimes[programName] = enteredTimes[programName]!! + 1
-            }
-            jarikoCallback.onExitPgm = {
-                    programName: String, symbolTable: ISymbolTable, _: Throwable? ->
-                println("onExitPgm - programName: $programName, symbolTable: $symbolTable")
-                exitedTimes[programName] = exitedTimes[programName]!! + 1
-            }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "CAL04",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onEnterPgm = { programName: String, symbolTable: ISymbolTable ->
+                        println("onEnterPgm - programName: $programName, symbolTable: $symbolTable")
+                        enteredTimes[programName] = enteredTimes[programName]!! + 1
+                    }
+                    jarikoCallback.onExitPgm = { programName: String, symbolTable: ISymbolTable, _: Throwable? ->
+                        println("onExitPgm - programName: $programName, symbolTable: $symbolTable")
+                        exitedTimes[programName] = exitedTimes[programName]!! + 1
+                    }
+                },
+        )
         Assert.assertEquals(1, enteredTimes["CAL04"])
         Assert.assertEquals(1, exitedTimes["CAL04"])
         Assert.assertEquals(5, enteredTimes["CAL02"])
@@ -93,36 +105,46 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun onEnterStatementWithCopyBlock() {
-
         lateinit var copyDefinitions: Map<CopyId, String>
         lateinit var pgm: String
         lateinit var postProcessed: String
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                debuggingInformation = true
-                dumpSourceOnExecutionError = true
-            }
-            jarikoCallback = JarikoCallback().apply {
-                afterAstCreation = { ast -> postProcessed = ast.source!! }
-                onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
-                    if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
-                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
-                    } else {
-                        println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        debuggingInformation = true
+                        dumpSourceOnExecutionError = true
                     }
-                    val src = when (sourceReference.sourceReferenceType) {
-                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId.uppercase(Locale.getDefault()))]
-                        SourceReferenceType.Program -> pgm
+                jarikoCallback =
+                    JarikoCallback().apply {
+                        afterAstCreation = { ast -> postProcessed = ast.source!! }
+                        onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
+                            if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
+                                println(
+                                    "Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber",
+                                )
+                            } else {
+                                println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
+                            }
+                            val src =
+                                when (sourceReference.sourceReferenceType) {
+                                    SourceReferenceType.Copy ->
+                                        copyDefinitions[
+                                            CopyId(
+                                                member = sourceReference.sourceId.uppercase(Locale.getDefault()),
+                                            ),
+                                        ]
+                                    SourceReferenceType.Program -> pgm
+                                }
+                            require(src != null)
+                            val relativeStatement = src.lines()[sourceReference.relativeLine - 1]
+                            println("relativeStatement: $relativeStatement")
+                            val absoluteStatement = postProcessed.lines()[lineNumber - 1]
+                            println("absoluteStatement: $absoluteStatement")
+                            Assert.assertEquals(absoluteStatement, relativeStatement)
+                        }
                     }
-                    require(src != null)
-                    val relativeStatement = src.lines()[sourceReference.relativeLine - 1]
-                    println("relativeStatement: $relativeStatement")
-                    val absoluteStatement = postProcessed.lines()[lineNumber - 1]
-                    println("absoluteStatement: $absoluteStatement")
-                    Assert.assertEquals(absoluteStatement, relativeStatement)
-                }
             }
-        }
         executeInlinePgmContainingCopy(configuration = configuration, consumeSources = { myPgm, myCopyDefinitions ->
             pgm = myPgm
             copyDefinitions = myCopyDefinitions
@@ -137,21 +159,23 @@ class JarikoCallbackTest : AbstractTest() {
         val copiesDidExit = mutableSetOf<CopyId>()
         val enterSequence = mutableListOf<String>()
         val exitSequence = mutableListOf<String>()
-        val configuration = Configuration().apply {
-            options = Options().apply { debuggingInformation = true }
-            jarikoCallback = JarikoCallback().apply {
-                onEnterCopy = { copyId ->
-                    println("entering $copyId")
-                    enterSequence.add(copyId.member)
-                    copiesDidEnter.add(copyId)
-                }
-                onExitCopy = { copyId ->
-                    println("exiting $copyId")
-                    exitSequence.add(copyId.member)
-                    copiesDidExit.add(copyId)
-                }
+        val configuration =
+            Configuration().apply {
+                options = Options().apply { debuggingInformation = true }
+                jarikoCallback =
+                    JarikoCallback().apply {
+                        onEnterCopy = { copyId ->
+                            println("entering $copyId")
+                            enterSequence.add(copyId.member)
+                            copiesDidEnter.add(copyId)
+                        }
+                        onExitCopy = { copyId ->
+                            println("exiting $copyId")
+                            exitSequence.add(copyId.member)
+                            copiesDidExit.add(copyId)
+                        }
+                    }
             }
-        }
         val expectedEnterSequence = listOf("COPY1", "COPY2", "COPY21", "COPY22")
         val expectedExitSequence = listOf("COPY1", "COPY21", "COPY22", "COPY2")
         executeInlinePgmContainingCopy(configuration, consumeSources = { _, copyDefinitions ->
@@ -170,19 +194,21 @@ class JarikoCallbackTest : AbstractTest() {
     fun copyLifeCycle() {
         var entered = 0
         var exited = 0
-        val configuration = Configuration().apply {
-            options = Options().apply { debuggingInformation = true }
-            jarikoCallback = JarikoCallback().apply {
-                onEnterCopy = {
-                    println("Entering $it")
-                    entered++
-                }
-                onExitCopy = {
-                    println("Exiting $it")
-                    exited++
-                }
+        val configuration =
+            Configuration().apply {
+                options = Options().apply { debuggingInformation = true }
+                jarikoCallback =
+                    JarikoCallback().apply {
+                        onEnterCopy = {
+                            println("Entering $it")
+                            entered++
+                        }
+                        onExitCopy = {
+                            println("Exiting $it")
+                            exited++
+                        }
+                    }
             }
-        }
         executePgm(programName = "TSTCPY01", configuration = configuration)
         Assert.assertEquals(2, entered)
         Assert.assertEquals(2, exited)
@@ -190,9 +216,10 @@ class JarikoCallbackTest : AbstractTest() {
 
     private fun executeInlinePgmContainingCopy(
         configuration: Configuration,
-        consumeSources: (pgm: String, copyDefinitions: Map<CopyId, String>) -> Unit
+        consumeSources: (pgm: String, copyDefinitions: Map<CopyId, String>) -> Unit,
     ) {
-        val pgm = """
+        val pgm =
+            """
 2    D Msg             S             30      
 3    C                   EVAL      Msg = 'Include COPY1'
 4    C      Msg          DSPLY
@@ -231,22 +258,24 @@ class JarikoCallbackTest : AbstractTest() {
 3    C                   EVAL      Msg21 = 'I AM COPY22'
 4    C      Msg22        DSPLY
         """
-        val copyDefinitions = mapOf(
-            CopyId(member = "COPY1") to copy1,
-            CopyId(member = "COPY2") to copy2,
-            CopyId(member = "COPY21") to copy21,
-            CopyId(member = "COPY22") to copy22
-        )
+        val copyDefinitions =
+            mapOf(
+                CopyId(member = "COPY1") to copy1,
+                CopyId(member = "COPY2") to copy2,
+                CopyId(member = "COPY21") to copy21,
+                CopyId(member = "COPY22") to copy22,
+            )
 
         consumeSources.invoke(pgm, copyDefinitions)
-        val systemInterface = object : JavaSystemInterface() {
-            override fun findCopy(copyId: CopyId): Copy? {
-                return copyDefinitions[copyId]?.let { Copy.fromInputStream(it.byteInputStream(charset("UTF-8"))) }
+        val systemInterface =
+            object : JavaSystemInterface() {
+                override fun findCopy(copyId: CopyId): Copy? =
+                    copyDefinitions[copyId]?.let { Copy.fromInputStream(it.byteInputStream(charset("UTF-8"))) }
+
+                override fun display(value: String) {
+                    // println(value)
+                }
             }
-            override fun display(value: String) {
-                // println(value)
-            }
-        }
         executePgm(programName = pgm, systemInterface = systemInterface, configuration = configuration)
     }
 
@@ -256,21 +285,26 @@ class JarikoCallbackTest : AbstractTest() {
         var enteredTimes = 0
         var exitedTimes = 0
         val functionParams = mutableListOf<FunctionValue>()
-        executePgm(systemInterface = systemInterface, programName = "PROCEDURE1", configuration = Configuration().apply {
-            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
-                enteredTimes++
-                functionParams.addAll(params)
-                Assert.assertEquals("CALL1", functionName)
-                Assert.assertEquals(11, params[0].value.asInt().value)
-                Assert.assertEquals(22, params[1].value.asInt().value)
-                Assert.assertEquals(ZeroValue, params[2].value)
-            }
-            jarikoCallback.onExitFunction = { functionName: String, _: Value ->
-                exitedTimes++
-                Assert.assertEquals("CALL1", functionName)
-                Assert.assertEquals(33, functionParams[2].value.asInt().value)
-            }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "PROCEDURE1",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
+                        enteredTimes++
+                        functionParams.addAll(params)
+                        Assert.assertEquals("CALL1", functionName)
+                        Assert.assertEquals(11, params[0].value.asInt().value)
+                        Assert.assertEquals(22, params[1].value.asInt().value)
+                        Assert.assertEquals(ZeroValue, params[2].value)
+                    }
+                    jarikoCallback.onExitFunction = { functionName: String, _: Value ->
+                        exitedTimes++
+                        Assert.assertEquals("CALL1", functionName)
+                        Assert.assertEquals(33, functionParams[2].value.asInt().value)
+                    }
+                },
+        )
         Assert.assertEquals(enteredTimes, exitedTimes)
     }
 
@@ -280,20 +314,25 @@ class JarikoCallbackTest : AbstractTest() {
         var enteredTimes = 0
         var exitedTimes = 0
         val functionParams = mutableListOf<FunctionValue>()
-        executePgm(systemInterface = systemInterface, programName = "PROCEDURE2", configuration = Configuration().apply {
-            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
-                enteredTimes++
-                functionParams.addAll(params)
-                Assert.assertEquals("CALL1", functionName)
-                Assert.assertEquals(11, params[0].value.asInt().value)
-                Assert.assertEquals(22, params[1].value.asInt().value)
-            }
-            jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
-                exitedTimes++
-                Assert.assertEquals("CALL1", functionName)
-                Assert.assertEquals(33, returnValue.asInt().value)
-            }
-        })
+        executePgm(
+            systemInterface = systemInterface,
+            programName = "PROCEDURE2",
+            configuration =
+                Configuration().apply {
+                    jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
+                        enteredTimes++
+                        functionParams.addAll(params)
+                        Assert.assertEquals("CALL1", functionName)
+                        Assert.assertEquals(11, params[0].value.asInt().value)
+                        Assert.assertEquals(22, params[1].value.asInt().value)
+                    }
+                    jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
+                        exitedTimes++
+                        Assert.assertEquals("CALL1", functionName)
+                        Assert.assertEquals(33, returnValue.asInt().value)
+                    }
+                },
+        )
         Assert.assertEquals(enteredTimes, exitedTimes)
     }
 
@@ -434,7 +473,7 @@ class JarikoCallbackTest : AbstractTest() {
             it.printStackTrace()
             assertTrue(
                 message = "java.lang.StackOverflowError should not be present",
-                actual = it.message!!.indexOf("java.lang.StackOverflowError") == -1
+                actual = it.message!!.indexOf("java.lang.StackOverflowError") == -1,
             )
         })
     }
@@ -528,34 +567,62 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR23CallBackTest() {
-        executePgmCallBackTest("ERROR23", SourceReferenceType.Program, "ERROR23", mapOf(
-            9 to "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
-            14 to "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext"
-        ))
+        executePgmCallBackTest(
+            "ERROR23",
+            SourceReferenceType.Program,
+            "ERROR23",
+            mapOf(
+                9 to
+                    "Factor 2 cannot be null at: Position(start=Line 9, Column 11, end=Line 9, Column 16) com.smeup.rpgparser.RpgParser\$FactorContext",
+                14 to
+                    "Factor 1 cannot be null at: Position(start=Line 14, Column 11, end=Line 14, Column 25) com.smeup.rpgparser.RpgParser\$FactorContext",
+            ),
+        )
     }
 
     @Test
     fun executeERROR24CallBackTest() {
-        executePgmCallBackTest("ERROR24", SourceReferenceType.Program, "ERROR24", mapOf(
-            8 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
-        ))
+        executePgmCallBackTest(
+            "ERROR24",
+            SourceReferenceType.Program,
+            "ERROR24",
+            mapOf(
+                8 to
+                    "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+                9 to
+                    "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext",
+            ),
+        )
     }
 
     @Test
     fun executeERROR25CallBackTest() {
-        executePgmCallBackTest("ERROR25", SourceReferenceType.Program, "ERROR25", mapOf(
-            8 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
-            9 to "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
-        ))
+        executePgmCallBackTest(
+            "ERROR25",
+            SourceReferenceType.Program,
+            "ERROR25",
+            mapOf(
+                8 to
+                    "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+                9 to
+                    "For JUL format the date must be between 1940 and 2039 at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext",
+            ),
+        )
     }
 
     @Test
     fun executeERROR26CallBackTest() {
-        executePgmCallBackTest("ERROR26", SourceReferenceType.Program, "ERROR26", mapOf(
-            8 to "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
-            9 to "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext"
-        ))
+        executePgmCallBackTest(
+            "ERROR26",
+            SourceReferenceType.Program,
+            "ERROR26",
+            mapOf(
+                8 to
+                    "For ISO format the date must be between 0001 and 9999 at: Position(start=Line 8, Column 5, end=Line 8, Column 81) com.smeup.rpgparser.RpgParser\$DspecContext",
+                9 to
+                    "Initialization value is incorrect. Must be 'YYYY-MM-DD' at: Position(start=Line 9, Column 5, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$DspecContext",
+            ),
+        )
     }
 
     @Test
@@ -565,9 +632,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR29CallBackTest() {
-        executePgmCallBackTest("ERROR29", SourceReferenceType.Program, "ERROR29", mapOf(
-            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-        ))
+        executePgmCallBackTest(
+            "ERROR29",
+            SourceReferenceType.Program,
+            "ERROR29",
+            mapOf(
+                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank",
+            ),
+        )
     }
 
     @Test
@@ -577,9 +649,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR30CallBackTest() {
-        executePgmCallBackTest("ERROR30", SourceReferenceType.Program, "ERROR30", mapOf(
-            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-        ))
+        executePgmCallBackTest(
+            "ERROR30",
+            SourceReferenceType.Program,
+            "ERROR30",
+            mapOf(
+                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank",
+            ),
+        )
     }
 
     @Test
@@ -589,9 +666,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR31CallBackTest() {
-        executePgmCallBackTest("ERROR31", SourceReferenceType.Program, "ERROR31", mapOf(
-            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-        ))
+        executePgmCallBackTest(
+            "ERROR31",
+            SourceReferenceType.Program,
+            "ERROR31",
+            mapOf(
+                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank",
+            ),
+        )
     }
 
     @Test
@@ -601,9 +683,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR32CallBackTest() {
-        executePgmCallBackTest("ERROR32", SourceReferenceType.Program, "ERROR32", mapOf(
-            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-        ))
+        executePgmCallBackTest(
+            "ERROR32",
+            SourceReferenceType.Program,
+            "ERROR32",
+            mapOf(
+                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank",
+            ),
+        )
     }
 
     @Test
@@ -613,9 +700,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR33CallBackTest() {
-        executePgmCallBackTest("ERROR33", SourceReferenceType.Program, "ERROR33", mapOf(
-            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-        ))
+        executePgmCallBackTest(
+            "ERROR33",
+            SourceReferenceType.Program,
+            "ERROR33",
+            mapOf(
+                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank",
+            ),
+        )
     }
 
     @Test
@@ -625,9 +717,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR34CallBackTest() {
-        executePgmCallBackTest("ERROR34", SourceReferenceType.Program, "ERROR34", mapOf(
-            11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank"
-        ))
+        executePgmCallBackTest(
+            "ERROR34",
+            SourceReferenceType.Program,
+            "ERROR34",
+            mapOf(
+                11 to "MOVE/MOVEL for BooleanType have to be 0, 1 or blank",
+            ),
+        )
     }
 
     @Test
@@ -641,7 +738,8 @@ class JarikoCallbackTest : AbstractTest() {
             pgm = "ERROR35",
             sourceReferenceType = SourceReferenceType.Program,
             sourceId = "ERROR35",
-            lines = listOf(9, 10))
+            lines = listOf(9, 10),
+        )
     }
 
     @Test
@@ -664,7 +762,7 @@ class JarikoCallbackTest : AbstractTest() {
                 sourceReferenceType = SourceReferenceType.Program,
                 sourceId = "ERROR36",
                 lines = listOf(6),
-                reloadConfig = it.createReloadConfig()
+                reloadConfig = it.createReloadConfig(),
             )
         })
     }
@@ -684,7 +782,7 @@ class JarikoCallbackTest : AbstractTest() {
             pgm = "ERROR37",
             sourceReferenceType = SourceReferenceType.Program,
             sourceId = "ERROR37",
-            lines = listOf(9)
+            lines = listOf(9),
         )
     }
 
@@ -703,7 +801,7 @@ class JarikoCallbackTest : AbstractTest() {
             pgm = "ERROR38",
             sourceReferenceType = SourceReferenceType.Program,
             sourceId = "ERROR38",
-            lines = listOf(12)
+            lines = listOf(12),
         )
     }
 
@@ -714,9 +812,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR41CallBackTest() {
-        executePgmCallBackTest("ERROR41", SourceReferenceType.Program, "ERROR41", mapOf(
-            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
-        ))
+        executePgmCallBackTest(
+            "ERROR41",
+            SourceReferenceType.Program,
+            "ERROR41",
+            mapOf(
+                24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S).",
+            ),
+        )
     }
 
     @Test
@@ -726,9 +829,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR42CallBackTest() {
-        executePgmCallBackTest("ERROR42", SourceReferenceType.Program, "ERROR42", mapOf(
-            24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S)."
-        ))
+        executePgmCallBackTest(
+            "ERROR42",
+            SourceReferenceType.Program,
+            "ERROR42",
+            mapOf(
+                24 to "Cannot coerce sub-string `0052 ` to NumberType(entireDigits=3, decimalDigits=2, rpgType=S).",
+            ),
+        )
     }
 
     @Test
@@ -738,9 +846,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR43CallBackTest() {
-        executePgmCallBackTest("ERROR43", SourceReferenceType.Program, "ERROR43", mapOf(
-            23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S)."
-        ))
+        executePgmCallBackTest(
+            "ERROR43",
+            SourceReferenceType.Program,
+            "ERROR43",
+            mapOf(
+                23 to "Cannot coerce sub-string `0005 ` to NumberType(entireDigits=5, decimalDigits=0, rpgType=S).",
+            ),
+        )
     }
 
     @Test
@@ -750,9 +863,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR44CallBackTest() {
-        executePgmCallBackTest("ERROR44", SourceReferenceType.Program, "ERROR44", mapOf(
-            8 to "Error calling program or procedure - Could not find program MISSING"
-        ))
+        executePgmCallBackTest(
+            "ERROR44",
+            SourceReferenceType.Program,
+            "ERROR44",
+            mapOf(
+                8 to "Error calling program or procedure - Could not find program MISSING",
+            ),
+        )
     }
 
     @Test
@@ -766,14 +884,15 @@ class JarikoCallbackTest : AbstractTest() {
         var finishCount = 0
 
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                startTraces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    startTraces.add(trace)
+                }
+                jarikoCallback.finishJarikoTrace = {
+                    finishCount += 1
+                }
             }
-            jarikoCallback.finishJarikoTrace = {
-                finishCount += 1
-            }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
 
         assert(startTraces.isNotEmpty())
@@ -800,9 +919,10 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<JarikoTrace>()
 
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
-        }
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
+            }
         executePgm(targetPgm, configuration = configuration, systemInterface = systemInterface)
 
         // Kinds are reported at least once
@@ -815,14 +935,15 @@ class JarikoCallbackTest : AbstractTest() {
         var finishCount = 0
 
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                startTraces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    startTraces.add(trace)
+                }
+                jarikoCallback.finishJarikoTrace = {
+                    finishCount += 1
+                }
             }
-            jarikoCallback.finishJarikoTrace = {
-                finishCount += 1
-            }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         assertEquals(startTraces.size, finishCount)
     }
@@ -831,11 +952,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceSymtblTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val symtblTraces = traces.filter { it.kind == JarikoTraceKind.SymbolTable }
 
@@ -850,11 +972,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceCompositeStatementTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val compositeTraces = traces.filter { it.kind == JarikoTraceKind.CompositeStatement }
 
@@ -868,11 +991,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceProgramTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val programTraces = traces.filter { it.kind == JarikoTraceKind.CallStmt }
 
@@ -886,11 +1010,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceSubroutineTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val programTraces = traces.filter { it.kind == JarikoTraceKind.ExecuteSubroutine }
 
@@ -904,11 +1029,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceParsingTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val parsingTraces = traces.filter { it.kind == JarikoTraceKind.Parsing }
 
@@ -927,11 +1053,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceFunctionCallTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val functionCallTraces = traces.filter { it.kind == JarikoTraceKind.FunctionCall }
 
@@ -945,11 +1072,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceMainExecutionContextTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val mainExecutionTraces = traces.filter { it.kind == JarikoTraceKind.MainExecutionContext }
 
@@ -961,11 +1089,12 @@ class JarikoCallbackTest : AbstractTest() {
     fun traceRpgProgramTest() {
         val traces = mutableListOf<JarikoTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.startJarikoTrace = { trace ->
-                traces.add(trace)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.startJarikoTrace = { trace ->
+                    traces.add(trace)
+                }
             }
-        }
         executePgm("TRACETST1", configuration = configuration, systemInterface = systemInterface)
         val rpgProgramTraces = traces.filter { it.kind == JarikoTraceKind.RpgProgram }
 
@@ -985,18 +1114,20 @@ class JarikoCallbackTest : AbstractTest() {
         var closedTraces = 0
         val executedTraces = mutableListOf<RpgTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = false
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = false
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    openTraces += 1
+                    executedTraces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                openTraces += 1
-                executedTraces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(0, openTraces)
         assertEquals(0, closedTraces)
@@ -1011,17 +1142,19 @@ class JarikoCallbackTest : AbstractTest() {
         val openTraces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    openTraces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                openTraces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/SIMPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(1, openTraces.size)
         assertEquals(1, closedTraces)
@@ -1038,17 +1171,19 @@ class JarikoCallbackTest : AbstractTest() {
         val openTraces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    openTraces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                openTraces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(12, openTraces.size)
         assertEquals(12, closedTraces)
@@ -1068,17 +1203,19 @@ class JarikoCallbackTest : AbstractTest() {
     fun executeMultipleSpanCloseNeverExceedOpen() {
         val traces = Stack<RpgTrace>()
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.push(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    traces.pop()
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.push(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                traces.pop()
-            }
-        }
         executePgm("profiling/MULTIPLE_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(0, traces.size)
     }
@@ -1091,17 +1228,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/MULTISPAN_SAME_STATEMENT", configuration = configuration, systemInterface = systemInterface)
         assertEquals(4, traces.size)
         assertEquals(4, closedTraces)
@@ -1122,17 +1261,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/MULTISPAN_SAME_STATEMENT_2", configuration = configuration, systemInterface = systemInterface)
         assertEquals(4, traces.size)
         assertEquals(4, closedTraces)
@@ -1152,17 +1293,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/FOR_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(11, traces.size)
         assertEquals(11, closedTraces)
@@ -1180,17 +1323,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/DO_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(101, traces.size)
         assertEquals(101, closedTraces)
@@ -1208,17 +1353,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/MONITOR_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(3, traces.size)
         assertEquals(3, closedTraces)
@@ -1238,17 +1385,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/MONITOR_TELEMETRY_SPAN_CLEANUP", configuration = configuration, systemInterface = systemInterface)
         assertEquals(4, traces.size)
         assertEquals(4, closedTraces)
@@ -1268,17 +1417,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/IF_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(2, traces.size)
         assertEquals(2, closedTraces)
@@ -1296,17 +1447,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/SELECT_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(2, traces.size)
         assertEquals(2, closedTraces)
@@ -1324,17 +1477,19 @@ class JarikoCallbackTest : AbstractTest() {
         val traces = mutableListOf<RpgTrace>()
         var closedTraces = 0
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                profilingSupport = true
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        profilingSupport = true
+                    }
+                jarikoCallback.startRpgTrace = { trace ->
+                    traces.add(trace)
+                }
+                jarikoCallback.finishRpgTrace = {
+                    closedTraces += 1
+                }
             }
-            jarikoCallback.startRpgTrace = { trace ->
-                traces.add(trace)
-            }
-            jarikoCallback.finishRpgTrace = {
-                closedTraces += 1
-            }
-        }
         executePgm("profiling/COPY_TELEMETRY_SPAN", configuration = configuration, systemInterface = systemInterface)
         assertEquals(1, traces.size)
         assertEquals(1, closedTraces)
@@ -1345,9 +1500,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR45CallBackTest() {
-        executePgmCallBackTest("ERROR45", SourceReferenceType.Program, "ERROR45", mapOf(
-            18 to "Factor 2 and Result with different type and size."
-        ))
+        executePgmCallBackTest(
+            "ERROR45",
+            SourceReferenceType.Program,
+            "ERROR45",
+            mapOf(
+                18 to "Factor 2 and Result with different type and size.",
+            ),
+        )
     }
 
     @Test
@@ -1357,9 +1517,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR46CallBackTest() {
-        executePgmCallBackTest("ERROR46", SourceReferenceType.Program, "ERROR46", mapOf(
-            18 to "Factor 2 and Result with different type and size."
-        ))
+        executePgmCallBackTest(
+            "ERROR46",
+            SourceReferenceType.Program,
+            "ERROR46",
+            mapOf(
+                18 to "Factor 2 and Result with different type and size.",
+            ),
+        )
     }
 
     @Test
@@ -1369,9 +1534,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR47CallBackTest() {
-        executePgmCallBackTest("ERROR47", SourceReferenceType.Program, "ERROR47", mapOf(
-            9 to "10 cannot be assigned to I of type NumberType(entireDigits=1, decimalDigits=0, rpgType=)"
-        ))
+        executePgmCallBackTest(
+            "ERROR47",
+            SourceReferenceType.Program,
+            "ERROR47",
+            mapOf(
+                9 to "10 cannot be assigned to I of type NumberType(entireDigits=1, decimalDigits=0, rpgType=)",
+            ),
+        )
     }
 
     @Test
@@ -1381,9 +1551,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR48CallBackTest() {
-        executePgmCallBackTest("ERROR48", SourceReferenceType.Program, "ERROR48", mapOf(
-            7 to "241122 cannot be assigned to RES of type NumberType(entireDigits=4, decimalDigits=0, rpgType=)"
-        ))
+        executePgmCallBackTest(
+            "ERROR48",
+            SourceReferenceType.Program,
+            "ERROR48",
+            mapOf(
+                7 to "241122 cannot be assigned to RES of type NumberType(entireDigits=4, decimalDigits=0, rpgType=)",
+            ),
+        )
     }
 
     @Test
@@ -1393,9 +1568,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR49CallBackTest() {
-        executePgmCallBackTest("ERROR49", SourceReferenceType.Program, "ERROR49", mapOf(
-            6 to "Data reference *IN10 not resolved"
-        ))
+        executePgmCallBackTest(
+            "ERROR49",
+            SourceReferenceType.Program,
+            "ERROR49",
+            mapOf(
+                6 to "Data reference *IN10 not resolved",
+            ),
+        )
     }
 
     @Test
@@ -1405,9 +1585,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR50CallBackTest() {
-        executePgmCallBackTest("ERROR50", SourceReferenceType.Program, "ERROR50", mapOf(
-            19 to "Data reference not resolved: DS1_F2 at: Position(start=Line 12, Column 35, end=Line 12, Column 41)"
-        ))
+        executePgmCallBackTest(
+            "ERROR50",
+            SourceReferenceType.Program,
+            "ERROR50",
+            mapOf(
+                19 to "Data reference not resolved: DS1_F2 at: Position(start=Line 12, Column 35, end=Line 12, Column 41)",
+            ),
+        )
     }
 
     @Test
@@ -1417,9 +1602,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR51CallBackTest() {
-        executePgmCallBackTest("ERROR51", SourceReferenceType.Program, "ERROR51", mapOf(
-            13 to "You cannot move a DS into a numeric array: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))"
-        ))
+        executePgmCallBackTest(
+            "ERROR51",
+            SourceReferenceType.Program,
+            "ERROR51",
+            mapOf(
+                13 to "You cannot move a DS into a numeric array: SCAATTDS (Position(start=Line 13, Column 35, end=Line 13, Column 43))",
+            ),
+        )
     }
 
     @Test
@@ -1429,9 +1619,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR52CallBackTest() {
-        executePgmCallBackTest("ERROR52", SourceReferenceType.Program, "ERROR52", mapOf(
-            13 to "You cannot move a numeric array into a DS: SCAATT (Position(start=Line 13, Column 35, end=Line 13, Column 41))"
-        ))
+        executePgmCallBackTest(
+            "ERROR52",
+            SourceReferenceType.Program,
+            "ERROR52",
+            mapOf(
+                13 to "You cannot move a numeric array into a DS: SCAATT (Position(start=Line 13, Column 35, end=Line 13, Column 41))",
+            ),
+        )
     }
 
     @Test
@@ -1451,7 +1646,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR54CallBackTest() {
-        executePgmCallBackTest("ERROR54", SourceReferenceType.Program, "ERROR54", mapOf(5 to "Array index not valid - Indexes should be >=1. Index asked: 0"))
+        executePgmCallBackTest(
+            "ERROR54",
+            SourceReferenceType.Program,
+            "ERROR54",
+            mapOf(
+                5 to "Array index not valid - Indexes should be >=1. Index asked: 0",
+            ),
+        )
     }
 
     @Test
@@ -1461,7 +1663,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR55CallBackTest() {
-        executePgmCallBackTest("ERROR55", SourceReferenceType.Program, "ERROR55", mapOf(5 to "Array index not valid - Indexes should be >=1. Index asked: 0"))
+        executePgmCallBackTest(
+            "ERROR55",
+            SourceReferenceType.Program,
+            "ERROR55",
+            mapOf(
+                5 to "Array index not valid - Indexes should be >=1. Index asked: 0",
+            ),
+        )
     }
 
     @Test
@@ -1471,15 +1680,23 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR56CallBackTest() {
-        val errorLine19 = buildString {
-            appendLine("Program FunctionInterpreter.PR2.static - Issue executing EvalStmt at absolute line 32 of SourceReference(sourceReferenceType=Program, sourceId=ERROR56, relativeLine=32, position=Position(start=Line 32, Column 25, end=Line 32, Column 81)).")
-            append("Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)")
-        }
-        executePgmCallBackTest("ERROR56", SourceReferenceType.Program, "ERROR56", mapOf(
-            19 to errorLine19,
-            32 to "Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)",
-            41 to "Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)"
-        ))
+        val errorLine19 =
+            buildString {
+                appendLine(
+                    "Program FunctionInterpreter.PR2.static - Issue executing EvalStmt at absolute line 32 of SourceReference(sourceReferenceType=Program, sourceId=ERROR56, relativeLine=32, position=Position(start=Line 32, Column 25, end=Line 32, Column 81)).",
+                )
+                append("Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)")
+            }
+        executePgmCallBackTest(
+            "ERROR56",
+            SourceReferenceType.Program,
+            "ERROR56",
+            mapOf(
+                19 to errorLine19,
+                32 to "Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)",
+                41 to "Data reference not resolved: PR2_VAR at: Position(start=Line 41, Column 11, end=Line 41, Column 18)",
+            ),
+        )
     }
 
     @Test
@@ -1489,9 +1706,14 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR57CallBackTest() {
-        executePgmCallBackTest("ERROR57", SourceReferenceType.Program, "ERROR57", mapOf(
-            14 to "Cannot add an Array to a Standalone at: Position(start=Line 14, Column 35, end=Line 14, Column 41))"
-        ))
+        executePgmCallBackTest(
+            "ERROR57",
+            SourceReferenceType.Program,
+            "ERROR57",
+            mapOf(
+                14 to "Cannot add an Array to a Standalone at: Position(start=Line 14, Column 35, end=Line 14, Column 41))",
+            ),
+        )
     }
 
     @Test
@@ -1505,9 +1727,14 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun executeERROR58CallBackTest() {
-        executePgmCallBackTest("ERROR58", SourceReferenceType.Program, "ERROR58", mapOf(
-            13 to "Data area for definition SCAATTDS not found"
-        ))
+        executePgmCallBackTest(
+            "ERROR58",
+            SourceReferenceType.Program,
+            "ERROR58",
+            mapOf(
+                13 to "Data area for definition SCAATTDS not found",
+            ),
+        )
     }
 
     @Test
@@ -1521,9 +1748,14 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun executeERROR59CallBackTest() {
-        executePgmCallBackTest("ERROR59", SourceReferenceType.Program, "ERROR59", mapOf(
-            13 to "Data area for definition SCAATTDS not found"
-        ))
+        executePgmCallBackTest(
+            "ERROR59",
+            SourceReferenceType.Program,
+            "ERROR59",
+            mapOf(
+                13 to "Data area for definition SCAATTDS not found",
+            ),
+        )
     }
 
     @Test
@@ -1533,23 +1765,27 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun bypassSyntaxErrorTest() {
-        val configuration = Configuration().apply {
-            options = Options().apply {
-                toAstConfiguration = ToAstConfiguration().apply {
-                    // Consider all errors as not blocking
-                    afterPhaseErrorContinue = { true }
-                }
+        val configuration =
+            Configuration().apply {
+                options =
+                    Options().apply {
+                        toAstConfiguration =
+                            ToAstConfiguration().apply {
+                                // Consider all errors as not blocking
+                                afterPhaseErrorContinue = { true }
+                            }
+                    }
             }
-        }
         var myMessage: String? = null
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ -> myMessage = message.trim() }
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, _ -> myMessage = message.trim() }
+            }
         executePgm("ERROR15", configuration = configuration, systemInterface = systemInterface)
         assertEquals(
             expected = "HELLO WORLD!!!",
             actual = myMessage,
-            message = "DSPLY must be called because 1 is always equal to 1"
+            message = "DSPLY must be called because 1 is always equal to 1",
         )
     }
 
@@ -1561,34 +1797,39 @@ class JarikoCallbackTest : AbstractTest() {
     fun beforeParsingTest() {
         val programName = "ERROR01"
         // the first execution will go wrong
-        kotlin.runCatching {
-            executePgm(programName = programName)
-        }.onSuccess {
-            Assert.fail("Program must exit with error")
-        }
+        kotlin
+            .runCatching {
+                executePgm(programName = programName)
+            }.onSuccess {
+                Assert.fail("Program must exit with error")
+            }
         // Now implement logic where before parsing I will comment C spec
-        val configuration = Configuration().apply {
-            jarikoCallback.beforeParsing = { it.replace("     C ", "     C*") }
-        }
-        kotlin.runCatching {
-            executePgm(programName = programName, configuration = configuration)
-        }.onFailure {
-            Assert.fail("Program must not exit with error")
-        }
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.beforeParsing = { it.replace("     C ", "     C*") }
+            }
+        kotlin
+            .runCatching {
+                executePgm(programName = programName, configuration = configuration)
+            }.onFailure {
+                Assert.fail("Program must not exit with error")
+            }
     }
 
     @Test
     fun beforeCopyInclusionTest() {
         val expectedIncludedCopies = listOf(CopyId(file = "QILEGEN", member = "TSTCPY01"))
         val includedCopies = mutableListOf<CopyId>()
-        val configuration = Configuration().apply {
-            jarikoCallback = JarikoCallback().apply {
-                beforeCopyInclusion = { copyId, source ->
-                    includedCopies.add(copyId)
-                    source
-                }
+        val configuration =
+            Configuration().apply {
+                jarikoCallback =
+                    JarikoCallback().apply {
+                        beforeCopyInclusion = { copyId, source ->
+                            includedCopies.add(copyId)
+                            source
+                        }
+                    }
             }
-        }
         executePgm(programName = "TSTCPY01", configuration = configuration)
         assertEquals(expectedIncludedCopies, includedCopies)
     }
@@ -1598,16 +1839,18 @@ class JarikoCallbackTest : AbstractTest() {
         val program = "TSTCPY01"
         val expectedIncludedCopies = listOf(CopyId(file = "QILEGEN", member = "TSTCPY01"))
         lateinit var includedCopies: List<CopyId>
-        val configuration = Configuration().apply {
-            options.debuggingInformation = true
-            jarikoCallback = JarikoCallback().apply {
-                afterCopiesInclusion = { copyBlocks ->
-                    if (MainExecutionContext.getParsingProgramStack().peek().name == program) {
-                        includedCopies = copyBlocks.map { copyBlock -> copyBlock.copyId }
+        val configuration =
+            Configuration().apply {
+                options.debuggingInformation = true
+                jarikoCallback =
+                    JarikoCallback().apply {
+                        afterCopiesInclusion = { copyBlocks ->
+                            if (MainExecutionContext.getParsingProgramStack().peek().name == program) {
+                                includedCopies = copyBlocks.map { copyBlock -> copyBlock.copyId }
+                            }
+                        }
                     }
-                }
             }
-        }
         executePgm(programName = program, configuration = configuration)
         assertEquals(expectedIncludedCopies, includedCopies)
     }
@@ -1615,11 +1858,12 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun onCallPgmError() {
         var catchedError: ErrorEvent? = null
-        val configuration = Configuration().apply {
-            jarikoCallback.onCallPgmError = { errorEvent ->
-                catchedError = errorEvent
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.onCallPgmError = { errorEvent ->
+                    catchedError = errorEvent
+                }
             }
-        }
         executePgm(programName = "ERRCALLER", configuration = configuration)
         assertNotNull(catchedError)
     }
@@ -1634,22 +1878,25 @@ class JarikoCallbackTest : AbstractTest() {
      * to mock another kind of encoding error
      */
     @Test
-    @Ignore("This test is not working because the encoding error in ERROR28.rpgle was " +
-            "due to the fact that we will try to compile also ast with errors")
+    @Ignore(
+        "This test is not working because the encoding error in ERROR28.rpgle was " +
+            "due to the fact that we will try to compile also ast with errors",
+    )
     fun onCompilationUnitEncodingErrorTest() {
         // Flags to track if callbacks are triggered
         var enteredInOnCompilationUnitEncodingError = false
         var enteredInOnError = false
 
         // Configuration setup with callbacks for encoding errors and general errors
-        val configuration = Configuration().apply {
-            jarikoCallback.onCompilationUnitEncodingError = { _, _, _ ->
-                enteredInOnCompilationUnitEncodingError = true
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.onCompilationUnitEncodingError = { _, _, _ ->
+                    enteredInOnCompilationUnitEncodingError = true
+                }
+                jarikoCallback.onError = { _ ->
+                    enteredInOnError = true
+                }
             }
-            jarikoCallback.onError = { _ ->
-                enteredInOnError = true
-            }
-        }
 
         // Path to the resources directory containing the program to compile
         val resourcePath = File({}.javaClass.getResource("/smeup/QILEGEN").file).parentFile
@@ -1657,17 +1904,18 @@ class JarikoCallbackTest : AbstractTest() {
         // Attempt to compile the program, expecting an encoding error
         {}.javaClass.getResource("/smeup/ERROR28.rpgle").openStream().use { inputStream ->
             val programFinders = listOf(DirRpgProgramFinder(resourcePath))
-            kotlin.runCatching {
-                compile(
-                    src = inputStream,
-                    out = ByteArrayOutputStream(),
-                    format = Format.BIN,
-                    programFinders = programFinders,
-                    configuration = configuration
-                )
-            }.onSuccess {
-                Assert.fail("Program must exit with error")
-            }
+            kotlin
+                .runCatching {
+                    compile(
+                        src = inputStream,
+                        out = ByteArrayOutputStream(),
+                        format = Format.BIN,
+                        programFinders = programFinders,
+                        configuration = configuration,
+                    )
+                }.onSuccess {
+                    Assert.fail("Program must exit with error")
+                }
         }
 
         // Assert that both encoding and general error callbacks were triggered
@@ -1681,12 +1929,13 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun testDataAreaRead() {
         var readDataArea = ""
-        val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { dataArea ->
-                readDataArea = dataArea
-                "READ"
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.readDataArea = { dataArea ->
+                    readDataArea = dataArea
+                    "READ"
+                }
             }
-        }
 
         val expected = listOf("READ")
         val actual = "DTAREAREAD".outputOf(configuration = configuration)
@@ -1703,17 +1952,18 @@ class JarikoCallbackTest : AbstractTest() {
         var readDataArea = ""
         var writeDataArea = ""
         var writeNewValue = ""
-        val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { dataArea ->
-                readDataArea = dataArea
-                "READ"
-            }
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.readDataArea = { dataArea ->
+                    readDataArea = dataArea
+                    "READ"
+                }
 
-            jarikoCallback.writeDataArea = { dataArea, value ->
-                writeDataArea = dataArea
-                writeNewValue = value
+                jarikoCallback.writeDataArea = { dataArea, value ->
+                    writeDataArea = dataArea
+                    writeNewValue = value
+                }
             }
-        }
 
         executePgm("DTAREAPROC", configuration = configuration)
         assertEquals(readDataArea, "APU001D1")
@@ -1738,12 +1988,13 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun testDataAreaReadIndicator() {
         var readDataArea = ""
-        val configuration = Configuration().apply {
-            jarikoCallback.readDataArea = { dataArea ->
-                readDataArea = dataArea
-                throw RuntimeException("Could not find data area")
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.readDataArea = { dataArea ->
+                    readDataArea = dataArea
+                    throw RuntimeException("Could not find data area")
+                }
             }
-        }
 
         val expected = listOf("CURRENT", "1")
         val actual = "DTAREAREADIND".outputOf(configuration = configuration)
@@ -1759,12 +2010,13 @@ class JarikoCallbackTest : AbstractTest() {
     fun testDataAreaWrite() {
         var writeDataArea = ""
         var writeNewValue = ""
-        val configuration = Configuration().apply {
-            jarikoCallback.writeDataArea = { dataArea, value ->
-                writeDataArea = dataArea
-                writeNewValue = value
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.writeDataArea = { dataArea, value ->
+                    writeDataArea = dataArea
+                    writeNewValue = value
+                }
             }
-        }
 
         val expected = listOf("WRITTEN")
         val actual = "DTAREAWRITE".outputOf(configuration = configuration)
@@ -1775,31 +2027,35 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     private fun createMockReloadConfig(): ReloadConfig {
-
-        val metadata = mapOf(
-            "FILE01" to FileMetadata(
-                name = "FILE01",
-                tableName = "FILE01",
-                recordFormat = "FILE01",
-                fields = listOf(
-                    DbField("FIELD1", StringType(10)),
-                    DbField("FIELD1", StringType(10)),
-                    DbField("FIELD3", StringType(10))
-                ),
-                accessFields = listOf("FIELD1")
-            ),
-            "FILE02" to FileMetadata(
-                name = "FILE02",
-                tableName = "FILE02",
-                recordFormat = "FILE02",
-                fields = listOf(
-                    DbField("FIELD1", StringType(100)),
-                    DbField("FIELD1", StringType(10)),
-                    DbField("FIELD3", StringType(10))
-                ),
-                accessFields = listOf("FIELD1")
+        val metadata =
+            mapOf(
+                "FILE01" to
+                    FileMetadata(
+                        name = "FILE01",
+                        tableName = "FILE01",
+                        recordFormat = "FILE01",
+                        fields =
+                            listOf(
+                                DbField("FIELD1", StringType(10)),
+                                DbField("FIELD1", StringType(10)),
+                                DbField("FIELD3", StringType(10)),
+                            ),
+                        accessFields = listOf("FIELD1"),
+                    ),
+                "FILE02" to
+                    FileMetadata(
+                        name = "FILE02",
+                        tableName = "FILE02",
+                        recordFormat = "FILE02",
+                        fields =
+                            listOf(
+                                DbField("FIELD1", StringType(100)),
+                                DbField("FIELD1", StringType(10)),
+                                DbField("FIELD3", StringType(10)),
+                            ),
+                        accessFields = listOf("FIELD1"),
+                    ),
             )
-        )
         val metadataProducer = { file: String -> metadata[file]!! }
         return ReloadConfig(DBNativeAccessConfig(connectionsConfig = emptyList()), metadataProducer = metadataProducer)
     }
@@ -1810,7 +2066,10 @@ class JarikoCallbackTest : AbstractTest() {
      * @param line The line of the trace.
      * @param executions The number of executions of the trace.
      */
-    private fun List<RpgTrace>.assertExecuted(line: Int, executions: Int = 1) {
+    private fun List<RpgTrace>.assertExecuted(
+        line: Int,
+        executions: Int = 1,
+    ) {
         val actual = this.count { it.line == line }
         assertEquals(executions, actual, "expected $executions executions but got $actual instead")
     }
@@ -1821,7 +2080,10 @@ class JarikoCallbackTest : AbstractTest() {
      * @param sourceId The name of the source.
      * @param line The line in which we expect the trace to be executed.
      */
-    private fun List<RpgTrace>.assertExecutedInSource(sourceId: String, line: Int) {
+    private fun List<RpgTrace>.assertExecutedInSource(
+        sourceId: String,
+        line: Int,
+    ) {
         val candidate = this.find { it.program == sourceId && it.line == line }
         assertNotNull(candidate, "could not find a trace at line $line executed in $sourceId")
     }
@@ -1829,16 +2091,20 @@ class JarikoCallbackTest : AbstractTest() {
     /**
      * Utility method to easily test trace configurations based on [JarikoTraceKind].
      */
-    private fun testTraceConfiguration(program: String, kinds: List<JarikoTraceKind>) {
+    private fun testTraceConfiguration(
+        program: String,
+        kinds: List<JarikoTraceKind>,
+    ) {
         val traces = mutableListOf<JarikoTrace>()
         var closedCount = 0
 
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
-        val configuration = Configuration().apply {
-            jarikoCallback.acceptJarikoTrace = { trace -> kinds.contains(trace.kind) }
-            jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
-            jarikoCallback.finishJarikoTrace = { ++closedCount }
-        }
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.acceptJarikoTrace = { trace -> kinds.contains(trace.kind) }
+                jarikoCallback.startJarikoTrace = { trace -> traces.add(trace) }
+                jarikoCallback.finishJarikoTrace = { ++closedCount }
+            }
         executePgm(program, configuration = configuration, systemInterface = systemInterface)
 
         assertEquals(traces.size, closedCount, "open traces do not match closed traces")

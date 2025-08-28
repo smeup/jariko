@@ -21,17 +21,31 @@ open class RpgParserWithMuteSupportTest : AbstractTest() {
     // Test if the lexer extracts the expected number of tokens
     @Test
     fun muteAnnotationsAttributionLex() {
-
         // val preprocessed = preprocess(comparisonAnnotation)
         val errors = LinkedList<Error>()
         val lexer = MuteLexer(CharStreams.fromStream(BOMInputStream(comparisonAnnotation.byteInputStream(Charsets.UTF_8))))
         lexer.removeErrorListeners()
-        lexer.addErrorListener(object : BaseErrorListener() {
-            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
-            }
-        })
+        lexer.addErrorListener(
+            object : BaseErrorListener() {
+                override fun syntaxError(
+                    p0: Recognizer<*, *>?,
+                    p1: Any?,
+                    line: Int,
+                    charPositionInLine: Int,
+                    errorMessage: String?,
+                    p5: RecognitionException?,
+                ) {
+                    errors.add(
+                        Error(
+                            ErrorType.LEXICAL,
+                            errorMessage
+                                ?: "unspecified",
+                            position = Point(line, charPositionInLine).asPosition,
+                        ),
+                    )
+                }
+            },
+        )
         val tokens = LinkedList<Token>()
         do {
             val t = lexer.nextToken()
@@ -48,8 +62,12 @@ open class RpgParserWithMuteSupportTest : AbstractTest() {
     @Test
     fun muteAnnotationsAttributionParse() {
         val errors = LinkedList<Error>()
-        val muteParser = RpgParserFacade().createMuteParser(BOMInputStream(comparisonAnnotationPreProcessed.byteInputStream(Charsets.UTF_8)), errors,
-                longLines = true)
+        val muteParser =
+            RpgParserFacade().createMuteParser(
+                BOMInputStream(comparisonAnnotationPreProcessed.byteInputStream(Charsets.UTF_8)),
+                errors,
+                longLines = true,
+            )
 
         muteParser.muteLine()
 
@@ -58,9 +76,11 @@ open class RpgParserWithMuteSupportTest : AbstractTest() {
 
     @Test
     fun muteAnnotationsAttribution() {
-        assertASTCanBeProduced("MUTE05_02",
-                considerPosition = true,
-                withMuteSupport = true)
+        assertASTCanBeProduced(
+            "MUTE05_02",
+            considerPosition = true,
+            withMuteSupport = true,
+        )
 
         print("")
     }

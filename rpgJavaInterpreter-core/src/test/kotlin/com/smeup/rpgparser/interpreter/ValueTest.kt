@@ -20,7 +20,6 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 class ValueTest {
-
     @Test
     fun takeFromIntValue() {
         assertEquals(IntValue(2345), IntValue(1234567).take(2, 5))
@@ -30,16 +29,18 @@ class ValueTest {
     fun occurableDataStructureTypeBlank() {
         val elementSize = 20
         val occurs = 10
-        val fields = listOf(
+        val fields =
+            listOf(
                 FieldType("S1", StringType(10, false)),
-                FieldType("S1", StringType(5, false))
-        )
+                FieldType("S1", StringType(5, false)),
+            )
         val dataStructureType = DataStructureType(fields = fields, elementSize = elementSize)
         val dataStructBlankValue = dataStructureType.blank()
-        val occurableDataStructBlankValue = OccurableDataStructureType(
-            dataStructureType = dataStructureType,
-            occurs = occurs)
-            .blank() as OccurableDataStructValue
+        val occurableDataStructBlankValue =
+            OccurableDataStructureType(
+                dataStructureType = dataStructureType,
+                occurs = occurs,
+            ).blank() as OccurableDataStructValue
         for (i in 1..occurs) {
             assertEquals(dataStructBlankValue, occurableDataStructBlankValue[i])
         }
@@ -47,9 +48,10 @@ class ValueTest {
 
     @Test
     fun varyingDSField() {
-        val fields = listOf(
-            FieldType("A", StringType(30000, true))
-        )
+        val fields =
+            listOf(
+                FieldType("A", StringType(30000, true)),
+            )
         val fieldDefinitions = fields.toFieldDefinitions()
         val aFieldDefinition = fieldDefinitions.first()
         val dataStructureType = DataStructureType(fields = fields, elementSize = 99999)

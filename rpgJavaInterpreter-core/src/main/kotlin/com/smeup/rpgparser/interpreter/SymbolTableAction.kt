@@ -9,5 +9,5 @@ enum class SymbolTableAction {
     LOAD,
     STORE,
     GET,
-    SET
+    SET,
 }

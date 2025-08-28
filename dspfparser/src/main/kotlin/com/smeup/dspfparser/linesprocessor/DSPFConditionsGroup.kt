@@ -21,12 +21,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class DSPFConditionsGroup(
-    val group: MutableList<DSPFCondition> = mutableListOf()
+    val group: MutableList<DSPFCondition> = mutableListOf(),
 ) {
     companion object {
-        fun fromString(text: String): DSPFConditionsGroup {
-            return DSPFConditionsGroup(this.getConditions(text))
-        }
+        fun fromString(text: String): DSPFConditionsGroup = DSPFConditionsGroup(this.getConditions(text))
 
         private fun getConditions(text: String): MutableList<DSPFCondition> {
             val group: MutableList<DSPFCondition> = mutableListOf()

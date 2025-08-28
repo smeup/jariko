@@ -24,7 +24,6 @@ import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
 
 class RpgParsingAcceptanceTest {
-
     @Test
     @Category(AcceptanceTest::class)
     fun parseAllDataExamples() {

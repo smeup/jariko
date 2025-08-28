@@ -17,13 +17,18 @@ internal fun DSPF.getDbFields(): List<DbField> {
             val fallbackPrecision = 10
 
             if (field.isNumeric) {
-                if (field.precision!! > 0) rpgType = RpgType.ZONED
-                else rpgType = RpgType.INTEGER
+                if (field.precision!! > 0) {
+                    rpgType = RpgType.ZONED
+                } else {
+                    rpgType = RpgType.INTEGER
+                }
 
-                type = NumberType(
-                    field.length ?: fallbackLength,
-                    field.precision ?: fallbackPrecision, rpgType
-                )
+                type =
+                    NumberType(
+                        field.length ?: fallbackLength,
+                        field.precision ?: fallbackPrecision,
+                        rpgType,
+                    )
             } else {
                 type = StringType.createInstance(field.length ?: fallbackLength)
             }
@@ -54,7 +59,10 @@ internal fun List<FileDefinition>.toDSPF(): Map<String, DSPF>? {
  * Fields of specified record will be returned and updated with the latest
  * value of the corresponding data definition just before EXFMT starts.
  */
-internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, recordName: String): DSPFRecord {
+internal fun copyDataDefinitionsIntoRecordFields(
+    interpreter: InterpreterCore,
+    recordName: String,
+): DSPFRecord {
     var record: DSPFRecord? = null
     val symbolTable = interpreter.getGlobalSymbolTable()
     val displayFiles = interpreter.getStatus().displayFiles
@@ -73,7 +81,10 @@ internal fun copyDataDefinitionsIntoRecordFields(interpreter: InterpreterCore, r
  * Fields edited during EXFMT will be available just after returning from it as response
  * and used to update corresponding data definitions.
  */
-internal fun copyRecordFieldsIntoDataDefinitions(interpreter: InterpreterCore, response: OnExfmtResponse) {
+internal fun copyRecordFieldsIntoDataDefinitions(
+    interpreter: InterpreterCore,
+    response: OnExfmtResponse,
+) {
     val symbolTable = interpreter.getGlobalSymbolTable()
 
     response.values.forEach { field ->

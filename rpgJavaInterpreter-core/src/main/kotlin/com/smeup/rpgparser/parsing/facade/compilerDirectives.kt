@@ -9,18 +9,19 @@ enum class SYN_RELEVANT_DIRECTIVES {
     IF_DEFINED,
     IF_NOT_DEFINED,
     ELSE,
-    ENDIF
+    ENDIF,
 }
 
 // List used to skip the resolution procedure when the source does not contain compiler directives.
-val DIRECTIVES_KEYWORDS = listOf(
-    "      /IF DEFINED",
-    "      /IF NOT DEFINED",
-    "      /DEFINE",
-    "      /UNDEFINE",
-    "      /ELSE",
-    "      /ENDIF"
-)
+val DIRECTIVES_KEYWORDS =
+    listOf(
+        "      /IF DEFINED",
+        "      /IF NOT DEFINED",
+        "      /DEFINE",
+        "      /UNDEFINE",
+        "      /ELSE",
+        "      /ENDIF",
+    )
 
 val EOF_DIRECTIVE_KEYWORD = "      /EOF"
 
@@ -81,7 +82,6 @@ Not implemented:
     - *THREAD_CONCURRENT
 */
 internal fun String.resolveCompilerDirectives(): String {
-
     if (!containDirectives(this)) {
         return this
     }
@@ -108,7 +108,9 @@ internal fun String.resolveCompilerDirectives(): String {
                     val code = matchResult?.groups?.get(1)?.value
                     if (code != null) {
                         if (code.startsWith("*V")) {
-                            throw CompilerDirectivesException("IF_DEFINED directive with unsupported $code parameter found at line " + (index + 1))
+                            throw CompilerDirectivesException(
+                                "IF_DEFINED directive with unsupported $code parameter found at line " + (index + 1),
+                            )
                         } else {
                             useRow = isDefined(definitions, code)
                         }
@@ -162,7 +164,7 @@ internal fun String.resolveCompilerDirectives(): String {
                         listOf(
                             SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
                             SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
-                            SYN_RELEVANT_DIRECTIVES.ENDIF
+                            SYN_RELEVANT_DIRECTIVES.ENDIF,
                         )
                     if (!acceptedLastCodes.any { it == lastCode }) {
                         throw CompilerDirectivesException("Unexpected ELSE directive at line " + (index + 1))
@@ -178,12 +180,13 @@ internal fun String.resolveCompilerDirectives(): String {
                 ENDIF_PATTERN.matches(row) -> {
                     directiveRow = true
                     // Control if ENDIF is acceptable
-                    val acceptedLastCodes = listOf(
-                        SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
-                        SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
-                        SYN_RELEVANT_DIRECTIVES.ELSE,
-                        SYN_RELEVANT_DIRECTIVES.ENDIF
-                    )
+                    val acceptedLastCodes =
+                        listOf(
+                            SYN_RELEVANT_DIRECTIVES.IF_DEFINED,
+                            SYN_RELEVANT_DIRECTIVES.IF_NOT_DEFINED,
+                            SYN_RELEVANT_DIRECTIVES.ELSE,
+                            SYN_RELEVANT_DIRECTIVES.ENDIF,
+                        )
                     if (!acceptedLastCodes.any { it == lastCode }) {
                         throw CompilerDirectivesException("Unexpected ENDIF directive at line " + (index + 1))
                     }
@@ -230,14 +233,18 @@ private fun String.transformToComment(): String {
     }
 }
 
-private fun containDirectives(inputString: String): Boolean {
-    return inputString.contains(EOF_DIRECTIVE_KEYWORD, true) || DIRECTIVES_KEYWORDS.any { keyword -> inputString.contains(keyword, ignoreCase = true) }
-}
+private fun containDirectives(inputString: String): Boolean =
+    inputString.contains(EOF_DIRECTIVE_KEYWORD, true) ||
+        DIRECTIVES_KEYWORDS.any { keyword -> inputString.contains(keyword, ignoreCase = true) }
 
-private fun isDefined(definitions: MutableList<String>, code: String) =
-    /**
-     * Manage also "*VxRxMx" formats (return always true)
-     */
+private fun isDefined(
+    definitions: MutableList<String>,
+    code: String,
+) = /**
+ * Manage also "*VxRxMx" formats (return always true)
+ */
     code.startsWith("*V") || definitions.any { it.equals(code.uppercase()) }
 
-class CompilerDirectivesException(message: String) : Exception(message)
+class CompilerDirectivesException(
+    message: String,
+) : Exception(message)

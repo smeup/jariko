@@ -42,7 +42,6 @@ import kotlin.test.fail
  * (YourTestCompiled : YourTest()) that simply it will override useCompiledVersion method returning true
  * */
 abstract class AbstractTest {
-
     private lateinit var defaultOut: PrintStream
     private lateinit var defaultErr: PrintStream
 
@@ -87,18 +86,17 @@ abstract class AbstractTest {
         withMuteSupport: Boolean = false,
         withProfilingSupport: Boolean = false,
         printTree: Boolean = false,
-        afterAstCreation: (ast: CompilationUnit) -> Unit = {}
-    ): CompilationUnit {
-        return assertASTCanBeProduced(
+        afterAstCreation: (ast: CompilationUnit) -> Unit = {},
+    ): CompilationUnit =
+        assertASTCanBeProduced(
             exampleName = exampleName,
             considerPosition = considerPosition,
             withMuteSupport = withMuteSupport,
             withProfilingSupport = withProfilingSupport,
             printTree = printTree,
             compiledProgramsDir = getTestCompileDir(),
-            afterAstCreation = afterAstCreation
+            afterAstCreation = afterAstCreation,
         )
-    }
 
     /**
      * Executes a program and returns the output as a list of displayed messages.
@@ -121,35 +119,33 @@ abstract class AbstractTest {
         printTree: Boolean = false,
         si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
         configuration: Configuration = Configuration(),
-        trimEnd: Boolean = true
-    ): List<String> {
-        return outputOf(
+        trimEnd: Boolean = true,
+    ): List<String> =
+        outputOf(
             programName = programName,
             initialValues = initialValues,
             printTree = printTree,
             si = si,
             compiledProgramsDir = getTestCompileDir(),
             configuration = configuration,
-            trimEnd = trimEnd
+            trimEnd = trimEnd,
         )
-    }
 
     fun execute(
         programName: String,
         initialValues: Map<String, Value>,
         si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
         logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE),
-        printTree: Boolean = false
-    ): InternalInterpreter {
-        return execute(
+        printTree: Boolean = false,
+    ): InternalInterpreter =
+        execute(
             programName = programName,
             initialValues = initialValues,
             si = si,
             logHandlers = logHandlers,
             printTree = printTree,
-            compiledProgramsDir = getTestCompileDir()
+            compiledProgramsDir = getTestCompileDir(),
         )
-    }
 
     /**
      * Executes a DB program and returns the output.
@@ -169,31 +165,30 @@ abstract class AbstractTest {
         initialSQL: List<String> = emptyList(),
         inputParms: Map<String, Value> = mapOf(),
         configuration: Configuration = Configuration(options = Options(muteSupport = true)),
-        trimEnd: Boolean = true
-    ): List<String> {
-        return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
+        trimEnd: Boolean = true,
+    ): List<String> =
+        com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
             metadata = metadata,
             initialSQL = initialSQL,
             inputParms = inputParms,
             configuration = configuration.adaptForTestCase(this),
-            trimEnd = trimEnd
+            trimEnd = trimEnd,
         )
-    }
 
     fun executePgmWithStringArgs(
         programName: String,
         programArgs: List<String>,
         logConfigurationFile: File? = null,
         programFinders: List<RpgProgramFinder> = defaultProgramFinders,
-        configuration: Configuration = Configuration()
+        configuration: Configuration = Configuration(),
     ) {
         com.smeup.rpgparser.execution.executePgmWithStringArgs(
             programName = programName,
             programArgs = programArgs,
             logConfigurationFile = logConfigurationFile,
             programFinders = programFinders,
-            configuration = configuration.adaptForTestCase(this)
+            configuration = configuration.adaptForTestCase(this),
         )
     }
 
@@ -211,13 +206,14 @@ abstract class AbstractTest {
         params: CommandLineParms = CommandLineParms(emptyList()),
         configuration: Configuration = Configuration(),
         systemInterface: SystemInterface = JavaSystemInterface(),
-        additionalProgramFinders: List<RpgProgramFinder> = emptyList<RpgProgramFinder>()
+        additionalProgramFinders: List<RpgProgramFinder> = emptyList<RpgProgramFinder>(),
     ): CommandLineParms? {
-        val resourceName = if (programName.endsWith(".rpgle")) {
-            programName
-        } else {
-            "$programName.rpgle"
-        }
+        val resourceName =
+            if (programName.endsWith(".rpgle")) {
+                programName
+            } else {
+                "$programName.rpgle"
+            }
         val resource = AbstractTest::class.java.getResource("/$resourceName")
         val inlinePgm = programName.indexOf('\n') >= 0
         if (!inlinePgm) {
@@ -230,21 +226,21 @@ abstract class AbstractTest {
         programFinders.add(DirRpgProgramFinder(directory = File("src/test/resources/")))
         if (inlinePgm) programFinders.add(SourceProgramFinder())
         programFinders.addAll(additionalProgramFinders)
-        val jariko = getProgram(
-            nameOrSource = if (inlinePgm) programName else programName.substringAfterLast("/", programName),
-            systemInterface = systemInterface,
-            programFinders = programFinders
-        )
+        val jariko =
+            getProgram(
+                nameOrSource = if (inlinePgm) programName else programName.substringAfterLast("/", programName),
+                systemInterface = systemInterface,
+                programFinders = programFinders,
+            )
         return jariko.singleCall(params, configuration.adaptForTestCase(this))
     }
 
-    fun getTestCompileDir(): File? {
-        return if (useCompiledVersion()) {
+    fun getTestCompileDir(): File? =
+        if (useCompiledVersion()) {
             testCompiledDir
         } else {
             null
         }
-    }
 
     /**
      * Executes a program and returns the output as a list of displayed messages.
@@ -260,21 +256,23 @@ abstract class AbstractTest {
         trimEnd: Boolean = true,
         configuration: Configuration = Configuration(),
         afterSystemInterface: (systemInterface: JavaSystemInterface) -> Unit = {},
-        params: CommandLineParms = CommandLineParms(emptyList())
+        params: CommandLineParms = CommandLineParms(emptyList()),
     ): List<String> {
         val messages = mutableListOf<String>()
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ -> messages.add(message) }
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, _ -> messages.add(message) }
+            }
         afterSystemInterface(systemInterface)
         executePgm(programName = this, systemInterface = systemInterface, configuration = configuration, params = params)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {
-        val reloadConfigurationFile = System.getProperty("jrkReloadConfig")?.takeIf {
-            it.isNotEmpty()
-        }
+        val reloadConfigurationFile =
+            System.getProperty("jrkReloadConfig")?.takeIf {
+                it.isNotEmpty()
+            }
         return reloadConfigurationFile?.let {
             require(File(reloadConfigurationFile).exists()) {
                 "jrkReloadConfig: ${File(reloadConfigurationFile)} doesn't exist"
@@ -290,15 +288,16 @@ abstract class AbstractTest {
             return if (url != null && user != null && password != null && driver != null) {
                 SimpleReloadConfig(
                     metadataPath = javaClass.getResource("/db/metadata")!!.path,
-                    connectionConfigs = listOf(
-                        com.smeup.rpgparser.execution.ConnectionConfig(
-                            fileName = "*",
-                            url = url,
-                            driver = driver,
-                            user = user,
-                            password = password
-                        )
-                    )
+                    connectionConfigs =
+                        listOf(
+                            com.smeup.rpgparser.execution.ConnectionConfig(
+                                fileName = "*",
+                                url = url,
+                                driver = driver,
+                                user = user,
+                                password = password,
+                            ),
+                        ),
                 )
             } else {
                 null
@@ -306,24 +305,26 @@ abstract class AbstractTest {
         }
     }
 
-    private fun createReloadConfig(): ReloadConfig? {
-        return createSimpleReloadConfig()?.let { simpleReloadConfig ->
+    private fun createReloadConfig(): ReloadConfig? =
+        createSimpleReloadConfig()?.let { simpleReloadConfig ->
             ReloadConfig(
-                nativeAccessConfig = DBNativeAccessConfig(simpleReloadConfig.connectionConfigs.map {
-                    ConnectionConfig(
-                        fileName = it.fileName,
-                        url = it.url,
-                        driver = it.driver,
-                        user = it.user,
-                        password = it.password
-                    )
-                }),
+                nativeAccessConfig =
+                    DBNativeAccessConfig(
+                        simpleReloadConfig.connectionConfigs.map {
+                            ConnectionConfig(
+                                fileName = it.fileName,
+                                url = it.url,
+                                driver = it.driver,
+                                user = it.user,
+                                password = it.password,
+                            )
+                        },
+                    ),
                 metadataProducer = { dbFile ->
                     simpleReloadConfig.getMetadata(dbFile)
-                }
+                },
             )
         }
-    }
 
     /**
      * Executes unitTest only if ReloadConfig is available.
@@ -382,18 +383,19 @@ abstract class AbstractTest {
         sourceReferenceType: SourceReferenceType,
         sourceId: String,
         lines: List<Int>,
-        reloadConfig: ReloadConfig? = null
+        reloadConfig: ReloadConfig? = null,
     ) {
         val errorEvents = mutableListOf<ErrorEvent>()
         runCatching {
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    println(errorEvent)
-                    errorEvents.add(errorEvent)
+            val configuration =
+                Configuration().apply {
+                    jarikoCallback.onError = { errorEvent ->
+                        println(errorEvent)
+                        errorEvents.add(errorEvent)
+                    }
+                    options = Options(debuggingInformation = true)
+                    this.reloadConfig = reloadConfig
                 }
-                options = Options(debuggingInformation = true)
-                this.reloadConfig = reloadConfig
-            }
             executePgm(pgm, configuration = configuration)
         }.onSuccess {
             Assert.fail("Program must exit with error")
@@ -421,18 +423,19 @@ abstract class AbstractTest {
         sourceReferenceType: SourceReferenceType,
         sourceId: String,
         expected: Map<Int, String>,
-        reloadConfig: ReloadConfig? = null
+        reloadConfig: ReloadConfig? = null,
     ) {
         val errorEvents = mutableListOf<ErrorEvent>()
         runCatching {
-            val configuration = Configuration().apply {
-                jarikoCallback.onError = { errorEvent ->
-                    println(errorEvent)
-                    errorEvents.add(errorEvent)
+            val configuration =
+                Configuration().apply {
+                    jarikoCallback.onError = { errorEvent ->
+                        println(errorEvent)
+                        errorEvents.add(errorEvent)
+                    }
+                    options = Options(debuggingInformation = true)
+                    this.reloadConfig = reloadConfig
                 }
-                options = Options(debuggingInformation = true)
-                this.reloadConfig = reloadConfig
-            }
             executePgm(pgm, configuration = configuration)
         }.onSuccess {
             Assert.fail("Program must exit with error")
@@ -441,24 +444,22 @@ abstract class AbstractTest {
             errorEvents.throwErrorIfUnknownSourceId()
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            val found = errorEvents
-                .associate { errorEvent ->
-                    errorEvent.sourceReference!!.relativeLine to ((errorEvent.error).cause?.message ?: (errorEvent.error).message!!)
-                }
-                .toSortedMap()
+            val found =
+                errorEvents
+                    .associate { errorEvent ->
+                        errorEvent.sourceReference!!.relativeLine to ((errorEvent.error).cause?.message ?: (errorEvent.error).message!!)
+                    }.toSortedMap()
             val expectedSorted = expected.toSortedMap()
             Assert.assertTrue(
                 "Errors don't correspond.\n" +
-                        "Expected:\n${expectedSorted.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n" +
-                        "Actual:\n${found.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n",
-                found.toString().sanitize() == expectedSorted.toString().sanitize()
+                    "Expected:\n${expectedSorted.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n" +
+                    "Actual:\n${found.map { "Line ${it.key}, \"${it.value}\"" }.joinToString(separator = "\n") { it } }\n",
+                found.toString().sanitize() == expectedSorted.toString().sanitize(),
             )
         }
     }
 
-    private fun String.sanitize(): String {
-        return this.replace(Regex("\\s+"), " ").replace(Regex("[^Print]"), "")
-    }
+    private fun String.sanitize(): String = this.replace(Regex("\\s+"), " ").replace(Regex("[^Print]"), "")
 
     private fun Map.Entry<Int, String>.contains(list: Map<Int, String>): Boolean {
         list.forEach {
@@ -481,46 +482,53 @@ abstract class AbstractTest {
         pgm: String,
         throwableConsumer: (Throwable) -> Unit = {},
         additionalProgramFinders: List<RpgProgramFinder> = emptyList(),
-        reloadConfig: ReloadConfig? = null
+        reloadConfig: ReloadConfig? = null,
     ) {
         val sourceIdToLines = mutableMapOf<String, List<String>>()
         val errorEvents = mutableListOf<ErrorEvent>()
-        val configuration = Configuration().apply {
-            jarikoCallback.beforeParsing = { it ->
-                sourceIdToLines[MainExecutionContext.getParsingProgramStack().peek().name] = it.lines()
-                it
-            }
-            jarikoCallback.onError = {
-                errorEvents.add(it)
-            }
-            // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
-            // of runtime error
-            options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
-            this.reloadConfig = reloadConfig
-        }
-        kotlin.runCatching {
-            executePgm(pgm, configuration = configuration, additionalProgramFinders = additionalProgramFinders)
-        }.onSuccess {
-            Assert.fail("$pgm must exit with error")
-        }.onFailure {
-            throwableConsumer(it)
-            errorEvents.throwErrorIfUnknownSourceId()
-            errorEvents.forEach { errorEvent ->
-                // copy is not parsed so, if sourceReference is a copy, I will use the program name
-                val sourceId = if (errorEvent.sourceReference!!.sourceReferenceType == SourceReferenceType.Copy) {
-                    pgm
-                } else {
-                    errorEvent.sourceReference!!.sourceId
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.beforeParsing = { it ->
+                    sourceIdToLines[MainExecutionContext.getParsingProgramStack().peek().name] = it.lines()
+                    it
                 }
-                val lines = sourceIdToLines[sourceId]!!
-                if (lines[errorEvent.absoluteLine!! - 1] != errorEvent.fragment) {
-                    System.err.println("ErrorEvent: $errorEvent")
-                    System.err.println("Jariko arose an error at this line: ${errorEvent.absoluteLine!!}, fragment: ${errorEvent.fragment}")
-                    System.err.println("But the source code at line: ${errorEvent.absoluteLine!!} is: ${lines[errorEvent.absoluteLine!! - 1]}")
-                    fail()
+                jarikoCallback.onError = {
+                    errorEvents.add(it)
+                }
+                // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
+                // of runtime error
+                options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
+                this.reloadConfig = reloadConfig
+            }
+        kotlin
+            .runCatching {
+                executePgm(pgm, configuration = configuration, additionalProgramFinders = additionalProgramFinders)
+            }.onSuccess {
+                Assert.fail("$pgm must exit with error")
+            }.onFailure {
+                throwableConsumer(it)
+                errorEvents.throwErrorIfUnknownSourceId()
+                errorEvents.forEach { errorEvent ->
+                    // copy is not parsed so, if sourceReference is a copy, I will use the program name
+                    val sourceId =
+                        if (errorEvent.sourceReference!!.sourceReferenceType == SourceReferenceType.Copy) {
+                            pgm
+                        } else {
+                            errorEvent.sourceReference!!.sourceId
+                        }
+                    val lines = sourceIdToLines[sourceId]!!
+                    if (lines[errorEvent.absoluteLine!! - 1] != errorEvent.fragment) {
+                        System.err.println("ErrorEvent: $errorEvent")
+                        System.err.println(
+                            "Jariko arose an error at this line: ${errorEvent.absoluteLine!!}, fragment: ${errorEvent.fragment}",
+                        )
+                        System.err.println(
+                            "But the source code at line: ${errorEvent.absoluteLine!!} is: ${lines[errorEvent.absoluteLine!! - 1]}",
+                        )
+                        fail()
+                    }
                 }
             }
-        }
     }
 }
 

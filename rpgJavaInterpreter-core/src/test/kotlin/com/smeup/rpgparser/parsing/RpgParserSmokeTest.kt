@@ -21,7 +21,6 @@ import com.smeup.rpgparser.assertCanBeParsed
 import org.junit.Test
 
 class RpgParserSmokeTest : AbstractTest() {
-
     @Test
     fun parseINTTEST() {
         assertCanBeParsed("INTTEST")
@@ -223,10 +222,10 @@ class RpgParserSmokeTest : AbstractTest() {
         // the issue was at line 2 and 3
         val pgm =
             "1    CLR                 IF        ££B£20 = '1'\n" +
-            "2    CLR                 CALL      £EXCMD\n" +
-            "3    CLR                 PARM      'RCLRSC'      £RCLRS            6\n" +
-            "4    CLR                 PARM      6             NNN155_OLD       15 5\n" +
-            "5    CLR                 ENDIF"
+                "2    CLR                 CALL      £EXCMD\n" +
+                "3    CLR                 PARM      'RCLRSC'      £RCLRS            6\n" +
+                "4    CLR                 PARM      6             NNN155_OLD       15 5\n" +
+                "5    CLR                 ENDIF"
         val inputStream = pgm.byteInputStream()
         assertCanBeParsed(inputStream = inputStream, false)
     }

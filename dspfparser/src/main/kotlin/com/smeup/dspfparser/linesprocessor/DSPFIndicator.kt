@@ -22,16 +22,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class DSPFIndicator(
     val op: BooleanUnaryOperator = BooleanUnaryOperator.BLANK,
-    val id: Int
+    val id: Int,
 ) {
     companion object {
-        fun fromString(text: String): DSPFIndicator {
-            return DSPFIndicator(this.getOp(text), this.getId(text))
-        }
+        fun fromString(text: String): DSPFIndicator = DSPFIndicator(this.getOp(text), this.getId(text))
 
-        private fun getOp(text: String): BooleanUnaryOperator {
-            return BooleanUnaryOperator.entries.first { it.value == text[0] }
-        }
+        private fun getOp(text: String): BooleanUnaryOperator = BooleanUnaryOperator.entries.first { it.value == text[0] }
 
         private fun getId(text: String): Int {
             val id = text.substring(1).toInt()

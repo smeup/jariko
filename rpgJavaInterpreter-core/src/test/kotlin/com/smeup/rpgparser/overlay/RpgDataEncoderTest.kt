@@ -13,7 +13,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RpgDataEncoderTest {
-
     @Test
     fun encodeDecodeInteger1() {
         for (i in -128..127) {
@@ -106,7 +105,8 @@ class RpgDataEncoderTest {
         true
     }
 
-    @Test @Category(PerformanceTest::class)
+    @Test
+    @Category(PerformanceTest::class)
     fun encodeDecodeBinary4Slow() {
         for (i in -9999999..9999999) {
             i.encodeDecodeBinary4Lambda()
@@ -127,7 +127,8 @@ class RpgDataEncoderTest {
         true
     }
 
-    @Test @Category(PerformanceTest::class)
+    @Test
+    @Category(PerformanceTest::class)
     fun encodeDecodePackedSlow() {
         for (i in -999999..999999) {
             i.encodeDecodePackedLambda()

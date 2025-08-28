@@ -190,13 +190,51 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00116() {
-        val expected = listOf(
-            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
-            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
-            "AABBCCDDEEFFGGHHIILL",
-            "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", ""
-        )
+        val expected =
+            listOf(
+                "AA",
+                "BB",
+                "CC",
+                "DD",
+                "EE",
+                "FF",
+                "GG",
+                "HH",
+                "II",
+                "LL",
+                "AA",
+                "BB",
+                "CC",
+                "DD",
+                "EE",
+                "FF",
+                "GG",
+                "HH",
+                "II",
+                "LL",
+                "AABBCCDDEEFFGGHHIILL",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
     }
 
@@ -207,10 +245,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00117() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            ".000123", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000123",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00117".outputOf(configuration = smeupConfig))
     }
 
@@ -221,10 +276,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00118() {
-        val expected = listOf(
-            ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00",
-            "123.45", ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00"
-        )
+        val expected =
+            listOf(
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                "123.45",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00118".outputOf(configuration = smeupConfig))
     }
 
@@ -234,10 +306,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00119() {
-        val expected = listOf(
-            "0", "0", "0", "0", "0", "0", "0", "0", "0",
-            "123", "0", "0", "0", "0", "0", "0", "0", "0"
-        )
+        val expected =
+            listOf(
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "123",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00119".outputOf(configuration = smeupConfig))
     }
 
@@ -257,11 +346,12 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00255() {
-        val expected = listOf(
-            "A    Dÿ D\u001F 0000771",
-            "A    Dÿ D\u001F 0000771",
-            "A    Dÿ D\u001F 0000771"
-        )
+        val expected =
+            listOf(
+                "A    Dÿ D\u001F 0000771",
+                "A    Dÿ D\u001F 0000771",
+                "A    Dÿ D\u001F 0000771",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00255".outputOf(configuration = smeupConfig))
     }
 
@@ -311,19 +401,20 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00261() {
-        val expected = listOf(
-            "44.10",
-            "108.20",
-            "222.30",
-            "04410",
-            "44.10",
-            "10820",
-            "108.20",
-            "22230",
-            "222.30",
-            "",
-            ".00"
-        )
+        val expected =
+            listOf(
+                "44.10",
+                "108.20",
+                "222.30",
+                "04410",
+                "44.10",
+                "10820",
+                "108.20",
+                "22230",
+                "222.30",
+                "",
+                ".00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00261".outputOf(configuration = smeupConfig))
     }
 
@@ -333,10 +424,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00126() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00126".outputOf(configuration = smeupConfig))
     }
 
@@ -346,11 +454,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00127() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000",
-            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00127".outputOf(configuration = smeupConfig))
     }
 
@@ -360,11 +484,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00128() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000",
-            "123.000000", "123.000000"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00128".outputOf(configuration = smeupConfig))
     }
 
@@ -1096,11 +1236,51 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001128() {
-        val expected = listOf(
-            "1.00", "1.00", "1.00", "1.00", "1.00", "1.00", "2.00", "2.00", "2.00", "2.00", "2.00", "2.00", "3.00", "",
-            "4.00", "4.00", "4.00", "4.00", "4.00", "4.00", "5.00", "5.00", "5.00", "5.00", "5.00", "5.00", "6.00", "",
-            "1.00", "1.00", "1.00", "1.00", "1.00", "1.00", "2.00", "2.00", "2.00", "2.00", "2.00", "2.00", "3.00", ""
-        )
+        val expected =
+            listOf(
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "3.00",
+                "",
+                "4.00",
+                "4.00",
+                "4.00",
+                "4.00",
+                "4.00",
+                "4.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "6.00",
+                "",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "3.00",
+                "",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001128".outputOf())
     }
 
@@ -1110,11 +1290,21 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001140() {
-        val expected = listOf(
-            "ARR1 ITEMS", "1.00", "2.00", "3.00",
-            "ARR2 ITEMS", "2.00", "2.00", "2.00",
-            "ARR2 ITEMS", "3.00", "4.00", "5.00"
-        )
+        val expected =
+            listOf(
+                "ARR1 ITEMS",
+                "1.00",
+                "2.00",
+                "3.00",
+                "ARR2 ITEMS",
+                "2.00",
+                "2.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "3.00",
+                "4.00",
+                "5.00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001140".outputOf())
     }
 
@@ -1124,11 +1314,19 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001141() {
-        val expected = listOf(
-            "ARR1 ITEMS", "1.00", "2.00", "3.00",
-            "ARR2 ITEMS", "2.00", "2.00",
-            "ARR2 ITEMS", "3.00", "4.00"
-        )
+        val expected =
+            listOf(
+                "ARR1 ITEMS",
+                "1.00",
+                "2.00",
+                "3.00",
+                "ARR2 ITEMS",
+                "2.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "3.00",
+                "4.00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001141".outputOf())
     }
 
@@ -1138,11 +1336,20 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001142() {
-        val expected = listOf(
-            "ARR1 ITEMS", "1.00", "2.00",
-            "ARR2 ITEMS", "2.00", "2.00", "2.00",
-            "ARR2 ITEMS", "3.00", "4.00", "2.00"
-        )
+        val expected =
+            listOf(
+                "ARR1 ITEMS",
+                "1.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "2.00",
+                "2.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "3.00",
+                "4.00",
+                "2.00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001142".outputOf())
     }
 
@@ -1152,10 +1359,17 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001143() {
-        val expected = listOf(
-            "ARR ITEMS", "2.00", "2.00", "2.00",
-            "ARR ITEMS", "7.00", "7.00", "7.00"
-        )
+        val expected =
+            listOf(
+                "ARR ITEMS",
+                "2.00",
+                "2.00",
+                "2.00",
+                "ARR ITEMS",
+                "7.00",
+                "7.00",
+                "7.00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001143".outputOf())
     }
 
@@ -1166,10 +1380,15 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001144() {
-        val expected = listOf(
-            "ARR2 ITEMS", "2", "2",
-            "ARR2 ITEMS", "3", "3"
-        )
+        val expected =
+            listOf(
+                "ARR2 ITEMS",
+                "2",
+                "2",
+                "ARR2 ITEMS",
+                "3",
+                "3",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001144".outputOf())
     }
 
@@ -1180,10 +1399,15 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU001145() {
-        val expected = listOf(
-            "ARR2 ITEMS", "2.50", "2.50",
-            "ARR2 ITEMS", "3.50", "3.50"
-        )
+        val expected =
+            listOf(
+                "ARR2 ITEMS",
+                "2.50",
+                "2.50",
+                "ARR2 ITEMS",
+                "3.50",
+                "3.50",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU001145".outputOf())
     }
 

@@ -27,9 +27,7 @@ import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 open class ReadTest : AbstractTest() {
-
     companion object {
-
         lateinit var server: Server
 
         @BeforeClass
@@ -47,12 +45,13 @@ open class ReadTest : AbstractTest() {
 
     @Test
     fun equalWithNoSetllReturnsFalse() {
-        val outputLines = outputOfDBPgm(
-            "db/EQUALNOSET",
-            listOf(createEmployeeMetadata()),
-            emptyList(),
-            emptyMap()
-        )
+        val outputLines =
+            outputOfDBPgm(
+                "db/EQUALNOSET",
+                listOf(createEmployeeMetadata()),
+                emptyList(),
+                emptyMap(),
+            )
         assertEquals(listOf("EQUAL=0"), outputLines)
     }
 
@@ -64,8 +63,8 @@ open class ReadTest : AbstractTest() {
                 "db/CHAINREADE",
                 listOf(createEmployeeMetadata()),
                 emptyList(),
-                mapOf("toFind" to StringValue("XXX"))
-            )
+                mapOf("toFind" to StringValue("XXX")),
+            ),
         )
     }
 
@@ -79,8 +78,8 @@ open class ReadTest : AbstractTest() {
                 "db/CHAINREADE",
                 listOf(createEmployeeMetadata()),
                 emptyList(),
-                mapOf("toFind" to StringValue("C01"))
-            )
+                mapOf("toFind" to StringValue("C01")),
+            ),
         )
     }
 }

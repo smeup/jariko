@@ -41,47 +41,57 @@ import java.io.File
 class CommandLineParms internal constructor(
     val parmsList: List<String>,
     val namedParams: Map<String, Value>? = null,
-    val namedParamsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>?
+    val namedParamsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>?,
 ) {
     constructor(parmsList: List<String>) : this(
         parmsList = parmsList,
         namedParams = null,
-        namedParamsProducer = { null }
+        namedParamsProducer = { null },
     )
     constructor(namedParams: Map<String, Value>) : this(
         parmsList = emptyList(),
         namedParams = namedParams,
-        namedParamsProducer = { null }
+        namedParamsProducer = { null },
     )
     constructor(namedParamsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>) : this(
         parmsList = emptyList(),
         namedParams = null,
-        namedParamsProducer = namedParamsProducer
+        namedParamsProducer = namedParamsProducer,
     )
 }
 
-class CommandLineProgramNameSource(val name: String) : ProgramNameSource<CommandLineParms> {
+class CommandLineProgramNameSource(
+    val name: String,
+) : ProgramNameSource<CommandLineParms> {
     override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
 }
 
-class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
-
-    override fun toInitialValues(program: Program, params: CommandLineParms): LinkedHashMap<String, Value> {
-        val result = LinkedHashMap<String, Value> ()
+class CommandLineProgram(
+    name: String,
+    systemInterface: SystemInterface,
+) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
+    override fun toInitialValues(
+        program: Program,
+        params: CommandLineParms,
+    ): LinkedHashMap<String, Value> {
+        val result = LinkedHashMap<String, Value>()
         // che cu is available only if the first program is not doped
-        val producedNamedParams = when (program) {
-            is RpgProgram -> params.namedParamsProducer.invoke(program.cu)
-            else -> null
-        }
+        val producedNamedParams =
+            when (program) {
+                is RpgProgram -> params.namedParamsProducer.invoke(program.cu)
+                else -> null
+            }
         if (producedNamedParams != null) {
             result.putAll(producedNamedParams)
         } else if (params.namedParams != null) {
             result.putAll(params.namedParams)
         } else {
             val values = params.parmsList.map { parameter -> StringValue(parameter) }
-            val zipped = program.params()
-                .map { dataDefinition -> dataDefinition.name }
-                .zip(values)
+            val zipped =
+                program
+                    .params()
+                    .map { dataDefinition -> dataDefinition.name }
+                    .zip(values)
             zipped.forEach {
                 result[it.first] = it.second
             }
@@ -89,45 +99,55 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         return result
     }
 
-    override fun toResults(params: CommandLineParms, resultValues: LinkedHashMap<String, Value>): CommandLineParms {
+    override fun toResults(
+        params: CommandLineParms,
+        resultValues: LinkedHashMap<String, Value>,
+    ): CommandLineParms {
         // paramsList empty and namePrams null means no params pass to jariko
-        val paramsList = if (params.namedParams == null && params.parmsList.isEmpty()) {
-            params.parmsList
-        } else {
-            resultValues.values.map { it.asString().value }
-        }
+        val paramsList =
+            if (params.namedParams == null && params.parmsList.isEmpty()) {
+                params.parmsList
+            } else {
+                resultValues.values.map { it.asString().value }
+            }
         return CommandLineParms(
             parmsList = paramsList,
-            namedParams = resultValues
+            namedParams = resultValues,
         ) { null }
     }
 
-    @JvmOverloads fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
-        singleCall(CommandLineParms(parms), configuration = configuration)
+    @JvmOverloads fun singleCall(
+        parms: List<String>,
+        configuration: Configuration = Configuration(),
+    ) = singleCall(CommandLineParms(parms), configuration = configuration)
 
-    @JvmOverloads fun singleCall(parms: Map<String, Value>, configuration: Configuration = Configuration()) =
-        singleCall(CommandLineParms(parms), configuration = configuration)
+    @JvmOverloads fun singleCall(
+        parms: Map<String, Value>,
+        configuration: Configuration = Configuration(),
+    ) = singleCall(CommandLineParms(parms), configuration = configuration)
 
-    @JvmOverloads fun singleCall(parmsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>, configuration: Configuration = Configuration()) =
-        singleCall(CommandLineParms(parmsProducer), configuration = configuration)
+    @JvmOverloads fun singleCall(
+        parmsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>,
+        configuration: Configuration = Configuration(),
+    ) = singleCall(CommandLineParms(parmsProducer), configuration = configuration)
 }
 
-class ResourceProgramFinder(val path: String) : RpgProgramFinder {
+class ResourceProgramFinder(
+    val path: String,
+) : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
             RpgProgram.fromInputStream(
                 BOMInputStream.builder().setInputStream(resourceStream).get(),
-                nameOrSource
+                nameOrSource,
             )
         } else {
             null
         }
     }
 
-    override fun toString(): String {
-        return "resource: $path"
-    }
+    override fun toString(): String = "resource: $path"
 
     override fun findCopy(copyId: CopyId): Copy? {
         // this program finder cannot know how to find a copy
@@ -143,19 +163,20 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 }
 
-val defaultProgramFinders = listOf(
+val defaultProgramFinders =
+    listOf(
         SourceProgramFinder(),
         DirRpgProgramFinder(),
-        ResourceProgramFinder("/")
-)
+        ResourceProgramFinder("/"),
+    )
 
 @JvmOverloads
 fun getProgram(
     nameOrSource: String,
     systemInterface: SystemInterface = JavaSystemInterface(),
-    programFinders: List<RpgProgramFinder> = defaultProgramFinders
-): CommandLineProgram {
-    return MainExecutionContext.execute(configuration = systemInterface.getConfiguration() ?: Configuration(), systemInterface = systemInterface) {
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders,
+): CommandLineProgram =
+    MainExecutionContext.execute(configuration = systemInterface.getConfiguration() ?: Configuration(), systemInterface = systemInterface) {
         if (systemInterface is JavaSystemInterface) {
             systemInterface.rpgSystem.addProgramFinders(programFinders)
             programFinders.forEach {
@@ -169,14 +190,13 @@ fun getProgram(
         }
         CommandLineProgram(nameOrSource, systemInterface)
     }
-}
 
 fun executePgmWithStringArgs(
     programName: String,
     programArgs: List<String>,
     logConfigurationFile: File? = null,
     programFinders: List<RpgProgramFinder> = defaultProgramFinders,
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
 ) {
     val systemInterface = JavaSystemInterface()
     systemInterface.loggingConfiguration =
@@ -207,37 +227,52 @@ object RunnerCLI : CliktCommand() {
         }
     }
 
-    private fun exec(programName: String, programArgs: List<String>) {
-        val allProgramFinders = defaultProgramFinders +
-            ((programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())) +
-            ((copySearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList()))
+    private fun exec(
+        programName: String,
+        programArgs: List<String>,
+    ) {
+        val allProgramFinders =
+            defaultProgramFinders +
+                ((programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())) +
+                ((copySearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList()))
         val configuration = Configuration()
         configuration.options.compiledProgramsDir = compiledProgramsDir
 
         // 'Reload' database configurations from properties file passed as cli argument
         reloadConfigurationFile?.let { loadReloadConfig(it, configuration) }
-        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders,
-            configuration = configuration)
+        executePgmWithStringArgs(
+            programName,
+            programArgs,
+            logConfigurationFile,
+            programFinders = allProgramFinders,
+            configuration = configuration,
+        )
     }
 }
 
-private fun loadReloadConfig(reloadConfigurationFile: File, configuration: Configuration) {
-
+private fun loadReloadConfig(
+    reloadConfigurationFile: File,
+    configuration: Configuration,
+) {
     val simpleReloadConfig = SimpleReloadConfig.createInstance(reloadConfigurationFile.inputStream())
-    val dbNativeAccessConfig = DBNativeAccessConfig(simpleReloadConfig.connectionConfigs.map {
-        ConnectionConfig(
-            fileName = it.fileName,
-            url = it.url,
-            user = it.user,
-            password = it.password,
-            driver = it.driver,
-            impl = it.impl
+    val dbNativeAccessConfig =
+        DBNativeAccessConfig(
+            simpleReloadConfig.connectionConfigs.map {
+                ConnectionConfig(
+                    fileName = it.fileName,
+                    url = it.url,
+                    user = it.user,
+                    password = it.password,
+                    driver = it.driver,
+                    impl = it.impl,
+                )
+            },
         )
-    })
-    val reloadConfig = ReloadConfig(
-        nativeAccessConfig = dbNativeAccessConfig,
-        metadataProducer = { dbFile -> simpleReloadConfig.getMetadata(dbFile) }
-    )
+    val reloadConfig =
+        ReloadConfig(
+            nativeAccessConfig = dbNativeAccessConfig,
+            metadataProducer = { dbFile -> simpleReloadConfig.getMetadata(dbFile) },
+        )
     configuration.reloadConfig = reloadConfig
 }
 

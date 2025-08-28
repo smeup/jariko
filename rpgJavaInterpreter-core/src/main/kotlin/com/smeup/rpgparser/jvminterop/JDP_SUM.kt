@@ -25,14 +25,12 @@ import com.smeup.rpgparser.interpreter.*
   Put n1+1 into n2 and in return result.
  */
 
-class JDP_SUM() : JavaFunction {
-
+class JDP_SUM : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        interpreterStatus: InterpreterStatus
+        interpreterStatus: InterpreterStatus,
     ): Value {
-
         var n1 = params.filter { fv -> fv.variableName == "N1" }.first().value as IntValue
         var n2 = (n1.value + 1).asValue()
         params.filter { fv -> fv.variableName == "N2" }.first().value = n2

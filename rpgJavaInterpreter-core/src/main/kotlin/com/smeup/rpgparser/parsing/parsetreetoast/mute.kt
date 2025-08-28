@@ -27,31 +27,52 @@ import com.strumenta.kolasu.model.Position
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
 
-fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), position: Position? = null): MuteAnnotation {
-    fun extractExpressionFrom(token: Token): Expression {
-        return RpgParserFacade().createParser(
-            BOMInputStream(
-                ("".padStart(8) + token.text.substring(
-                    1,
-                    token.text.lastIndex
-                )).byteInputStream(Charsets.UTF_8)
-            ), errors = mutableListOf(), longLines = true
-        ).expression().toAst(conf)
-    }
+fun MuteParser.MuteLineContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    position: Position? = null,
+): MuteAnnotation {
+    fun extractExpressionFrom(token: Token): Expression =
+        RpgParserFacade()
+            .createParser(
+                BOMInputStream(
+                    (
+                        "".padStart(8) +
+                            token.text.substring(
+                                1,
+                                token.text.lastIndex,
+                            )
+                    ).byteInputStream(Charsets.UTF_8),
+                ),
+                errors = mutableListOf(),
+                longLines = true,
+            ).expression()
+            .toAst(conf)
 
     return when (val annotation = this.muteAnnotation()) {
         is MuteParser.MuteComparisonAnnotationContext -> {
             val val1 = extractExpressionFrom(annotation.val1)
             val val2 = extractExpressionFrom(annotation.val2)
 
-            MuteComparisonAnnotation(val1, val2, ComparisonOperator.valueOf(annotation.cp.text.substring(1, annotation.cp.text.lastIndex)), position = position)
+            MuteComparisonAnnotation(
+                val1,
+                val2,
+                ComparisonOperator.valueOf(annotation.cp.text.substring(1, annotation.cp.text.lastIndex)),
+                position = position,
+            )
         }
         is MuteParser.MuteTypeAnnotationContext -> {
             // Type="NOXMI" annotation are not supported
             MuteTypeAnnotation(position = position)
         }
         is MuteParser.MuteTimeoutContext -> {
-            MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asLong(), position)
+            MuteTimeoutAnnotation(
+                annotation
+                    .intNumber()
+                    .NUMBER()
+                    .text
+                    .asLong(),
+                position,
+            )
         }
         is MuteParser.MuteFailAnnotationContext -> {
             val message = extractExpressionFrom(annotation.msg)
@@ -65,20 +86,19 @@ fun injectMuteAnnotationToStatements(
     statements: List<Statement>,
     start: Int,
     end: Int,
-    map: Map<Int, MuteParser.MuteLineContext>
+    map: Map<Int, MuteParser.MuteLineContext>,
 ): List<MuteAnnotationResolved> {
-
     // Consider only the annotation in the scope
-    val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
-        it in start..end
-    }
+    val filtered: Map<Int, MuteParser.MuteLineContext> =
+        map.filterKeys {
+            it in start..end
+        }
     // makes a consumable list of annotation
     val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
     val mutesResolved: MutableList<MuteAnnotationResolved> = mutableListOf()
 
     // Visit each statment
     statements.forEach {
-
         val resolved = it.accept(mutesToProcess, start, end)
         mutesResolved.addAll(resolved)
 
@@ -94,21 +114,32 @@ fun injectMuteAnnotationToStatements(
     }
     return mutesResolved
 }
-fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>, map: Map<Int, MuteParser.MuteLineContext>):
-        List<MuteAnnotationResolved> {
 
+fun injectMuteAnnotationToDataDefinitions(
+    definitions: List<DataDefinition>,
+    map: Map<Int, MuteParser.MuteLineContext>,
+): List<MuteAnnotationResolved> {
     val mutesResolved: MutableList<MuteAnnotationResolved> = mutableListOf()
 
     // Now in definitions we have also DataDefinition instances related F Spec, which do not have
     // any reference to position for this reason we need to filter them
     definitions.filter { it.position != null }.takeIf { it.isNotEmpty() }?.let { filteredDataDefinitions ->
-        val start: Int = filteredDataDefinitions.first().position!!.start.line
-        val end: Int = filteredDataDefinitions.last().position!!.end.line + 1
+        val start: Int =
+            filteredDataDefinitions
+                .first()
+                .position!!
+                .start.line
+        val end: Int =
+            filteredDataDefinitions
+                .last()
+                .position!!
+                .end.line + 1
 
         // Consider only the annotation in the scope
-        val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
-            it in start..end
-        }
+        val filtered: Map<Int, MuteParser.MuteLineContext> =
+            map.filterKeys {
+                it in start..end
+            }
         // makes a consumable list of annotation
         val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
 
@@ -126,19 +157,25 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>, map
 }
 
 fun Statement.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineContext>): List<MuteAnnotationResolved> {
-
     val resolved: MutableList<MuteAnnotationResolved> = mutableListOf()
     // Process the main body statements
     val stmts = listOf(this)
-    resolved.addAll(injectMuteAnnotationToStatements(stmts,
+    resolved.addAll(
+        injectMuteAnnotationToStatements(
+            stmts,
             this.position!!.start.line,
             this.position!!.end.line,
-            mutes))
+            mutes,
+        ),
+    )
 
     return resolved
 }
 
-private fun expandStartLineWhenNeeded(startLine: Int, mutes: MutesImmutableMap): Int {
+private fun expandStartLineWhenNeeded(
+    startLine: Int,
+    mutes: MutesImmutableMap,
+): Int {
     var line = startLine
     while (line - 1 in mutes.keys) {
         line--
@@ -158,32 +195,49 @@ fun CompilationUnit.injectMuteAnnotation(mutes: MutesImmutableMap): List<MuteAnn
     // In a mute with no statements, as can happens for program with only
     // D SPEC, the function stmts.position() returns null and than this fragments raises error
     this.main.stmts.position()?.let { position ->
-        resolved.addAll(injectMuteAnnotationToStatements(this.main.stmts,
-            expandStartLineWhenNeeded(position.start.line, mutes),
-            position.end.line,
-            mutes))
+        resolved.addAll(
+            injectMuteAnnotationToStatements(
+                this.main.stmts,
+                expandStartLineWhenNeeded(position.start.line, mutes),
+                position.end.line,
+                mutes,
+            ),
+        )
     }
     // Process subroutines body statements
     this.subroutines.forEach {
-        resolved.addAll(injectMuteAnnotationToStatements(it.stmts,
+        resolved.addAll(
+            injectMuteAnnotationToStatements(
+                it.stmts,
                 it.position!!.start.line,
                 it.position.end.line,
-                mutes))
+                mutes,
+            ),
+        )
     }
 
     return resolved
 }
 
-private fun addTimeoutAnnotation(compilationUnit: CompilationUnit, mutes: Map<Int, MuteParser.MuteLineContext>) {
+private fun addTimeoutAnnotation(
+    compilationUnit: CompilationUnit,
+    mutes: Map<Int, MuteParser.MuteLineContext>,
+) {
     compilationUnit.timeouts =
-        mutes.values.filter {
-            it.muteAnnotation() is MuteParser.MuteTimeoutContext
-        }.map {
-            it.toAst() as MuteTimeoutAnnotation
-        }
+        mutes.values
+            .filter {
+                it.muteAnnotation() is MuteParser.MuteTimeoutContext
+            }.map {
+                it.toAst() as MuteTimeoutAnnotation
+            }
 }
 
-fun acceptBody(body: List<Statement>, mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {
+fun acceptBody(
+    body: List<Statement>,
+    mutes: MutableMap<Int, MuteParser.MuteLineContext>,
+    start: Int = 0,
+    end: Int,
+): MutableList<MuteAnnotationResolved> {
     val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
     // Process the body statements

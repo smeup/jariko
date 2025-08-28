@@ -26,7 +26,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MainExecutionContextTest {
-
     private lateinit var defaultErr: PrintStream
     private lateinit var byteArrayOutputStream: ByteArrayOutputStream
 
@@ -55,9 +54,11 @@ class MainExecutionContextTest {
     // I want to be sure that only the first instances of Configuration and JavaSystemInterface will be used
     @Test
     fun testFirstInstancesUsageInCaseOfRecursiveExecution() {
-        val configs = listOf(
-            Configuration(), Configuration()
-        )
+        val configs =
+            listOf(
+                Configuration(),
+                Configuration(),
+            )
         val systemInterfaces = listOf(JavaSystemInterface(), JavaSystemInterface())
         var createConfigurationTimes = 0
         var createJavaSystemInterfaceTimes = 0
@@ -72,7 +73,7 @@ class MainExecutionContextTest {
                 // Here I assert that the first instance booth config and systemInterface must be used
                 assertTrue { configs[0] === MainExecutionContext.getConfiguration() }
                 assertTrue { systemInterfaces[0] === MainExecutionContext.getSystemInterface() }
-            }
+            },
         )
     }
 
@@ -87,7 +88,7 @@ class MainExecutionContextTest {
             rootExecution = {},
             rootExecutionError = {},
             innerExecution = { error("Forced error") },
-            innerExecutionError = { assertTrue { MainExecutionContext.isCreated() } }
+            innerExecutionError = { assertTrue { MainExecutionContext.isCreated() } },
         )
         assertFalse(MainExecutionContext.isCreated())
     }
@@ -98,27 +99,29 @@ class MainExecutionContextTest {
         rootExecution: () -> Unit,
         rootExecutionError: (Throwable) -> Unit = { throwable -> throw throwable },
         innerExecution: () -> Unit,
-        innerExecutionError: (Throwable) -> Unit = { throwable -> throw throwable }
+        innerExecutionError: (Throwable) -> Unit = { throwable -> throw throwable },
     ) {
-        kotlin.runCatching {
-            MainExecutionContext.execute(
-                configuration = createConfiguration(),
-                systemInterface = createJavaSystemInterface(),
-                mainProgram = { _ ->
-                    rootExecution()
-                    kotlin.runCatching {
-                        MainExecutionContext.execute(
-                            configuration = createConfiguration(),
-                            systemInterface = createJavaSystemInterface(),
-                            mainProgram = { _ -> innerExecution() }
-                        )
-                    }.onFailure {
-                        innerExecutionError(it)
-                    }.getOrThrow()
-                }
-            )
-        }.onFailure {
-            rootExecutionError(it)
-        }
+        kotlin
+            .runCatching {
+                MainExecutionContext.execute(
+                    configuration = createConfiguration(),
+                    systemInterface = createJavaSystemInterface(),
+                    mainProgram = { _ ->
+                        rootExecution()
+                        kotlin
+                            .runCatching {
+                                MainExecutionContext.execute(
+                                    configuration = createConfiguration(),
+                                    systemInterface = createJavaSystemInterface(),
+                                    mainProgram = { _ -> innerExecution() },
+                                )
+                            }.onFailure {
+                                innerExecutionError(it)
+                            }.getOrThrow()
+                    },
+                )
+            }.onFailure {
+                rootExecutionError(it)
+            }
     }
 }

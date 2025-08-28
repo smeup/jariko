@@ -28,8 +28,8 @@ private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memo
 
 typealias StatementReference = Pair<Int, SourceReference>
 
-fun Value.stringRepresentation(format: String? = null): String {
-    return when (this) {
+fun Value.stringRepresentation(format: String? = null): String =
+    when (this) {
         is StringValue -> value
         is BooleanValue -> asString().value // TODO check if it's the best solution
         is NumberValue -> render()
@@ -42,7 +42,6 @@ fun Value.stringRepresentation(format: String? = null): String {
         is UnlimitedStringValue -> value.trimEnd()
         else -> TODO("Unable to render value $this (${this.javaClass.canonicalName})")
     }
-}
 
 private fun TimeStampValue.timestampFormatting(format: String?): String =
     // TODO this is a simple stub for what the full implementation will be
@@ -53,8 +52,12 @@ private fun TimeStampValue.timestampFormatting(format: String?): String =
     }
 
 fun CompilationUnit.activationGroupType(): ActivationGroupType? {
-    val activationGroupTypes = directives.asSequence().filterIsInstance<ActivationGroupDirective>().map { it.type }
-        .toList()
+    val activationGroupTypes =
+        directives
+            .asSequence()
+            .filterIsInstance<ActivationGroupDirective>()
+            .map { it.type }
+            .toList()
     return when {
         activationGroupTypes.isEmpty() -> null
         activationGroupTypes.size == 1 -> activationGroupTypes[0]
@@ -62,8 +65,8 @@ fun CompilationUnit.activationGroupType(): ActivationGroupType? {
     }
 }
 
-fun ActivationGroupType.assignedName(caller: RpgProgram?): String {
-    return when (this) {
+fun ActivationGroupType.assignedName(caller: RpgProgram?): String =
+    when (this) {
         is CallerActivationGroup -> {
             require(caller != null) { "caller is mandatory" }
             caller.activationGroup.assignedName
@@ -71,7 +74,6 @@ fun ActivationGroupType.assignedName(caller: RpgProgram?): String {
         is NewActivationGroup -> UUID.randomUUID().toString()
         is NamedActivationGroup -> groupName
     }
-}
 
 /**
  * This function provides the resizing of a variable defined like String, changing the varying to not varying.
@@ -122,7 +124,13 @@ fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
 internal fun Position.relative(): StatementReference {
     val programName =
         if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
+    val copyBlocks =
+        programName?.let {
+            MainExecutionContext
+                .getProgramStack()
+                .peek()
+                .cu.copyBlocks
+        }
     return this.relative(programName, copyBlocks)
 }
 
@@ -145,20 +153,21 @@ internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
 internal fun ISymbolTable.restoreFromMemorySlice(
     memorySliceId: MemorySliceId?,
     memorySliceMgr: MemorySliceMgr?,
-    initialValues: Map<String, Value> = emptyMap()
+    initialValues: Map<String, Value> = emptyMap(),
 ) {
     memorySliceId?.let { myMemorySliceId ->
         memorySliceMgr?.let {
-            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
-                memorySliceId = memorySliceId,
-                symbolTable = this,
-                initSymbolTableEntry = { dataDefinition, storedValue ->
-                    // initial values have not to be overwritten
-                    if (!initialValues.containsKey(dataDefinition.name)) {
-                        this[dataDefinition] = storedValue
-                    }
-                }
-            )
+            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] =
+                it.associate(
+                    memorySliceId = memorySliceId,
+                    symbolTable = this,
+                    initSymbolTableEntry = { dataDefinition, storedValue ->
+                        // initial values have not to be overwritten
+                        if (!initialValues.containsKey(dataDefinition.name)) {
+                            this[dataDefinition] = storedValue
+                        }
+                    },
+                )
         }
     }
 }

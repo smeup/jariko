@@ -4,11 +4,10 @@ import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import kotlin.test.assertTrue
 import org.junit.Test
+import kotlin.test.assertTrue
 
 class RpgParserWithMutePositionTest {
-
     var printResults: Boolean = true
 
     // Useful display function for debugging
@@ -21,7 +20,10 @@ class RpgParserWithMutePositionTest {
         }
     }
 
-    private fun getResolvedAnnotation(line: Int, annotations: List<MuteAnnotationResolved>): MuteAnnotationResolved? {
+    private fun getResolvedAnnotation(
+        line: Int,
+        annotations: List<MuteAnnotationResolved>,
+    ): MuteAnnotationResolved? {
         annotations.forEach {
             if (it.muteLine == line) {
                 return it
