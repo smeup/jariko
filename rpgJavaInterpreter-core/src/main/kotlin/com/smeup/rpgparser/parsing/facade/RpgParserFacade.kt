@@ -55,6 +55,7 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.withIndex
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 import kotlin.system.measureNanoTime
@@ -646,20 +647,23 @@ class RpgParserFacade {
                 val inputStream = code.bomInputStream()
                 val lexResult = lex(inputStream)
                 errors.addAll(lexResult.errors)
-                lexResult.root?.forEachIndexed { index, token0 ->
-                    val isInRange = index < lexResult.root.size - 1
-                    if (isInRange) {
-                        val token1 = lexResult.root[index + 1]
-                        // Please note the leading spaces added
-                        if (token0.type == COMMENT_SPEC_FIXED &&
-                            token0.text.endsWith("*") &&
-                            token1.type == COMMENTS_TEXT &&
-                            profilingTokens.any{token1.text.lowercase().trim().startsWith(it)}
+                val isTracingEnabled = this.checkTracingEnabled(lexResult.root ?: emptyList())
+                if (isTracingEnabled) {
+                    lexResult.root?.forEachIndexed { index, token0 ->
+                        val isInRange = index < lexResult.root.size - 1
+                        if (isInRange) {
+                            val token1 = lexResult.root[index + 1]
+                            // Please note the leading spaces added
+                            if (token0.type == COMMENT_SPEC_FIXED &&
+                                token0.text.endsWith("*") &&
+                                token1.type == COMMENTS_TEXT &&
+                                profilingTokens.any{token1.text.lowercase().trim().startsWith(it)}
 
-                        ) {
-                            // Please note the leading spaces added to the token
-                            val preproc = preprocess(token1.text)
-                            profiling[token1.line] = parseProfiling("".padStart(8) + preproc, errors)
+                            ) {
+                                // Please note the leading spaces added to the token
+                                val preproc = preprocess(token1.text)
+                                profiling[token1.line] = parseProfiling("".padStart(8) + preproc, errors)
+                            }
                         }
                     }
                 }
@@ -669,6 +673,23 @@ class RpgParserFacade {
             LazyLogEntry.producePerformanceAndUpdateAnalytics(logSource, ProgramUsageType.Parsing, "FINDPROF", elapsed),
         )
         return profiling
+    }
+
+    private fun checkTracingEnabled(tokens: List<Token>) : Boolean {
+        return tokens.withIndex().any { (index, token0) ->
+            val isInRange = index < tokens.size - 2
+            if (!isInRange) {
+                return@any false
+            }
+            val token1 = tokens[index + 1]
+            val token2 = tokens[index + 2]
+            // Please note the leading spaces added
+            return@any token0.type == LEAD_WS5_Comments &&
+                    token0.text == "".padStart(3) + "CO" &&
+                    token1.type == COMMENT_SPEC_FIXED &&
+                    token1.text == "P*" &&
+                    token2.type == COMMENTS_TEXT
+        }
     }
 
     fun parse(inputStream: InputStream): RpgParserResult {
