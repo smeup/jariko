@@ -3,7 +3,11 @@ lexer grammar ProfilingLexer;
 OPEN_PAREN : '(';
 CLOSE_PAREN : ')';
 DOUBLE_QUOTE: '"';
+SEMICOLON: ';';
 TELEMETRY_SPAN_ID_SCOPE: [mM];
+TELEMETRY_SPAN_CAPTURE_SCOPE: [tT];
+TELEMETRY_SPAN_ATTRIBUTE_SCOPE: '&'[aA];
+TELEMETRY_XXX_SPLAT: [xX][xX][xX];
 
 TELEMETRY_SPAN_START: '@'[sS][tT][aA][rR][tT][tT][rR][aA][cC][eE];
 TELEMETRY_SPAN_END: '@'[sS][tT][oO][pP][tT][rR][aA][cC][eE];
