@@ -44,32 +44,51 @@ Profiling annotations allow you to define custom trace spans directly in your RP
 Profiling annotations use the following syntax:
 
 ```rpgle
-PROF* SPANSTART <span_id> ["optional comment"]
+ COP* *TRACE
+    * @StartTrace M(<span_id>) ["optional comment"]
     // RPG code to trace
-PROF* SPANEND
+    *@StopTrace [M(<span_id>)] [T(XXX &A(VAR1);&A(VAR2))] ["optional comment"]
 ```
 
 #### Components:
 
-- **`PROF*`**: The profiling annotation prefix (case-insensitive)
-- **`SPANSTART`**: Marks the beginning of a trace span (case-insensitive)
-- **`SPANEND`**: Marks the end of a trace span (case-insensitive)
-- **`<span_id>`**: A unique identifier for the span (can contain letters, numbers, and special characters: `§£#@$_`)
+- **`COP* *TRACE`**: The profiling annotation that enable annotation in the program (case-insensitive)
+- **`@StopTrace`**: Marks the beginning of a trace span (case-insensitive) identified by `<span_id>`
+- **`@StopTrace`**: Marks the end of a trace span (case-insensitive) optionally identified by `<span_id>`
+- **`M(<span_id>)`**: A unique identifier for the span (can contain letters, numbers, and special characters: `§£#@$_`)
+- **`T(XXX &A(<var1>);&A(<var2>))`**: An optional list of variables to keep trace of, separated by ';'
 - **`"optional comment"`**: An optional descriptive comment enclosed in double quotes
-
 ### Basic Example
 
 ```rpgle
      V* ==============================================================
      V* Basic RPG Profiling Example
      V* ==============================================================
+   COP* *TRACE
      D A               S              8  0 INZ(5)
      D B               S              8  0 INZ(8)
      D RESULT          S              8  0 INZ(0)
       *
-  PROF* SPANSTART CALCULATION "Simple addition operation"
+      *@StartTrace M(CALCULATION) "Simple addition operation"
      C                   EVAL      RESULT = A + B
-  PROF* SPANEND
+      *@StopTrace M(CALCULATION)
+     C                   SETON                                        LR
+```
+
+#### Basic Example with capture
+
+```rpgle
+     V* ==============================================================
+     V* Basic RPG Profiling Example with capture
+     V* ==============================================================
+   COP* *TRACE
+     D A               S              8  0 INZ(5)
+     D B               S              8  0 INZ(8)
+     D RESULT          S              8  0 INZ(0)
+      *
+      *@StartTrace M(CALCULATION) "Simple addition operation"
+     C                   EVAL      RESULT = A + B
+      *@StopTrace M(CALCULATION) T(XXX &A(RESULT);&A(A);&A(B))
      C                   SETON                                        LR
 ```
 
@@ -81,21 +100,22 @@ PROF* SPANEND
      V* ==============================================================
      V* Nested Profiling Spans Example
      V* ==============================================================
+   COP* *TRACE
      D COUNTER         S              3  0
      D RESULT          S              8  0 INZ(0)
      D A               S              8  0 INZ(5)
      D B               S              8  0 INZ(8)
       *
-  PROF* SPANSTART MAIN_LOOP "Main processing loop"
+      *@StartTrace M(MAIN_LOOP) "Main processing loop"
      C                   FOR       COUNTER = 1 TO 10
-  PROF* SPANSTART CALCULATION "Inner calculation"
+      *@StartTrace M(CALCULATION) "Inner calculation"
      C                   EVAL      RESULT = A + B * COUNTER
-  PROF* SPANEND
-  PROF* SPANSTART DISPLAY "Display result"
+      * @StopTrace M(CALCULATION)
+      *@StartTrace M(DISPLAY) "Display result"
      C     RESULT        DSPLY
-  PROF* SPANEND
+      * @StopTrace M(DISPLAY)
      C                   ENDFOR
-  PROF* SPANEND
+      * @StopTrace M(MAIN_LOOP)
      C                   SETON                                        LR
 ```
 
@@ -105,26 +125,27 @@ PROF* SPANEND
      V* ==============================================================
      V* Conditional Processing with Profiling
      V* ==============================================================
+   COP* *TRACE
      D STATUS          S              1A INZ('A')
      D AMOUNT          S             10  2 INZ(100.50)
      D RESULT          S             10  2
       *
-  PROF* SPANSTART VALIDATION "Input validation"
+      *@StartTrace M(VALIDATION) "Input validation"
      C                   SELECT
      C                   WHEN      STATUS = 'A'
-  PROF* SPANSTART ACTIVE_PROCESSING "Process active records"
+      *@StartTrace M(ACTIVE_PROCESSING) "Process active records"
      C                   EVAL      RESULT = AMOUNT * 1.1
-  PROF* SPANEND
+      * @StopTrace M(ACTIVE_PROCESSING)
      C                   WHEN      STATUS = 'I'
-  PROF* SPANSTART INACTIVE_PROCESSING "Process inactive records"
+      *@StartTrace M(INACTIVE_PROCESSING) "Process inactive records"
      C                   EVAL      RESULT = AMOUNT * 0.9
-  PROF* SPANEND
+      * @StopTrace M(INACTIVE_PROCESSING)
      C                   OTHER
-  PROF* SPANSTART ERROR_PROCESSING "Handle error cases"
+      *@StartTrace M(ERROR_PROCESSING) "Handle error cases"
      C                   EVAL      RESULT = 0
-  PROF* SPANEND
+      * @StopTrace M(ERROR_PROCESSING)
      C                   ENDSL
-  PROF* SPANEND
+      * @StopTrace M(VALIDATION)
      C                   SETON                                        LR
 ```
 
@@ -134,25 +155,26 @@ PROF* SPANEND
      V* ==============================================================
      V* Database Operations Profiling Example
      V* ==============================================================
+   COP* *TRACE
      D CUSTOMER_ID     S             10A
      D CUSTOMER_NAME   S             30A
      D ORDER_COUNT     S              5  0
       *
-  PROF* SPANSTART DB_SETUP "Database connection setup"
+      *@StartTrace M(DB_SETUP) "Database connection setup"
       // Database setup code here
-  PROF* SPANEND
-  PROF* SPANSTART CUSTOMER_READ "Read customer data"
+      * @StopTrace M(DB_SETUP)
+      *@StartTrace M(CUSTOMER_READ) "Read customer data"
       // Read customer record
      C                   EVAL      CUSTOMER_ID = 'CUST001'
      C                   EVAL      CUSTOMER_NAME = 'John Doe'
-  PROF* SPANEND
-  PROF* SPANSTART ORDER_COUNT "Count customer orders"
+      * @StopTrace M(CUSTOMER_READ)
+      *@StartTrace M(ORDER_COUNT) "Count customer orders"
       // Count orders for customer
      C                   EVAL      ORDER_COUNT = 5
-  PROF* SPANEND
-  PROF* SPANSTART REPORT_GEN "Generate customer report"
+      * @StopTrace M(ORDER_COUNT)
+      *@StartTrace M(REPORT_GEN) "Generate customer report"
      C                   EVAL      %SUBST(CUSTOMER_NAME:1:10) = 'Report for'
-  PROF* SPANEND
+      * @StopTrace M(REPORT_GEN)
      C                   SETON                                        LR
 ```
 
@@ -162,6 +184,7 @@ PROF* SPANEND
      V* ==============================================================
      V* Performance Testing Example
      V* ==============================================================
+   COP* *TRACE
      D LOOP_COUNT      S              7  0
      D COUNTER         S              7  0
      D RESULT          S             15  5
@@ -170,21 +193,21 @@ PROF* SPANEND
      D ELAPSED_MS      S             10  0
       *
      C                   EVAL      LOOP_COUNT = 100000
-  PROF* SPANSTART PERFORMANCE_TEST "Large loop performance test"
+      *@StartTrace M(PERFORMANCE_TEST) "Large loop performance test"
      C                   TIME                    START_TIME
-  PROF* SPANSTART CALCULATION_LOOP "Main calculation loop"
+      *@StartTrace M(CALCULATION_LOOP) "Main calculation loop"
      C     1             DO        LOOP_COUNT    COUNTER
      C                   EVAL      RESULT = %SQRT(COUNTER * 3.14159)
      C                   ENDDO
-  PROF* SPANEND
+      * @StopTrace M(CALCULATION_LOOP)
      C                   TIME                    END_TIME
      C     END_TIME      SUBDUR    START_TIME    ELAPSED_MS:*MS
-  PROF* SPANSTART RESULT_DISPLAY "Display performance results"
+      *@StartTrace M(RESULT_DISPLAY) "Display performance results"
      C                   EVAL      ELAPSED_MS = ELAPSED_MS / 1000
      C     'Performance test completed'  DSPLY
      C     ELAPSED_MS    DSPLY
-  PROF* SPANEND
-  PROF* SPANEND
+      * @StopTrace M(RESULT_DISPLAY)
+      * @StopTrace M(PERFORMANCE_TEST)
      C                   SETON                                        LR
 ```
 
@@ -193,37 +216,54 @@ PROF* SPANEND
 ### 1. Meaningful Span Names
 Use descriptive names that clearly indicate what the span is measuring:
 ```rpgle
-  PROF* SPANSTART CUSTOMER_VALIDATION "Validate customer data integrity"
-  PROF* SPANSTART DB_CUSTOMER_READ "Read customer from database"
-  PROF* SPANSTART CALC_DISCOUNT "Calculate customer discount percentage"
+      *@StartTrace M(CUSTOMER_VALIDATION) "Validate customer data integrity"
+      *@StartTrace M(DB_CUSTOMER_READ) "Read customer from database"
+      *@StartTrace M(CALC_DISCOUNT) "Calculate customer discount percentage"
 ```
 
 ### 2. Proper Nesting
 Ensure spans are properly nested and closed:
 ```rpgle
-  PROF* SPANSTART OUTER "Outer operation"
-  PROF* SPANSTART INNER "Inner operation"
+      *@StartTrace M(OUTER) "Outer operation"
+      *@StartTrace M(INNER) "Inner operation"
       // code here
-  PROF* SPANEND
-  PROF* SPANEND
+      * @StopTrace M(INNER)
+      * @StopTrace M(OUTER)
 ```
 
 ### 3. Granular Measurement
 Use spans to isolate specific operations for performance analysis:
 ```rpgle
-  PROF* SPANSTART FILE_IO "File input/output operations"
+      *@StartTrace M(FILE_IO) "File input/output operations"
       // File operations
-  PROF* SPANEND
-  PROF* SPANSTART CALCULATIONS "Business logic calculations"
+      * @StopTrace M(FILE_IO)
+      *@StartTrace M(CALCULATIONS) "Business logic calculations"
       // Calculation code
-  PROF* SPANEND
+      * @StopTrace M(CALCULATIONS)
 ```
 
 ### 4. Include Comments
 Add meaningful comments to provide context:
 ```rpgle
-  PROF* SPANSTART BATCH_PROCESS "Process 10,000 customer records in batch"
-  PROF* SPANSTART VALIDATION "Validate customer data against business rules"
+      *@StartTrace M(BATCH_PROCESS) "Process 10,000 customer records in batch"
+      *@StartTrace M(VALIDATION) "Validate customer data against business rules"
+```
+
+### 5. Include profile annotation
+Include `COP* *TRACE` profile annotation before variable declaration for consistency:
+```rpgle
+     V* ==============================================================
+     V* Basic RPG Profiling Example
+     V* ==============================================================
+   COP* *TRACE
+     D A               S              8  0 INZ(5)
+     D B               S              8  0 INZ(8)
+     D RESULT          S              8  0 INZ(0)
+      *
+      *@StartTrace M(CALCULATION) "Simple addition operation"
+     C                   EVAL      RESULT = A + B
+      *@StopTrace M(CALCULATION) T(XXX &A(RESULT);&A(A);&A(B))
+     C                   SETON                                        LR
 ```
 
 ## Integration with Copy Members
@@ -232,19 +272,20 @@ Profiling annotations can be used in copy members that are included in your prog
 
 **COPY_WITH_PROFILING.rpgle**:
 ```rpgle
-  PROF* SPANSTART COPY_OPERATION "Shared business logic from copy member"
+      *@StartTrace M(COPY_OPERATION) "Shared business logic from copy member"
      C                   EVAL      RESULT = INPUT_VALUE * 2
-  PROF* SPANEND
+      * @StopTrace M(COPY_OPERATION)
 ```
 
 **Main Program**:
 ```rpgle
+   COP* *TRACE
      D INPUT_VALUE     S             10  2 INZ(50.25)
      D RESULT          S             10  2
       *
-  PROF* SPANSTART MAIN_PROCESSING "Main program processing"
+      *@StartTrace M(MAIN_PROCESSING) "Main program processing"
       /COPY COPY_WITH_PROFILING
-  PROF* SPANEND
+      * @StopTrace M(MAIN_PROCESSING)
      C                   SETON                                        LR
 ```
 
@@ -252,8 +293,8 @@ Profiling annotations can be used in copy members that are included in your prog
 
 ### Common Issues
 
-1. **Spans Not Appearing**: Ensure `profilingSupport = true` in your configuration
-2. **Unmatched Spans**: Check that every `SPANSTART` has a corresponding `SPANEND`
+1. **Spans Not Appearing**: Ensure `profilingSupport = true` in your configuration and `COP* *TRACE` is included
+2. **Unmatched Spans**: Check that every `@StartTrace` has a corresponding `@StopTrace`
 3. **Invalid Span IDs**: Span IDs can only contain letters, numbers, and these special characters: `§£#@$_`
 
 ### Debugging Profiling
