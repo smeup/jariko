@@ -4,17 +4,18 @@
     O * PROGRAM GOAL
     O * Emit RPG Traces
      V* ==============================================================
+   COP* *TRACE
      DA                S              8  0 INZ(5)
      DB                S              8  0 INZ(8)
      D RESULT          S              8  0 INZ(0)
       *
-  PROF* SPANSTART _SPANID1 "COMMENT"
-  PROF* SPANSTART _SPANID2 "COMMENT"
-  PROF* SPANSTART _SPANID3 "COMMENT"
-  PROF* SPANSTART _SPANID4 "COMMENT"
+      *@StartTrace M(_SPANID1) "COMMENT"
+      *@StartTrace M(_SPANID2) "COMMENT"
+      *@StartTrace M(_SPANID3) "COMMENT"
+      *@StartTrace M(_SPANID4) "COMMENT"
      C                   EVAL      RESULT = A + B
-  PROF* SPANEND
-  PROF* SPANEND
-  PROF* SPANEND
-  PROF* SPANEND
+      *@StopTrace M(_SPANID4)
+      *@StopTrace M(_SPANID3)
+      *@StopTrace M(_SPANID2)
+      *@StopTrace M(_SPANID1)
      C                   SETON                                        LR
