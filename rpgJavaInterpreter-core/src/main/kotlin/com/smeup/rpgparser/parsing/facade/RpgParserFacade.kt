@@ -659,7 +659,12 @@ class RpgParserFacade {
                         if (token0.type == COMMENT_SPEC_FIXED &&
                             token0.text.endsWith("*") &&
                             token1.type == COMMENTS_TEXT &&
-                            profilingTokens.any { token1.text.lowercase().trim().startsWith(it) }
+                            profilingTokens.any {
+                                token1.text
+                                    .lowercase()
+                                    .trim()
+                                    .startsWith(it)
+                            }
 
                         ) {
                             // Please note the leading spaces added to the token
@@ -676,7 +681,7 @@ class RpgParserFacade {
         return profiling
     }
 
-    private fun checkTracingEnabled(tokens: List<Token>) : Boolean {
+    private fun checkTracingEnabled(tokens: List<Token>): Boolean {
         return tokens.withIndex().any { (index, token0) ->
             val isInRange = index < tokens.size - 2
             if (!isInRange) {
@@ -686,10 +691,10 @@ class RpgParserFacade {
             val token2 = tokens[index + 2]
             // Please note the leading spaces added
             return@any token0.type == LEAD_WS5_Comments &&
-                    token0.text == "".padStart(3) + "CO" &&
-                    token1.type == COMMENT_SPEC_FIXED &&
-                    token1.text == "P*" &&
-                    token2.type == COMMENTS_TEXT
+                token0.text == "".padStart(3) + "CO" &&
+                token1.type == COMMENT_SPEC_FIXED &&
+                token1.text == "P*" &&
+                token2.type == COMMENTS_TEXT
         }
     }
 

@@ -29,7 +29,13 @@ import com.smeup.rpgparser.parsing.ast.ProfilingSpanEndAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.allStatements
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import kotlin.test.*
+import junit.framework.TestCase.assertEquals
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 open class ProfilingAnnotationTest : AbstractTest() {
     lateinit var smeupConfig: Configuration
@@ -101,6 +107,19 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(cu, listOf("_SPANID1" to 13), LookupMode.Statement)
         assertSpanEndAnnotationPositions(cu, listOf(14))
         assertSpanEndStatementPositions(cu, listOf(13))
+    }
+
+    /**
+     * Test the injection of telemetry spans in a simple use case (1 OPEN, 1 CLOSE) when tracing is disabled
+     */
+    @Test
+    fun executeSimpleTelemetrySpanDisabled() {
+        val cu = assertASTCanBeProduced("profiling/SIMPLE_TELEMETRY_SPAN_DISABLED", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(0, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
     }
 
     /**

@@ -2026,6 +2026,29 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals("WRITTEN", writeNewValue.trim())
     }
 
+    /**
+     * Test the injection of telemetry spans in DO statements and capture all variables.
+     */
+    @Test
+    fun executeTelemetryCaptures() {
+        var captures = emptyMap<String, String>()
+        val configuration =
+            Configuration()
+                .apply {
+                    jarikoCallback.finishRpgTrace = { trace ->
+                        captures = trace.captures ?: emptyMap()
+                    }
+                    options.profilingSupport = true
+                }
+
+        executePgm("profiling/DO_TELEMETRY_SPAN_CAPTURES", configuration = configuration)
+
+        assertEquals(3, captures.size)
+        assertEquals("69", captures.get("RESULT"))
+        assertEquals("5", captures.get("A"))
+        assertEquals("8", captures.get("B"))
+    }
+
     private fun createMockReloadConfig(): ReloadConfig {
         val metadata =
             mapOf(
