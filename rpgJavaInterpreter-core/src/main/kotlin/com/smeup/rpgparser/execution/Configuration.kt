@@ -328,9 +328,11 @@ data class JarikoCallback(
      * It is invoked whenever we finish a telemetry trace defined as annotation in an RPG program.
      * Enabled when the [Options.profilingSupport] flag is enabled.
      *
+     * @param trace The object containing all the information about this trace.
+     *
      * @see Options.profilingSupport
      */
-    var finishRpgTrace: (() -> Unit) = {
+    var finishRpgTrace: ((trace: RpgTrace) -> Unit) = {
         // Defaults to a no-op
     },
     /**

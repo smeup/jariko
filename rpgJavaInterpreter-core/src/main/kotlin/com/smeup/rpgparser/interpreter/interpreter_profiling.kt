@@ -91,7 +91,12 @@ internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation) {
         }
         is ProfilingSpanEndAnnotation -> {
             val callback = configuration.jarikoCallback
-            callback.finishRpgTrace()
+            val description = annotation.name ?: ""
+            val captures = annotation.captures.associate { it to this.get(it).asString().value }
+            val program = MainExecutionContext.getProgramStack().peekOrNull()
+            val (_, sourceReference) = annotation.position!!.relative(programName, program?.cu?.copyBlocks)
+            val trace = RpgTrace(sourceReference.sourceId, description, sourceReference.relativeLine, captures)
+            callback.finishRpgTrace(trace)
 
             renderLog {
                 val logSource = { LogSourceData(programName, annotation.startLine()) }

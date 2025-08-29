@@ -64,6 +64,8 @@ data class ProfilingSpanStartAnnotation(
  */
 @Serializable
 data class ProfilingSpanEndAnnotation(
+    val name: String?,
+    val captures: List<String>,
     override val position: Position? = null,
 ) : ProfilingAnnotation(
         ProfilingAnnotationAttachStrategy.AttachToPrevious,

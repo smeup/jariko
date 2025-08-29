@@ -648,22 +648,23 @@ class RpgParserFacade {
                 val lexResult = lex(inputStream)
                 errors.addAll(lexResult.errors)
                 val isTracingEnabled = this.checkTracingEnabled(lexResult.root ?: emptyList())
-                if (isTracingEnabled) {
-                    lexResult.root?.forEachIndexed { index, token0 ->
-                        val isInRange = index < lexResult.root.size - 1
-                        if (isInRange) {
-                            val token1 = lexResult.root[index + 1]
-                            // Please note the leading spaces added
-                            if (token0.type == COMMENT_SPEC_FIXED &&
-                                token0.text.endsWith("*") &&
-                                token1.type == COMMENTS_TEXT &&
-                                profilingTokens.any{token1.text.lowercase().trim().startsWith(it)}
+                if (!isTracingEnabled) {
+                    return@measureNanoTime
+                }
+                lexResult.root?.forEachIndexed { index, token0 ->
+                    val isInRange = index < lexResult.root.size - 1
+                    if (isInRange) {
+                        val token1 = lexResult.root[index + 1]
+                        // Please note the leading spaces added
+                        if (token0.type == COMMENT_SPEC_FIXED &&
+                            token0.text.endsWith("*") &&
+                            token1.type == COMMENTS_TEXT &&
+                            profilingTokens.any { token1.text.lowercase().trim().startsWith(it) }
 
-                            ) {
-                                // Please note the leading spaces added to the token
-                                val preproc = preprocess(token1.text)
-                                profiling[token1.line] = parseProfiling("".padStart(8) + preproc, errors)
-                            }
+                        ) {
+                            // Please note the leading spaces added to the token
+                            val preproc = preprocess(token1.text)
+                            profiling[token1.line] = parseProfiling("".padStart(8) + preproc, errors)
                         }
                     }
                 }

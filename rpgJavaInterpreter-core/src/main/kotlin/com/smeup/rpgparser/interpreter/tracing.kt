@@ -48,6 +48,7 @@ data class RpgTrace(
     val program: String,
     val description: String = "",
     val line: Int,
+    val captures: Map<String, String>? = null
 ) {
     val fullName =
         run {

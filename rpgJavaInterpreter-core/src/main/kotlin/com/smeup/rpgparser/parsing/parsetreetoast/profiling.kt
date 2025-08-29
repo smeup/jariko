@@ -49,7 +49,9 @@ fun ProfilingParser.ProfilingLineContext.toAst(
             ProfilingSpanStartAnnotation(name, comment, position)
         }
         is ProfilingParser.ProfilingSpanEndAnnotationContext -> {
-            ProfilingSpanEndAnnotation(position)
+            val name = annotation.TELEMETRY_SPAN_ID()?.text?.trim()
+            val captures = annotation.captureScope()?.let { it.attributeCapture().map { it.TELEMETRY_SPAN_ID().text.trim() } } ?: emptyList()
+            ProfilingSpanEndAnnotation(name,captures, position)
         }
         else -> TODO(this.text.toString())
     }
