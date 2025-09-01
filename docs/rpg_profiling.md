@@ -58,6 +58,23 @@ Profiling annotations use the following syntax:
 - **`M(<span_id>)`**: A unique identifier for the span (can contain letters, numbers, and special characters: `§£#@$_`)
 - **`T(XXX &A(<var1>);&A(<var2>))`**: An optional list of variables to keep trace of, separated by ';'
 - **`"optional comment"`**: An optional descriptive comment enclosed in double quotes
+
+### How to disable program profiling:
+To disable profile annotation is sufficient to omit **`COP* *TRACE`** from the program
+#### Disabling tracing example
+```rpgle
+     V* ==============================================================
+     V* Basic RPG Disabled Profiling Example
+     V* ==============================================================
+     DA                S              8  0 INZ(5)
+     DB                S              8  0 INZ(8)
+     D RESULT          S              8  0 INZ(0)
+      *
+      * @StartTrace M(_SPANID1) "COMMENT"
+     C                   EVAL      RESULT = A + B
+      * @StopTrace M(_SPANID1)
+     C                   SETON                                        LR
+* ```
 ### Basic Example
 
 ```rpgle
