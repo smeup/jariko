@@ -74,35 +74,28 @@ internal fun InterpreterCore.executeProfiling(annotations: List<ProfilingAnnotat
  */
 internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation) {
     val configuration = getConfiguration()
+    val callback = configuration.jarikoCallback
     val programName = getInterpretationContext().currentProgramName
+    val program = MainExecutionContext.getProgramStack().peekOrNull()
+    val (_, sourceReference) = annotation.position!!.relative(programName, program?.cu?.copyBlocks)
     when (annotation) {
         is ProfilingSpanStartAnnotation -> {
-            val callback = configuration.jarikoCallback
             val description = annotation.description
-            val program = MainExecutionContext.getProgramStack().peekOrNull()
-            val (_, sourceReference) = annotation.position!!.relative(programName, program?.cu?.copyBlocks)
+
             val trace = RpgTrace(sourceReference.sourceId, description, sourceReference.relativeLine)
             callback.startRpgTrace(trace)
-
-            renderLog {
-                val logSource = { LogSourceData(programName, annotation.startLine()) }
-                LazyLogEntry.produceProfiling(annotation, logSource)
-            }
         }
         is ProfilingSpanEndAnnotation -> {
-            val callback = configuration.jarikoCallback
             val description = annotation.name ?: ""
             val captures = annotation.captures.associate { it to this.get(it).asString().value }
-            val program = MainExecutionContext.getProgramStack().peekOrNull()
-            val (_, sourceReference) = annotation.position!!.relative(programName, program?.cu?.copyBlocks)
+
             val trace = RpgTrace(sourceReference.sourceId, description, sourceReference.relativeLine, captures)
             callback.finishRpgTrace(trace)
-
-            renderLog {
-                val logSource = { LogSourceData(programName, annotation.startLine()) }
-                LazyLogEntry.produceProfiling(annotation, logSource)
-            }
         }
+    }
+    renderLog {
+        val logSource = { LogSourceData(programName, annotation.startLine()) }
+        LazyLogEntry.produceProfiling(annotation, logSource)
     }
 }
 
