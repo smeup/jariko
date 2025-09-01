@@ -53,7 +53,7 @@ Profiling annotations use the following syntax:
 #### Components:
 
 - **`COP* *TRACE`**: The profiling annotation that enable annotation in the program (case-insensitive)
-- **`@StopTrace`**: Marks the beginning of a trace span (case-insensitive) identified by `<span_id>`
+- **`@StartTrace`**: Marks the beginning of a trace span (case-insensitive) identified by `<span_id>`
 - **`@StopTrace`**: Marks the end of a trace span (case-insensitive) optionally identified by `<span_id>`
 - **`M(<span_id>)`**: A unique identifier for the span (can contain letters, numbers, and special characters: `§£#@$_`)
 - **`T(XXX &A(<var1>);&A(<var2>))`**: An optional list of variables to keep trace of, separated by ';'
