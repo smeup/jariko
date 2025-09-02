@@ -28,9 +28,9 @@ val configuration = Configuration().apply {
         // Handle trace start
         println("Starting trace: ${trace.fullName}")
     }
-    jarikoCallback.finishRpgTrace = {
-        // Handle trace end
-        println("Finished trace")
+    jarikoCallback.finishRpgTrace = { trace ->
+        // Handle trace end with captures
+        captures = trace.captures ?: emptyMap()
     }
 }
 ```
