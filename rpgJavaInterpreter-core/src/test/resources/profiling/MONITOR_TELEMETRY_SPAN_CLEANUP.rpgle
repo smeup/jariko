@@ -4,23 +4,24 @@
     O * PROGRAM GOAL
     O * Emit RPG Traces
      V* ==============================================================
+   COP* *TRACE
      DA                S              8  0 INZ(5)
      DB                S              8  0 INZ(8)
      D RESULT          S              8  0 INZ(0)
      D COUNT           S              3  0
       *
-  PROF* SPANSTART BEFORESTMT
+      *@StartTrace M(BEFORESTMT)
      C                   MONITOR
-  PROF* SPANSTART NOTCLEANED
+      *@StartTrace M(NOTCLEANED)
      C                   EVAL      COUNT = 3
-  PROF* SPANEND
-  PROF* SPANSTART STMTBEGIN
+      *@StopTrace M(NOTCLEANED)
+      *@StartTrace M(STMTBEGIN)
      C                   CALL      'MISSING'                                    £MON
-  PROF* SPANEND
+      *@StopTrace M(STMTBEGIN)
      C                   ON-ERROR
-  PROF* SPANSTART STMTERROR
+      *@StartTrace M(STMTERROR)
      C     'ok'          DSPLY
-  PROF* SPANEND
+      *@StopTrace M(STMTERROR)
      C                   ENDMON
-  PROF* SPANEND
+      *@StopTrace M(BEFORESTMT)
      C                   SETON                                        LR

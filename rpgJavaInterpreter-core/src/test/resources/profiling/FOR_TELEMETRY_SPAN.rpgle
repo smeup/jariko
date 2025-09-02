@@ -4,16 +4,17 @@
     O * PROGRAM GOAL
     O * Emit RPG Traces
      V* ==============================================================
+   COP* *TRACE
      DA                S              8  0 INZ(5)
      DB                S              8  0 INZ(8)
      D RESULT          S              8  0 INZ(0)
      D COUNT           S              3  0
       *
-  PROF* SPANSTART BEFOREFOR
+      *@StartTrace M(BEFOREFOR)
      C                   FOR       COUNT = 10 DOWNTO 1
-  PROF* SPANSTART FORBODYSTART
+      *@StartTrace M(FORBODYSTART)
      C                   EVAL      RESULT = A + B * 8
-  PROF* SPANEND
+      *@StopTrace M(FORBODYSTART)
      C                   ENDFOR
-  PROF* SPANEND
+      *@StopTrace M(BEFOREFOR)
      C                   SETON                                        LR
