@@ -1957,7 +1957,7 @@ class JarikoCallbackTest : AbstractTest() {
                     readDataArea = dataArea
                     "READ"
                 }
-                jarikoCallback.writeDataArea = { dataArea, value ->
+                jarikoCallback.writeDataArea = { dataArea, _ ->
                     writeDataArea = dataArea
                 }
             }
