@@ -4,21 +4,22 @@
     O * PROGRAM GOAL
     O * Emit RPG Traces
      V* ==============================================================
+   COP* *TRACE
      DA                S              8  0 INZ(5)
      DB                S              8  0 INZ(8)
      D RESULT          S              8  0 INZ(0)
      D COUNT           S              3  0
       *
-  PROF* SPANSTART _SPANID1 "COMMENT"
+      * @StartTrace M( _SPANID1) "COMMENT"
      C                   EVAL      RESULT = A + B
-  PROF* SPANSTART _SPANID2 "COMMENT 2"
+      * @StartTrace M( _SPANID2) "COMMENT 2"
      C                   FOR       COUNT = 10 DOWNTO 1
-  PROF* SPANSTART _SPANID3
+      * @StartTrace M( _SPANID3)
      C                   EVAL      RESULT = A + B * 8
-  PROF* SPANEND
+      * StopTrace M(_SPANID3)
      C                   EVAL      RESULT = 0
      C                   ENDFOR
-  PROF* SPANEND
-  PROF* SPANEND
+      * StopTrace M(_SPANID2)
+      * StopTrace M(_SPANID1)
      C                   SETON                                        LR
-  PROF* SPANSTART _SPANID4
+      * @StartTrace M( _SPANID4)

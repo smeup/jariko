@@ -29,7 +29,13 @@ import com.smeup.rpgparser.parsing.ast.ProfilingSpanEndAnnotation
 import com.smeup.rpgparser.parsing.ast.ProfilingSpanStartAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.allStatements
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import kotlin.test.*
+import junit.framework.TestCase.assertEquals
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 open class ProfilingAnnotationTest : AbstractTest() {
     lateinit var smeupConfig: Configuration
@@ -97,10 +103,23 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
 
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 11), LookupMode.Annotation)
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 12), LookupMode.Statement)
-        assertSpanEndAnnotationPositions(cu, listOf(13))
-        assertSpanEndStatementPositions(cu, listOf(12))
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 12), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 13), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(14))
+        assertSpanEndStatementPositions(cu, listOf(13))
+    }
+
+    /**
+     * Test the injection of telemetry spans in a simple use case (1 OPEN, 1 CLOSE) when tracing is disabled
+     */
+    @Test
+    fun executeSimpleTelemetrySpanDisabled() {
+        val cu = assertASTCanBeProduced("profiling/SIMPLE_TELEMETRY_SPAN_DISABLED", true, withProfilingSupport = true)
+        cu.resolveAndValidate()
+        execute(cu, emptyMap())
+
+        assertEquals(0, cu.resolvedProfilingAnnotations.size)
+        assertSourceLineEquivalence(cu.resolvedProfilingAnnotations)
     }
 
     /**
@@ -123,12 +142,12 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
         assertSpanStartPositions(
             cu,
-            listOf("_SPANID1" to 12, "_SPANID2" to 14, "_SPANID3" to 16),
+            listOf("_SPANID1" to 13, "_SPANID2" to 15, "_SPANID3" to 17),
             LookupMode.Annotation,
         )
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 13, "_SPANID2" to 15, "_SPANID3" to 17), LookupMode.Statement)
-        assertSpanEndAnnotationPositions(cu, listOf(21, 22, 18))
-        assertSpanEndStatementPositions(cu, listOf(15, 15, 17))
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 14, "_SPANID2" to 16, "_SPANID3" to 18), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(22, 23, 19))
+        assertSpanEndStatementPositions(cu, listOf(16, 16, 18))
     }
 
     /**
@@ -162,16 +181,16 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
         assertSpanStartPositions(
             cu,
-            listOf("_SPANID1" to 11, "_SPANID2" to 12, "_SPANID3" to 13, "_SPANID4" to 14),
+            listOf("_SPANID1" to 12, "_SPANID2" to 13, "_SPANID3" to 14, "_SPANID4" to 15),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
-            listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15),
+            listOf("_SPANID1" to 16, "_SPANID2" to 16, "_SPANID3" to 16, "_SPANID4" to 16),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(16, 17, 18, 19))
-        assertSpanEndStatementPositions(cu, listOf(15, 15, 15, 15))
+        assertSpanEndAnnotationPositions(cu, listOf(17, 18, 19, 20))
+        assertSpanEndStatementPositions(cu, listOf(16, 16, 16, 16))
     }
 
     /**
@@ -195,16 +214,16 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
         assertSpanStartPositions(
             cu,
-            listOf("_SPANID1" to 11, "_SPANID2" to 12, "_SPANID3" to 13, "_SPANID4" to 14),
+            listOf("_SPANID1" to 12, "_SPANID2" to 13, "_SPANID3" to 14, "_SPANID4" to 15),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
-            listOf("_SPANID1" to 15, "_SPANID2" to 15, "_SPANID3" to 15, "_SPANID4" to 15),
+            listOf("_SPANID1" to 16, "_SPANID2" to 16, "_SPANID3" to 16, "_SPANID4" to 16),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(16, 17, 18, 20))
-        assertSpanEndStatementPositions(cu, listOf(15, 15, 15, 19))
+        assertSpanEndAnnotationPositions(cu, listOf(17, 18, 19, 21))
+        assertSpanEndStatementPositions(cu, listOf(16, 16, 16, 20))
     }
 
     /**
@@ -221,21 +240,21 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFOREFOR" to 12,
-                "FORBODYSTART" to 14,
+                "BEFOREFOR" to 13,
+                "FORBODYSTART" to 15,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFOREFOR" to 13,
-                "FORBODYSTART" to 15,
+                "BEFOREFOR" to 14,
+                "FORBODYSTART" to 16,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(16, 18))
-        assertSpanEndStatementPositions(cu, listOf(13, 15))
+        assertSpanEndAnnotationPositions(cu, listOf(17, 19))
+        assertSpanEndStatementPositions(cu, listOf(14, 16))
     }
 
     /**
@@ -253,21 +272,21 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFOREDO" to 12,
-                "DOBODYSTART" to 14,
+                "BEFOREDO" to 13,
+                "DOBODYSTART" to 15,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFOREDO" to 13,
-                "DOBODYSTART" to 15,
+                "BEFOREDO" to 14,
+                "DOBODYSTART" to 16,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(16, 18))
-        assertSpanEndStatementPositions(cu, listOf(13, 15))
+        assertSpanEndAnnotationPositions(cu, listOf(17, 19))
+        assertSpanEndStatementPositions(cu, listOf(14, 16))
     }
 
     /**
@@ -285,23 +304,23 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFORESTMT" to 12,
-                "STMTBEGIN" to 14,
-                "STMTERROR" to 18,
+                "BEFORESTMT" to 13,
+                "STMTBEGIN" to 15,
+                "STMTERROR" to 19,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFORESTMT" to 13,
-                "STMTBEGIN" to 15,
-                "STMTERROR" to 19,
+                "BEFORESTMT" to 14,
+                "STMTBEGIN" to 16,
+                "STMTERROR" to 20,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(16, 20, 22))
-        assertSpanEndStatementPositions(cu, listOf(13, 15, 19))
+        assertSpanEndAnnotationPositions(cu, listOf(17, 21, 23))
+        assertSpanEndStatementPositions(cu, listOf(14, 16, 20))
     }
 
     /**
@@ -319,25 +338,25 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFORESTMT" to 12,
-                "IFBODY" to 14,
-                "ELIFBODY" to 19,
-                "ELSEBODY" to 24,
+                "BEFORESTMT" to 13,
+                "IFBODY" to 15,
+                "ELIFBODY" to 20,
+                "ELSEBODY" to 25,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFORESTMT" to 13,
-                "IFBODY" to 15,
-                "ELIFBODY" to 20,
-                "ELSEBODY" to 25,
+                "BEFORESTMT" to 14,
+                "IFBODY" to 16,
+                "ELIFBODY" to 21,
+                "ELSEBODY" to 26,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(17, 22, 27, 29))
-        assertSpanEndStatementPositions(cu, listOf(16, 21, 26, 13))
+        assertSpanEndAnnotationPositions(cu, listOf(18, 23, 28, 30))
+        assertSpanEndStatementPositions(cu, listOf(17, 22, 27, 14))
     }
 
     /**
@@ -355,25 +374,25 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFORESELECT" to 12,
-                "CONTENT1" to 15,
-                "CONTENT2" to 19,
-                "CONTENT3" to 23,
+                "BEFORESELECT" to 13,
+                "CONTENT1" to 16,
+                "CONTENT2" to 20,
+                "CONTENT3" to 24,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "BEFORESELECT" to 13,
-                "CONTENT1" to 16,
-                "CONTENT2" to 20,
-                "CONTENT3" to 24,
+                "BEFORESELECT" to 14,
+                "CONTENT1" to 17,
+                "CONTENT2" to 21,
+                "CONTENT3" to 25,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(17, 21, 25, 27))
-        assertSpanEndStatementPositions(cu, listOf(13, 24, 20, 16))
+        assertSpanEndAnnotationPositions(cu, listOf(18, 22, 26, 28))
+        assertSpanEndStatementPositions(cu, listOf(14, 25, 21, 17))
     }
 
     /**
@@ -412,19 +431,19 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertSpanStartPositions(
             cu,
             listOf(
-                "_SPANID1" to 12,
+                "_SPANID1" to 13,
             ),
             LookupMode.Annotation,
         )
         assertSpanStartPositions(
             cu,
             listOf(
-                "_SPANID1" to 13,
+                "_SPANID1" to 14,
             ),
             LookupMode.Statement,
         )
-        assertSpanEndAnnotationPositions(cu, listOf(14))
-        assertSpanEndStatementPositions(cu, listOf(13))
+        assertSpanEndAnnotationPositions(cu, listOf(15))
+        assertSpanEndStatementPositions(cu, listOf(14))
     }
 
     /**
@@ -445,10 +464,10 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
 
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 13), LookupMode.Annotation)
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 14), LookupMode.Statement)
-        assertSpanEndAnnotationPositions(cu, listOf(15))
-        assertSpanEndStatementPositions(cu, listOf(14))
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 14), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 15), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(16))
+        assertSpanEndStatementPositions(cu, listOf(15))
     }
 
     /**
@@ -469,10 +488,10 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
 
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 17), LookupMode.Annotation)
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Statement)
-        assertSpanEndAnnotationPositions(cu, listOf(19))
-        assertSpanEndStatementPositions(cu, listOf(18))
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 19), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(20))
+        assertSpanEndStatementPositions(cu, listOf(19))
     }
 
     /**
@@ -493,10 +512,10 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
 
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 17), LookupMode.Annotation)
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Statement)
-        assertSpanEndAnnotationPositions(cu, listOf(19))
-        assertSpanEndStatementPositions(cu, listOf(18))
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 19), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(20))
+        assertSpanEndStatementPositions(cu, listOf(19))
     }
 
     /**
@@ -517,10 +536,10 @@ open class ProfilingAnnotationTest : AbstractTest() {
         assertEquals(1, openAnnotations.size)
         assertEquals(1, closeAnnotations.size)
 
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 17), LookupMode.Annotation)
-        assertSpanStartPositions(cu, listOf("_SPANID1" to 26), LookupMode.Statement)
-        assertSpanEndAnnotationPositions(cu, listOf(29))
-        assertSpanEndStatementPositions(cu, listOf(26))
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 18), LookupMode.Annotation)
+        assertSpanStartPositions(cu, listOf("_SPANID1" to 27), LookupMode.Statement)
+        assertSpanEndAnnotationPositions(cu, listOf(30))
+        assertSpanEndStatementPositions(cu, listOf(27))
     }
 
     /**

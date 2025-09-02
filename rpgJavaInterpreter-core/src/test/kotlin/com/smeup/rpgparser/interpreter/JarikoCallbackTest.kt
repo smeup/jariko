@@ -1160,7 +1160,7 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(1, closedTraces)
 
         // assert line of executed traces
-        openTraces.assertExecuted(11)
+        openTraces.assertExecuted(12)
     }
 
     /**
@@ -1189,9 +1189,9 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(12, closedTraces)
 
         // assert line of executed traces
-        openTraces.assertExecuted(12)
-        openTraces.assertExecuted(14)
-        openTraces.assertExecuted(16, 10)
+        openTraces.assertExecuted(13)
+        openTraces.assertExecuted(15)
+        openTraces.assertExecuted(17, 10)
     }
 
     /**
@@ -1246,10 +1246,10 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(4, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(11)
         traces.assertExecuted(12)
         traces.assertExecuted(13)
         traces.assertExecuted(14)
+        traces.assertExecuted(15)
     }
 
     /**
@@ -1279,10 +1279,10 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(4, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(11)
         traces.assertExecuted(12)
         traces.assertExecuted(13)
         traces.assertExecuted(14)
+        traces.assertExecuted(15)
     }
 
     /**
@@ -1311,8 +1311,8 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(11, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(12)
-        traces.assertExecuted(14, 10)
+        traces.assertExecuted(13)
+        traces.assertExecuted(15, 10)
     }
 
     /**
@@ -1341,8 +1341,8 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(101, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(12)
-        traces.assertExecuted(14, 100)
+        traces.assertExecuted(13)
+        traces.assertExecuted(15, 100)
     }
 
     /**
@@ -1371,9 +1371,9 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(3, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(12)
-        traces.assertExecuted(14)
-        traces.assertExecuted(18)
+        traces.assertExecuted(13)
+        traces.assertExecuted(15)
+        traces.assertExecuted(19)
     }
 
     /**
@@ -1403,10 +1403,10 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(4, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(12)
-        traces.assertExecuted(14)
-        traces.assertExecuted(17)
-        traces.assertExecuted(21)
+        traces.assertExecuted(13)
+        traces.assertExecuted(15)
+        traces.assertExecuted(18)
+        traces.assertExecuted(22)
     }
 
     /**
@@ -1435,8 +1435,8 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(2, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(12)
-        traces.assertExecuted(14)
+        traces.assertExecuted(13)
+        traces.assertExecuted(15)
     }
 
     /**
@@ -1465,8 +1465,8 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(2, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecuted(12)
-        traces.assertExecuted(23)
+        traces.assertExecuted(13)
+        traces.assertExecuted(24)
     }
 
     /**
@@ -1495,7 +1495,7 @@ class JarikoCallbackTest : AbstractTest() {
         assertEquals(1, closedTraces)
 
         // assert line of executed traces
-        traces.assertExecutedInSource("TELSPAN", 5)
+        traces.assertExecutedInSource("TELSPAN", 6)
     }
 
     @Test
@@ -2047,6 +2047,29 @@ class JarikoCallbackTest : AbstractTest() {
 
         assertEquals("C£C£E00D", writeDataArea)
         assertEquals("WRITTEN", writeNewValue.trim())
+    }
+
+    /**
+     * Test the injection of telemetry spans in DO statements and capture all variables.
+     */
+    @Test
+    fun executeTelemetryCaptures() {
+        var captures = emptyMap<String, String>()
+        val configuration =
+            Configuration()
+                .apply {
+                    jarikoCallback.finishRpgTrace = { trace ->
+                        captures = trace.captures ?: emptyMap()
+                    }
+                    options.profilingSupport = true
+                }
+
+        executePgm("profiling/DO_TELEMETRY_SPAN_CAPTURES", configuration = configuration)
+
+        assertEquals(3, captures.size)
+        assertEquals("69", captures.get("RESULT"))
+        assertEquals("5", captures.get("A"))
+        assertEquals("8", captures.get("B"))
     }
 
     private fun createMockReloadConfig(): ReloadConfig {
