@@ -1803,13 +1803,32 @@ data class ClearStmt(
 data class InStmt(
     val dataReference: String,
     val rightIndicators: WithRightIndicators,
+    val isLocking: Boolean,
     override val position: Position? = null,
 ) : Statement(position),
     WithRightIndicators by rightIndicators {
     override val loggableEntityName = "IN"
 
+    // This is just a wrapper internally needed to treat IN with *LOCK as mock.
+    data class InLockingStmt(
+        override val position: Position? = null,
+    ) : Statement(position),
+        MockStatement {
+        override fun execute(interpreter: InterpreterCore) {
+            TODO("Not yet implemented")
+        }
+    }
+
     override fun execute(interpreter: InterpreterCore) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
+
+        // For now mock and ignore locking IN statements
+        if (isLocking) {
+            val mock = InLockingStmt(position)
+            callback.onMockStatement(mock)
+            return
+        }
+
         try {
             // Send read request
             val dataDefinition =
