@@ -19,7 +19,7 @@
      PPOPULATE_DA      B
      DPOPULATE_DA      PI
      D ARRP            S              5    DIM(2)
-     C     *LOCK         IN        DS1
+     C                   IN        DS1
      C                   EVAL      ARRP(1)='Foo'
      C                   EVAL      ARRP(1)='Bar'
      C                   MOVEA     ARRP          DS1
