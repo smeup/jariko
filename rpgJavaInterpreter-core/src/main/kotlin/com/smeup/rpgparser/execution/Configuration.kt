@@ -340,7 +340,6 @@ data class JarikoCallback(
      * Returns the value that was read from the data area.
      *
      * @param dataAreaName The name of the data area to read.
-     * @param value The current value associated with the data reference.
      *
      * @see InStmt
      */
