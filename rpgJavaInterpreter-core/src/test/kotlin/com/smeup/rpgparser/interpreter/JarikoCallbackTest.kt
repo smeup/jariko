@@ -1945,6 +1945,29 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
+     * Test data area defined in subroutines read callback.
+     */
+    @Test
+    fun testDataAreaReadSubroutine() {
+        var readDataArea = ""
+        var writeDataArea = ""
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.readDataArea = { dataArea ->
+                    readDataArea = dataArea
+                    "READ"
+                }
+                jarikoCallback.writeDataArea = { dataArea, _ ->
+                    writeDataArea = dataArea
+                }
+            }
+
+        executePgm("DTAREASR", configuration = configuration)
+        assertEquals("C£C£E00D", readDataArea)
+        assertEquals("C£C£E00D", writeDataArea)
+    }
+
+    /**
      * Test data area read and write callback on procedures.
      */
     @Test

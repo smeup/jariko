@@ -106,7 +106,7 @@ data class CompilationUnit(
     val entryPlist: PlistStmt?
         get() =
             main.stmts.plist()
-                ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
+                ?: subroutines.firstNotNullOfOrNull { it.stmts.plist() }
 
     private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
 
@@ -170,7 +170,7 @@ data class CompilationUnit(
 
     fun getDataOrFieldDefinition(name: String) =
         dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
-            ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
+            ?: dataDefinitions.firstNotNullOfOrNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
     fun hasAnyDataDefinition(name: String) = allDataDefinitionsByName.containsKey(name.uppercase())

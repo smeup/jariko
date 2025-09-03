@@ -481,13 +481,7 @@ fun RContext.toAst(
                             context.toAst(conf, dataDefinitions, fileDefinitions.keys.filter { !it.justExtName }.toList())
                         }.getOrNull()
                 }
-            }.let {
-                if (it.isEmpty()) {
-                    null
-                } else {
-                    it
-                }
-            }
+            }.ifEmpty { null }
     checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
     val procedurePrototypes =
@@ -506,11 +500,13 @@ fun RContext.toAst(
         (procedures as ArrayList).addAll(procedurePrototypes)
     }
 
+    val dataAreaBounds = mainStmts.explode(false) + subroutines.flatMap { it.stmts.explode(false) }
     val dataAreas =
-        mainStmts.explode(false).filterIsInstance<DefineDataAreaStmt>().associate { stmt ->
-            stmt.internalName to
-                stmt.externalName
-        }
+        dataAreaBounds
+            .filterIsInstance<DefineDataAreaStmt>()
+            .associate { stmt ->
+                stmt.internalName to stmt.externalName
+            }
 
     return CompilationUnit(
         // in fileDefinitions must go only FileDefinition related to F specs

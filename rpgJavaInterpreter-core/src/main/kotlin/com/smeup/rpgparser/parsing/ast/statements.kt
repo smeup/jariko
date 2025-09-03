@@ -1810,21 +1810,20 @@ data class InStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
-
-        // Send read request
-        val dataDefinition =
-            interpreter.dataDefinitionByName(dataReference)
-                ?: throw Error("Data definition $dataReference not found")
-
-        val dataArea =
-            interpreter.getStatus().getDataArea(dataReference)
-                ?: throw Error("Data area for definition $dataReference not found")
-
         try {
+            // Send read request
+            val dataDefinition =
+                interpreter.dataDefinitionByName(dataReference)
+                    ?: throw Error("Data definition $dataReference not found")
+
+            val dataArea =
+                interpreter.getStatus().getDataArea(dataReference)
+                    ?: throw Error("Data area for definition $dataReference not found")
+
             // Update the value
             val newValue = callback.readDataArea(dataArea).asValue()
             interpreter.assign(dataDefinition, newValue)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             // Turn on error indicator if present
             val errorIndicator = rightIndicators.lo
             errorIndicator ?: throw e
@@ -1852,14 +1851,14 @@ data class OutStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
-        val dataArea =
-            interpreter.getStatus().getDataArea(dataReference)
-                ?: throw Error("Data area for definition $dataReference not found")
-        val value = interpreter[dataReference].asString().value
         try {
+            val dataArea =
+                interpreter.getStatus().getDataArea(dataReference)
+                    ?: throw Error("Data area for definition $dataReference not found")
+            val value = interpreter[dataReference].asString().value
             // Write data to data area
-            callback.writeDataArea(dataArea!!, value)
-        } catch (e: Exception) {
+            callback.writeDataArea(dataArea, value)
+        } catch (e: Throwable) {
             // Turn on error indicator if present
             val errorIndicator = rightIndicators.lo
             errorIndicator ?: throw e
