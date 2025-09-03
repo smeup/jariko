@@ -21,8 +21,6 @@ import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.ast.InStmt
-import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -41,7 +39,6 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
-import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -1939,7 +1936,7 @@ class JarikoCallbackTest : AbstractTest() {
         var readDataArea = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     "READ"
                 }
@@ -1957,18 +1954,22 @@ class JarikoCallbackTest : AbstractTest() {
      */
     @Test
     fun testDataAreaReadLock() {
-        // For now IN with *LOCK should be treated as a mock
-        var stmt: Statement? = null
+        var readDataArea = ""
+        var isLocking = false
         val configuration =
             Configuration().apply {
-                jarikoCallback.onMockStatement = {
-                    stmt = it as? Statement
+                jarikoCallback.readDataArea = { dataArea, locking ->
+                    readDataArea = dataArea
+                    isLocking = locking
+                    "READ"
                 }
             }
 
-        executePgm("DTAREAREADLOCK", configuration = configuration)
-        assertNotNull(stmt)
-        assertIs<InStmt.InLockingStmt>(stmt)
+        val expected = listOf("READ")
+        val actual = "DTAREAREADLOCK".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+        assertTrue(isLocking)
+        assertEquals("C£C£E00D", readDataArea)
     }
 
     /**
@@ -1980,7 +1981,7 @@ class JarikoCallbackTest : AbstractTest() {
         var writeDataArea = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     "READ"
                 }
@@ -2004,7 +2005,7 @@ class JarikoCallbackTest : AbstractTest() {
         var writeNewValue = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     "READ"
                 }
@@ -2040,7 +2041,7 @@ class JarikoCallbackTest : AbstractTest() {
         var readDataArea = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     throw RuntimeException("Could not find data area")
                 }

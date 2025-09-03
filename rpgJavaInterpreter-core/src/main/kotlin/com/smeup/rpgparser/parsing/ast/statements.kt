@@ -1809,26 +1809,8 @@ data class InStmt(
     WithRightIndicators by rightIndicators {
     override val loggableEntityName = "IN"
 
-    // This is just a wrapper internally needed to treat IN with *LOCK as mock.
-    data class InLockingStmt(
-        override val position: Position? = null,
-    ) : Statement(position),
-        MockStatement {
-        override fun execute(interpreter: InterpreterCore) {
-            TODO("Not yet implemented")
-        }
-    }
-
     override fun execute(interpreter: InterpreterCore) {
         val callback = MainExecutionContext.getConfiguration().jarikoCallback
-
-        // For now mock and ignore locking IN statements
-        if (isLocking) {
-            val mock = InLockingStmt(position)
-            callback.onMockStatement(mock)
-            return
-        }
-
         try {
             // Send read request
             val dataDefinition =
@@ -1839,9 +1821,10 @@ data class InStmt(
                 interpreter.getStatus().getDataArea(dataReference)
                     ?: throw Error("Data area for definition $dataReference not found")
 
-            // Update the value
-            val newValue = callback.readDataArea(dataArea).asValue()
-            interpreter.assign(dataDefinition, newValue)
+            // Update the value if needed
+            callback.readDataArea(dataArea, isLocking)?.let {
+                interpreter.assign(dataDefinition, it.asValue())
+            }
         } catch (e: Throwable) {
             // Turn on error indicator if present
             val errorIndicator = rightIndicators.lo
