@@ -29,7 +29,8 @@ enum class LogChannel {
     RESOLUTION,
     PARSING,
     ERROR,
-    ANALYTICS;
+    ANALYTICS,
+    ;
 
     /**
      * The name of the variant when used in configurations
@@ -40,7 +41,10 @@ enum class LogChannel {
 /**
  * Abstract definition of an handler for logs
  */
-abstract class LogHandler(val level: LogLevel, val sep: String) {
+abstract class LogHandler(
+    val level: LogLevel,
+    val sep: String,
+) {
     /**
      * Render the LogEntry to a string using the provider renderer
      * @see LazyLogEntry
@@ -62,19 +66,17 @@ fun loadLogConfiguration(configFile: File): LoggingConfiguration {
  * list of log handlers
  */
 
-fun configureLog(configFile: File): List<InterpreterLogHandler> {
-    return configureLog(loadLogConfiguration(configFile))
-}
+fun configureLog(configFile: File): List<InterpreterLogHandler> = configureLog(loadLogConfiguration(configFile))
 
 fun defaultLoggingConfiguration(): LoggingConfiguration = LoggingConfiguration()
 
 enum class LogLevel {
     OFF,
-    ALL;
+    ALL,
+    ;
+
     companion object {
-        fun find(name: String): LogLevel? {
-            return values().find { it.name.lowercase() == name.lowercase() }
-        }
+        fun find(name: String): LogLevel? = values().find { it.name.lowercase() == name.lowercase() }
     }
 }
 
@@ -85,18 +87,22 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 
     val dataSeparator = config.getProperty("logger.data.separator")
     try {
-        val handlers = LogChannel.values().mapNotNull {
-            val logLevelStr = config.getProperty("${it.getPropertyName()}.level") ?: LogLevel.OFF.name
-            val logLevel = LogLevel.find(logLevelStr) ?: run {
-                System.err.println("Unknown log level: $logLevelStr, for channel $it")
-                LogLevel.OFF
-            }
+        val handlers =
+            LogChannel.values().mapNotNull {
+                val logLevelStr = config.getProperty("${it.getPropertyName()}.level") ?: LogLevel.OFF.name
+                val logLevel =
+                    LogLevel.find(logLevelStr) ?: run {
+                        System.err.println("Unknown log level: $logLevelStr, for channel $it")
+                        LogLevel.OFF
+                    }
 
-            return@mapNotNull if (logLevel != LogLevel.OFF) {
-                configureLogChannel(ctx, it, config)
-                LogHandlerFactory.produce(it, logLevel, dataSeparator)
-            } else null
-        }
+                return@mapNotNull if (logLevel != LogLevel.OFF) {
+                    configureLogChannel(ctx, it, config)
+                    LogHandlerFactory.produce(it, logLevel, dataSeparator)
+                } else {
+                    null
+                }
+            }
         return handlers
     } catch (e: Exception) {
         println("Configuration WARNING: ${e.message!!}")
@@ -108,14 +114,27 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 /**
  * Create a File Appender programmatically
  */
-fun createFileAppender(name: String, config: Configuration, properties: Properties): Appender? {
-    /* already created ?*/
+fun createFileAppender(
+    name: String,
+    config: Configuration,
+    properties: Properties,
+): Appender? {
+    // already created ?
     if (config.appenders[name] != null) {
         return config.appenders[name]
     }
 
-    val pattern = if (properties.getProperty("logger.date.pattern") != null) properties.getProperty("logger.date.pattern") else "HH:mm:ss.SSS"
-    val layout = PatternLayout.newBuilder()
+    val pattern =
+        if (properties.getProperty("logger.date.pattern") !=
+            null
+        ) {
+            properties.getProperty("logger.date.pattern")
+        } else {
+            "HH:mm:ss.SSS"
+        }
+    val layout =
+        PatternLayout
+            .newBuilder()
             .withConfiguration(config)
             .withPattern("%d{$pattern} %msg%n")
             .build()
@@ -129,12 +148,14 @@ fun createFileAppender(name: String, config: Configuration, properties: Properti
 
     val filename = if (properties.getProperty("logger.file.name") != null) properties.getProperty("logger.file.name") else "log.log"
     val builder = FileAppender::class.java.getMethod("newBuilder").invoke(null) as FileAppender.Builder<*>
-    val appender = builder.apply {
-            setName(name)
-            withFileName("$filepath/$filename")
-            setLayout(layout)
-            setConfiguration(config)
-    }.build()
+    val appender =
+        builder
+            .apply {
+                setName(name)
+                withFileName("$filepath/$filename")
+                setLayout(layout)
+                setConfiguration(config)
+            }.build()
 
     appender.start()
     config.addAppender(appender)
@@ -145,24 +166,39 @@ fun createFileAppender(name: String, config: Configuration, properties: Properti
  * Create a console appender programmatically
  */
 
-fun createConsoleAppender(name: String, config: Configuration, properties: Properties): Appender? {
-    /* already created ?*/
+fun createConsoleAppender(
+    name: String,
+    config: Configuration,
+    properties: Properties,
+): Appender? {
+    // already created ?
     if (config.appenders[name] != null) {
         return config.appenders[name]
     }
-    val pattern = if (properties.getProperty("logger.date.pattern") != null) properties.getProperty("logger.date.pattern") else "HH:mm:ss.SSS"
+    val pattern =
+        if (properties.getProperty("logger.date.pattern") !=
+            null
+        ) {
+            properties.getProperty("logger.date.pattern")
+        } else {
+            "HH:mm:ss.SSS"
+        }
 
-    val layout = PatternLayout.newBuilder()
+    val layout =
+        PatternLayout
+            .newBuilder()
             .withConfiguration(config)
             .withPattern("%d{$pattern} %msg%n")
             .build()
 
     val builder = ConsoleAppender::class.java.getMethod("newBuilder").invoke(null) as ConsoleAppender.Builder<*>
-        val appender = builder.apply {
-        setName(name)
-        setLayout(layout)
-        setTarget(ConsoleAppender.Target.SYSTEM_OUT)
-    }.build()
+    val appender =
+        builder
+            .apply {
+                setName(name)
+                setLayout(layout)
+                setTarget(ConsoleAppender.Target.SYSTEM_OUT)
+            }.build()
 
     appender.start()
     config.addAppender(appender)
@@ -170,7 +206,11 @@ fun createConsoleAppender(name: String, config: Configuration, properties: Prope
     return appender
 }
 
-fun configureLogChannel(ctx: LoggerContext, channel: LogChannel, properties: Properties) {
+fun configureLogChannel(
+    ctx: LoggerContext,
+    channel: LogChannel,
+    properties: Properties,
+) {
     val channelName = channel.getPropertyName()
     val level = properties.getProperty("$channelName.level")
     when (val output = properties.getProperty("$channelName.output")) {
@@ -180,7 +220,8 @@ fun configureLogChannel(ctx: LoggerContext, channel: LogChannel, properties: Pro
             val ref = AppenderRef.createAppenderRef("console", null, null)
             val refs = arrayOf(ref)
 
-            val loggerConfig = LoggerConfig
+            val loggerConfig =
+                LoggerConfig
                     .createLogger(false, Level.getLevel(level.uppercase()), channelName, "true", refs, null, ctx.configuration, null)
 
             loggerConfig.addAppender(console, null, null)
@@ -192,7 +233,8 @@ fun configureLogChannel(ctx: LoggerContext, channel: LogChannel, properties: Pro
             val ref = AppenderRef.createAppenderRef("file", null, null)
             val refs = arrayOf(ref)
 
-            val loggerConfig = LoggerConfig
+            val loggerConfig =
+                LoggerConfig
                     .createLogger(false, Level.getLevel(level.uppercase()), channelName, "true", refs, null, ctx.configuration, null)
 
             loggerConfig.addAppender(file, null, null)
@@ -203,7 +245,10 @@ fun configureLogChannel(ctx: LoggerContext, channel: LogChannel, properties: Pro
     ctx.updateLoggers()
 }
 
-private fun loggingConfiguration(output: String, vararg types: LogChannel): LoggingConfiguration {
+private fun loggingConfiguration(
+    output: String,
+    vararg types: LogChannel,
+): LoggingConfiguration {
     val configuration = LoggingConfiguration()
     configuration.setProperty("logger.data.separator", "\t")
     for (t in types) {
@@ -214,11 +259,12 @@ private fun loggingConfiguration(output: String, vararg types: LogChannel): Logg
     return configuration
 }
 
-fun consoleLoggingConfiguration(vararg types: LogChannel): LoggingConfiguration {
-    return loggingConfiguration("console", *types)
-}
+fun consoleLoggingConfiguration(vararg types: LogChannel): LoggingConfiguration = loggingConfiguration("console", *types)
 
-fun fileLoggingConfiguration(file: File, vararg types: LogChannel): LoggingConfiguration {
+fun fileLoggingConfiguration(
+    file: File,
+    vararg types: LogChannel,
+): LoggingConfiguration {
     val configuration = loggingConfiguration("file", *types)
     configuration.setProperty("logger.file.path", file.parent)
     configuration.setProperty("logger.file.name", file.name)

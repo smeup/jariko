@@ -48,13 +48,13 @@ data class Configuration(
     var reloadConfig: ReloadConfig? = null,
     var dspfConfig: DspfConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
-    var options: Options = Options()
+    var options: Options = Options(),
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this(memorySliceStorage, JarikoCallback(), null, null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
+        this(memorySliceStorage, JarikoCallback(), null, null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
 
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this(memorySliceStorage, JarikoCallback(), null, null, defaultActivationGroupName, Options())
+        this(memorySliceStorage, JarikoCallback(), null, null, defaultActivationGroupName, Options())
 }
 
 /**
@@ -65,7 +65,7 @@ data class Configuration(
  * */
 data class ReloadConfig(
     val nativeAccessConfig: DBNativeAccessConfig,
-    val metadataProducer: (dbFile: String) -> FileMetadata
+    val metadataProducer: (dbFile: String) -> FileMetadata,
 )
 
 /**
@@ -74,7 +74,7 @@ data class ReloadConfig(
  * */
 data class DspfConfig(
     val metadataProducer: (displayFile: String) -> FileMetadata,
-    val dspfProducer: (displayFile: String) -> DSPF
+    val dspfProducer: (displayFile: String) -> DSPF,
 )
 
 /**
@@ -91,7 +91,9 @@ data class DspfConfig(
  * This property is necessary to enable some features useful when jariko must be debugged, for example some callback functions
  * such as onEnter and onExit copies or statements, just for performance reasons, will be invoked only when this property
  * is true.
- * */
+ * @param profilingSupport Used to enable/disable scan execution of profiling annotations into rpg sources.
+ * This is used to enable the [JarikoCallback.startRpgTrace] and [JarikoCallback.finishRpgTrace] callbacks.
+ */
 data class Options(
     var muteSupport: Boolean = false,
     var compiledProgramsDir: File? = null,
@@ -99,10 +101,13 @@ data class Options(
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
     var callProgramHandler: CallProgramHandler? = null,
     var dumpSourceOnExecutionError: Boolean? = false,
-    var debuggingInformation: Boolean? = false
+    var debuggingInformation: Boolean? = false,
+    var profilingSupport: Boolean = false,
 ) {
     internal fun mustDumpSource() = dumpSourceOnExecutionError == true
-    internal fun mustCreateCopyBlocks() = debuggingInformation == true
+
+    internal fun mustCreateCopyBlocks() = debuggingInformation == true || profilingSupport
+
     internal fun mustInvokeOnStatementCallback() = debuggingInformation == true
 }
 
@@ -116,67 +121,63 @@ data class JarikoCallback(
      * Parameter programName is a program for which we are getting activation group, associatedActivationGroup is the current
      * activation group associated with the program.
      * */
-    var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
-            null
+    var getActivationGroup: (
+        programName: String,
+        associatedActivationGroup: ActivationGroup?,
+    ) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
+        null
     },
-
     /**
      * It is invoked before than the copy is included in the source, the default implementation
      * will return the copy source itself
      */
     var beforeCopyInclusion: (copyId: CopyId, source: String?) -> String? = { _, source -> source },
-
     /**
      * It is invoked after that all copies has been included in the source.
      * **This callback will be called only if [Options.debuggingInformation] is set to true**.
      * */
     var afterCopiesInclusion: (copyBlocks: CopyBlocks) -> Unit = { },
-
     /**
      * It is invoked before the parsing.
      * It is passed the source that will be parsed after all copy inclusions, the default implementation
      * will return the source itself
      * */
     var beforeParsing: (source: String) -> String = { source -> source },
-
     /**
      * If specified, it overrides the exit mode established in the program. Default null to preserve default behavior.
      * */
     var exitInRT: (programName: String) -> Boolean? = { null },
-
     /**
      * It is invoked on Interpreter creation
      * */
     var onInterpreterCreation: (interpreter: InterpreterCore) -> Unit = { },
-
     /**
      * It is invoked on program entered after symbol table initialization.
      * */
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
-
     /**
      * It is invoked on program exit.
      * In case of error it is no longer called, then even error parameter is no longer significant
      * */
-    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
-
+    var onExitPgm: (
+        programName: String,
+        symbolTable: ISymbolTable,
+        error: Throwable?,
+    ) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     /**
      * It is invoked after ast creation.
      * */
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
-
     /**
      * It is invoked on copy entered.
      * **This callback will be called only if [Options.debuggingInformation] is set to true**.
      * */
     var onEnterCopy: (copyId: CopyId) -> Unit = { },
-
     /**
      * It is invoked on copy exited.
      * **This callback will be called only if [Options.debuggingInformation] is set to true**.
      * */
     var onExitCopy: (copyId: CopyId) -> Unit = { },
-
     /**
      * It is invoked on EXFMT execution.
      * If implementer returns a not null value of type [OnExfmtResponse] program behaves
@@ -185,10 +186,9 @@ data class JarikoCallback(
      * asynchronously wait for user input and does not want to keep server busy; it has the responsibility to
      * provide a way to restore previous program state. This feature is not yet available.
      */
-    var onExfmt: (record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = {
-        _, _ -> null
+    var onExfmt: (record: DSPFRecord, runtimeInterpreterSnapshot: RuntimeInterpreterSnapshot) -> OnExfmtResponse? = { _, _ ->
+        null
     },
-
     /**
      * It is invoked before statement execution.
      * **This callback will be called only if [Options.debuggingInformation] is set to true**.
@@ -200,18 +200,15 @@ data class JarikoCallback(
      * sourceReference The source type where the statement is
      * */
     var onEnterStatement: (absoluteLine: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
-
     /**
      * It is invoked on function entered after symbol table initialization.
      * */
     var onEnterFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable)
     -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
-
     /**
      * It is invoked on function exit, only if the function does not throw any error
      * */
     var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> },
-
     /**
      * It is invoked in case of errors. The default implementation writes error event in stderr
      * */
@@ -226,7 +223,6 @@ data class JarikoCallback(
             }
         } ?: System.err.println(errorEvent)
     },
-
     /**
      * It is invoked in case of compilation unit encoding errors.
      * The default implementation throws the error
@@ -234,28 +230,24 @@ data class JarikoCallback(
     var onCompilationUnitEncodingError: (
         error: Throwable,
         compilationUnit: CompilationUnit,
-        encodingFormat: Format?
+        encodingFormat: Format?,
     ) -> Unit = { error, _, _ -> throw error },
-
     /***
      * It is invoked in case of runtime errors occurred inside the program called, only if the error indicator
      * at column 73-74 is specified.
      * The default implementation does nothing
      */
     var onCallPgmError: (errorEvent: ErrorEvent) -> Unit = { },
-
     /**
      * If specified, it is invoked to log information messages, for all enabled channels
      * */
     var logInfo: ((channel: String, message: String) -> Unit)? = null,
-
     /**
      * If specified, it allows to enable programmatically the channel logging.
      * For instance, you can enable all channels by using [consoleVerboseConfiguration] but you can decide, through
      * the implementation of this callback, which channel you want to log.
      * */
     var channelLoggingEnabled: ((channel: String) -> Boolean)? = null,
-
     /**
      * If specified, it allows customizing the behavior of the mock statements.
      * Default implementation provides a simple println with the name of the mock statement.
@@ -269,7 +261,6 @@ data class JarikoCallback(
         val rendered = entry.renderScoped()
         System.err.println(rendered)
     },
-
     /**
      * If specified, it allows customizing the behavior of the mock statements.
      * Default implementation provides a simple println with the name of the mock expression.
@@ -283,7 +274,6 @@ data class JarikoCallback(
         val rendered = entry.renderScoped()
         System.err.println(rendered)
     },
-
     /**
      * If specified, it allows overriding the default mechanism of API validation.
      * It is called before the Api is included in the main program.
@@ -294,7 +284,6 @@ data class JarikoCallback(
     var onApiInclusion: ((apiId: ApiId, api: Api) -> Unit) = { _, api ->
         api.compilationUnit.resolveAndValidate()
     },
-
     /**
      * It allows overriding the feature flag check.
      * @param featureFlag The feature flag
@@ -302,7 +291,15 @@ data class JarikoCallback(
      * @see FeatureFlag.on
      * */
     var featureFlagIsOn: ((featureFlag: FeatureFlag) -> Boolean) = { featureFlag -> featureFlag.on },
-
+    /**
+     * It is invoked before we start a telemetry trace to determine if it has to be accepted or not.
+     * Traces that are not accepted will not be reported from [startJarikoTrace] and [finishJarikoTrace].
+     * @param trace The object containing all the information about this trace.
+     */
+    var acceptJarikoTrace: ((trace: JarikoTrace) -> Boolean) = {
+        // Defaults to always allowing traces
+        true
+    },
     /**
      * It is invoked whenever we start a telemetry trace.
      * @param trace The object containing all the information about this trace.
@@ -310,29 +307,53 @@ data class JarikoCallback(
     var startJarikoTrace: ((trace: JarikoTrace) -> Unit) = {
         // Defaults to a no-op
     },
-
     /**
      * It is invoked whenever we finish a telemetry trace.
      */
     var finishJarikoTrace: (() -> Unit) = {
         // Defaults to a no-op
     },
-
     /**
      * It is invoked whenever we start a telemetry trace defined as annotation in an RPG program.
+     * Enabled when the [Options.profilingSupport] flag is enabled.
+     *
      * @param trace The object containing all the information about this trace.
+     *
+     * @see Options.profilingSupport
      */
     var startRpgTrace: ((trace: RpgTrace) -> Unit) = {
         // Defaults to a no-op
     },
-
     /**
      * It is invoked whenever we finish a telemetry trace defined as annotation in an RPG program.
+     * Enabled when the [Options.profilingSupport] flag is enabled.
+     *
+     * @param trace The object containing all the information about this trace.
+     *
+     * @see Options.profilingSupport
      */
-    var finishRpgTrace: (() -> Unit) = {
+    var finishRpgTrace: ((trace: RpgTrace) -> Unit) = {
         // Defaults to a no-op
     },
-
+    /**
+     * It is invoked whenever we want to read a data area.
+     * Returns the value that was read from the data area.
+     *
+     * @param dataAreaName The name of the data area to read.
+     * @param value The current value associated with the data reference.
+     *
+     * @see InStmt
+     */
+    var readDataArea: ((dataAreaName: String) -> String) = { throw IllegalStateException("Not implemented yet") },
+    /**
+     * It is invoked whenever we want to write to a data area.
+     *
+     * @param dataAreaName The name of the data area to which we want to write.
+     * @param value The value we want to write to the data area.
+     *
+     * @see OutStmt
+     */
+    var writeDataArea: ((dataAreaName: String, value: String) -> Unit) = { _, _ -> },
     /**
      * Creates a `DataStructValueBuilder` based on the provided value and data structure type.
      * The default implementation creates an `IndexedStringBuilder` for data structures with 100 or more fields
@@ -348,7 +369,7 @@ data class JarikoCallback(
         } else {
             StringBuilderWrapper(value)
         }
-    }
+    },
 )
 
 /**
@@ -356,7 +377,7 @@ data class JarikoCallback(
  * @param handleCall Handles programName calling. Returns null to preserve jariko default call program handling
  * */
 data class CallProgramHandler(
-    val handleCall: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>?
+    val handleCall: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>?,
 )
 
 /**
@@ -366,24 +387,43 @@ data class CallProgramHandler(
  * @param absoluteLine The line number of post processed file from which the error was thrown
  * @param sourceReference The source reference
  * */
-data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val absoluteLine: Int?, val sourceReference: SourceReference?) {
-
+data class ErrorEvent(
+    val error: Throwable,
+    val errorEventSource: ErrorEventSource,
+    val absoluteLine: Int?,
+    val sourceReference: SourceReference?,
+) {
     /**
      * The source code line from which the error event has been fired.
      * If for some reason the source code line is not available, it returns the error message.
      * */
-    val fragment = absoluteLine?.let { line ->
-        when (errorEventSource) {
-            ErrorEventSource.Parser -> MainExecutionContext.getParsingProgramStack().takeIf { it.isNotEmpty() }?.peek()?.sourceLines?.get(line - 1)
-            ErrorEventSource.Interpreter -> MainExecutionContext.getProgramStack().takeIf { it.isNotEmpty() }?.peek()?.cu?.source?.split("\\r\\n|\\n".toRegex())?.get(line - 1)
-        }
-    } ?: error.message ?: ""
+    val fragment =
+        absoluteLine?.let { line ->
+            when (errorEventSource) {
+                ErrorEventSource.Parser ->
+                    MainExecutionContext.getParsingProgramStack().takeIf { it.isNotEmpty() }?.peek()?.sourceLines?.get(
+                        line - 1,
+                    )
+                ErrorEventSource.Interpreter ->
+                    MainExecutionContext
+                        .getProgramStack()
+                        .takeIf { it.isNotEmpty() }
+                        ?.peek()
+                        ?.cu
+                        ?.source
+                        ?.split(
+                            "\\r\\n|\\n".toRegex(),
+                        )?.get(
+                            line - 1,
+                        )
+            }
+        } ?: error.message ?: ""
 
-    override fun toString(): String {
-        return "ErrorEvent(error=$error, errorEventSource=$errorEventSource, absoluteLine=$absoluteLine, sourceReference=$sourceReference, fragment=$fragment)"
-    }
+    override fun toString(): String =
+        "ErrorEvent(error=$error, errorEventSource=$errorEventSource, absoluteLine=$absoluteLine, sourceReference=$sourceReference, fragment=$fragment)"
 }
 
 enum class ErrorEventSource {
-    Parser, Interpreter
+    Parser,
+    Interpreter,
 }

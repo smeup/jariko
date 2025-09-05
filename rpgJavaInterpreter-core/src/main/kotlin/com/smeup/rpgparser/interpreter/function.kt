@@ -29,7 +29,9 @@ enum class ParamPassedBy {
     // Reference: any value change of variable, is reflected to variable parent
     // Value: a 'copy' of value is created, so any value change will not be reflected to variable parent
     // Const: like 'Reference' but 'read-only', so any value change will not be reflected to variable parent
-    Reference, Value, Const
+    Reference,
+    Value,
+    Const,
 }
 
 data class FunctionParam(
@@ -37,48 +39,66 @@ data class FunctionParam(
     val type: Type,
     val paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     val paramOptions: List<ParamOption> = emptyList(),
-    override val position: Position? = null
+    override val position: Position? = null,
 ) : Node(position)
 
 data class FunctionValue(
     val variableName: String? = null,
     var value: Value,
-    override val position: Position? = null
+    override val position: Position? = null,
 ) : Node(position = position)
 
 interface Function {
     fun params(): List<FunctionParam>
-    fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value
+
+    fun execute(
+        systemInterface: SystemInterface,
+        params: List<FunctionValue>,
+        interpreterStatus: InterpreterStatus,
+    ): Value
 }
 
 interface JavaFunction : Function {
     override fun params(): List<FunctionParam> {
         TODO("'JavaFunction.params' not yet implemented")
     }
-    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value
+
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: List<FunctionValue>,
+        interpreterStatus: InterpreterStatus,
+    ): Value
 }
 
 /**
  * This class models a generic function, "generic" because could be a procedure if return a VoidValue else
  * a function if return something else.
  * */
-open class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
-
-    override fun params(): List<FunctionParam> {
-        return compilationUnit.getFunctionParams()
-    }
+open class RpgFunction(
+    val compilationUnit: CompilationUnit,
+) : Function {
+    override fun params(): List<FunctionParam> = compilationUnit.getFunctionParams()
 
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        symbolTable: ISymbolTable
+        interpreterStatus: InterpreterStatus,
     ): Value {
+        val interpreter =
+            FunctionInterpreter(
+                systemInterface = systemInterface,
+                procedureName = compilationUnit.procedureName!!,
+            ).apply {
+                getStatus().indicators = interpreterStatus.indicators
+                getStatus().klists = interpreterStatus.klists
+                getStatus().dbFileMap = interpreterStatus.dbFileMap
+                getStatus().lastDBFile = interpreterStatus.lastDBFile
+                getStatus().inzsrExecuted = interpreterStatus.inzsrExecuted
+                getStatus().displayFiles = interpreterStatus.displayFiles
+                getStatus().lastFound = interpreterStatus.lastFound
 
-        val interpreter = FunctionInterpreter(
-            systemInterface = systemInterface,
-            procedureName = compilationUnit.procedureName!!).apply {
-            getGlobalSymbolTable().parentSymbolTable = symbolTable
-        }
+                getGlobalSymbolTable().parentSymbolTable = interpreterStatus.symbolTable
+            }
 
         // values passed to function in format argumentName to argumentValue
         // every argumentName will be a variable scoped function
@@ -92,7 +112,11 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
                 functionParamNameToValue[functionParam.name] = params[index].value
             }
         }
-        MainExecutionContext.getConfiguration().jarikoCallback.onEnterFunction(compilationUnit.procedureName!!, params, interpreter.getGlobalSymbolTable())
+        MainExecutionContext.getConfiguration().jarikoCallback.onEnterFunction(
+            compilationUnit.procedureName!!,
+            params,
+            interpreter.getGlobalSymbolTable(),
+        )
         interpreter.execute(this.compilationUnit, functionParamNameToValue, false)
         params.forEachIndexed { index, functionValue ->
             functionValue.variableName?.apply {
@@ -117,18 +141,21 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
          * Create a RpgFunction instance achieved by current program
          * @param name Function name
          * */
-        fun fromCurrentProgram(name: String): RpgFunction {
-            return RpgFunction(
-                compilationUnit = MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
-                    it.procedureName.equals(name, ignoreCase = true)
-                }
+        fun fromCurrentProgram(name: String): RpgFunction =
+            RpgFunction(
+                compilationUnit =
+                    MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
+                        it.procedureName.equals(name, ignoreCase = true)
+                    },
             )
-        }
     }
 }
 
-class FunctionWrapper(private val function: Function, private val functionName: String, private val functionNode: Node) : Function {
-
+class FunctionWrapper(
+    private val function: Function,
+    private val functionName: String,
+    private val functionNode: Node,
+) : Function {
     private val expectedParams: List<FunctionParam> by lazy {
         when (function) {
             is JavaFunction -> getProcedureUnit(functionName).getFunctionParams()
@@ -156,7 +183,11 @@ class FunctionWrapper(private val function: Function, private val functionName: 
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: List<FunctionValue>,
+        interpreterStatus: InterpreterStatus,
+    ): Value {
         checkParamsSize(params)
         params.forEachIndexed { index, functionValue ->
             val expectedType = expectedParams[index].type
@@ -166,12 +197,12 @@ class FunctionWrapper(private val function: Function, private val functionName: 
             }
         }
         val previousValues = params.map { it.value }
-        return function.execute(systemInterface, params, symbolTable).apply {
+        return function.execute(systemInterface, params, interpreterStatus).apply {
             params.forEachIndexed { index, functionValue ->
                 functionValue.variableName?.apply {
                     val functionParam = expectedParams[index]
                     if (functionParam.paramPassedBy == ParamPassedBy.Reference && functionValue.value != previousValues[index]) {
-                        symbolTable[symbolTable.dataDefinitionByName(this)!!] = functionValue.value
+                        interpreterStatus.symbolTable[interpreterStatus.symbolTable.dataDefinitionByName(this)!!] = functionValue.value
                     }
                 }
             }
@@ -188,29 +219,31 @@ fun CompilationUnit.getFunctionParams(): List<FunctionParam> {
                 type = it.type,
                 paramPassedBy = it.paramPassedBy,
                 paramOptions = it.paramOptions,
-                it.position
-            )
+                it.position,
+            ),
         )
     }
     return arguments
 }
 
-private fun getProcedureUnit(functionName: String): CompilationUnit {
-    return MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
+private fun getProcedureUnit(functionName: String): CompilationUnit =
+    MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
         it.procedureName == functionName
     }
-}
 
-private class FunctionInterpreter(systemInterface: SystemInterface, private val procedureName: String) : InternalInterpreter(systemInterface = systemInterface) {
-
+private class FunctionInterpreter(
+    systemInterface: SystemInterface,
+    private val procedureName: String,
+) : InternalInterpreter(systemInterface = systemInterface) {
     private var initializing = false
 
     private val staticSymbolTable = getGlobalSymbolTable().getStaticSymbolTable(procedureName)
 
-    private val staticMemorySliceId = MemorySliceId(
-        activationGroup = "*STATIC",
-        programName = functionName
-    )
+    private val staticMemorySliceId =
+        MemorySliceId(
+            activationGroup = "*STATIC",
+            programName = functionName,
+        )
 
     private val functionName: String get() = "FunctionInterpreter.$procedureName.static"
 
@@ -219,20 +252,20 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
         return memorySliceId?.copy(programName = "${memorySliceId.programName}.$procedureName")
     }
 
-    override fun getInterpretationContext(): InterpretationContext {
-        return object : InterpretationContext {
+    override fun getInterpretationContext(): InterpretationContext =
+        object : InterpretationContext {
             private var iDataWrapUpChoice: DataWrapUpChoice? = null
             override val currentProgramName: String
                 get() = functionName
 
             override fun shouldReinitialize() = false
+
             override var dataWrapUpChoice: DataWrapUpChoice?
                 get() = iDataWrapUpChoice
                 set(value) {
                     iDataWrapUpChoice = value
                 }
         }
-    }
 
     /**
      * This way I can avoid to persist the memory slice of the function
@@ -252,13 +285,16 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
         if (isFirstExecution()) {
             staticSymbolTable.restoreFromMemorySlice(
                 memorySliceMgr = MainExecutionContext.getMemorySliceMgr(),
-                memorySliceId = staticMemorySliceId
+                memorySliceId = staticMemorySliceId,
             )
         }
         initializing = false
     }
 
-    override fun set(data: AbstractDataDefinition, value: Value) {
+    override fun set(
+        data: AbstractDataDefinition,
+        value: Value,
+    ) {
         // if jariko is initializing and data is static, I must check if data is already present in static symbol table
         // if not, I can set it else not because static data must be initialized only once
         if (initializing && data.static) {
@@ -277,7 +313,5 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
         }
     }
 
-    private fun isFirstExecution(): Boolean {
-        return MainExecutionContext.getAttributes()[staticMemorySliceId.getAttributeKey()] == null
-    }
+    private fun isFirstExecution(): Boolean = MainExecutionContext.getAttributes()[staticMemorySliceId.getAttributeKey()] == null
 }

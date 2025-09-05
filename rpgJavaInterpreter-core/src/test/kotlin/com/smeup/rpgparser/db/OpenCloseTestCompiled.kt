@@ -1,5 +1,5 @@
 package com.smeup.rpgparser.db
 
-class OpenCloseTestCompiled() : OpenCloseTest() {
+class OpenCloseTestCompiled : OpenCloseTest() {
     override fun useCompiledVersion() = true
 }

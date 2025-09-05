@@ -6,12 +6,14 @@ import com.smeup.rpgparser.utils.runIfNotEmpty
 import java.io.File
 import java.util.*
 
-open class ControlFlowException() : Exception() {
+open class ControlFlowException : Exception() {
     override fun fillInStackTrace(): Throwable = this
 }
 
 class LeaveSrException : ControlFlowException()
+
 class LeaveException : ControlFlowException()
+
 class IterException : ControlFlowException()
 
 /**
@@ -23,19 +25,26 @@ class IterException : ControlFlowException()
  *
  * @param tag The tag of the destination label
  */
-class GotoTopLevelException(val tag: String) : ControlFlowException() {
+class GotoTopLevelException(
+    val tag: String,
+) : ControlFlowException() {
     internal fun indexOfTaggedStatement(statements: List<UnwrappedStatementData>) = statements.indexOfTag(tag)
 }
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : ControlFlowException()
-class ReturnException(val returnValue: Value?) : ControlFlowException()
+
+class ReturnException(
+    val returnValue: Value?,
+) : ControlFlowException()
 
 /**
  * Exception thrown whenever we execute a GOTO-like instruction
  * @param tag The tag of the destination label
  */
-class GotoException private constructor(val tag: String) : ControlFlowException() {
+class GotoException private constructor(
+    val tag: String,
+) : ControlFlowException() {
     companion object {
         operator fun invoke(tag: String): GotoException = GotoException(tag.uppercase(Locale.getDefault()))
     }
@@ -43,8 +52,13 @@ class GotoException private constructor(val tag: String) : ControlFlowException(
     internal fun indexOfTaggedStatement(statements: List<UnwrappedStatementData>) = statements.indexOfTag(tag)
 }
 
-class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {
+class InterpreterTimeoutException(
+    val programName: String,
+    val elapsed: Long,
+    val expected: Long,
+) : ControlFlowException() {
     fun ratio(): Double = if (elapsed <= 0) 0.0 else elapsed.toDouble() / expected.toDouble()
+
     override fun toString(): String {
         writeDataToCSV()
         return "$programName TIMEOUT. Execution took $elapsed millis, but there was a $expected millis timeout. elapsed/expected ratio: ${ratio()}"

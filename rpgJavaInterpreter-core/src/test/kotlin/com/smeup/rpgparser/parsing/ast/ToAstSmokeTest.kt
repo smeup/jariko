@@ -30,7 +30,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 open class ToAstSmokeTest : AbstractTest() {
-
     @Test
     fun buildAstForJD_001() {
         val cu = assertASTCanBeProduced("JD_001")
@@ -234,6 +233,7 @@ open class ToAstSmokeTest : AbstractTest() {
     // TODO fix
     // java.lang.IllegalArgumentException: Start offset not calculated for fields £G64P1, £G64P2, £G64TC, £G64CS, £G64DC
     // at com.smeup.rpgparser.parsing.parsetreetoast.Data_definitionsKt.calculateFieldInfos(data_definitions.kt:678)
+
     /**
      * This error has been already classified earlier as [DS-OVERLAY](https://docs.google.com/spreadsheets/d/1x05ATX9lcJLL7s1sNpZawBKC1Zz7lP--V7xqOZ-wBbk/edit#gid=36284680&range=E25)
      * Earlier this error was hidden and then the ast creating apparently worked properly
@@ -247,6 +247,7 @@ open class ToAstSmokeTest : AbstractTest() {
     // TODO fix
     // java.lang.IllegalArgumentException: Start offset not calculated for fields £G64P1, £G64P2, £G64TC, £G64CS, £G64DC
     // at com.smeup.rpgparser.parsing.parsetreetoast.Data_definitionsKt.calculateFieldInfos(data_definitions.kt:678)
+
     /**
      * This error has been already classified earlier as [DS-OVERLAY](https://docs.google.com/spreadsheets/d/1x05ATX9lcJLL7s1sNpZawBKC1Zz7lP--V7xqOZ-wBbk/edit#gid=36284680&range=E25)
      * Earlier this error was hidden and then the ast creating apparently worked properly
@@ -270,9 +271,11 @@ open class ToAstSmokeTest : AbstractTest() {
         val mainProgramCu = assertASTCanBeProduced("PROCEDURE_B", considerPosition = true)
         mainProgramCu.apply {
             // we must have none variable with scope: Scope.Local or Scope.Static
-            val none = this.allDataDefinitions.filter {
-                it.scope == Scope.Local || it.scope.visibility == Visibility.Static
-            }.none()
+            val none =
+                this.allDataDefinitions
+                    .filter {
+                        it.scope == Scope.Local || it.scope.visibility == Visibility.Static
+                    }.none()
             assertTrue(none)
         }
         val procedureCu = mainProgramCu.procedures!![0]
@@ -291,24 +294,25 @@ open class ToAstSmokeTest : AbstractTest() {
 
     @Test
     fun buildAstForJAX_PC1() {
-        val procedureNameToParamsSize = mapOf(
-            "P_RxVAL" to 2,
-            "P_RxATT" to 5,
-            "P_RxURL" to 1,
-            "P_RxSOS" to 2,
-            "P_RxSOC" to 2,
-            "P_RxLATE" to 5,
-            "P_RxATV" to 2,
-            "P_RxATP" to 2,
-            "P_RxELE" to 8,
-            "P_RxSPL" to 2
-        )
+        val procedureNameToParamsSize =
+            mapOf(
+                "P_RxVAL" to 2,
+                "P_RxATT" to 5,
+                "P_RxURL" to 1,
+                "P_RxSOS" to 2,
+                "P_RxSOC" to 2,
+                "P_RxLATE" to 5,
+                "P_RxATV" to 2,
+                "P_RxATP" to 2,
+                "P_RxELE" to 8,
+                "P_RxSPL" to 2,
+            )
         assertASTCanBeProduced("QILEGEN/£JAX_PC1", considerPosition = true).apply {
             assertEquals(expected = 10, actual = procedures!!.size)
             procedures!!.forEach { procedureAst ->
                 assertEquals(
                     expected = procedureNameToParamsSize[procedureAst.procedureName],
-                    actual = procedureAst.proceduresParamsDataDefinitions!!.size
+                    actual = procedureAst.proceduresParamsDataDefinitions!!.size,
                 )
             }
         }
@@ -410,9 +414,24 @@ open class ToAstSmokeTest : AbstractTest() {
             val dataStructure: DataDefinition = this.getAnyDataDefinition("DS_ST01") as DataDefinition
 
             assertEquals(dataStructure.fields.size, 4, "Number of fields is correct.")
-            assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_KEY") }, "ST01_KEY is defined under DS_ST01")
-            assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_COL1") }, "ST01_COL1 is defined under DS_ST01")
-            assertNotNull(dataStructure.fields.firstOrNull { fieldDefinition -> fieldDefinition.name.equals("ST01_COL2") }, "ST01_COL2 is defined under DS_ST01")
+            assertNotNull(
+                dataStructure.fields.firstOrNull { fieldDefinition ->
+                    fieldDefinition.name.equals("ST01_KEY")
+                },
+                "ST01_KEY is defined under DS_ST01",
+            )
+            assertNotNull(
+                dataStructure.fields.firstOrNull { fieldDefinition ->
+                    fieldDefinition.name.equals("ST01_COL1")
+                },
+                "ST01_COL1 is defined under DS_ST01",
+            )
+            assertNotNull(
+                dataStructure.fields.firstOrNull { fieldDefinition ->
+                    fieldDefinition.name.equals("ST01_COL2")
+                },
+                "ST01_COL2 is defined under DS_ST01",
+            )
         }
     }
 }

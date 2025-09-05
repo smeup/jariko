@@ -29,15 +29,16 @@ import java.math.BigDecimal
 fun zadd(
     value: Expression,
     target: AssignableExpression,
-    interpreterCore: InterpreterCore
+    interpreterCore: InterpreterCore,
 ): Value {
-    val valueCoerced = when {
-        // U<Date|Year|Month|Day>RefExpr is evaluated as String on Jariko. So, is possible to convert this result to integer.
-        value is UDateRefExpr || value is UYearRefExpr || value is UMonthRefExpr || value is UDayRefExpr -> {
-            interpreterCore.eval(value).asInt()
+    val valueCoerced =
+        when {
+            // U<Date|Year|Month|Day>RefExpr is evaluated as String on Jariko. So, is possible to convert this result to integer.
+            value is UDateRefExpr || value is UYearRefExpr || value is UMonthRefExpr || value is UDayRefExpr -> {
+                interpreterCore.eval(value).asInt()
+            }
+            else -> interpreterCore.eval(value)
         }
-        else -> interpreterCore.eval(value)
-    }
 
     return when {
         /*
@@ -53,18 +54,30 @@ fun zadd(
          *
          * IMPORTANT: This is possible ONLY when ZAddLegacyFlag is enabled.
          */
-        valueCoerced is NumberValue && target.type() is NumberType && interpreterCore.getSystemInterface().getFeaturesFactory().isZAddLegacyEnabled() -> {
+        valueCoerced is NumberValue &&
+            target.type() is NumberType &&
+            interpreterCore.getSystemInterface().getFeaturesFactory().isZAddLegacyEnabled() -> {
             val targetEntireDigits = (target.type() as NumberType).entireDigits
             val targetDecimalDigits = (target.type() as NumberType).decimalDigits
 
-            val integerValueTruncated = valueCoerced.asString().value
-                .substringBefore(".")
-                .reversed()
-                .secureSubstring(0, targetEntireDigits)
-                .reversed()
-            val decimalValueTruncated = if (valueCoerced is IntValue) "" else valueCoerced.asString().value
-                .substringAfter(".")
-                .secureSubstring(0, targetDecimalDigits)
+            val integerValueTruncated =
+                valueCoerced
+                    .asString()
+                    .value
+                    .substringBefore(".")
+                    .reversed()
+                    .secureSubstring(0, targetEntireDigits)
+                    .reversed()
+            val decimalValueTruncated =
+                if (valueCoerced is IntValue) {
+                    ""
+                } else {
+                    valueCoerced
+                        .asString()
+                        .value
+                        .substringAfter(".")
+                        .secureSubstring(0, targetDecimalDigits)
+                }
             val stringValueTruncated = if (decimalValueTruncated.isNotBlank()) "$integerValueTruncated.$decimalValueTruncated" else integerValueTruncated
 
             interpreterCore.assign(target, DecimalValue(BigDecimal(stringValueTruncated)))
@@ -84,7 +97,10 @@ fun zadd(
  * @return the extracted substring from the specified range, or the substring up to the end of the string
  *         if the provided end index is out of bounds
  */
-private fun String.secureSubstring(start: Int, end: Int): String {
+private fun String.secureSubstring(
+    start: Int,
+    end: Int,
+): String {
     var endResized = end
     if (this.length < end) {
         endResized = this.length

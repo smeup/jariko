@@ -11,5 +11,5 @@ data class MutableField(
     val precision: Int?,
     val type: DSPFFieldType,
     override val x: Int?,
-    override val y: Int?
+    override val y: Int?,
 ) : DSPFField

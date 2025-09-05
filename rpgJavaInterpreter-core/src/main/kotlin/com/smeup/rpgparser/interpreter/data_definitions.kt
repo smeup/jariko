@@ -53,45 +53,62 @@ abstract class AbstractDataDefinition(
     /**
      * This scope. Default: got by current parsing entity
      * */
-    val scope: Scope = run {
-        val parsingProgramStack = MainExecutionContext.getParsingProgramStack()
-        val parsingProgram = if (!parsingProgramStack.isEmpty()) {
-            parsingProgramStack.peek()
-        } else null
-        val parsingFunction = parsingProgram?.let {
-            if (!it.parsingFunctionNameStack.isEmpty()) {
-                it.parsingFunctionNameStack.peek()
-            } else null
-        }
-        if (parsingFunction != null) {
-            if (static) Scope.static(parsingFunction) else Scope.Local
-        } else Scope.Program
-    }
-) : Node(position), Named {
+    val scope: Scope =
+        run {
+            val parsingProgramStack = MainExecutionContext.getParsingProgramStack()
+            val parsingProgram =
+                if (!parsingProgramStack.isEmpty()) {
+                    parsingProgramStack.peek()
+                } else {
+                    null
+                }
+            val parsingFunction =
+                parsingProgram?.let {
+                    if (!it.parsingFunctionNameStack.isEmpty()) {
+                        it.parsingFunctionNameStack.peek()
+                    } else {
+                        null
+                    }
+                }
+            if (parsingFunction != null) {
+                if (static) Scope.static(parsingFunction) else Scope.Local
+            } else {
+                Scope.Program
+            }
+        },
+) : Node(position),
+    Named {
     fun numberOfElements() = type.numberOfElements()
+
     open fun elementSize() = type.elementSize()
 
-    fun accept(mutes: MutesMap, start: Int, end: Int):
-        MutableList<MuteAnnotationResolved> {
+    fun accept(
+        mutes: MutesMap,
+        start: Int,
+        end: Int,
+    ): MutableList<MuteAnnotationResolved> {
         // List of mutes successfully attached to the  definition
         val mutesAttached = mutableListOf<MuteAnnotationResolved>()
         // Extracts the annotation declared before the statement
         // Note the second expression evaluate an annotation in the
         // very last line
-        val muteToProcess = mutes.filterKeys {
-            // TODO CodeReview: we could perhaps refactor this as
-            // fun MutesMap.relevantForPosition(position: Position, end: Int) = this.filterKeys {
-            //    it < position.start.line || position.start.line == (end - 1)
-            // }
-            // however the code is not super clear to me: why is not using >= end - 1?
-            // why is using end but not start?
-            it < this.position!!.start.line || this.position!!.start.line == (end - 1)
-        }
+        val muteToProcess =
+            mutes.filterKeys {
+                // TODO CodeReview: we could perhaps refactor this as
+                // fun MutesMap.relevantForPosition(position: Position, end: Int) = this.filterKeys {
+                //    it < position.start.line || position.start.line == (end - 1)
+                // }
+                // however the code is not super clear to me: why is not using >= end - 1?
+                // why is using end but not start?
+                it < this.position!!.start.line || this.position!!.start.line == (end - 1)
+            }
 
         muteToProcess.forEach { (line, mute) ->
-            this.muteAnnotations.add(mute.toAst(
-                // TODO CodeReview: we could add unit tests to verify we set the correct position for mutes
-                position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
+            this.muteAnnotations.add(
+                mute.toAst(
+                    // TODO CodeReview: we could add unit tests to verify we set the correct position for mutes
+                    position = pos(line, this.position!!.start.column, line, this.position!!.end.column),
+                ),
             )
             mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))
         }
@@ -99,24 +116,22 @@ abstract class AbstractDataDefinition(
         return mutesAttached
     }
 
-    open fun isArray(): Boolean {
-        return type is ArrayType
-    }
+    open fun isArray(): Boolean = type is ArrayType
 
-    fun canBeAssigned(value: Value): Boolean {
-        return type.canBeAssigned(value)
-    }
+    fun canBeAssigned(value: Value): Boolean = type.canBeAssigned(value)
 }
 
-enum class ParamOption(val keyword: String) {
-    NoPass("*NOPASS");
+enum class ParamOption(
+    val keyword: String,
+) {
+    NoPass("*NOPASS"),
+    ;
 
     companion object {
-        fun getByKeyword(keyword: String): ParamOption {
-            return ParamOption.values().first {
+        fun getByKeyword(keyword: String): ParamOption =
+            entries.first {
                 it.keyword == keyword
             }
-        }
     }
 }
 
@@ -124,45 +139,55 @@ enum class ParamOption(val keyword: String) {
  * PREFIX node
  * */
 @Serializable
-data class Prefix(internal val prefix: String, private val numCharsReplaced: Int?) {
-
+data class Prefix(
+    internal val prefix: String,
+    private val numCharsReplaced: Int?,
+) {
     /**
      * Apply replacement rules and returns value converted
      * @param value Value to convert
      * */
-    fun applyReplacementRules(value: String): String {
-        return when (numCharsReplaced) {
+    fun applyReplacementRules(value: String): String =
+        when (numCharsReplaced) {
             null -> "$prefix$value"
             else -> "$prefix${value.substring(numCharsReplaced)}"
         }
-    }
 }
 
-enum class FileType(val keyword: String?) {
-    DB(null), VIDEO("C"), PRINTER(null);
+enum class FileType(
+    val keyword: String?,
+) {
+    DB(null),
+    VIDEO("C"),
+    PRINTER(null),
+    ;
 
     companion object {
         // see https://www.ibm.com/docs/sl/i/7.3?topic=statement-position-17-file-type
-        fun getByKeyword(keyword: String): FileType {
-            return FileType.values().firstOrNull() {
+        fun getByKeyword(keyword: String): FileType =
+            entries.firstOrNull {
                 it.keyword == keyword
             } ?: DB
-        }
     }
 }
 
 @Serializable
-data class FileDefinition private constructor(
+data class FileDefinition(
     override val name: String,
     override val position: Position?,
     val prefix: Prefix?,
     val justExtName: Boolean,
-    val fileType: FileType
-) : Node(position), Named {
+    val fileType: FileType,
+) : Node(position),
+    Named {
     companion object {
-        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false, fileType: FileType = FileType.DB): FileDefinition {
-            return FileDefinition(name.uppercase(), position, prefix, justExtName, fileType)
-        }
+        operator fun invoke(
+            name: String,
+            position: Position? = null,
+            prefix: Prefix? = null,
+            justExtName: Boolean = false,
+            fileType: FileType = FileType.DB,
+        ): FileDefinition = FileDefinition(name.uppercase(), position, prefix, justExtName, fileType)
     }
 
     var internalFormatName: String? = null
@@ -173,7 +198,10 @@ data class FileDefinition private constructor(
     private var fieldNameToDataDefinitionName = mutableMapOf<String, String>()
     private var dataDefinitionNameToFieldName = mutableMapOf<String, String>()
 
-    fun createDbFieldDataDefinitionRelation(dbFieldName: String, dataDefinitionName: String) {
+    fun createDbFieldDataDefinitionRelation(
+        dbFieldName: String,
+        dataDefinitionName: String,
+    ) {
         fieldNameToDataDefinitionName[dbFieldName] = dataDefinitionName
         dataDefinitionNameToFieldName[dataDefinitionName] = dbFieldName
     }
@@ -203,18 +231,17 @@ data class DataDefinition(
     @Transient var defaultValue: Value? = null,
     override var basedOn: Expression? = null,
     override val static: Boolean = false,
-    val fromFile: Boolean = false
-) :
-    AbstractDataDefinition(
+    val fromFile: Boolean = false,
+) : AbstractDataDefinition(
         name = name,
         type = type,
         position = position,
         basedOn = basedOn,
         const = const,
-        static = static
+        static = static,
     ) {
-
     override fun isArray() = type is ArrayType
+
     fun isCompileTimeArray() = type is ArrayType && (type as ArrayType).compileTimeArray()
 
     init {
@@ -222,6 +249,7 @@ data class DataDefinition(
     }
 
     // If you want to change visibility of this property, decorate as @Derived
+
     /**
      * A list of fields associated with the data definition.
      * When this property is updated, it also updates the `fields` property
@@ -251,13 +279,12 @@ data class DataDefinition(
     }
 
     @Deprecated("The end offset should be calculated before defining the FieldDefinition")
-    fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return (startOffset(fieldDefinition) + fieldDefinition.elementSize())
-    }
+    fun endOffset(fieldDefinition: FieldDefinition): Int = (startOffset(fieldDefinition) + fieldDefinition.elementSize())
 
-    fun getFieldByName(fieldName: String): FieldDefinition {
-        return this.fields.find { it.name == fieldName } ?: throw java.lang.IllegalArgumentException("Field not found $fieldName")
-    }
+    fun getFieldByName(fieldName: String): FieldDefinition =
+        this.fields.find {
+            it.name == fieldName
+        } ?: throw java.lang.IllegalArgumentException("Field not found $fieldName")
 
     // I had to reimplement this method because of this error:
     //    java.lang.StackOverflowError
@@ -304,11 +331,12 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             // To date only 2 and 4 bytes are supported
             if (this.rpgType == RpgType.BINARY.rpgType) {
                 // Transform the numeric to an encoded string
-                val len = when (this.entireDigits) {
-                    in 1..4 -> 2
-                    in 5..9 -> 4
-                    else -> 8
-                }
+                val len =
+                    when (this.entireDigits) {
+                        in 1..4 -> 2
+                        in 5..9 -> 4
+                        else -> 8
+                    }
                 val encoded = encodeBinary(value.asDecimal().value, len)
                 // adjust the size to fit the target field
                 val fitted = encoded.padEnd(this.size)
@@ -325,9 +353,10 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         is ArrayType -> {
             val sb = StringBuilder()
             when (value) {
-                is ArrayValue -> value.elements().forEach {
-                    sb.append(this.element.toDataStructureValue(it).value)
-                }
+                is ArrayValue ->
+                    value.elements().forEach {
+                        sb.append(this.element.toDataStructureValue(it).value)
+                    }
                 is IntValue -> sb.append(this.element.toDataStructureValue(value).value)
             }
 
@@ -341,8 +370,9 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             return StringValue(sb.toString())
         }
         is BooleanType -> {
-            if ((value as BooleanValue).value)
+            if ((value as BooleanValue).value) {
                 return StringValue("1")
+            }
             return StringValue("0")
         }
         is DataStructureType -> {
@@ -371,15 +401,12 @@ data class FieldDefinition(
     val initializationValue: Expression? = null,
     val descend: Boolean = false,
     override val position: Position? = null,
-
     // true when the FieldDefinition contains a DIM keyword on its line
     val declaredArrayInLineOnThisField: Int? = null,
     override val const: Boolean = false,
     // I moved here for more readability when we need to evaluate the state of FieldDefinition
-    internal var overlayTarget: String? = null
-) :
-    AbstractDataDefinition(name = name, type = type, position = position, const = const) {
-
+    internal var overlayTarget: String? = null,
+) : AbstractDataDefinition(name = name, type = type, position = position, const = const) {
     init {
         require((explicitStartOffset != null) != (calculatedStartOffset != null)) {
             "Field $name should have either an explicit start offset ($explicitStartOffset) or a calculated one ($calculatedStartOffset)"
@@ -388,6 +415,7 @@ data class FieldDefinition(
             "Field $name should have either an explicit end offset ($explicitEndOffset) or a calculated one ($calculatedEndOffset)"
         }
     }
+
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
     val declaredArrayInLine: Int?
@@ -411,8 +439,8 @@ data class FieldDefinition(
             }
         }
 
-    override fun elementSize(): Int {
-        return when {
+    override fun elementSize(): Int =
+        when {
             container.type is ArrayType -> {
                 super.elementSize()
             }
@@ -423,7 +451,6 @@ data class FieldDefinition(
                 size
             }
         }
-    }
 
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
 
@@ -436,9 +463,12 @@ data class FieldDefinition(
 
     @Derived
     val container
-        get() = overriddenContainer
-            ?: this.parent as? DataDefinition
-            ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
+        get() =
+            overriddenContainer
+                ?: this.parent as? DataDefinition
+                ?: throw IllegalStateException(
+                    "Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})",
+                )
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.
@@ -497,11 +527,9 @@ class InStatementDataDefinition(
     @SerialName(value = "inStatDataDefType") override val type: Type,
     override val position: Position? = null,
     val initializationValue: Expression? = null,
-    override val const: Boolean = false
+    override val const: Boolean = false,
 ) : AbstractDataDefinition(name = name, type = type, position = position, const = const) {
-    override fun toString(): String {
-        return "InStatementDataDefinition name=$name, type=$type, position=$position"
-    }
+    override fun toString(): String = "InStatementDataDefinition name=$name, type=$type, position=$position"
 
     // TODO("Require investigation")
     override fun hashCode() = name.hashCode()
@@ -513,33 +541,36 @@ class InStatementDataDefinition(
  * Encoding/Decoding a binary value for a data structure
  */
 
-fun encodeBinary(inValue: BigDecimal, size: Int): String {
+fun encodeBinary(
+    inValue: BigDecimal,
+    size: Int,
+): String {
     val buffer = ByteArray(size)
     val lsb = inValue.toInt()
 
     if (size == 1) {
-
         buffer[0] = (lsb and 0x0000FFFF).toByte()
 
         return buffer[0].toInt().toChar().toString()
     }
 
     if (size == 2) {
-
         buffer[0] = ((lsb shr 8) and 0x000000FF).toByte()
         buffer[1] = (lsb and 0x000000FF).toByte()
 
         return buffer[1].toInt().toChar().toString() + buffer[0].toInt().toChar().toString()
     }
     if (size == 4) {
-
         buffer[0] = ((lsb shr 24) and 0x0000FFFF).toByte()
         buffer[1] = ((lsb shr 16) and 0x0000FFFF).toByte()
         buffer[2] = ((lsb shr 8) and 0x0000FFFF).toByte()
         buffer[3] = (lsb and 0x0000FFFF).toByte()
 
-        return buffer[3].toInt().toChar().toString() + buffer[2].toInt().toChar().toString() + buffer[1].toInt()
-            .toChar().toString() + buffer[0].toInt().toChar().toString()
+        return buffer[3].toInt().toChar().toString() + buffer[2].toInt().toChar().toString() +
+            buffer[1]
+                .toInt()
+                .toChar()
+                .toString() + buffer[0].toInt().toChar().toString()
     }
     if (size == 8) {
         val llsb = inValue.toLong()
@@ -552,23 +583,34 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
         buffer[6] = ((llsb shr 8) and 0x0000FFFF).toByte()
         buffer[7] = (llsb and 0x0000FFFF).toByte()
 
-        return buffer[7].toInt().toChar().toString() + buffer[6].toInt().toChar().toString() + buffer[5].toInt()
-            .toChar().toString() + buffer[4].toInt().toChar().toString() +
-            buffer[3].toInt().toChar().toString() + buffer[2].toInt().toChar().toString() + buffer[1].toInt().toChar().toString() + buffer[0].toInt()
-            .toChar().toString()
+        return buffer[7].toInt().toChar().toString() + buffer[6].toInt().toChar().toString() +
+            buffer[5]
+                .toInt()
+                .toChar()
+                .toString() + buffer[4].toInt().toChar().toString() +
+            buffer[3].toInt().toChar().toString() + buffer[2].toInt().toChar().toString() + buffer[1].toInt().toChar().toString() +
+            buffer[0]
+                .toInt()
+                .toChar()
+                .toString()
     }
     TODO("encode binary for $size not implemented")
 }
 
-fun encodeInteger(inValue: BigDecimal, size: Int): String {
-    return encodeBinary(inValue, size)
-}
+fun encodeInteger(
+    inValue: BigDecimal,
+    size: Int,
+): String = encodeBinary(inValue, size)
 
-fun encodeUnsigned(inValue: BigDecimal, size: Int): String {
-    return encodeBinary(inValue, size)
-}
+fun encodeUnsigned(
+    inValue: BigDecimal,
+    size: Int,
+): String = encodeBinary(inValue, size)
 
-fun decodeBinary(value: String, size: Int): BigDecimal {
+fun decodeBinary(
+    value: String,
+    size: Int,
+): BigDecimal {
     if (size == 1) {
         var number: Long = 0x0000000
         if (value[0].code and 0x0010 != 0) {
@@ -588,29 +630,34 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
     }
 
     if (size == 4) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24)
+        val number =
+            (value[0].code.toLong() and 0x00FF) +
+                ((value[1].code.toLong() and 0x00FF) shl 8) +
+                ((value[2].code.toLong() and 0x00FF) shl 16) +
+                ((value[3].code.toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
     }
     if (size == 8) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24) +
-            ((value[4].code.toLong() and 0x00FF) shl 32) +
-            ((value[5].code.toLong() and 0x00FF) shl 40) +
-            ((value[6].code.toLong() and 0x00FF) shl 48) +
-            ((value[7].code.toLong() and 0x00FF) shl 56)
+        val number =
+            (value[0].code.toLong() and 0x00FF) +
+                ((value[1].code.toLong() and 0x00FF) shl 8) +
+                ((value[2].code.toLong() and 0x00FF) shl 16) +
+                ((value[3].code.toLong() and 0x00FF) shl 24) +
+                ((value[4].code.toLong() and 0x00FF) shl 32) +
+                ((value[5].code.toLong() and 0x00FF) shl 40) +
+                ((value[6].code.toLong() and 0x00FF) shl 48) +
+                ((value[7].code.toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toInt().toString())
     }
     TODO("decode binary for $size not implemented")
 }
 
-fun decodeInteger(value: String, size: Int): BigDecimal {
+fun decodeInteger(
+    value: String,
+    size: Int,
+): BigDecimal {
     if (size == 1) {
         var number = 0x0000000
         number += (value[0].code.toByte())
@@ -626,30 +673,34 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
         return BigDecimal(number.toInt().toString())
     }
     if (size == 4) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24)
+        val number =
+            (value[0].code.toLong() and 0x00FF) +
+                ((value[1].code.toLong() and 0x00FF) shl 8) +
+                ((value[2].code.toLong() and 0x00FF) shl 16) +
+                ((value[3].code.toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
     }
     if (size == 8) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24) +
-            ((value[4].code.toLong() and 0x00FF) shl 32) +
-            ((value[5].code.toLong() and 0x00FF) shl 40) +
-            ((value[6].code.toLong() and 0x00FF) shl 48) +
-            ((value[7].code.toLong() and 0x00FF) shl 56)
+        val number =
+            (value[0].code.toLong() and 0x00FF) +
+                ((value[1].code.toLong() and 0x00FF) shl 8) +
+                ((value[2].code.toLong() and 0x00FF) shl 16) +
+                ((value[3].code.toLong() and 0x00FF) shl 24) +
+                ((value[4].code.toLong() and 0x00FF) shl 32) +
+                ((value[5].code.toLong() and 0x00FF) shl 40) +
+                ((value[6].code.toLong() and 0x00FF) shl 48) +
+                ((value[7].code.toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toString())
     }
     TODO("decode binary for $size not implemented")
 }
 
-fun decodeUnsigned(value: String, size: Int): BigDecimal {
-
+fun decodeUnsigned(
+    value: String,
+    size: Int,
+): BigDecimal {
     if (size == 1) {
         var number: Long = 0x0000000
         if (value[0].code and 0x0010 != 0) {
@@ -670,22 +721,24 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
         return BigDecimal(number.toString())
     }
     if (size == 4) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24)
+        val number =
+            (value[0].code.toLong() and 0x00FF) +
+                ((value[1].code.toLong() and 0x00FF) shl 8) +
+                ((value[2].code.toLong() and 0x00FF) shl 16) +
+                ((value[3].code.toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toString())
     }
     if (size == 8) {
-        val number = (value[0].code.toLong() and 0x00FF) +
-            ((value[1].code.toLong() and 0x00FF) shl 8) +
-            ((value[2].code.toLong() and 0x00FF) shl 16) +
-            ((value[3].code.toLong() and 0x00FF) shl 24) +
-            ((value[4].code.toLong() and 0x00FF) shl 32) +
-            ((value[5].code.toLong() and 0x00FF) shl 40) +
-            ((value[6].code.toLong() and 0x00FF) shl 48) +
-            ((value[7].code.toLong() and 0x00FF) shl 56)
+        val number =
+            (value[0].code.toLong() and 0x00FF) +
+                ((value[1].code.toLong() and 0x00FF) shl 8) +
+                ((value[2].code.toLong() and 0x00FF) shl 16) +
+                ((value[3].code.toLong() and 0x00FF) shl 24) +
+                ((value[4].code.toLong() and 0x00FF) shl 32) +
+                ((value[5].code.toLong() and 0x00FF) shl 40) +
+                ((value[6].code.toLong() and 0x00FF) shl 48) +
+                ((value[7].code.toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toInt().toString())
     }
@@ -695,9 +748,19 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
 /**
  * Encode a zoned value for a data structure
  */
-fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
+fun encodeToZoned(
+    inValue: BigDecimal,
+    digits: Int,
+    scale: Int,
+): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
-    val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
+    val inChars =
+        inValue
+            .abs()
+            .movePointRight(scale)
+            .toBigInteger()
+            .toString()
+            .toCharArray()
     val buffer = IntArray(inChars.size)
 
     // read the sign
@@ -720,7 +783,11 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     return s
 }
 
-fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
+fun decodeFromZoned(
+    value: String,
+    digits: Int,
+    scale: Int,
+): BigDecimal {
     val builder = StringBuilder()
 
     value.forEach {
@@ -746,9 +813,19 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
 /**
  * Encoding/Decoding a numeric value for a data structure
  */
-fun encodeToPacked(inValue: BigDecimal, digits: Int, scale: Int): String {
+fun encodeToPacked(
+    inValue: BigDecimal,
+    digits: Int,
+    scale: Int,
+): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
-    val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
+    val inChars =
+        inValue
+            .abs()
+            .movePointRight(scale)
+            .toBigInteger()
+            .toString()
+            .toCharArray()
     val buffer = IntArray(inChars.size / 2 + 1)
 
     // read the sign
@@ -767,11 +844,12 @@ fun encodeToPacked(inValue: BigDecimal, digits: Int, scale: Int): String {
     }
 
     // place last digit and sign nibble
-    firstNibble = if (inPosition == inChars.size) {
-        0x00F0
-    } else {
-        (inChars[inChars.size - 1].code) and 0x000F shl 4
-    }
+    firstNibble =
+        if (inPosition == inChars.size) {
+            0x00F0
+        } else {
+            (inChars[inChars.size - 1].code) and 0x000F shl 4
+        }
     if (sign != -1) {
         buffer[offset] = (firstNibble + 0x000F)
     } else {
@@ -786,7 +864,11 @@ fun encodeToPacked(inValue: BigDecimal, digits: Int, scale: Int): String {
     return s
 }
 
-fun decodeFromPacked(value: String, digits: Int, scale: Int): BigDecimal {
+fun decodeFromPacked(
+    value: String,
+    digits: Int,
+    scale: Int,
+): BigDecimal {
     val buffer = IntArray(value.length)
     for (i in value.indices) {
         buffer[i] = value[i].code
@@ -831,12 +913,13 @@ fun decodeFromPacked(value: String, digits: Int, scale: Int): BigDecimal {
 }
 
 enum class Visibility {
-    Program, Static, Local
+    Program,
+    Static,
+    Local,
 }
 
 @Serializable
 class Scope {
-
     val visibility: Visibility
     val reference: String?
 
@@ -850,10 +933,12 @@ class Scope {
          * Create a new program scope
          * */
         val Program = Scope(visibility = Visibility.Program)
+
         /**
          * Create a new local scope
          * */
         val Local = Scope(visibility = Visibility.Local)
+
         /**
          * Create a new static scope
          * @param procedureName The procedure name

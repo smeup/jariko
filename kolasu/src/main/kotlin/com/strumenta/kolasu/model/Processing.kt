@@ -32,14 +32,15 @@ private val containmentPropertiesCache = ConcurrentHashMap<Class<*>, Collection<
 
 private val <T : Node> T.containmentProperties: Collection<KProperty1<T, *>>
     @Suppress("UNCHECKED_CAST")
-    get() = containmentPropertiesCache.computeIfAbsent(this.javaClass) { clazz ->
-        clazz.kotlin.memberProperties
-            .filterIsInstance<KProperty1<Node, *>>() // Safely filter properties of Node
-            .filter { it.visibility == KVisibility.PUBLIC }
-            .filter { it.findAnnotation<Derived>() == null }
-            .filter { it.findAnnotation<Link>() == null }
-            .filter { it.name != "parent" }
-    } as Collection<KProperty1<T, *>>
+    get() =
+        containmentPropertiesCache.computeIfAbsent(this.javaClass) { clazz ->
+            clazz.kotlin.memberProperties
+                .filterIsInstance<KProperty1<Node, *>>() // Safely filter properties of Node
+                .filter { it.visibility == KVisibility.PUBLIC }
+                .filter { it.findAnnotation<Derived>() == null }
+                .filter { it.findAnnotation<Link>() == null }
+                .filter { it.name != "parent" }
+        } as Collection<KProperty1<T, *>>
 
 fun Node.assignParents() {
     this.children.forEach {
@@ -72,12 +73,15 @@ fun Node.find(predicate: (Node) -> Boolean): Node? {
                     return res
                 }
             }
-            is Collection<*> -> v.forEach { (it as? Node)?.let {
-                val res = it.find(predicate)
-                if (res != null) {
-                    return res
+            is Collection<*> ->
+                v.forEach {
+                    (it as? Node)?.let {
+                        val res = it.find(predicate)
+                        if (res != null) {
+                            return res
+                        }
+                    }
                 }
-            } }
         }
     }
     return null
@@ -86,9 +90,14 @@ fun Node.find(predicate: (Node) -> Boolean): Node? {
 /**
  * Navigate the abstract syntax tree and execute the operation on all the nodes of the given type.
  * */
-fun <T : Node> Node.specificProcess(klass: Class<T>, operation: (T) -> Unit) {
-    process { if (klass.isInstance(it)) {
-        operation(it as T) }
+fun <T : Node> Node.specificProcess(
+    klass: Class<T>,
+    operation: (T) -> Unit,
+) {
+    process {
+        if (klass.isInstance(it)) {
+            operation(it as T)
+        }
     }
 }
 
@@ -98,7 +107,10 @@ fun <T : Node> Node.collectByType(klass: Class<T>): List<T> {
     return res
 }
 
-fun Node.processConsideringParent(operation: (Node, Node?) -> Unit, parent: Node? = null) {
+fun Node.processConsideringParent(
+    operation: (Node, Node?) -> Unit,
+    parent: Node? = null,
+) {
     operation(this, parent)
     this.containmentProperties.forEach { p ->
         val v = p.get(this)
@@ -123,7 +135,10 @@ val Node.children: List<Node>
     }
 
 // TODO reimplement using transformChildren
-fun Node.transform(operation: (Node) -> Node, inPlace: Boolean = false): Node {
+fun Node.transform(
+    operation: (Node) -> Node,
+    inPlace: Boolean = false,
+): Node {
     if (inPlace) TODO()
     operation(this)
     val changes = HashMap<String, Any>()
@@ -148,7 +163,10 @@ fun Node.transform(operation: (Node) -> Node, inPlace: Boolean = false): Node {
             if (changes.containsKey(param.name)) {
                 params[param] = changes[param.name]
             } else {
-                params[param] = this.javaClass.kotlin.memberProperties.find { param.name == it.name }!!.get(this)
+                params[param] =
+                    this.javaClass.kotlin.memberProperties
+                        .find { param.name == it.name }!!
+                        .get(this)
             }
         }
         instanceToTransform = constructor.callBy(params)
@@ -156,10 +174,15 @@ fun Node.transform(operation: (Node) -> Node, inPlace: Boolean = false): Node {
     return operation(instanceToTransform)
 }
 
-class ImmutablePropertyException(property: KProperty<*>, node: Node) :
-    RuntimeException("Cannot mutate property '${property.name}' of node $node (class: ${node.javaClass.canonicalName})")
+class ImmutablePropertyException(
+    property: KProperty<*>,
+    node: Node,
+) : RuntimeException("Cannot mutate property '${property.name}' of node $node (class: ${node.javaClass.canonicalName})")
 
-fun Node.transformChildren(operation: (Node) -> Node, inPlace: Boolean = false): Node {
+fun Node.transformChildren(
+    operation: (Node) -> Node,
+    inPlace: Boolean = false,
+): Node {
     val changes = HashMap<String, Any>()
     relevantMemberProperties().forEach { p ->
         val v = p.get(this)
@@ -221,7 +244,10 @@ fun Node.transformChildren(operation: (Node) -> Node, inPlace: Boolean = false):
             if (changes.containsKey(param.name)) {
                 params[param] = changes[param.name]
             } else {
-                params[param] = this.javaClass.kotlin.memberProperties.find { param.name == it.name }!!.get(this)
+                params[param] =
+                    this.javaClass.kotlin.memberProperties
+                        .find { param.name == it.name }!!
+                        .get(this)
             }
         }
         instanceToTransform = constructor.callBy(params)
@@ -229,8 +255,7 @@ fun Node.transformChildren(operation: (Node) -> Node, inPlace: Boolean = false):
     return instanceToTransform
 }
 
-fun Node.replace(other: Node): Node {
-    return this.parent?.let {
+fun Node.replace(other: Node): Node =
+    this.parent?.let {
         it.transformChildren(inPlace = true, operation = { node -> if (node == this) other else node })
     } ?: throw IllegalStateException("Parent not set")
-}

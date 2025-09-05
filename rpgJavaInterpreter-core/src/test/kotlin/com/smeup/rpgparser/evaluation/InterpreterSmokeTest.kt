@@ -22,7 +22,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
 open class InterpreterSmokeTest : AbstractTest() {
-
     @Test
     fun executeJD_001() {
         val cu = assertASTCanBeProduced("JD_001", true)

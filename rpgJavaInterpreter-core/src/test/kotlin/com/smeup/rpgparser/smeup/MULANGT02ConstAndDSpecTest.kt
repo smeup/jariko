@@ -35,18 +35,26 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMU023007() {
-        val expected = listOf("/COPY in prima posizione                          ;/copy in prima posizione in minuscolo             ;Prova alla fine del testo /COPY                   ;Prova alla fine del testo in minuscolo /copy      ;Prova con /COPY in mezzo al testo                 ;Prova con /copy in mezzo al testo in minuscolo")
+        val expected =
+            listOf(
+                "/COPY in prima posizione                          ;/copy in prima posizione in minuscolo             ;Prova alla fine del testo /COPY                   ;Prova alla fine del testo in minuscolo /copy      ;Prova con /COPY in mezzo al testo                 ;Prova con /copy in mezzo al testo in minuscolo",
+            )
         assertEquals(expected, "smeup/MU023007".outputOf())
     }
+
     /**
      * /COPY recognized in CTDATA
      * @see #269
      */
     @Test
     fun executeMU023008() {
-        val expected = listOf("Prova /COPY                                       ;Prova /COPY numero                                ;Prova /COPY 12                                    ;      /COPY QILEGEN, AAA")
+        val expected =
+            listOf(
+                "Prova /COPY                                       ;Prova /COPY numero                                ;Prova /COPY 12                                    ;      /COPY QILEGEN, AAA",
+            )
         assertEquals(expected, "smeup/MU023008".outputOf())
     }
+
     /**
      * Data reference - DS with 2 arrays defined with overlay
      * @see #247
@@ -205,7 +213,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
             val expected = listOf("HELLO THERE")
             assertEquals(
                 expected = expected,
-                "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig)
+                "smeup/MUDRNRAPU00101".outputOf(configuration = smeupConfig),
             )
         })
     }
@@ -229,7 +237,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00201".outputOf(configuration = smeupConfig),
         )
     }
 
@@ -242,7 +250,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00204".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00204".outputOf(configuration = smeupConfig),
         )
     }
 
@@ -284,7 +292,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("HELLO THERE")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00205".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00205".outputOf(configuration = smeupConfig),
         )
     }
 
@@ -297,7 +305,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00206".outputOf(configuration = turnOnZAddLegacyFlagConfig)
+            "smeup/MUDRNRAPU00206".outputOf(configuration = turnOnZAddLegacyFlagConfig),
         )
     }
 
@@ -310,7 +318,7 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("ok")
         assertEquals(
             expected = expected,
-            "smeup/MUDRNRAPU00207".outputOf(configuration = smeupConfig)
+            "smeup/MUDRNRAPU00207".outputOf(configuration = smeupConfig),
         )
     }
 
@@ -320,7 +328,10 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMU024014() {
-        val expected = listOf("A40DS1(ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(BCDEFGHIJK) DS1_FL1(2)(LMNOPQRSTU) | A40DS1(A88        LMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(88        ) DS1_FL1(2)(LMNOPQRSTU) | A40DS1(A88        00        VWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(88        ) DS1_FL1(2)(00        )")
+        val expected =
+            listOf(
+                "A40DS1(ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(BCDEFGHIJK) DS1_FL1(2)(LMNOPQRSTU) | A40DS1(A88        LMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(88        ) DS1_FL1(2)(LMNOPQRSTU) | A40DS1(A88        00        VWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) DS1_FL1(1)(88        ) DS1_FL1(2)(00        )",
+            )
         assertEquals(expected, "smeup/MU024014".outputOf(configuration = smeupConfig))
     }
 
@@ -867,11 +878,12 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00189() {
-        MULANGTLDbMock().usePopulated({
+        MULANGTLDbMock().usePopulated(
+            {
                 val expected = listOf("IBMI", "", "IBMI", "MULANGT00", "", "", "IBMI", "MULANGT00")
                 assertEquals(expected, "smeup/MUDRNRAPU00189".outputOf(configuration = smeupConfig))
             },
-            listOf(mapOf("MLSYST" to "IBMI", "MLPROG" to "MULANGT00"))
+            listOf(mapOf("MLSYST" to "IBMI", "MLPROG" to "MULANGT00")),
         )
     }
 
@@ -1004,5 +1016,45 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
     fun executeMUDRNRAPU00291() {
         val expected = listOf("5")
         assertEquals(expected, "smeup/MUDRNRAPU00291".outputOf())
+    }
+
+    /**
+     * Calling a program by passing Integer to a DS which defines only one field as Integer.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001121() {
+        val expected = listOf("5", "5", "7", "7")
+        assertEquals(expected, "smeup/MUDRNRAPU001121".outputOf())
+    }
+
+    /**
+     * Calling a program by passing Decimal to a DS which defines only one field as Decimal.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001122() {
+        val expected = listOf("5.2", "5.2", "7.1", "7.1")
+        assertEquals(expected, "smeup/MUDRNRAPU001122".outputOf())
+    }
+
+    /**
+     * Calling a program by passing Integer to a DS which defines only one field as Decimal.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001123() {
+        val expected = listOf("5", ".5", "7.1", "71")
+        assertEquals(expected, "smeup/MUDRNRAPU001123".outputOf())
+    }
+
+    /**
+     * Calling a program by passing Decimal to a DS which defines only one field as Integer.
+     * @see #LS25002639
+     */
+    @Test
+    fun executeMUDRNRAPU001124() {
+        val expected = listOf("5.2", "52", "7", ".7")
+        assertEquals(expected, "smeup/MUDRNRAPU001124".outputOf())
     }
 }

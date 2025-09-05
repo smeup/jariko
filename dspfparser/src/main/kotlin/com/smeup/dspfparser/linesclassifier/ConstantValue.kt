@@ -14,4 +14,6 @@ import kotlinx.serialization.modules.SerializersModule
  * in rpgJavaInterpreter-core module).
  */
 @Serializable
-data class ConstantValue(val value: String) : DSPFValue
+data class ConstantValue(
+    val value: String,
+) : DSPFValue

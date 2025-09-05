@@ -41,18 +41,18 @@ class RunnerTest : AbstractTest() {
         dir
     }
 
-    private fun createLogFile(): File {
-        return newFile(folder, "log.log").apply {
+    private fun createLogFile(): File =
+        newFile(folder, "log.log").apply {
             // if exists clean
             if (exists()) {
                 FileUtils.writeStringToFile(this, "", Charset.defaultCharset())
             }
         }
-    }
 
     private fun createConfigurationFile(logFile: File): File {
         val configFile = newFile(folder, "logging.config")
-        val configuration = """
+        val configuration =
+            """
             logger.data.separator =  \t
             logger.date.pattern = HH:mm:ss.SSS
             logger.file.path = ${FilenameUtils.separatorsToUnix(logFile.parentFile.absolutePath)}
@@ -69,14 +69,15 @@ class RunnerTest : AbstractTest() {
             performance.output = file
             resolution.level = all
             resolution.output = file
-        """.trimIndent()
+            """.trimIndent()
         FileUtils.writeStringToFile(configFile, configuration, Charset.defaultCharset())
         return configFile
     }
 
-    private fun newFile(folder: File, name: String): File {
-        return File(folder, name)
-    }
+    private fun newFile(
+        folder: File,
+        name: String,
+    ): File = File(folder, name)
 
     @Test
     fun executeExample() {
@@ -91,7 +92,10 @@ class RunnerTest : AbstractTest() {
         assertContain(logs, "PERF\tTEST_06\t\tINTERPRETATION")
     }
 
-    private fun assertContain(logs: List<String>, expected: String) {
+    private fun assertContain(
+        logs: List<String>,
+        expected: String,
+    ) {
         assertNotNull(logs.find { it.contains(expected) }, "Expected: $expected")
     }
 
@@ -118,9 +122,10 @@ class RunnerTest : AbstractTest() {
         val pgm = """
      C                   CALL      'DOPEDPGM'            
         """
-        val systemInterface = JavaSystemInterface().apply {
-            addJavaInteropPackage("com.smeup.rpgparser.execution")
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                addJavaInteropPackage("com.smeup.rpgparser.execution")
+            }
         getProgram(nameOrSource = pgm, systemInterface).singleCall(parms = emptyList())
     }
 
@@ -130,12 +135,15 @@ class RunnerTest : AbstractTest() {
     @Test
     fun firstPgmAsDoped() {
         MYDOPED()
-        val systemInterface = JavaSystemInterface().apply {
-            addJavaInteropPackage("com.smeup.rpgparser.execution")
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                addJavaInteropPackage("com.smeup.rpgparser.execution")
+            }
         val expected = listOf("HELLO", "20.24")
-        val actual = getProgram(nameOrSource = "MYDOPED", systemInterface = systemInterface)
-            .singleCall(parms = listOf("hello", "10.12"))!!.parmsList
+        val actual =
+            getProgram(nameOrSource = "MYDOPED", systemInterface = systemInterface)
+                .singleCall(parms = listOf("hello", "10.12"))!!
+                .parmsList
         Assert.assertEquals(expected, actual)
     }
 
@@ -146,34 +154,44 @@ class RunnerTest : AbstractTest() {
         """
         getProgram(
             nameOrSource = pgm,
-            systemInterface = DOPEDCALLRPG.systemInterface
+            systemInterface = DOPEDCALLRPG.systemInterface,
         ).singleCall(parms = emptyList(), configuration = DOPEDCALLRPG.configuration)
     }
 }
 
 class DOPEDPGM : Program {
-
     override fun params(): List<ProgramParam> = emptyList()
 
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value> {
         error("Forced error")
     }
 }
 
 class MYDOPED : Program {
+    override fun params() =
+        listOf(
+            ProgramParam("s1", StringType(10, false)),
+            ProgramParam("n1", NumberType(5, 2)),
+        )
 
-    override fun params() = listOf(
-        ProgramParam("s1", StringType(10, false)),
-        ProgramParam("n1", NumberType(5, 2))
-    )
-
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value> {
         systemInterface.display(params.toString())
         return params.values.mapIndexed { index, value ->
             when (index) {
                 0 -> StringValue(value.asString().value.uppercase(Locale.getDefault()), true)
-                1 -> DecimalValue(coerce(value, NumberType(5, 2))
-                    .asDecimal().value.multiply(BigDecimal.valueOf(2)))
+                1 ->
+                    DecimalValue(
+                        coerce(value, NumberType(5, 2))
+                            .asDecimal()
+                            .value
+                            .multiply(BigDecimal.valueOf(2)),
+                    )
                 else -> throw IllegalArgumentException("index not handled")
             }
         }
@@ -181,17 +199,20 @@ class MYDOPED : Program {
 }
 
 class DOPEDCALLRPG : Program {
-
     companion object {
-        val systemInterface = JavaSystemInterface().apply {
-            addJavaInteropPackage("com.smeup.rpgparser.execution")
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                addJavaInteropPackage("com.smeup.rpgparser.execution")
+            }
         val configuration = Configuration()
     }
 
     override fun params() = emptyList<ProgramParam>()
 
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value> {
         val pgm = """
      D Msg             S             10
      C                   EVAL      Msg = 'Test OK'

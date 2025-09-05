@@ -4,6 +4,8 @@ import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.SymbolTableAction
+import kotlin.collections.getOrPut
+import kotlin.collections.set
 import kotlin.time.Duration
 
 /**
@@ -12,6 +14,8 @@ import kotlin.time.Duration
  */
 class AnalyticsLoggingContext {
     private val programUsageTable = ProgramUsageTable()
+    private val programCalls = mutableMapOf<String, UsageMeasurement>()
+    private val subroutineCalls = mutableMapOf<String, UsageMeasurement>()
     private var renderingTimeMeasurement = UsageMeasurement.new()
     private var interpretationTimeMeasurement = UsageMeasurement.new()
 
@@ -66,38 +70,54 @@ class AnalyticsLoggingContext {
      * Records the execution of an expression.
      * @see ILoggableExpression
      */
-    fun recordExpressionExecution(program: String, entity: String, time: Duration) =
-        programUsageTable.recordExpression(program, entity, time)
+    fun recordExpressionExecution(
+        program: String,
+        entity: String,
+        time: Duration,
+    ) = programUsageTable.recordExpression(program, entity, time)
 
     /**
      * Records an interaction with the symbol table.
      * @see SymbolTableAction
      */
-    fun recordSymbolTableAccess(program: String, action: SymbolTableAction, time: Duration) =
-        programUsageTable.recordSymbolTableAction(program, action, time)
+    fun recordSymbolTableAccess(
+        program: String,
+        action: SymbolTableAction,
+        time: Duration,
+    ) = programUsageTable.recordSymbolTableAction(program, action, time)
 
     /**
      * Records a parsing step.
      */
-    fun recordParsing(program: String, step: String, time: Duration) =
-        programUsageTable.recordParsing(program, step, time)
+    fun recordParsing(
+        program: String,
+        step: String,
+        time: Duration,
+    ) = programUsageTable.recordParsing(program, step, time)
 
-    fun recordUsage(program: String, type: ProgramUsageType, entity: String, time: Duration) =
-        when (type) {
-            ProgramUsageType.Parsing -> recordParsing(program, entity, time)
-            ProgramUsageType.Statement -> recordStatementExecution(program, entity, time)
-            ProgramUsageType.Expression -> recordExpressionExecution(program, entity, time)
-            ProgramUsageType.SymbolTable -> recordSymbolTableAccess(program, SymbolTableAction.valueOf(entity), time)
-            ProgramUsageType.LogRendering -> recordRenderingDuration(time)
-            ProgramUsageType.Interpretation -> recordInterpretationDuration(time)
-        }
+    fun recordUsage(
+        program: String,
+        type: ProgramUsageType,
+        entity: String,
+        time: Duration,
+    ) = when (type) {
+        ProgramUsageType.Parsing -> recordParsing(program, entity, time)
+        ProgramUsageType.Statement -> recordStatementExecution(program, entity, time)
+        ProgramUsageType.Expression -> recordExpressionExecution(program, entity, time)
+        ProgramUsageType.SymbolTable -> recordSymbolTableAccess(program, SymbolTableAction.valueOf(entity), time)
+        ProgramUsageType.LogRendering -> recordRenderingDuration(time)
+        ProgramUsageType.Interpretation -> recordInterpretationDuration(time)
+    }
 
     /**
      * Records the execution of a statement.
      * @see ILoggableStatement
      */
-    fun recordStatementExecution(program: String, entity: String, time: Duration) =
-        programUsageTable.recordStatement(program, entity, time)
+    fun recordStatementExecution(
+        program: String,
+        entity: String,
+        time: Duration,
+    ) = programUsageTable.recordStatement(program, entity, time)
 
     /**
      * Records the execution of a nested statement.
@@ -112,6 +132,28 @@ class AnalyticsLoggingContext {
      */
 //    fun recordNestedExpressionExecutionFromScope(program: String, time: Duration) =
 //        programUsageTable.recordNestedExpression(program, expressionScope, time)
+
+    /**
+     * Records the execution of a call
+     */
+    fun recordCall(
+        program: String,
+        time: Duration,
+    ) {
+        val measurement = programCalls.getOrPut(program) { UsageMeasurement.new() }
+        programCalls[program] = measurement.hit(time)
+    }
+
+    /**
+     * Records the execution of a subroutine
+     */
+    fun recordSubroutine(
+        subroutine: String,
+        time: Duration,
+    ) {
+        val measurement = subroutineCalls.getOrPut(subroutine) { UsageMeasurement.new() }
+        subroutineCalls[subroutine] = measurement.hit(time)
+    }
 
     /**
      * Generate an ANALYTICS report based on currently collected metadata in the form
@@ -137,10 +179,14 @@ class AnalyticsLoggingContext {
             parsingEntries.addAll(parsing)
         }
 
+        val programCallEntries = generateProgramCallLogEntries()
+        val subroutineCallEntries = generateSubroutineCallLogEntries()
         val logTimeEntry = generateLogTimeReportEntry()
         val interpretationTimeEntry = generateInterpretationReportEntry()
 
-        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + logTimeEntry + interpretationTimeEntry
+        return statementEntries + expressionEntries + symbolTableEntries + parsingEntries + programCallEntries + subroutineCallEntries +
+            logTimeEntry +
+            interpretationTimeEntry
     }
 
     private fun generateLogTimeReportEntry(): LazyLogEntry {
@@ -162,4 +208,28 @@ class AnalyticsLoggingContext {
             "$sep${duration.inWholeMicroseconds}$sep$hit"
         }
     }
+
+    private fun generateProgramCallLogEntries(): Sequence<LazyLogEntry> =
+        programCalls.asSequence().map {
+            val programName = it.key
+            val duration = it.value.duration
+            val hit = it.value.hit
+
+            val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "PGM CALL")
+            LazyLogEntry(entry) { sep ->
+                "$programName$sep${duration.inWholeMicroseconds}${sep}$hit"
+            }
+        }
+
+    private fun generateSubroutineCallLogEntries(): Sequence<LazyLogEntry> =
+        subroutineCalls.asSequence().map {
+            val subroutineName = it.key
+            val duration = it.value.duration
+            val hit = it.value.hit
+
+            val entry = LogEntry({ LogSourceData.UNKNOWN }, LogChannel.ANALYTICS.getPropertyName(), "EXSR CALL")
+            LazyLogEntry(entry) { sep ->
+                "$subroutineName$sep${duration.inWholeMicroseconds}${sep}$hit"
+            }
+        }
 }

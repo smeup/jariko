@@ -24,7 +24,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class JavaSystemInterfaceTest {
-
     @Test
     fun findsPgmsByName() {
         val javaSystemInterface = createJavaSystemInterface()
@@ -76,36 +75,29 @@ class JavaSystemInterfaceTest {
     }
 }
 
-class SomePgm() : Program {
-    override fun params(): List<ProgramParam> {
-        return emptyList()
-    }
+class SomePgm : Program {
+    override fun params(): List<ProgramParam> = emptyList()
 
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-        return emptyList()
-    }
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>,
+    ): List<Value> = emptyList()
 }
 
-class SomeFunction() : Function {
-    override fun params(): List<FunctionParam> {
-        return emptyList()
-    }
+class SomeFunction : Function {
+    override fun params(): List<FunctionParam> = emptyList()
 
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        symbolTable: ISymbolTable
-    ): Value {
-        return VoidValue
-    }
+        interpreterStatus: InterpreterStatus,
+    ): Value = VoidValue
 }
 
-class DopedFunction() : JavaFunction {
+class DopedFunction : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
-        symbolTable: ISymbolTable
-    ): Value {
-        return VoidValue
-    }
+        interpreterStatus: InterpreterStatus,
+    ): Value = VoidValue
 }

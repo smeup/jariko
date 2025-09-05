@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import org.junit.Test as test
 
 class RpgTokensListTest {
-
     @test fun lexJD_001() {
         val tokens = assertExampleCanBeLexed("JD_001")
         assertToken(DIRECTIVE, "H/", tokens[0])

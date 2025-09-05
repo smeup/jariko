@@ -37,30 +37,38 @@ import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
     private val outputStream: PrintStream,
-    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+    private val programSource: KFunction1<
+        @ParameterName(name = "programName")
+        String,
+        RpgProgram,
+    >?,
     private val copySource: (copyId: CopyId) -> Copy? = { null },
     var loggingConfiguration: LoggingConfiguration? = null,
     val rpgSystem: RpgSystem = RpgSystem(),
-    private val configuration: Configuration? = null
+    private val configuration: Configuration? = null,
 ) : SystemInterface {
-
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
-    override fun loggingConfiguration(): LoggingConfiguration? {
-        return this.loggingConfiguration
-    }
+    override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
 
     // For calls from Java programs
-    private constructor (os: PrintStream, rpgSystem: RpgSystem, configuration: Configuration?) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem, configuration = configuration)
+    private constructor (
+        os: PrintStream,
+        rpgSystem: RpgSystem,
+        configuration: Configuration?,
+    ) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem, configuration = configuration)
+
     /**
      * Creates an instance of JavaSystemInterface with default [RpgSystem]
      * */
     constructor (os: PrintStream, configuration: Configuration?) : this(os, RpgSystem(), configuration)
+
     /**
      * Creates an instance of JavaSystemInterface with default [RpgSystem]
      * */
     constructor (os: PrintStream) : this(os, RpgSystem(), null)
+
     /**
      * Creates an instance of JavaSystemInterface with default [RpgSystem] and os param set to [System.out]
      * */
@@ -106,85 +114,90 @@ open class JavaSystemInterface(
         onDisplay.invoke(value, outputStream)
     }
 
-    override fun findProgram(name: String): Program? {
-        return programs.computeIfAbsent(name) {
+    override fun findProgram(name: String): Program? =
+        programs.computeIfAbsent(name) {
             findInPackages(name) ?: findInFileSystem(name)
         }
-    }
 
-    override fun findCopy(copyId: CopyId): Copy? {
-        return copies.computeIfAbsent(copyId) {
+    override fun findCopy(copyId: CopyId): Copy? =
+        copies.computeIfAbsent(copyId) {
             copySource.invoke(copyId)
         }
-    }
 
-    private fun findInFileSystem(programName: String): Program? {
-        return programSource?.invoke(programName)
-    }
+    private fun findInFileSystem(programName: String): Program? = programSource?.invoke(programName)
 
-    private fun findInPackages(programName: String): Program? {
-        return javaInteropPackages.asSequence().map { packageName ->
-            try {
-                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
-                instantiateProgram(javaClass)
-            } catch (e: Throwable) {
-                null
-            }
-        }.filter { it != null }.firstOrNull()
-    }
+    private fun findInPackages(programName: String): Program? =
+        javaInteropPackages
+            .asSequence()
+            .map { packageName ->
+                try {
+                    val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                    instantiateProgram(javaClass)
+                } catch (e: Throwable) {
+                    null
+                }
+            }.filter { it != null }
+            .firstOrNull()
 
-    open fun instantiateProgram(javaClass: Class<*>): Program? {
-        return if (javaClass.kotlin.isSubclassOf(Program::class)) {
-            javaClass.kotlin.constructors.filter { it.parameters.isEmpty() }.first().call() as Program
+    open fun instantiateProgram(javaClass: Class<*>): Program? =
+        if (javaClass.kotlin.isSubclassOf(Program::class)) {
+            javaClass.kotlin.constructors
+                .filter { it.parameters.isEmpty() }
+                .first()
+                .call() as Program
         } else {
             null
         }
-    }
 
-    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
-        return functions.computeIfAbsent(name) {
+    override fun findFunction(
+        globalSymbolTable: ISymbolTable,
+        name: String,
+    ): Function? =
+        functions.computeIfAbsent(name) {
             findFunctionInPackages(name) ?: RpgFunction.fromCurrentProgram(name)
         }
-    }
 
-    private fun findFunctionInPackages(functionName: String): Function? {
-        return javaInteropPackages.asSequence().map { packageName ->
-            try {
-                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$functionName")
-                instantiateFunction(javaClass)
-            } catch (e: Throwable) {
-                null
-            }
-        }.filter { it != null }.firstOrNull()
-    }
+    private fun findFunctionInPackages(functionName: String): Function? =
+        javaInteropPackages
+            .asSequence()
+            .map { packageName ->
+                try {
+                    val javaClass = this.javaClass.classLoader.loadClass("$packageName.$functionName")
+                    instantiateFunction(javaClass)
+                } catch (e: Throwable) {
+                    null
+                }
+            }.filter { it != null }
+            .firstOrNull()
 
-    open fun instantiateFunction(javaClass: Class<*>): Function? {
-        return if (javaClass.kotlin.isSubclassOf(Function::class)) {
-            javaClass.kotlin.constructors.filter { it.parameters.isEmpty() }.first().call() as Function
+    open fun instantiateFunction(javaClass: Class<*>): Function? =
+        if (javaClass.kotlin.isSubclassOf(Function::class)) {
+            javaClass.kotlin.constructors
+                .filter { it.parameters.isEmpty() }
+                .first()
+                .call() as Function
         } else {
             null
         }
-    }
 
-    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+    override fun addExecutedAnnotation(
+        line: Int,
+        annotation: MuteAnnotationExecuted,
+    ) {
         executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
-        return executedAnnotationInternal
-    }
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> = executedAnnotationInternal
 
-    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
-        return apiDescriptors.computeIfAbsent(apiId) {
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor =
+        apiDescriptors.computeIfAbsent(apiId) {
             rpgSystem.findApiDescriptor(apiId)
         }
-    }
 
-    override fun findApi(apiId: ApiId): Api {
-        return apis.computeIfAbsent(apiId) {
+    override fun findApi(apiId: ApiId): Api =
+        apis.computeIfAbsent(apiId) {
             rpgSystem.findApi(apiId)
         }
-    }
 
     fun useConfigurationFile(configurationFile: File?) {
         if (configurationFile == null) {
@@ -194,7 +207,5 @@ open class JavaSystemInterface(
         }
     }
 
-    override fun getConfiguration(): Configuration? {
-        return configuration
-    }
+    override fun getConfiguration(): Configuration? = configuration
 }

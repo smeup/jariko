@@ -3,8 +3,7 @@ package com.smeup.rpgparser.utils
 import java.io.OutputStream
 
 // TODO check encoding issues
-class StringOutputStream() : OutputStream() {
-
+class StringOutputStream : OutputStream() {
     private val charList = mutableListOf<Char>()
 
     override fun write(b: Int) {

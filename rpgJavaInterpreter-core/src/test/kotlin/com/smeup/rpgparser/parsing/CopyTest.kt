@@ -28,7 +28,6 @@ import java.io.File
 import java.nio.file.Paths
 
 class CopyTest {
-
     // Test CopyBlock contains function
     @Test
     fun copyBlockContains() {
@@ -96,7 +95,8 @@ class CopyTest {
     // In this case program and copies are inline
     @Test
     fun absoluteLinesMatchingRelativeLine() {
-        val pgm = """
+        val pgm =
+            """
 2    D Msg             S             30      
 3    C                   EVAL      Msg = 'Include COPY1'
 4    C      Msg          DSPLY
@@ -139,12 +139,13 @@ class CopyTest {
         val id2 = CopyId(member = "COPY2")
         val id21 = CopyId(member = "COPY21")
         val id22 = CopyId(member = "COPY22")
-        val copyDefinitions = mapOf(
-            id1 to copy1,
-            id2 to copy2,
-            id21 to copy21,
-            id22 to copy22
-        )
+        val copyDefinitions =
+            mapOf(
+                id1 to copy1,
+                id2 to copy2,
+                id21 to copy21,
+                id22 to copy22,
+            )
         absoluteLinesMatchingRelativeLine(pgm = pgm, copyDefinitions = copyDefinitions)
     }
 
@@ -162,33 +163,41 @@ class CopyTest {
         val copyDefinitions = mutableMapOf<CopyId, String>()
         pgm.byteInputStream().preprocess(
             findCopy = { copyId ->
-                File("$srcRoot/${copyId.key(CopyFileExtension.rpgle)}").readText(charset = Charsets.UTF_8)
+                File("$srcRoot/${copyId.key(CopyFileExtension.rpgle)}")
+                    .readText(charset = Charsets.UTF_8)
                     .apply { copyDefinitions[copyId] = this }
-            }
+            },
         )
         absoluteLinesMatchingRelativeLine(pgm = pgm, copyDefinitions)
     }
 
-    private fun absoluteLinesMatchingRelativeLine(pgm: String, copyDefinitions: Map<CopyId, String>) {
+    private fun absoluteLinesMatchingRelativeLine(
+        pgm: String,
+        copyDefinitions: Map<CopyId, String>,
+    ) {
         val copyBlocks = CopyBlocks()
-        val preprocessed = pgm.byteInputStream().preprocess(
-            findCopy = { copyId -> copyDefinitions[copyId] },
-            onStartInclusion = { copyId, start -> copyBlocks.onStartCopyBlock(copyId, start) },
-            onEndInclusion = { end -> copyBlocks.onEndCopyBlock(end) }
-        )
+        val preprocessed =
+            pgm.byteInputStream().preprocess(
+                findCopy = { copyId -> copyDefinitions[copyId] },
+                onStartInclusion = { copyId, start -> copyBlocks.onStartCopyBlock(copyId, start) },
+                onEndInclusion = { end -> copyBlocks.onEndCopyBlock(end) },
+            )
         preprocessed.lines().forEachIndexed { index, expectedLineOfCode ->
             println("index: $index, expectedLineOfCode:$expectedLineOfCode")
             if (expectedLineOfCode.length > 0 && !expectedLineOfCode.startsWith("**********")) {
                 val relativeLine = copyBlocks.relativeLine(index + 1)
                 println("relativeLine: $relativeLine")
-                val actualLineOfCode = relativeLine.second?.let { copyBlock ->
-                    copyDefinitions[copyBlock.copyId]!!.lines()[relativeLine.first - 1]
-                } ?: pgm.lines()[relativeLine.first - 1]
+                val actualLineOfCode =
+                    relativeLine.second?.let { copyBlock ->
+                        copyDefinitions[copyBlock.copyId]!!.lines()[relativeLine.first - 1]
+                    } ?: pgm.lines()[relativeLine.first - 1]
                 if (!actualLineOfCode.contains("/COPY") && !expectedLineOfCode.startsWith("      *")) {
                     println("expectedLineOfCode: $expectedLineOfCode, actualLineOfCode: $actualLineOfCode")
                     Assert.assertEquals(expectedLineOfCode, actualLineOfCode)
                 }
-            } else println("skip")
+            } else {
+                println("skip")
+            }
         }
     }
 
@@ -203,7 +212,7 @@ class CopyTest {
                 from = 1,
                 to = to,
                 onEnter = { Assert.fail() },
-                onExit = { Assert.fail() }
+                onExit = { Assert.fail() },
             )
         }
         var expectedEnteredBlocks: MutableList<CopyBlock>
@@ -214,7 +223,7 @@ class CopyTest {
                 from = 1,
                 to = to,
                 onEnter = { copyBlock -> expectedEnteredBlocks.remove(copyBlock) },
-                onExit = { Assert.fail() }
+                onExit = { Assert.fail() },
             )
             Assert.assertEquals(0, expectedEnteredBlocks.size)
         }
@@ -225,25 +234,26 @@ class CopyTest {
                 from = 1,
                 to = to,
                 onEnter = { copyBlock -> expectedEnteredBlocks.remove(copyBlock) },
-                onExit = { copyBlock -> expectedExitedBlocks.remove(copyBlock) }
+                onExit = { copyBlock -> expectedExitedBlocks.remove(copyBlock) },
             )
             Assert.assertEquals(0, expectedEnteredBlocks.size)
             Assert.assertEquals(0, expectedExitedBlocks.size)
         }
         for (to in 9..12) {
             expectedEnteredBlocks = if (to == 9) mutableListOf(cpy1, cpy2) else mutableListOf(cpy1, cpy2, cpy21)
-            expectedExitedBlocks = when (to) {
-                9 -> mutableListOf(cpy1)
-                10 -> mutableListOf(cpy1)
-                11 -> mutableListOf(cpy1, cpy21)
-                12 -> mutableListOf(cpy1, cpy21, cpy2)
-                else -> error(message = "$to does not manage")
-            }
+            expectedExitedBlocks =
+                when (to) {
+                    9 -> mutableListOf(cpy1)
+                    10 -> mutableListOf(cpy1)
+                    11 -> mutableListOf(cpy1, cpy21)
+                    12 -> mutableListOf(cpy1, cpy21, cpy2)
+                    else -> error(message = "$to does not manage")
+                }
             copyBlocks.observeTransitions(
                 from = 1,
                 to = to,
                 onEnter = { copyBlock -> expectedEnteredBlocks.remove(copyBlock) },
-                onExit = { copyBlock -> expectedExitedBlocks.remove(copyBlock) }
+                onExit = { copyBlock -> expectedExitedBlocks.remove(copyBlock) },
             )
             Assert.assertEquals(0, expectedEnteredBlocks.size)
             Assert.assertEquals(0, expectedExitedBlocks.size)
@@ -264,7 +274,7 @@ class CopyTest {
             from = 2,
             to = 3,
             onEnter = { Assert.fail() },
-            onExit = { Assert.fail() }
+            onExit = { Assert.fail() },
         )
 
         var entered = 0
@@ -275,7 +285,7 @@ class CopyTest {
                 entered++
                 enteredCopyBlock = copyBlock
             },
-            onExit = { Assert.fail() }
+            onExit = { Assert.fail() },
         )
         Assert.assertEquals(1, entered)
         Assert.assertEquals(cpy1, enteredCopyBlock)
@@ -289,7 +299,7 @@ class CopyTest {
             onExit = { copyBlock ->
                 exited++
                 exitedCopyBlock = copyBlock
-            }
+            },
         )
         Assert.assertEquals(1, exited)
         Assert.assertEquals(cpy1, exitedCopyBlock)
@@ -298,7 +308,7 @@ class CopyTest {
             from = 7,
             to = 8,
             onEnter = { Assert.fail() },
-            onExit = { Assert.fail() }
+            onExit = { Assert.fail() },
         )
 
         entered = 0
@@ -310,7 +320,7 @@ class CopyTest {
                 entered++
                 enteredCopyBlock = copyBlock
             },
-            onExit = { Assert.fail() }
+            onExit = { Assert.fail() },
         )
         Assert.assertEquals(1, entered)
         Assert.assertEquals(cpy2, enteredCopyBlock!!)
@@ -329,7 +339,7 @@ class CopyTest {
             onExit = { copyBlock ->
                 exited++
                 exitedCopyBlock = copyBlock
-            }
+            },
         )
         Assert.assertEquals(1, entered)
         Assert.assertEquals(1, exited)
@@ -345,7 +355,7 @@ class CopyTest {
             onExit = { copyBlock ->
                 exited++
                 exitedCopyBlock = copyBlock
-            }
+            },
         )
         Assert.assertEquals(1, exited)
         Assert.assertEquals(cpy2, exitedCopyBlock!!)
@@ -354,7 +364,7 @@ class CopyTest {
             from = 14,
             to = 15,
             onEnter = { Assert.fail() },
-            onExit = { Assert.fail() }
+            onExit = { Assert.fail() },
         )
     }
 
@@ -370,7 +380,7 @@ class CopyTest {
             from = 12,
             to = 4,
             onEnter = { copyBlock -> entered.add(copyBlock) },
-            onExit = { copyBlock -> exited.add(copyBlock) }
+            onExit = { copyBlock -> exited.add(copyBlock) },
         )
         Assert.assertEquals("expectedEntered", listOf(cpy2, cpy21, cpy1), entered)
         Assert.assertEquals("expectedExited", listOf(cpy21, cpy2), exited)
@@ -380,7 +390,7 @@ class CopyTest {
             from = 11,
             to = 10,
             onEnter = { copyBlock -> entered.add(copyBlock) },
-            onExit = { copyBlock -> exited.add(copyBlock) }
+            onExit = { copyBlock -> exited.add(copyBlock) },
         )
         Assert.assertEquals("expectedEntered", listOf(cpy2, cpy21), entered)
         Assert.assertEquals("expectedExited", listOf<CopyBlock>(), exited)
@@ -398,7 +408,7 @@ class CopyTest {
             from = 4,
             to = 12,
             onEnter = { copyBlock -> onEnterForward.add(copyBlock) },
-            onExit = { copyBlock -> onExitForward.add(copyBlock) }
+            onExit = { copyBlock -> onExitForward.add(copyBlock) },
         )
         // The sense of this test is that If going ahead I will exit from cpy1 cpy21 and cpy2, returning to back I will
         // enter into cpy2 cpy21 and cpy1.
@@ -406,7 +416,7 @@ class CopyTest {
             from = 11,
             to = 3,
             onEnter = { copyBlock -> onExitForward.remove(copyBlock) },
-            onExit = { copyBlock -> onEnterForward.remove(copyBlock) }
+            onExit = { copyBlock -> onEnterForward.remove(copyBlock) },
         )
         Assert.assertEquals(0, onEnterForward.size)
         Assert.assertEquals(0, onExitForward.size)
@@ -445,41 +455,52 @@ class CopyTest {
     @Test
     fun includeNotFoundCopy() {
         var catchedErrorEvent: ErrorEvent? = null
-        val callback = JarikoCallback().apply {
-            onError = { errorEvent ->
-                println(errorEvent)
-                catchedErrorEvent = errorEvent
+        val callback =
+            JarikoCallback().apply {
+                onError = { errorEvent ->
+                    println(errorEvent)
+                    catchedErrorEvent = errorEvent
+                }
             }
-        }
-        kotlin.runCatching {
-            getProgram(
-                nameOrSource = "TSTCPY05",
-                programFinders = listOf(DirRpgProgramFinder(Paths.get("src", "test", "resources").toFile()))
+        kotlin
+            .runCatching {
+                getProgram(
+                    nameOrSource = "TSTCPY05",
+                    programFinders = listOf(DirRpgProgramFinder(Paths.get("src", "test", "resources").toFile())),
                 ).singleCall(listOf(), configuration = Configuration().apply { jarikoCallback = callback })
-        }.onSuccess {
-            Assert.fail("This program cannot be executed successfully")
-        }.onFailure {
-            Assert.assertNotNull(catchedErrorEvent)
-        }
+            }.onSuccess {
+                Assert.fail("This program cannot be executed successfully")
+            }.onFailure {
+                Assert.assertNotNull(catchedErrorEvent)
+            }
     }
 
-    private fun testCpyInclusion(pgm: String, expected: String = "Hi I am QILEGEN,TSTCPY01") {
+    private fun testCpyInclusion(
+        pgm: String,
+        expected: String = "Hi I am QILEGEN,TSTCPY01",
+    ) {
         val includedCopyList = mutableListOf<CopyId>()
         var message = ""
         getProgram(
             nameOrSource = pgm,
             programFinders = listOf(DirRpgProgramFinder(Paths.get("src", "test", "resources").toFile())),
-            systemInterface = JavaSystemInterface().apply {
-                onDisplay = { mess, _ -> message = mess.trim() }
-            }
-        ).singleCall(listOf(), configuration = Configuration().apply {
-            jarikoCallback = JarikoCallback().apply {
-                beforeCopyInclusion = { copyId, source ->
-                    includedCopyList.add(copyId)
-                    source
-                }
-            }
-        })
+            systemInterface =
+                JavaSystemInterface().apply {
+                    onDisplay = { mess, _ -> message = mess.trim() }
+                },
+        ).singleCall(
+            listOf(),
+            configuration =
+                Configuration().apply {
+                    jarikoCallback =
+                        JarikoCallback().apply {
+                            beforeCopyInclusion = { copyId, source ->
+                                includedCopyList.add(copyId)
+                                source
+                            }
+                        }
+                },
+        )
         Assert.assertEquals(expected, message)
         Assert.assertEquals(1, includedCopyList.size)
     }

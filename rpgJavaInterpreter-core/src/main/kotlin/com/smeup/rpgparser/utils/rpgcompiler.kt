@@ -32,11 +32,17 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.*
 
-enum class Format(val ext: String) {
-    JSON("json"), BIN("bin")
+enum class Format(
+    val ext: String,
+) {
+    JSON("json"),
+    BIN("bin"),
 }
 
-data class CompilationOption(val format: Format = Format.BIN, val muteSupport: Boolean = false)
+data class CompilationOption(
+    val format: Format = Format.BIN,
+    val muteSupport: Boolean = false,
+)
 
 /**
  * Represents compilation result
@@ -49,7 +55,7 @@ data class CompilationResult(
     val srcFile: File,
     val compiledFile: File? = null,
     val error: Throwable? = null,
-    val parsingError: Throwable? = null
+    val parsingError: Throwable? = null,
 )
 
 private fun compileFile(
@@ -58,17 +64,19 @@ private fun compileFile(
     format: Format,
     muteSupport: Boolean,
     force: Boolean = true,
-    allowCompilationError: (file: File, error: Throwable) -> Boolean = { _, _ -> false }
+    allowCompilationError: (file: File, error: Throwable) -> Boolean = { _, _ -> false },
 ): CompilationResult {
     runCatching {
         println("Compiling $file")
-        val compiledFile = File(
-            targetDir, file.name.replaceAfterLast(
-                '.',
-                format.ext,
-                "${file.name}.${format.ext}"
+        val compiledFile =
+            File(
+                targetDir,
+                file.name.replaceAfterLast(
+                    '.',
+                    format.ext,
+                    "${file.name}.${format.ext}",
+                ),
             )
-        )
         if (force || !compiledFile.exists() || compiledFile.lastModified() < file.lastModified()) {
             // I need to delete compiledFile because, in case of configuration.options.compiledProgramsDir
             // being set and compiledFile already exist, binary file is not rebuilt
@@ -79,9 +87,11 @@ private fun compileFile(
             FileInputStream(file).use {
                 var cu: CompilationUnit? = null
                 runCatching {
-                    cu = RpgParserFacade().apply {
-                        this.muteSupport = muteSupport
-                    }.parseAndProduceAst(it)
+                    cu =
+                        RpgParserFacade()
+                            .apply {
+                                this.muteSupport = muteSupport
+                            }.parseAndProduceAst(it)
                     // In case of errors in API parseAndProduceAst(it) could not be blocking
                     // and then, I verify if there are errors
                     if (getAstCreationErrors().isNotEmpty()) {
@@ -105,10 +115,10 @@ private fun compileFile(
                 // I cannot resolve and validate the cu before serializing elsewhere
                 // I have unexpected behaviours when I try to use it
                 runCatching {
-                    cu!!.resolveAndValidate()
-                }.onFailure {
+                    cu.resolveAndValidate()
+                }.onFailure { error ->
                     compiledFile.delete()
-                    return CompilationResult(file, null, null, it)
+                    return CompilationResult(file, null, null, error)
                 }
                 println("Compiled in $compiledFile")
             }
@@ -146,10 +156,11 @@ fun compile(
     muteSupport: Boolean = false,
     force: Boolean = true,
     systemInterface: (dir: File) -> SystemInterface = { dir ->
-        JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) } },
+        JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) }
+    },
     configuration: Configuration = Configuration(),
     allowFile: (file: File) -> Boolean = { true },
-    allowCompilationError: (file: File, error: Throwable) -> Boolean = { _, _ -> false }
+    allowCompilationError: (file: File, error: Throwable) -> Boolean = { _, _ -> false },
 ): Collection<CompilationResult> {
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
@@ -164,31 +175,34 @@ fun compile(
                     format = format,
                     muteSupport = muteSupport,
                     force = force,
-                    allowCompilationError = allowCompilationError
-                )
+                    allowCompilationError = allowCompilationError,
+                ),
             )
         }
     } else if (src.exists()) {
         val si = systemInterface.invoke(src.absoluteFile)
-        src.listFiles { file ->
-            if (allowFile.invoke(file)) {
-                file.name.endsWith(".rpgle")
-            } else false
-        }?.forEach { file ->
-            MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
-                it.executionProgramName = file.name
-                compilationResult.add(
-                    compileFile(
-                        file = file,
-                        targetDir = compiledProgramsDir,
-                        format = format,
-                        muteSupport = muteSupport,
-                        force = force,
-                        allowCompilationError = allowCompilationError
+        src
+            .listFiles { file ->
+                if (allowFile.invoke(file)) {
+                    file.name.endsWith(".rpgle")
+                } else {
+                    false
+                }
+            }?.forEach { file ->
+                MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
+                    it.executionProgramName = file.name
+                    compilationResult.add(
+                        compileFile(
+                            file = file,
+                            targetDir = compiledProgramsDir,
+                            format = format,
+                            muteSupport = muteSupport,
+                            force = force,
+                            allowCompilationError = allowCompilationError,
+                        ),
                     )
-                )
+                }
             }
-        }
     } else {
         println("$src not exists".yellow())
     }
@@ -204,10 +218,17 @@ fun compile(
  * example, you can pass an option to enable the source dump in case of error, this feature for default is not
  * enabled for performances reason.
  * */
-fun compile(src: File, compiledProgramsDir: File, configuration: Configuration): Collection<CompilationResult> {
-    return compile(src = src, compiledProgramsDir = compiledProgramsDir,
-        format = Format.BIN, configuration = configuration)
-}
+fun compile(
+    src: File,
+    compiledProgramsDir: File,
+    configuration: Configuration,
+): Collection<CompilationResult> =
+    compile(
+        src = src,
+        compiledProgramsDir = compiledProgramsDir,
+        format = Format.BIN,
+        configuration = configuration,
+    )
 
 /**
  * Compile or syntax check a program
@@ -226,13 +247,17 @@ fun compile(
     format: Format? = Format.BIN,
     muteSupport: Boolean? = false,
     programFinders: List<RpgProgramFinder>? = null,
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
 ) {
     // Compilation within MainExecutionContext should ensure comparability among rpgle programs compiled in
     // different times
-    MainExecutionContext.execute(systemInterface = JavaSystemInterface().apply {
-        programFinders?.let { rpgSystem.addProgramFinders(it) }
-    }, configuration = configuration) {
+    MainExecutionContext.execute(
+        systemInterface =
+            JavaSystemInterface().apply {
+                programFinders?.let { rpgSystem.addProgramFinders(it) }
+            },
+        configuration = configuration,
+    ) {
         doCompilationAtRuntime(src = src, out = out, format = format, muteSupport = muteSupport)
     }
 }
@@ -252,16 +277,17 @@ fun doCompilationAtRuntime(
     src: InputStream,
     out: OutputStream?,
     format: Format? = Format.BIN,
-    muteSupport: Boolean? = false
+    muteSupport: Boolean? = false,
 ) {
     require(MainExecutionContext.isCreated()) {
         "This method can be used just for runtime compilations"
     }
     println("Compiling inputstream to outputstream... ")
-    val cu: CompilationUnit?
-    cu = RpgParserFacade().apply {
-        this.muteSupport = muteSupport!!
-    }.parseAndProduceAst(src)
+    val cu =
+        RpgParserFacade()
+            .apply {
+                this.muteSupport = muteSupport!!
+            }.parseAndProduceAst(src)
     out?.let { stream ->
         val astConfiguration = MainExecutionContext.getConfiguration().options.toAstConfiguration
         if (getAstCreationErrors().isNotEmpty() && !astConfiguration.afterPhaseErrorContinue(AstHandlingPhase.Resolution)) {

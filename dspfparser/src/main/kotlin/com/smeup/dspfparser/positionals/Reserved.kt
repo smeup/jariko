@@ -1,5 +1,7 @@
 package com.smeup.dspfparser.positionals
 
-internal enum class Reserved(val value: Char) {
+internal enum class Reserved(
+    val value: Char,
+) {
     BLANK(' '),
 }

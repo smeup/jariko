@@ -5,7 +5,11 @@ import com.strumenta.kolasu.model.Position
 enum class ErrorType {
     LEXICAL,
     SYNTACTIC,
-    SEMANTIC
+    SEMANTIC,
 }
 
-data class Error(val type: ErrorType, val message: String, val position: Position? = null)
+data class Error(
+    val type: ErrorType,
+    val message: String,
+    val position: Position? = null,
+)

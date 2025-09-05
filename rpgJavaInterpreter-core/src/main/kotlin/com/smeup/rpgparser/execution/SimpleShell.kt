@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.rpgparser.utils.measureAndPrint
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.Locale.getDefault
 
 // TODO describe what this program does
 // TODO support option to add element to rpg program finders
@@ -55,11 +56,17 @@ rpg>
         while (true) {
             commandLine = console.readLine()
             run {
-                if (commandLine.trim().isNotEmpty() && !(exitCommands + interactiveCommands).contains(commandLine.trim().toLowerCase()) &&
-                    !commandLine.startsWith("@")) {
+                if (commandLine.trim().isNotEmpty() &&
+                    !(exitCommands + interactiveCommands).contains(
+                        commandLine
+                            .trim()
+                            .lowercase(getDefault()),
+                    ) &&
+                    !commandLine.startsWith("@")
+                ) {
                     content.append(commandLine).append("\n")
                 }
-                val trimmed = commandLine.trim().toLowerCase()
+                val trimmed = commandLine.trim().lowercase(getDefault())
                 when {
                     trimmed == "play" -> {
                         interactiveMode = true
@@ -82,15 +89,21 @@ rpg>
                     trimmed.startsWith("@") -> {
                         interactiveMode = false
                     }
-                    else -> if (interactiveMode == null) {
-                        println("Command not recognized")
-                        print("rpg>")
-                    }
+                    else ->
+                        if (interactiveMode == null) {
+                            println("Command not recognized")
+                            print("rpg>")
+                        }
                 }
                 interactiveMode?.let {
                     if (!it) {
                         println("Executing...")
-                        val args = commandLine.trim().split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                        val args =
+                            commandLine
+                                .trim()
+                                .split(" ".toRegex())
+                                .dropLastWhile { it.isEmpty() }
+                                .toTypedArray()
                         if (args.isNotEmpty()) {
                             measureAndPrint {
                                 r(args[0].substring(1), args.toList().subList(1, args.size))

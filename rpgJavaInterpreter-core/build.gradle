@@ -32,7 +32,6 @@ buildscript {
             url  'https://oss.jfrog.org/oss-snapshot-localrun/'
         }
         maven { url 'https://jitpack.io' }
-        jcenter()
     }
 
     dependencies {
@@ -59,10 +58,10 @@ dependencies {
     api project(":dspfparser")
 
     implementation "org.apache.logging.log4j:log4j-api-kotlin:1.5.0"
-    implementation "org.apache.logging.log4j:log4j-api:2.24.3"
-    implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+    implementation "org.apache.logging.log4j:log4j-api:2.25.1"
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.1'
 
-    implementation 'commons-io:commons-io:2.19.0'
+    implementation 'commons-io:commons-io:2.20.0'
     implementation("com.github.ajalt:clikt:3.5.2") {
         exclude group: 'com.github.ajalt.clikt', module: 'clikt-linuxx64'
         exclude group: 'com.github.ajalt.clikt', module: 'clikt-mingwx64'
@@ -85,7 +84,7 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation 'org.hsqldb:hsqldb:2.7.4'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:6.0.0'
 }
 
 configurations.all() {
@@ -110,7 +109,6 @@ compileJava {
 compileTestKotlin {
     sourceCompatibility = "$jvmVersion"
     targetCompatibility = "$jvmVersion"
-    kotlinOptions.jvmTarget = "$jvmVersion"
     dependsOn generateTestGrammarSource
 }
 
@@ -118,11 +116,16 @@ compileKotlin {
     sourceCompatibility = "$jvmVersion"
     targetCompatibility = "$jvmVersion"
     source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
-    kotlinOptions.jvmTarget = "$jvmVersion"
     dependsOn generateGrammarSource
 }
 
-ktlintTestSourceSetCheck {
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$jvmVersion"))
+    }
+}
+
+runKtlintCheckOverTestSourceSet {
     dependsOn generateTestGrammarSource
 }
 

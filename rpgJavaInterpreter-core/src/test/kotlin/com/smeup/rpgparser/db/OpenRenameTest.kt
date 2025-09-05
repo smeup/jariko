@@ -25,9 +25,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 open class OpenRenameTest : AbstractTest() {
-
     companion object {
-
         lateinit var server: Server
 
         @BeforeClass
@@ -45,23 +43,25 @@ open class OpenRenameTest : AbstractTest() {
 
     @Test
     fun testOpenWithoutRename() {
-        val outputLines = outputOfDBPgm(
-            "db/OPEN",
-            listOf(createEmployeeMetadata("EMPLOY0F", "EMPLOYR")),
-            emptyList(),
-            emptyMap()
-        )
+        val outputLines =
+            outputOfDBPgm(
+                "db/OPEN",
+                listOf(createEmployeeMetadata("EMPLOY0F", "EMPLOYR")),
+                emptyList(),
+                emptyMap(),
+            )
         assertEquals(listOf("OK"), outputLines)
     }
 
     @Test
     fun testWithRename() {
-        val outputLines = outputOfDBPgm(
-            "db/OPEN_RENAME",
-            listOf(createEmployeeMetadata("EMPLOY0F", "EMPLOYR")),
-            emptyList(),
-            emptyMap()
-        )
+        val outputLines =
+            outputOfDBPgm(
+                "db/OPEN_RENAME",
+                listOf(createEmployeeMetadata("EMPLOY0F", "EMPLOYR")),
+                emptyList(),
+                emptyMap(),
+            )
         assertEquals(listOf("OK"), outputLines)
     }
 }

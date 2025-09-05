@@ -60,15 +60,21 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     val targetStatements = (freeStatements + unwrappedCompositeStatements).distinct().moveDefineStmtsToEnd()
 
     targetStatements.forEach { statementThatCanDefineData ->
-        kotlin.runCatching {
-            this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
-        }.onFailure { error ->
-            if (statementThatCanDefineData is Node) {
-                kotlin.runCatching {
-                    statementThatCanDefineData.error("Error while creating data definition from statement: $statementThatCanDefineData", error)
+        kotlin
+            .runCatching {
+                this.addInStatementDataDefinitions(statementThatCanDefineData.dataDefinition())
+            }.onFailure { error ->
+                if (statementThatCanDefineData is Node) {
+                    kotlin.runCatching {
+                        statementThatCanDefineData.error(
+                            "Error while creating data definition from statement: $statementThatCanDefineData",
+                            error,
+                        )
+                    }
+                } else {
+                    throw error
                 }
-            } else throw error
-        }
+            }
     }
 }
 
@@ -138,11 +144,12 @@ private fun FunctionCall.tryReplaceWithArrayAccess(cu: CompilationUnit): Optiona
         }
     }
 
-    val arrayAccessExpr = ArrayAccessExpr(
-        array = DataRefExpr(ReferenceByName(this.function.name, referred = data)),
-        index = indexExpr,
-        position = this.position
-    )
+    val arrayAccessExpr =
+        ArrayAccessExpr(
+            array = DataRefExpr(ReferenceByName(this.function.name, referred = data)),
+            index = indexExpr,
+            position = this.position,
+        )
 
     val newExpression = this.replace(arrayAccessExpr).children.first()
     return Optional.of(newExpression)
@@ -158,24 +165,27 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
  *
  */
 fun CompilationUnit.resolveAndValidate(): List<Error> {
-    kotlin.runCatching {
-        val parsingProgram = ParsingProgram(getExecutionProgramNameWithNoExtension())
-        parsingProgram.copyBlocks = this.copyBlocks
-        parsingProgram.sourceLines = getLastPoppedParsingProgram()?.sourceLines
-        MainExecutionContext.getParsingProgramStack().pushIfNotAlreadyPresent(parsingProgram)
-        this.resolve()
-        checkAstCreationErrors(AstHandlingPhase.Resolution)
-        return this.validate().apply {
-            MainExecutionContext.getParsingProgramStack().popIfPresent()
-        }
-    }.onFailure {
-        this.source?.let { source ->
-            throw AstCreatingException(source, it)
-        }
-    }.getOrThrow()
+    kotlin
+        .runCatching {
+            val parsingProgram = ParsingProgram(getExecutionProgramNameWithNoExtension())
+            parsingProgram.copyBlocks = this.copyBlocks
+            parsingProgram.sourceLines = getLastPoppedParsingProgram()?.sourceLines
+            MainExecutionContext.getParsingProgramStack().pushIfNotAlreadyPresent(parsingProgram)
+            this.resolve()
+            checkAstCreationErrors(AstHandlingPhase.Resolution)
+            return this.validate().apply {
+                MainExecutionContext.getParsingProgramStack().popIfPresent()
+            }
+        }.onFailure {
+            this.source?.let { source ->
+                throw AstCreatingException(source, it)
+            }
+        }.getOrThrow()
 }
 
-class SemanticErrorsException(val errors: List<Error>) : RuntimeException("Semantic errors found: $errors")
+class SemanticErrorsException(
+    val errors: List<Error>,
+) : RuntimeException("Semantic errors found: $errors")
 
 /**
  * In case of semantic errors we could either raise exceptions or return a list of errors.
@@ -189,7 +199,13 @@ private fun CompilationUnit.validate(): List<Error> {
         val targetType = it.target.type()
         val valueType = it.value.type()
         if (!targetType.canBeAssigned(valueType)) {
-            errors.add(Error(ErrorType.SEMANTIC, "Invalid assignement: cannot assign ${it.value} having type $valueType to ${it.target} having type $targetType", it.position))
+            errors.add(
+                Error(
+                    ErrorType.SEMANTIC,
+                    "Invalid assignement: cannot assign ${it.value} having type $valueType to ${it.target} having type $targetType",
+                    it.position,
+                ),
+            )
         }
     }
     if (errors.isNotEmpty()) {
@@ -258,7 +274,10 @@ private fun CompilationUnit.resolve() {
 }
 
 // Try to resolve a Data reference through recursive search in parent Compilation Unit.
-private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(position: Position? = null, cu: CompilationUnit) {
+private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(
+    position: Position? = null,
+    cu: CompilationUnit,
+) {
     if (this.name.contains(".")) {
         this.referred = getReferredFromDsAccess(cu)
     } else {

@@ -30,61 +30,76 @@ import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 
-private val module = SerializersModule {
-    contextual(BigDecimalSerializer)
-    contextual(LocalDateTimeSerializer)
-    contextual(StringBuilderSerializer)
-    polymorphic(DataStructValueBuilder::class) {
-        subclass(StringBuilderWrapper::class)
-        subclass(IndexedStringBuilder::class)
-    }
-    polymorphic(Value::class) {
-        subclass(IntValue::class)
-        subclass(DecimalValue::class)
-        subclass(StringValue::class)
-        subclass(BooleanValue::class)
-        subclass(TimeStampValue::class)
-        subclass(CharacterValue::class)
-        subclass(ConcreteArrayValue::class)
-        subclass(DataStructValue::class)
-        subclass(OccurableDataStructValue::class)
-        subclass(UnlimitedStringValue::class)
-        subclass(BlanksValue::class)
-        subclass(NullValue::class)
-        subclass(ZeroValue::class)
-        subclass(PointerValue::class)
-        subclass(IsoValue::class)
-        subclass(HiValValue::class)
-        subclass(LowValValue::class)
-        subclass(JulValue::class)
-        subclass(StartValValue::class)
-        subclass(AllValue::class)
-        subclass(EndValValue::class)
+private val module =
+    SerializersModule {
+        contextual(BigDecimalSerializer)
+        contextual(LocalDateTimeSerializer)
+        contextual(StringBuilderSerializer)
+        polymorphic(DataStructValueBuilder::class) {
+            subclass(StringBuilderWrapper::class)
+            subclass(IndexedStringBuilder::class)
+        }
+        polymorphic(Value::class) {
+            subclass(IntValue::class)
+            subclass(DecimalValue::class)
+            subclass(StringValue::class)
+            subclass(BooleanValue::class)
+            subclass(TimeStampValue::class)
+            subclass(CharacterValue::class)
+            subclass(ConcreteArrayValue::class)
+            subclass(DataStructValue::class)
+            subclass(OccurableDataStructValue::class)
+            subclass(UnlimitedStringValue::class)
+            subclass(BlanksValue::class)
+            subclass(NullValue::class)
+            subclass(ZeroValue::class)
+            subclass(PointerValue::class)
+            subclass(IsoValue::class)
+            subclass(HiValValue::class)
+            subclass(LowValValue::class)
+            subclass(JulValue::class)
+            subclass(StartValValue::class)
+            subclass(AllValue::class)
+            subclass(EndValValue::class)
 //        subclass(ProjectedArrayValue::class) TODO: See `ProjectedArrayValue to Json` test for reason.
+        }
+        polymorphic(DSPFValue::class) {
+            subclass(ConstantValue::class)
+        }
     }
-    polymorphic(DSPFValue::class) {
-        subclass(ConstantValue::class)
-    }
-}
 
-interface InterpreterSerialization : BinaryFormat, StringFormat
+interface InterpreterSerialization :
+    BinaryFormat,
+    StringFormat
 
-class BinaryInterpreterSerialization(val implementer: BinaryFormat) : InterpreterSerialization,
+class BinaryInterpreterSerialization(
+    val implementer: BinaryFormat,
+) : InterpreterSerialization,
     BinaryFormat by implementer {
-    override fun <T> decodeFromString(deserializer: DeserializationStrategy<T>, string: String): T =
-        implementer.decodeFromHexString<T>(deserializer, string)
+    override fun <T> decodeFromString(
+        deserializer: DeserializationStrategy<T>,
+        string: String,
+    ): T = implementer.decodeFromHexString<T>(deserializer, string)
 
-    override fun <T> encodeToString(serializer: SerializationStrategy<T>, value: T): String =
-        implementer.encodeToHexString(serializer, value)
+    override fun <T> encodeToString(
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ): String = implementer.encodeToHexString(serializer, value)
 }
 
-class StringInterpreterSerialization(val implementer: StringFormat) : InterpreterSerialization,
+class StringInterpreterSerialization(
+    val implementer: StringFormat,
+) : InterpreterSerialization,
     StringFormat by implementer {
-    override fun <T> decodeFromByteArray(deserializer: DeserializationStrategy<T>, bytes: ByteArray): T =
-        implementer.decodeFromString(deserializer, bytes.toString())
+    override fun <T> decodeFromByteArray(
+        deserializer: DeserializationStrategy<T>,
+        bytes: ByteArray,
+    ): T = implementer.decodeFromString(deserializer, bytes.toString())
 
-    override fun <T> encodeToByteArray(serializer: SerializationStrategy<T>, value: T): ByteArray =
-        implementer.encodeToString(serializer, value).toByteArray()
+    override fun <T> encodeToByteArray(
+        serializer: SerializationStrategy<T>,
+        value: T,
+    ): ByteArray = implementer.encodeToString(serializer, value).toByteArray()
 }
 
 // TODO read the configuration from an external source
@@ -92,16 +107,18 @@ const val BINARY_SERIALIZATION = false
 const val CLASS_DISCRIMINATOR_TAG = "#class"
 
 object SerializationOption {
-    private fun stringFormat() = Json {
-        serializersModule = module
-        classDiscriminator = CLASS_DISCRIMINATOR_TAG
-        // See how to set this option
-        prettyPrint = false
-    }
+    private fun stringFormat() =
+        Json {
+            serializersModule = module
+            classDiscriminator = CLASS_DISCRIMINATOR_TAG
+            // See how to set this option
+            prettyPrint = false
+        }
 
-    private fun binaryFormat() = Cbor {
-        serializersModule = module
-    }
+    private fun binaryFormat() =
+        Cbor {
+            serializersModule = module
+        }
 
     val serializer by lazy {
         getSerializer(BINARY_SERIALIZATION)
@@ -122,7 +139,6 @@ object SerializationOption {
  * Value serializer helper
  * */
 object ValueSerializer {
-
     /**
      * Encodes value in json format
      * */
@@ -130,8 +146,8 @@ object ValueSerializer {
     fun encode(value: Value) = SerializationOption.stringSerializer.encodeToString(value)
 
     /**
-    * Decodes string in a value instance
-    * */
+     * Decodes string in a value instance
+     * */
     @JvmStatic
     fun decode(string: String): Value = SerializationOption.stringSerializer.decodeFromString(string)
 }

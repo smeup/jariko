@@ -28,9 +28,12 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     fun executeT04_A80_P05() {
         val isEarly = LocalDateTime.now().hour < 10
         val suffixLength = if (isEarly) 1 else 2
-        val expected = listOf(
-            "A80_D1(hhmm${"s".repeat(suffixLength)}) A80_D2(hhmmssDDMM${"Y".repeat(suffixLength)}) A80_D3(hhmmssDDMMYY${"Y".repeat(suffixLength)})"
-        )
+        val expected =
+            listOf(
+                "A80_D1(hhmm${"s".repeat(
+                    suffixLength,
+                )}) A80_D2(hhmmssDDMM${"Y".repeat(suffixLength)}) A80_D3(hhmmssDDMMYY${"Y".repeat(suffixLength)})",
+            )
         assertEquals(expected, "smeup/T04_A80_P05".outputOf())
     }
 
@@ -81,7 +84,8 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00108() {
-        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        val expected =
+            listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
         assertEquals(expected, "smeup/MUDRNRAPU00108".outputOf())
     }
 
@@ -92,7 +96,8 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00109() {
-        val expected = listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
+        val expected =
+            listOf("Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20", "Lorem ipsum dolor si", "t amet, consectetuer", "5", "5.20")
         assertEquals(expected, "smeup/MUDRNRAPU00109".outputOf())
     }
 
@@ -103,11 +108,49 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00110() {
-        val expected = listOf(
-            "-1", "0000J", "-2", "0000K", "-3", "0000L", "-4", "0000M", "-5", "0000N", "-6", "0000O", "-7", "0000P", "-8",
-            "0000Q", "-9", "0000R", "-10", "0001I", "-1.00", "0010I", "-2.00", "0020I", "-3.00", "0030I", "-4.00", "0040I",
-            "-5.00", "0050I", "-6.00", "0060I", "-7.00", "0070I", "-8.00", "0080I", "-9.00", "0090I", "-10.00", "0100I"
-        )
+        val expected =
+            listOf(
+                "-1",
+                "0000J",
+                "-2",
+                "0000K",
+                "-3",
+                "0000L",
+                "-4",
+                "0000M",
+                "-5",
+                "0000N",
+                "-6",
+                "0000O",
+                "-7",
+                "0000P",
+                "-8",
+                "0000Q",
+                "-9",
+                "0000R",
+                "-10",
+                "0001I",
+                "-1.00",
+                "0010I",
+                "-2.00",
+                "0020I",
+                "-3.00",
+                "0030I",
+                "-4.00",
+                "0040I",
+                "-5.00",
+                "0050I",
+                "-6.00",
+                "0060I",
+                "-7.00",
+                "0070I",
+                "-8.00",
+                "0080I",
+                "-9.00",
+                "0090I",
+                "-10.00",
+                "0100I",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00110".outputOf())
     }
 
@@ -118,11 +161,49 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00111() {
-        val expected = listOf(
-            "-1", "0000J", "-2", "0000K", "-3", "0000L", "-4", "0000M", "-5", "0000N", "-6", "0000O", "-7", "0000P", "-8",
-            "0000Q", "-9", "0000R", "-10", "0001I", "-1.00", "0010I", "-2.00", "0020I", "-3.00", "0030I", "-4.00", "0040I",
-            "-5.00", "0050I", "-6.00", "0060I", "-7.00", "0070I", "-8.00", "0080I", "-9.00", "0090I", "-10.00", "0100I"
-        )
+        val expected =
+            listOf(
+                "-1",
+                "0000J",
+                "-2",
+                "0000K",
+                "-3",
+                "0000L",
+                "-4",
+                "0000M",
+                "-5",
+                "0000N",
+                "-6",
+                "0000O",
+                "-7",
+                "0000P",
+                "-8",
+                "0000Q",
+                "-9",
+                "0000R",
+                "-10",
+                "0001I",
+                "-1.00",
+                "0010I",
+                "-2.00",
+                "0020I",
+                "-3.00",
+                "0030I",
+                "-4.00",
+                "0040I",
+                "-5.00",
+                "0050I",
+                "-6.00",
+                "0060I",
+                "-7.00",
+                "0070I",
+                "-8.00",
+                "0080I",
+                "-9.00",
+                "0090I",
+                "-10.00",
+                "0100I",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00111".outputOf())
     }
 
@@ -164,8 +245,18 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     fun executeMUDRNRAPU00228() {
         val referenceDate = TimeStampValue.of("2024-07-10-10.25.27.921456")
         val epochDate = TimeStampValue.of("1970-01-01-00.00.00.000000")
-        val referenceInstant = referenceDate.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
-        val epochInstant = epochDate.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
+        val referenceInstant =
+            referenceDate
+                .asTimeStamp()
+                .value
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+        val epochInstant =
+            epochDate
+                .asTimeStamp()
+                .value
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
 
         val mseconds = ChronoUnit.MICROS.between(epochInstant, referenceInstant).toString()
         val seconds = ChronoUnit.SECONDS.between(epochInstant, referenceInstant).toString()
@@ -174,15 +265,23 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
         val days = ChronoUnit.DAYS.between(epochInstant, referenceInstant).toString()
         val months = ChronoUnit.MONTHS.between(epochDate.localDate, referenceDate.localDate).toString()
         val years = ChronoUnit.YEARS.between(epochDate.localDate, referenceDate.localDate).toString()
-        val expected = listOf(
-            mseconds, mseconds,
-            seconds, seconds,
-            minutes, minutes,
-            hours, hours,
-            days, days,
-            months, months,
-            years, years
-        )
+        val expected =
+            listOf(
+                mseconds,
+                mseconds,
+                seconds,
+                seconds,
+                minutes,
+                minutes,
+                hours,
+                hours,
+                days,
+                days,
+                months,
+                months,
+                years,
+                years,
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00228".outputOf())
     }
 
@@ -194,5 +293,15 @@ open class MULANGT04EssentialsCodopAndBifTest : MULANGTTest() {
     fun executeMUDRNRAPU00229() {
         val expected = listOf("19700101000000000000", "19700101")
         assertEquals(expected, "smeup/MUDRNRAPU00229".outputOf())
+    }
+
+    /**
+     * Incrementing a packed field in a DS by 1
+     * @see #LS25002902
+     */
+    @Test
+    fun executeMUDRNRAPU00293() {
+        val expected = listOf("1")
+        assertEquals(expected, "smeup/MUDRNRAPU00293".outputOf())
     }
 }

@@ -30,26 +30,28 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 
 open class DSPerformanceTest : AbstractTest() {
-
     @Test
     @Category(PerformanceTest::class)
     fun executeDSPERF01() {
         var performanceRatio = 0.0
         val regex = Regex(pattern = "PERFORMANCE RATIO: ((?:\\d+)?\\.\\d+)")
-        val systemInterface = JavaSystemInterface().apply {
-            onDisplay = { message, _ ->
-                println(message.trim())
-                regex.matchEntire(message.trim())?.let { mathResult ->
-                    mathResult.groups[1]?.value?.let { value ->
-                        performanceRatio = value.toDouble()
+        val systemInterface =
+            JavaSystemInterface().apply {
+                onDisplay = { message, _ ->
+                    println(message.trim())
+                    regex.matchEntire(message.trim())?.let { mathResult ->
+                        mathResult.groups[1]?.value?.let { value ->
+                            performanceRatio = value.toDouble()
+                        }
                     }
                 }
             }
-        }
         executePgm(programName = "DSPERF01", systemInterface = systemInterface)
         require(performanceRatio != 0.0) { "performanceRatio must be initialized" }
-        assertTrue(performanceRatio > 10,
-            "performanceRatio must be at least 10")
+        assertTrue(
+            performanceRatio > 10,
+            "performanceRatio must be at least 10",
+        )
     }
 
     @Test
@@ -57,14 +59,15 @@ open class DSPerformanceTest : AbstractTest() {
     fun executeDSPERF02() {
         lateinit var start: Date
         lateinit var end: Date
-        val configuration = Configuration().apply {
-            jarikoCallback.onEnterPgm = { _, _ ->
-                start = Date()
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.onEnterPgm = { _, _ ->
+                    start = Date()
+                }
+                jarikoCallback.onExitPgm = { _, _, _ ->
+                    end = Date()
+                }
             }
-            jarikoCallback.onExitPgm = { _, _, _ ->
-                end = Date()
-            }
-        }
         "DSPERF02".outputOf(configuration = configuration)
         val duration = Duration.between(start.toInstant(), end.toInstant()).toMillis().milliseconds
         println("executeDSPERF02 with default useIndexedStringBuilder: $duration ms")
@@ -79,29 +82,38 @@ open class DSPerformanceTest : AbstractTest() {
         val start = mutableMapOf<Boolean, Date>()
         val end = mutableMapOf<Boolean, Date>()
         val createDataStructValueBuilderDefaultImpl = Configuration().jarikoCallback.createDataStructValueBuilder
-        val configuration = Configuration().apply {
-            jarikoCallback.onEnterPgm = { _, _ ->
-                start[useIndexedStringBuilder] = Date()
-            }
-            jarikoCallback.onExitPgm = { _, _, _ ->
-                end[useIndexedStringBuilder] = Date()
-            }
-            jarikoCallback.createDataStructValueBuilder = { value, type ->
-                if (useIndexedStringBuilder) {
-                    createDataStructValueBuilderDefaultImpl(value, type)
-                } else {
-                    StringBuilderWrapper(value)
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.onEnterPgm = { _, _ ->
+                    start[useIndexedStringBuilder] = Date()
+                }
+                jarikoCallback.onExitPgm = { _, _, _ ->
+                    end[useIndexedStringBuilder] = Date()
+                }
+                jarikoCallback.createDataStructValueBuilder = { value, type ->
+                    if (useIndexedStringBuilder) {
+                        createDataStructValueBuilderDefaultImpl(value, type)
+                    } else {
+                        StringBuilderWrapper(value)
+                    }
                 }
             }
-        }
         "DSPERF02".outputOf(configuration = configuration)
-        val durationNotUseIndexedStringBuilder = Duration.between(start[false]!!.toInstant(), end[false]!!.toInstant()).toMillis().milliseconds
+        val durationNotUseIndexedStringBuilder =
+            Duration
+                .between(
+                    start[false]!!.toInstant(),
+                    end[false]!!.toInstant(),
+                ).toMillis()
+                .milliseconds
         println("executeDSPERF02 with useIndexedStringBuilder=false: $durationNotUseIndexedStringBuilder ms")
         useIndexedStringBuilder = true
         "DSPERF02".outputOf(configuration = configuration)
         val durationUseIndexedStringBuilder = Duration.between(start[true]!!.toInstant(), end[true]!!.toInstant()).toMillis().milliseconds
         println("executeDSPERF02 with useIndexedStringBuilder=true: $durationUseIndexedStringBuilder ms")
-        assertTrue(durationNotUseIndexedStringBuilder / durationUseIndexedStringBuilder >= 10,
-            "Duration with useIndexedStringBuilder=false must be at least 10 times greater than duration with useIndexedStringBuilder=true")
+        assertTrue(
+            durationNotUseIndexedStringBuilder / durationUseIndexedStringBuilder >= 10,
+            "Duration with useIndexedStringBuilder=false must be at least 10 times greater than duration with useIndexedStringBuilder=true",
+        )
     }
 }

@@ -3,8 +3,13 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import kotlin.math.pow
 
-fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
-    return when (target) {
+fun movea(
+    operationExtenter: String?,
+    target: AssignableExpression,
+    valueExpression: Expression,
+    interpreterCore: InterpreterCore,
+): Value =
+    when (target) {
         is DataRefExpr -> {
             moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
         }
@@ -22,12 +27,23 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.eval(target.index) as IntValue).value.toInt(), interpreterCore)
+            moveaFullArray(
+                operationExtenter,
+                target.array as DataRefExpr,
+                valueExpression,
+                (interpreterCore.eval(target.index) as IntValue).value.toInt(),
+                interpreterCore,
+            )
         }
     }
-}
 
-private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCore: InterpreterCore): Value {
+private fun moveaFullArray(
+    operationExtenter: String?,
+    target: DataRefExpr,
+    value: Expression,
+    startIndex: Int,
+    interpreterCore: InterpreterCore,
+): Value {
     val targetType = target.type()
     require(targetType is ArrayType || targetType is StringType || targetType is DataStructureType) {
         "Result must be an Array, String or a DS"
@@ -35,17 +51,19 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
     return if (value is FigurativeConstantRef) {
         interpreterCore.assign(target, interpreterCore.eval(value))
     } else {
-        val type = if (targetType is ArrayType) {
-            targetType.element
-        } else {
-            targetType
-        }
-        val computedValue = when (type) {
-            is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
-            is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
-            is DataStructureType -> moveaDataStructure(operationExtenter, target, startIndex, interpreterCore, value)
-            else -> TODO()
-        }
+        val type =
+            if (targetType is ArrayType) {
+                targetType.element
+            } else {
+                targetType
+            }
+        val computedValue =
+            when (type) {
+                is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
+                is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
+                is DataStructureType -> moveaDataStructure(operationExtenter, target, startIndex, interpreterCore, value)
+                else -> TODO()
+            }
         interpreterCore.assign(target, computedValue)
     }
 }
@@ -55,7 +73,7 @@ private fun moveaNumber(
     target: DataRefExpr,
     startIndex: Int,
     interpreterCore: InterpreterCore,
-    value: Expression
+    value: Expression,
 ): ConcreteArrayValue {
     if (value is DataRefExpr && value.variable.referred?.type is DataStructureType) {
         throw IllegalStateException("You cannot move a DS into a numeric array: ${value.render()} (${value.position})")
@@ -63,28 +81,30 @@ private fun moveaNumber(
 
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val newValue = interpreterCore.toArray(value, targetArray.elementType)
-    val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
-        if (it < (startIndex - 1)) {
-            targetArray.getElement(it + 1)
-        } else {
-            val newValueIndex = it - startIndex + 1
-            var elementValue = if (newValueIndex < newValue.arrayLength()) {
-                newValue.getElement(newValueIndex + 1)
+    val arrayValue =
+        createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
+            if (it < (startIndex - 1)) {
+                targetArray.getElement(it + 1)
             } else {
-                if (operationExtenter == null) {
-                    targetArray.getElement(it + 1)
+                val newValueIndex = it - startIndex + 1
+                var elementValue =
+                    if (newValueIndex < newValue.arrayLength()) {
+                        newValue.getElement(newValueIndex + 1)
+                    } else {
+                        if (operationExtenter == null) {
+                            targetArray.getElement(it + 1)
+                        } else {
+                            IntValue.ZERO
+                        }
+                    }
+
+                if (newValue.elementType is NumberType && targetArray.elementType is NumberType) {
+                    numberCoercing(elementValue, targetArray.elementType as NumberType, newValue.elementType as NumberType)
                 } else {
-                    IntValue.ZERO
+                    elementValue
                 }
             }
-
-            if (newValue.elementType is NumberType && targetArray.elementType is NumberType) {
-                numberCoercing(elementValue, targetArray.elementType as NumberType, newValue.elementType as NumberType)
-            } else {
-                elementValue
-            }
         }
-    }
     return arrayValue
 }
 
@@ -120,9 +140,12 @@ private fun moveaDataStructure(
     target: DataRefExpr,
     startIndex: Int,
     interpreterCore: InterpreterCore,
-    value: Expression
+    value: Expression,
 ): DataStructValue {
-    if (value is DataRefExpr && value.variable.referred?.type is ArrayType && (value.variable.referred?.type as ArrayType).element is NumberType) {
+    if (value is DataRefExpr &&
+        value.variable.referred?.type is ArrayType &&
+        (value.variable.referred?.type as ArrayType).element is NumberType
+    ) {
         throw IllegalStateException("You cannot move a numeric array into a DS: ${value.render()} (${value.position})")
     }
 
@@ -139,12 +162,18 @@ private fun moveaDataStructure(
     return targetValue
 }
 
-private fun InterpreterCore.toArray(expression: Expression, targetType: Type): ArrayValue =
+private fun InterpreterCore.toArray(
+    expression: Expression,
+    targetType: Type,
+): ArrayValue =
     when (expression) {
         is ArrayAccessExpr -> {
             val arrayValueRaw = eval(expression.array)
-            val arrayValue = arrayValueRaw as? ArrayValue
-                ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
+            val arrayValue =
+                arrayValueRaw as? ArrayValue
+                    ?: throw IllegalStateException(
+                        "Array access to something that does not look like an array: ${expression.render()} (${expression.position})",
+                    )
             val indexValue = eval(expression.index).asInt().value.toInt()
             arrayValue
                 .elements()
@@ -161,7 +190,14 @@ private fun InterpreterCore.toArray(expression: Expression, targetType: Type): A
         is IntLiteral -> {
             val value = eval(expression)
             if (targetType is NumberType && targetType.decimalDigits > 0) {
-                val decimalValue = DecimalValue((value as IntValue).value.toDouble().div((10).pow(targetType.decimalDigits)).toBigDecimal())
+                val decimalValue =
+                    DecimalValue(
+                        (value as IntValue)
+                            .value
+                            .toDouble()
+                            .div((10).pow(targetType.decimalDigits))
+                            .toBigDecimal(),
+                    )
                 ConcreteArrayValue(mutableListOf(decimalValue), targetType)
             } else {
                 ConcreteArrayValue(mutableListOf(value), targetType)
@@ -175,7 +211,7 @@ private fun moveaString(
     target: DataRefExpr,
     startIndex: Int,
     interpreterCore: InterpreterCore,
-    value: Expression
+    value: Expression,
 ): Value {
     val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
     var newValue = valueFromSourceExpression(interpreterCore, value).takeFirst(realSize).asString()
@@ -184,10 +220,11 @@ private fun moveaString(
             if (operationExtenter == null) {
                 interpreterCore.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
             } else {
-                val valueSize = when (val valueType = value.type()) {
-                    is StringType -> valueType.length
-                    else -> valueType.size
-                }
+                val valueSize =
+                    when (val valueType = value.type()) {
+                        is StringType -> valueType.length
+                        else -> valueType.size
+                    }
                 StringValue(" ".repeat((realSize - valueSize)))
             }
         newValue = newValue.concatenate(other).asString()
@@ -207,15 +244,17 @@ private fun moveaString(
     }
 }
 
-private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExpression: Expression): Value {
-    return if (valueExpression is ArrayAccessExpr) {
+private fun valueFromSourceExpression(
+    interpreterCore: InterpreterCore,
+    valueExpression: Expression,
+): Value =
+    if (valueExpression is ArrayAccessExpr) {
         val arrayValueRaw = interpreterCore.eval(valueExpression.array) as ArrayValue
         val index = (interpreterCore.eval(valueExpression.index) as NumberValue).bigDecimal.toInt()
         arrayValueRaw.concatenateElementsFrom(index)
     } else {
         interpreterCore.eval(valueExpression)
     }
-}
 
 /**
  * Coerces `sourceValue` to match `targetType` based on specified numeric conversion rules, especially
@@ -239,7 +278,7 @@ private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExp
 private fun numberCoercing(
     sourceValue: Value,
     targetType: NumberType,
-    sourceType: NumberType
+    sourceType: NumberType,
 ): Value {
     // Number of digits between source and target must be equals.
     if (sourceType.numberOfDigits != targetType.numberOfDigits) {

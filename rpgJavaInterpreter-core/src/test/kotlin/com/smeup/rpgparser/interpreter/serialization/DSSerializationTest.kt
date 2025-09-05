@@ -18,18 +18,18 @@ package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.interpreter.Value
-import kotlin.test.*
 import kotlinx.serialization.decodeFromString
+import kotlin.test.*
 
 class DSSerializationTest {
-
     @Test
     fun `Json DS serialization with class discriminator`() {
         val stringSerializer =
             SerializationOption.getSerializer(false)
-        val serializedDS = """
+        val serializedDS =
+            """
             {"$CLASS_DISCRIMINATOR_TAG":"com.smeup.rpgparser.interpreter.DataStructValue", "value":{"#class":"com.smeup.rpgparser.interpreter.IndexedStringBuilder","value":"JamesBond   7","chunksSize":10},"optionalExternalLen":null}
-        """.trimIndent()
+            """.trimIndent()
         val dsValue = stringSerializer.decodeFromString<Value>(serializedDS)
         assertTrue(dsValue is DataStructValue)
     }

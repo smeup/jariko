@@ -6,7 +6,6 @@ buildscript {
             name 'JFrog OSS snapshot repo'
             url  'https://oss.jfrog.org/oss-snapshot-local/'
         }
-        jcenter()
     }
 
     dependencies {
@@ -24,7 +23,6 @@ apply plugin: 'idea'
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
@@ -37,6 +35,22 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
 
+}
+
+compileTestKotlin {
+    sourceCompatibility = "$jvmVersion"
+    targetCompatibility = "$jvmVersion"
+}
+
+compileKotlin {
+    sourceCompatibility = "$jvmVersion"
+    targetCompatibility = "$jvmVersion"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("$jvmVersion"))
+    }
 }
 
 task version {

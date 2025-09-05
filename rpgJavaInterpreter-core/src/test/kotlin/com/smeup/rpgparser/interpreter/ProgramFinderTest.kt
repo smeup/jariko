@@ -17,7 +17,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ProgramFinderTest : AbstractTest() {
-
     @Test
     fun playWithBinaryAndSources() {
         // TEST FLOW:
@@ -64,13 +63,14 @@ class ProgramFinderTest : AbstractTest() {
         // 04.
         assertFalse(compiledProgramFile.exists())
         jariko = getProgram("ECHOPGM.bin", JavaSystemInterface(), programFinders)
-        kotlin.runCatching {
-            results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
-        }.onFailure {
-            assertEquals("Program ECHOPGM.bin not found", it.message)
-        }.onSuccess {
-            assertFalse("Program ECHOPGM.bin must not exists yet") { true }
-        }
+        kotlin
+            .runCatching {
+                results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
+            }.onFailure {
+                assertEquals("Program ECHOPGM.bin not found", it.message)
+            }.onSuccess {
+                assertFalse("Program ECHOPGM.bin must not exists yet") { true }
+            }
 
         // 05.
         compile(sourceDestFile, resourcesDir)
@@ -87,13 +87,14 @@ class ProgramFinderTest : AbstractTest() {
 
         // 08.
         jariko = getProgram("ECHOPGM.rpgle", JavaSystemInterface(), programFinders)
-        kotlin.runCatching {
-            results = jariko.singleCall(listOf("Hi, you called ECHOPGM.rpgle"), Configuration().adaptForTestCase(this))
-        }.onFailure {
-            assertEquals("Program ECHOPGM.rpgle not found", it.message)
-        }.onSuccess {
-            assertFalse("Program ECHOPGM.rpgle must not exist here: ${resourcesDir.absolutePath}") { true }
-        }
+        kotlin
+            .runCatching {
+                results = jariko.singleCall(listOf("Hi, you called ECHOPGM.rpgle"), Configuration().adaptForTestCase(this))
+            }.onFailure {
+                assertEquals("Program ECHOPGM.rpgle not found", it.message)
+            }.onSuccess {
+                assertFalse("Program ECHOPGM.rpgle must not exist here: ${resourcesDir.absolutePath}") { true }
+            }
 
         // 09.
         jariko = getProgram("ECHOPGM", JavaSystemInterface(), programFinders)
@@ -104,23 +105,25 @@ class ProgramFinderTest : AbstractTest() {
         compiledProgramFile.delete()
         assertFalse(compiledProgramFile.exists())
         jariko = getProgram("ECHOPGM.bin", JavaSystemInterface(), programFinders)
-        kotlin.runCatching {
-            results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
-        }.onFailure {
-            assertEquals("Program ECHOPGM.bin not found", it.message)
-        }.onSuccess {
-            assertFalse("Program ECHOPGM.bin must not exist anymore here: ${resourcesDir.absolutePath}") { true }
-        }
+        kotlin
+            .runCatching {
+                results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
+            }.onFailure {
+                assertEquals("Program ECHOPGM.bin not found", it.message)
+            }.onSuccess {
+                assertFalse("Program ECHOPGM.bin must not exist anymore here: ${resourcesDir.absolutePath}") { true }
+            }
 
         // 11.
         jariko = getProgram("ECHOPGM", JavaSystemInterface(), programFinders)
-        kotlin.runCatching {
-            results = jariko.singleCall(listOf("Hi, you called ECHOPGM"), Configuration().adaptForTestCase(this))
-        }.onFailure {
-            assertEquals("Program ECHOPGM not found", it.message)
-        }.onSuccess {
-            assertFalse("Program ECHOPGM must not exist anymore here: ${resourcesDir.absolutePath}") { true }
-        }
+        kotlin
+            .runCatching {
+                results = jariko.singleCall(listOf("Hi, you called ECHOPGM"), Configuration().adaptForTestCase(this))
+            }.onFailure {
+                assertEquals("Program ECHOPGM not found", it.message)
+            }.onSuccess {
+                assertFalse("Program ECHOPGM must not exist anymore here: ${resourcesDir.absolutePath}") { true }
+            }
     }
 
     @Test
@@ -128,19 +131,20 @@ class ProgramFinderTest : AbstractTest() {
         val path = Paths.get({}.javaClass.getResource("/HELLO3.sqlrpgle")?.toURI() ?: error("HELLO3.sqlrpgle not found"))
         lateinit var foundProgramPath: Path
 
-        val finder = DirRpgProgramFinder(path.parent.toFile()).apply {
-            foundProgram { programPath -> foundProgramPath = programPath }
-        }
+        val finder =
+            DirRpgProgramFinder(path.parent.toFile()).apply {
+                foundProgram { programPath -> foundProgramPath = programPath }
+            }
 
         // If we have both HELLO2.rpgle and HELLO2.sqlrpgle the precedence is HELLO2.rpgle
         getProgram(nameOrSource = "HELLO2", programFinders = listOf(finder)).singleCall(
-            emptyList()
+            emptyList(),
         )
         assertEquals("HELLO2.rpgle", foundProgramPath.fileName.toString())
 
         // In this case we have only
         getProgram(nameOrSource = "HELLO3.sqlrpgle", programFinders = listOf(finder)).singleCall(
-            emptyList()
+            emptyList(),
         )
         assertEquals("HELLO3.sqlrpgle", foundProgramPath.fileName.toString())
     }

@@ -16,22 +16,22 @@ import java.io.File
 import java.io.FileInputStream
 
 open class MutePerformanceAstTest : AbstractTest() {
-
-    val si = JavaSystemInterface().apply {
-        val dir = File(System.getProperty("user.dir"), "build/test-results/testPerformance")
-        if (!dir.exists()) {
-            println("Creating $dir")
-            dir.mkdirs()
+    val si =
+        JavaSystemInterface().apply {
+            val dir = File(System.getProperty("user.dir"), "build/test-results/testPerformance")
+            if (!dir.exists()) {
+                println("Creating $dir")
+                dir.mkdirs()
+            }
+            val file = File(dir, "performance-ast.log")
+            println("Performance ast creation logging file will be created in: $file")
+            loggingConfiguration = fileLoggingConfiguration(file, LogChannel.PARSING)
+            loggingConfiguration?.setProperty("logger.date.pattern", "yyyyMMdd HH:mm:ss")
         }
-        val file = File(dir, "performance-ast.log")
-        println("Performance ast creation logging file will be created in: $file")
-        loggingConfiguration = fileLoggingConfiguration(file, LogChannel.PARSING)
-        loggingConfiguration?.setProperty("logger.date.pattern", "yyyyMMdd HH:mm:ss")
-    }
 
     private fun createAst(
         fileName: String,
-        onParsingError: (error: Throwable) -> Unit = { throw it }
+        onParsingError: (error: Throwable) -> Unit = { throw it },
     ) {
         val file = File(javaClass.getResource("/performance-ast").path, fileName)
         println("Creating AST for: $file")

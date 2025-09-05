@@ -24,7 +24,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
 open class RpgEvalTest : AbstractTest() {
-
     @Test
     fun EVAL_runtime() {
         val cu = assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)

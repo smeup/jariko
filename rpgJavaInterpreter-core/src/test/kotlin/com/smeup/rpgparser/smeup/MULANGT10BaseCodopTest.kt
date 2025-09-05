@@ -190,13 +190,51 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00116() {
-        val expected = listOf(
-            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
-            "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "LL",
-            "AABBCCDDEEFFGGHHIILL",
-            "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", ""
-        )
+        val expected =
+            listOf(
+                "AA",
+                "BB",
+                "CC",
+                "DD",
+                "EE",
+                "FF",
+                "GG",
+                "HH",
+                "II",
+                "LL",
+                "AA",
+                "BB",
+                "CC",
+                "DD",
+                "EE",
+                "FF",
+                "GG",
+                "HH",
+                "II",
+                "LL",
+                "AABBCCDDEEFFGGHHIILL",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00116".outputOf(configuration = smeupConfig))
     }
 
@@ -207,10 +245,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00117() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            ".000123", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000123",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00117".outputOf(configuration = smeupConfig))
     }
 
@@ -221,10 +276,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00118() {
-        val expected = listOf(
-            ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00",
-            "123.45", ".00", ".00", ".00", ".00", ".00", ".00", ".00", ".00"
-        )
+        val expected =
+            listOf(
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                "123.45",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+                ".00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00118".outputOf(configuration = smeupConfig))
     }
 
@@ -234,10 +306,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00119() {
-        val expected = listOf(
-            "0", "0", "0", "0", "0", "0", "0", "0", "0",
-            "123", "0", "0", "0", "0", "0", "0", "0", "0"
-        )
+        val expected =
+            listOf(
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "123",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+                "0",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00119".outputOf(configuration = smeupConfig))
     }
 
@@ -257,11 +346,12 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00255() {
-        val expected = listOf(
-            "A    Dÿ D\u001F 0000771",
-            "A    Dÿ D\u001F 0000771",
-            "A    Dÿ D\u001F 0000771"
-        )
+        val expected =
+            listOf(
+                "A    Dÿ D\u001F 0000771",
+                "A    Dÿ D\u001F 0000771",
+                "A    Dÿ D\u001F 0000771",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00255".outputOf(configuration = smeupConfig))
     }
 
@@ -311,19 +401,20 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00261() {
-        val expected = listOf(
-            "44.10",
-            "108.20",
-            "222.30",
-            "04410",
-            "44.10",
-            "10820",
-            "108.20",
-            "22230",
-            "222.30",
-            "",
-            ".00"
-        )
+        val expected =
+            listOf(
+                "44.10",
+                "108.20",
+                "222.30",
+                "04410",
+                "44.10",
+                "10820",
+                "108.20",
+                "22230",
+                "222.30",
+                "",
+                ".00",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00261".outputOf(configuration = smeupConfig))
     }
 
@@ -333,10 +424,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00126() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123", ".000123"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+                ".000123",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00126".outputOf(configuration = smeupConfig))
     }
 
@@ -346,11 +454,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00127() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000",
-            "12300000.000000", "12300000.000000", "12300000.000000", "12300000.000000"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+                "12300000.000000",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00127".outputOf(configuration = smeupConfig))
     }
 
@@ -360,11 +484,27 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00128() {
-        val expected = listOf(
-            ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000", ".000000",
-            "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000", "123.000000",
-            "123.000000", "123.000000"
-        )
+        val expected =
+            listOf(
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                ".000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+                "123.000000",
+            )
         assertEquals(expected, "smeup/MUDRNRAPU00128".outputOf(configuration = smeupConfig))
     }
 
@@ -1062,5 +1202,272 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
     fun executeMUDRNRAPU001109() {
         val expected = listOf("1.50", "2.50", "3.50", "1.50", "2.50", "3.50")
         assertEquals(expected, "smeup/MUDRNRAPU001109".outputOf())
+    }
+
+    /**
+     * Using `OCCURS` by passing a variable as argument.
+     */
+    @Test
+    fun executeMUDRNRAPU001125() {
+        val expected = listOf("0", ".0", "1", "1.1", "0", ".0", "2", "2.2")
+        assertEquals(expected, "smeup/MUDRNRAPU001125".outputOf())
+    }
+
+    /**
+     * Using `Z-ADD` with a field of occurable DS declared as array.
+     */
+    @Test
+    fun executeMUDRNRAPU001126() {
+        val expected = listOf("0", "0", "0", "1", "1", "1", "0", "0", "0", "2", "2", "2", "1", "1", "1", "2", "2", "2")
+        assertEquals(expected, "smeup/MUDRNRAPU001126".outputOf())
+    }
+
+    /**
+     * Using `Z-ADD` with the fields declared by using offsets.
+     */
+    @Test
+    fun executeMUDRNRAPU001127() {
+        val expected = listOf("1.00", "1.00", "1.00", "1.00", "1.00", "1.00", "2.00", "2.00", "2.00", "2.00", "2.00", "2.00", "3.00", "")
+        assertEquals(expected, "smeup/MUDRNRAPU001127".outputOf())
+    }
+
+    /**
+     * Using `Z-ADD` with the fields declared by using offsets. Also, uses `OCCURS` keyword.
+     */
+    @Test
+    fun executeMUDRNRAPU001128() {
+        val expected =
+            listOf(
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "3.00",
+                "",
+                "4.00",
+                "4.00",
+                "4.00",
+                "4.00",
+                "4.00",
+                "4.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "5.00",
+                "6.00",
+                "",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "1.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "2.00",
+                "3.00",
+                "",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001128".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001140() {
+        val expected =
+            listOf(
+                "ARR1 ITEMS",
+                "1.00",
+                "2.00",
+                "3.00",
+                "ARR2 ITEMS",
+                "2.00",
+                "2.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "3.00",
+                "4.00",
+                "5.00",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001140".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the left greater than right.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001141() {
+        val expected =
+            listOf(
+                "ARR1 ITEMS",
+                "1.00",
+                "2.00",
+                "3.00",
+                "ARR2 ITEMS",
+                "2.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "3.00",
+                "4.00",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001141".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with the size of the right greater than left.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001142() {
+        val expected =
+            listOf(
+                "ARR1 ITEMS",
+                "1.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "2.00",
+                "2.00",
+                "2.00",
+                "ARR2 ITEMS",
+                "3.00",
+                "4.00",
+                "2.00",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001142".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between a single value to an array.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001143() {
+        val expected =
+            listOf(
+                "ARR ITEMS",
+                "2.00",
+                "2.00",
+                "2.00",
+                "ARR ITEMS",
+                "7.00",
+                "7.00",
+                "7.00",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001143".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size but different type. The first is
+     *  decimal and the second is integer.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001144() {
+        val expected =
+            listOf(
+                "ARR2 ITEMS",
+                "2",
+                "2",
+                "ARR2 ITEMS",
+                "3",
+                "3",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001144".outputOf())
+    }
+
+    /**
+     * This program executes `ADD` operator between two Standalone arrays with same size but different type. The first is
+     *  integer and the second is decimal.
+     * @see #LS25002732
+     */
+    @Test
+    fun executeMUDRNRAPU001145() {
+        val expected =
+            listOf(
+                "ARR2 ITEMS",
+                "2.50",
+                "2.50",
+                "ARR2 ITEMS",
+                "3.50",
+                "3.50",
+            )
+        assertEquals(expected, "smeup/MUDRNRAPU001145".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFGT` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001146() {
+        val expected = listOf("GT VAL", "GT ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001146".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFLT` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001147() {
+        val expected = listOf("LT VAL", "LT ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001147".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFEQ` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001148() {
+        val expected = listOf("EQ VAL", "EQ ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001148".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFNE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001149() {
+        val expected = listOf("NE VAL", "NE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001149".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFGE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001150() {
+        val expected = listOf("GE VAL", "GE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001150".outputOf())
+    }
+
+    /**
+     * This program shows the message on a true case of `IFLE` when a decimal value is compared to `*ZEROS`.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001151() {
+        val expected = listOf("LE VAL", "LE ZERO")
+        assertEquals(expected, "smeup/MUDRNRAPU001151".outputOf())
     }
 }

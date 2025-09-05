@@ -16,17 +16,20 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.facade.SourceReference
+import com.smeup.rpgparser.parsing.facade.relative
+import com.strumenta.kolasu.model.Position
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-data class WithOffset<T>(
-    val data: T,
-    val offset: Int
-)
+private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 
-fun Value.stringRepresentation(format: String? = null): String {
-    return when (this) {
+typealias StatementReference = Pair<Int, SourceReference>
+
+fun Value.stringRepresentation(format: String? = null): String =
+    when (this) {
         is StringValue -> value
         is BooleanValue -> asString().value // TODO check if it's the best solution
         is NumberValue -> render()
@@ -39,7 +42,6 @@ fun Value.stringRepresentation(format: String? = null): String {
         is UnlimitedStringValue -> value.trimEnd()
         else -> TODO("Unable to render value $this (${this.javaClass.canonicalName})")
     }
-}
 
 private fun TimeStampValue.timestampFormatting(format: String?): String =
     // TODO this is a simple stub for what the full implementation will be
@@ -50,8 +52,12 @@ private fun TimeStampValue.timestampFormatting(format: String?): String =
     }
 
 fun CompilationUnit.activationGroupType(): ActivationGroupType? {
-    val activationGroupTypes = directives.asSequence().filterIsInstance<ActivationGroupDirective>().map { it.type }
-        .toList()
+    val activationGroupTypes =
+        directives
+            .asSequence()
+            .filterIsInstance<ActivationGroupDirective>()
+            .map { it.type }
+            .toList()
     return when {
         activationGroupTypes.isEmpty() -> null
         activationGroupTypes.size == 1 -> activationGroupTypes[0]
@@ -59,8 +65,8 @@ fun CompilationUnit.activationGroupType(): ActivationGroupType? {
     }
 }
 
-fun ActivationGroupType.assignedName(caller: RpgProgram?): String {
-    return when (this) {
+fun ActivationGroupType.assignedName(caller: RpgProgram?): String =
+    when (this) {
         is CallerActivationGroup -> {
             require(caller != null) { "caller is mandatory" }
             caller.activationGroup.assignedName
@@ -68,7 +74,6 @@ fun ActivationGroupType.assignedName(caller: RpgProgram?): String {
         is NewActivationGroup -> UUID.randomUUID().toString()
         is NamedActivationGroup -> groupName
     }
-}
 
 /**
  * This function provides the resizing of a variable defined like String, changing the varying to not varying.
@@ -94,4 +99,75 @@ internal fun DataDefinition.resizeStringSize(newSize: Int) {
         defaultValue.value = defaultValue.value.padEnd(newSize)
     }
     defaultValue.varying = false
+}
+
+/**
+ * Get the smallest line bounds containing all the provided statements.
+ */
+internal fun List<Statement>.lineBounds(): Pair<Int, Int> {
+    val positions = this.mapNotNull { it.position }
+    val start = positions.minOfOrNull { it.start.line } ?: 0
+    val end = positions.maxOfOrNull { it.end.line } ?: 0
+
+    return start to end
+}
+
+fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
+    IndicatorType.STATELESS_INDICATORS.forEach {
+        this.remove(it)
+    }
+}
+
+/**
+ * @return An instance of StatementReference related to position.
+ * */
+internal fun Position.relative(): StatementReference {
+    val programName =
+        if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
+    val copyBlocks =
+        programName?.let {
+            MainExecutionContext
+                .getProgramStack()
+                .peek()
+                .cu.copyBlocks
+        }
+    return this.relative(programName, copyBlocks)
+}
+
+/**
+ * Memory slice context attribute name must to be also string representation of MemorySliceId
+ * */
+internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
+
+/**
+ * Restores the symbol table from a memory slice.
+ *
+ * This function is used to restore the state of the symbol table from a previously saved memory slice.
+ * This is useful in scenarios where the state of the symbol table needs to be preserved across different
+ * executions of the same program, for example in case of stateful programs.
+ *
+ * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
+ * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
+ * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
+ */
+internal fun ISymbolTable.restoreFromMemorySlice(
+    memorySliceId: MemorySliceId?,
+    memorySliceMgr: MemorySliceMgr?,
+    initialValues: Map<String, Value> = emptyMap(),
+) {
+    memorySliceId?.let { myMemorySliceId ->
+        memorySliceMgr?.let {
+            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] =
+                it.associate(
+                    memorySliceId = memorySliceId,
+                    symbolTable = this,
+                    initSymbolTableEntry = { dataDefinition, storedValue ->
+                        // initial values have not to be overwritten
+                        if (!initialValues.containsKey(dataDefinition.name)) {
+                            this[dataDefinition] = storedValue
+                        }
+                    },
+                )
+        }
+    }
 }

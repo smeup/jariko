@@ -17,6 +17,5 @@
 package com.smeup.rpgparser.db
 
 class MiscDBPerformanceTestCompiled : MiscDBPerformanceTest() {
-
     override fun useCompiledVersion() = true
 }

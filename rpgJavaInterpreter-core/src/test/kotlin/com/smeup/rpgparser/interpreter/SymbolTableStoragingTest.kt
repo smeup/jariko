@@ -44,7 +44,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class MemoryStorage : IMemorySliceStorage {
-
     val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
 
     /**
@@ -56,9 +55,7 @@ class MemoryStorage : IMemorySliceStorage {
     /**
      * Load memory associated to memorySliceId
      * */
-    override fun load(memorySliceId: MemorySliceId): Map<String, Value> {
-        return storage.getOrDefault(memorySliceId, mutableMapOf())
-    }
+    override fun load(memorySliceId: MemorySliceId): Map<String, Value> = storage.getOrDefault(memorySliceId, mutableMapOf())
 
     /**
      * Notify transaction start. Is called before all memory slices storing
@@ -69,7 +66,10 @@ class MemoryStorage : IMemorySliceStorage {
     /**
      * Store map associated to memory slices
      * */
-    override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
+    override fun store(
+        memorySliceId: MemorySliceId,
+        values: Map<String, Value>,
+    ) {
         storage[memorySliceId] = values
     }
 
@@ -93,7 +93,6 @@ class MemoryStorage : IMemorySliceStorage {
 }
 
 open class SymbolTableStoragingTest : AbstractTest() {
-
     @Test
     fun execPgmAndEvaluateStorage() {
         execPgmAndEvaluateStorage("1")
@@ -120,7 +119,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = varValue,
-            actual = (variables["X"] as StringValue).value.trim()
+            actual = (variables["X"] as StringValue).value.trim(),
         )
     }
 
@@ -180,7 +179,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         assertEquals(
             expected = null,
             actual = variables,
-            "Expected no variables due to 'SETON LR' instruction."
+            "Expected no variables due to 'SETON LR' instruction.",
         )
     }
 
@@ -209,7 +208,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = varValue.trim(),
-            actual = (variables["X"] as StringValue).value.trim()
+            actual = (variables["X"] as StringValue).value.trim(),
         )
 
         // Second program execution, X variable must exist with value 1, than it will increase to value 2.
@@ -218,7 +217,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = varValue.trim() + varValue.trim(),
-            actual = (variables["X"] as StringValue).value.trim()
+            actual = (variables["X"] as StringValue).value.trim(),
         )
     }
 
@@ -248,7 +247,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = varValue,
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
     }
 
@@ -291,7 +290,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
 
         // First call to program B, instatiate and initialize Z variable to value ending with 'B' character.
@@ -300,7 +299,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = "${varValue}B",
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
 
         // Z variable on MyActA must have previous value ending with 'A' character.
@@ -308,7 +307,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
     }
 
@@ -351,7 +350,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
 
         // First call to program B, instatiate and initialize Z variable to value ending with 'B' character.
@@ -360,7 +359,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = "${varValue}B",
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
 
         // Variable 'Z myProgramA scoped' have not changed his initial values, no interference between two programs
@@ -368,7 +367,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(variables != null)
         assertEquals(
             expected = "${varValue}A",
-            actual = (variables["Z"] as StringValue).value.trim()
+            actual = (variables["Z"] as StringValue).value.trim(),
         )
     }
 
@@ -392,15 +391,16 @@ open class SymbolTableStoragingTest : AbstractTest() {
     fun multiThreadTest() {
         // Run all SymbolTableStoragingTest.kt tests in multithread mode
 
-        val testNames = listOf(
-            "execPgmAndEvaluateStorage",
-            "initPgmByStorageAndEvaluateResult",
-            "execLRPgmAndEvaluateStorage",
-            "execRTPgmTwiceAndPreserveValues",
-            "initPreExistingVariablesPgmByStorageAndEvaluateResult",
-            "sameVariablesButDifferentACTGRP",
-            "sameVariablesAndSameACTGRP"
-        )
+        val testNames =
+            listOf(
+                "execPgmAndEvaluateStorage",
+                "initPgmByStorageAndEvaluateResult",
+                "execLRPgmAndEvaluateStorage",
+                "execRTPgmTwiceAndPreserveValues",
+                "initPreExistingVariablesPgmByStorageAndEvaluateResult",
+                "sameVariablesButDifferentACTGRP",
+                "sameVariablesAndSameACTGRP",
+            )
 
         val fixedThreadPool = 10
         val repeatTests = 100
@@ -461,10 +461,14 @@ open class SymbolTableStoragingTest : AbstractTest() {
             "Cannot find /performance-ast resource"
         }
         val programFinders = listOf(DirRpgProgramFinder(File(resource.path)))
-        val si = JavaSystemInterface().also {
-            it.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PARSING, LogChannel.PERFORMANCE)
-        }
-        val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
+        val si =
+            JavaSystemInterface().also {
+                it.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PARSING, LogChannel.PERFORMANCE)
+            }
+        val configuration =
+            Configuration(
+                memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
+            ).adaptForTestCase(this)
         val caller = getProgram("MUTE10_69", systemInterface = si, programFinders = programFinders)
         caller.singleCall(emptyList(), configuration)
     }
@@ -478,10 +482,14 @@ open class SymbolTableStoragingTest : AbstractTest() {
             "Cannot find /performance-ast resource"
         }
         val programFinders = listOf(DirRpgProgramFinder(File(resource.path)))
-        val si = JavaSystemInterface().also {
-            it.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PARSING, LogChannel.PERFORMANCE)
-        }
-        val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
+        val si =
+            JavaSystemInterface().also {
+                it.loggingConfiguration = consoleLoggingConfiguration(LogChannel.PARSING, LogChannel.PERFORMANCE)
+            }
+        val configuration =
+            Configuration(
+                memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
+            ).adaptForTestCase(this)
         val caller = getProgram("MUTE10_70", systemInterface = si, programFinders = programFinders)
         caller.singleCall(emptyList(), configuration)
     }
@@ -533,8 +541,8 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val actgrp04Vars = memoryStorage.storage[MemorySliceId("CUSTOM", programName = "ACTGRP_04")]
         require(actgrp04Vars != null)
         assertEquals(
-                expected = "04.04.04.",
-                actual = (actgrp04Vars["STRVAR"] as StringValue).value.trim()
+            expected = "04.04.04.",
+            actual = (actgrp04Vars["STRVAR"] as StringValue).value.trim(),
         )
 
         // ACTGRP_05 call ACTGRP_06
@@ -545,8 +553,8 @@ open class SymbolTableStoragingTest : AbstractTest() {
         jariko.singleCall(emptyList(), configuration)
         val actgrp06Vars = memoryStorage.storage[MemorySliceId("CUSTOM", programName = "ACTGRP_06")]
         assertEquals(
-                expected = null,
-                actual = actgrp06Vars
+            expected = null,
+            actual = actgrp06Vars,
         )
     }
 
@@ -584,12 +592,12 @@ open class SymbolTableStoragingTest : AbstractTest() {
         require(actgrp108Vars != null)
         require(actgrp109Vars != null)
         assertEquals(
-                expected = "10.10.10.10.",
-                actual = (actgrp108Vars["STRVAR"] as StringValue).value.trim()
+            expected = "10.10.10.10.",
+            actual = (actgrp108Vars["STRVAR"] as StringValue).value.trim(),
         )
         assertEquals(
-                expected = "10.10.",
-                actual = (actgrp109Vars["STRVAR"] as StringValue).value.trim()
+            expected = "10.10.",
+            actual = (actgrp109Vars["STRVAR"] as StringValue).value.trim(),
         )
     }
 
@@ -611,10 +619,12 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
         // ACTGRP_01 call ACTGRP_02
         val programName = "ACTGRP_01"
-        val programPath = File("src${File.separator}test${File.separator}resources${File.separator}").toString() + File.separator + programName
+        val programPath =
+            File("src${File.separator}test${File.separator}resources${File.separator}").toString() + File.separator + programName
         val programArgs = emptyList<String>()
         val output = mutableListOf<String>()
-        val jarikoCallback = JarikoCallback(
+        val jarikoCallback =
+            JarikoCallback(
                 exitInRT = { true },
                 onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
                     if (!symbolTable.isEmpty()) {
@@ -622,21 +632,22 @@ open class SymbolTableStoragingTest : AbstractTest() {
                         // Main caller may not have 'STRVAR'
                         output.add(strvar.asString().value)
                     }
-                }
-        )
+                },
+            )
 
         // execWithCallback
-        val configuration = Configuration(
-                jarikoCallback = jarikoCallback
-        )
+        val configuration =
+            Configuration(
+                jarikoCallback = jarikoCallback,
+            )
         val systemInterface = JavaSystemInterface()
         val commandLineProgram = getProgram(programPath, systemInterface)
         commandLineProgram.singleCall(programArgs, configuration = configuration)
 
         assertTrue { output.isNotEmpty() }
         assertEquals(
-                expected = "02.02.02.",
-                actual = output[2].trim()
+            expected = "02.02.02.",
+            actual = output[2].trim(),
         )
     }
 
@@ -680,12 +691,13 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val returnAssertions = listOf("XA", "XAB")
         listOf("A", "B").forEachIndexed { i, param ->
             println("Passing P1=$param")
-            val result: CommandLineParms? = getProgram(
-                nameOrSource = pgm
-            ).singleCall(
-                params = CommandLineParms(listOf(param, "")),
-                configuration = configuration
-            )
+            val result: CommandLineParms? =
+                getProgram(
+                    nameOrSource = pgm,
+                ).singleCall(
+                    params = CommandLineParms(listOf(param, "")),
+                    configuration = configuration,
+                )
             require(result != null)
             assertEquals(param, result.parmsList[0])
             assertEquals(returnAssertions[i], result.parmsList[1])
@@ -694,52 +706,64 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
     @Test
     fun `all concrete implementations of Value are annotated with @Serializable`() {
-        val classesToIgnore: List<String> = listOf(
-            ProjectedArrayValue::class.java.simpleName
-        )
+        val classesToIgnore: List<String> =
+            listOf(
+                ProjectedArrayValue::class.java.simpleName,
+            )
 
-        val valueImplementations = getAllSubclasses(
-            packageName = "com.smeup.rpgparser.interpreter",
-            baseClass = Value::class.java
-        ).filter { !it.isInterface && !java.lang.reflect.Modifier.isAbstract(it.modifiers) } // Filter only concrete classes
+        val valueImplementations =
+            getAllSubclasses(
+                packageName = "com.smeup.rpgparser.interpreter",
+                baseClass = Value::class.java,
+            ).filter {
+                !it.isInterface &&
+                    !java.lang.reflect.Modifier
+                        .isAbstract(it.modifiers)
+            } // Filter only concrete classes
 
         valueImplementations.forEach { implementation ->
             if (!classesToIgnore.contains(implementation.simpleName)) {
                 assertTrue(
                     implementation.kotlin.findAnnotation<Serializable>() != null, // Convert Class to KClass using `.kotlin`
-                    "Class ${implementation.simpleName} is not @Serializable"
+                    "Class ${implementation.simpleName} is not @Serializable",
                 )
             }
         }
     }
 }
 
-class WorkerThread(private val symbolTableStoragingTest: SymbolTableStoragingTest, private val testName: String) :
-    Callable<Throwable?> {
-
+class WorkerThread(
+    private val symbolTableStoragingTest: SymbolTableStoragingTest,
+    private val testName: String,
+) : Callable<Throwable?> {
     override fun call(): Throwable? {
-        kotlin.runCatching {
-            println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-            val varValue = Thread.currentThread().name
-            when (testName) {
-                "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage(varValue)
-                "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult(varValue)
-                "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage(varValue)
-                "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues(varValue)
-                "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult(varValue)
-                "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP(varValue)
-                "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP(varValue)
-                else -> {
-                    error("Test $testName not exists")
+        kotlin
+            .runCatching {
+                println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+                val varValue = Thread.currentThread().name
+                when (testName) {
+                    "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage(varValue)
+                    "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult(varValue)
+                    "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage(varValue)
+                    "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues(varValue)
+                    "initPreExistingVariablesPgmByStorageAndEvaluateResult" ->
+                        symbolTableStoragingTest
+                            .initPreExistingVariablesPgmByStorageAndEvaluateResult(
+                                varValue,
+                            )
+                    "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP(varValue)
+                    "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP(varValue)
+                    else -> {
+                        error("Test $testName not exists")
+                    }
                 }
+                println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+            }.onFailure {
+                println(it)
+                return it
+            }.onSuccess {
+                return null
             }
-            println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-        }.onFailure {
-            println(it)
-            return it
-        }.onSuccess {
-            return null
-        }
         return Throwable("Why am i here?")
     }
 }

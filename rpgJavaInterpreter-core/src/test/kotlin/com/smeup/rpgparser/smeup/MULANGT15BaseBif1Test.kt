@@ -89,10 +89,11 @@ open class MULANGT15BaseBif1Test : MULANGTTest() {
     fun executeMUDRNRAPU00105() {
         // arrayValue takes into account the following RPG code:
         // D £40A            S             15    DIM(300)
-        val arrayValue = ConcreteArrayValue(
-            elements = MutableList(300) { _ -> StringValue.blank(15) },
-            elementType = StringType(15)
-        )
+        val arrayValue =
+            ConcreteArrayValue(
+                elements = MutableList(300) { _ -> StringValue.blank(15) },
+                elementType = StringType(15),
+            )
 
         // dataStructValue takes into account the following RPG code:
         // D £G40DS          DS           500

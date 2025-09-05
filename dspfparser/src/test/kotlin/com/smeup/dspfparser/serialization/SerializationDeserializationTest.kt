@@ -13,16 +13,18 @@ import kotlinx.serialization.modules.subclass
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-private val module = SerializersModule {
-    polymorphic(DSPFValue::class) {
-        subclass(ConstantValue::class)
+private val module =
+    SerializersModule {
+        polymorphic(DSPFValue::class) {
+            subclass(ConstantValue::class)
+        }
     }
-}
 
-private val json = Json {
-    prettyPrint = true
-    serializersModule = module
-}
+private val json =
+    Json {
+        prettyPrint = true
+        serializersModule = module
+    }
 
 internal class SerializationDeserializationTest : DSPFSpecificationsLoader("./src/test/resources/RECORDS.dspf") {
     @Test

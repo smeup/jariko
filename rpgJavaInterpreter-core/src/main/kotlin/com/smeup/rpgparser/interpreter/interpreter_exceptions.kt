@@ -17,10 +17,14 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.ast.Statement
 import com.strumenta.kolasu.model.Position
 
 // TODO: Convert current thrown exception to ProgramStatusCode based ones
-enum class ProgramStatusCode(val code: String, val description: String) {
+enum class ProgramStatusCode(
+    val code: String,
+    val description: String,
+) {
     // Normal Codes
     NO_EXCEPTION("00000", "No exception/error occurred"),
     LR_INDICATOR_ON("00001", "Called program returned with the LR indicator on."),
@@ -34,8 +38,14 @@ enum class ProgramStatusCode(val code: String, val description: String) {
     FLOAT_UNDERFLOW("00104", "Float underflow. An intermediate value is too small to be contained in the intermediate result field."),
     INVALID_CHARACTERS("00105", "Invalid characters in character to numeric conversion functions."),
     INVALID_DATE_TIME("00112", "Invalid Date, Time or Timestamp value."),
-    DATE_OVERFLOW_UNDERFLOW("00113", "Date overflow or underflow. (For example, when the result of a Date calculation results in a number greater than *HIVAL or less than *LOVAL.)"),
-    DATE_MAPPING_ERROR("00114", "Date mapping errors, where a Date is mapped from a 4-character year to a 2-character year, and the date range is not 1940-2039."),
+    DATE_OVERFLOW_UNDERFLOW(
+        "00113",
+        "Date overflow or underflow. (For example, when the result of a Date calculation results in a number greater than *HIVAL or less than *LOVAL.)",
+    ),
+    DATE_MAPPING_ERROR(
+        "00114",
+        "Date mapping errors, where a Date is mapped from a 4-character year to a 2-character year, and the date range is not 1940-2039.",
+    ),
     VARIABLE_LENGTH_FIELD_INVALID("00115", "Variable-length field has a current length that is not valid."),
     TABLE_ARRAY_OUT_OF_SEQUENCE("00120", "Table or array out of sequence."),
     ARRAY_INDEX_NOT_VALID("00121", "Array index not valid"),
@@ -67,8 +77,14 @@ enum class ProgramStatusCode(val code: String, val description: String) {
     DATA_INTO_DOCUMENT_NOT_MATCH_RPG("00356", "The document for the DATA-INTO operation does not match the RPG variable"),
     DATA_INTO_PARSER_DETECTED_ERROR("00357", "The parser for the DATA-INTO operation detected an error"),
     DATA_INTO_PARSER_INFORMATION_ERROR("00358", "The information supplied by the parser for the DATA-INTO operation was in error"),
-    DATA_INTO_RUNNING_PROGRAM_ERROR("00359", "An error occurred while running the program or procedure for the DATA-INTO or DATA-GEN operation"),
-    PREPARING_DATA_FOR_GENERATOR_ERROR("00361", "An error occurred preparing the data from the RPG variable for the generator for DATA-GEN"),
+    DATA_INTO_RUNNING_PROGRAM_ERROR(
+        "00359",
+        "An error occurred while running the program or procedure for the DATA-INTO or DATA-GEN operation",
+    ),
+    PREPARING_DATA_FOR_GENERATOR_ERROR(
+        "00361",
+        "An error occurred preparing the data from the RPG variable for the generator for DATA-GEN",
+    ),
     GENERATOR_INFORMATION_ERROR("00362", "The information supplied by the generator for the DATA-GEN operation was in error"),
     GENERATOR_DETECTED_ERROR("00363", "The generator for the DATA-GEN operation detected an error"),
     OUTPUT_FILE_HANDLING_ERROR("00364", "An error occurred while handling the output file or output variable for the DATA-GEN operation"),
@@ -100,11 +116,19 @@ enum class ProgramStatusCode(val code: String, val description: String) {
     ERROR_ON_ROLBK_OPERATION("00805", "Error occurred on ROLBK operation"),
 
     DECIMAL_DATA_ERROR("00907", "Decimal data error (digit or sign not valid)"),
-    COMPILER_LEVEL_MISMATCH("00970", "The level number of the compiler used to generate the program does not agree with the level number of the RPG IV run-time subroutines."),
+    COMPILER_LEVEL_MISMATCH(
+        "00970",
+        "The level number of the compiler used to generate the program does not agree with the level number of the RPG IV run-time subroutines.",
+    ),
     INTERNAL_COMPILER_FAILURE("09998", "Internal failure in ILE RPG compiler or in run-time subroutines"),
-    EXCEPTION_MESSAGE_RECEIVED("09999", "Exception message received by procedure");
+    EXCEPTION_MESSAGE_RECEIVED("09999", "Exception message received by procedure"),
+    ;
 
-    fun toThrowable(additionalInformation: String? = null, position: Position? = null) = InterpreterProgramStatusErrorException(this, position, additionalInformation)
+    fun toThrowable(
+        additionalInformation: String? = null,
+        statement: Statement? = null,
+        position: Position? = null,
+    ) = InterpreterProgramStatusErrorException(this, statement, position, additionalInformation)
 
     fun matches(status: String): Boolean {
         val codeValue = code.toInt()
@@ -117,6 +141,19 @@ enum class ProgramStatusCode(val code: String, val description: String) {
     }
 }
 
-class InterpreterProgramStatusErrorException(val statusCode: ProgramStatusCode, var position: Position?, additionalInformation: String? = null) : RuntimeException(
-    additionalInformation?.let { "${statusCode.description} - $it" } ?: statusCode.description
-)
+/**
+ * RPGLE interpreter errors.
+ * Can be caught by [com.smeup.rpgparser.parsing.ast.MonitorStmt]s.
+ */
+data class InterpreterProgramStatusErrorException(
+    /** Status code of the error. */
+    val statusCode: ProgramStatusCode,
+    /** The statement in which the error occurred. */
+    var statement: Statement?,
+    /** The source position in which the error occurred. */
+    var position: Position?,
+    /** Additional information about the error. */
+    val additionalInformation: String? = null,
+) : RuntimeException(
+        additionalInformation?.let { "${statusCode.description} - $it" } ?: statusCode.description,
+    )

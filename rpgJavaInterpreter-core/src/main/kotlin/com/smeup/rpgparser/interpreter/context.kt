@@ -6,6 +6,7 @@ import java.nio.charset.Charset
 interface InterpretationContext {
     val currentProgramName: String
     var dataWrapUpChoice: DataWrapUpChoice?
+
     fun shouldReinitialize(): Boolean
 }
 
@@ -24,7 +25,10 @@ enum class DecEdit {
     COMMA,
     DOT,
     ZERO_COMMA,
-    ZERO_DOT
+    ZERO_DOT,
 }
 
-class LocalizationContext(val charset: Charset = DEFAULT_CHARSET, val decedit: DecEdit = DecEdit.DOT)
+class LocalizationContext(
+    val charset: Charset = DEFAULT_CHARSET,
+    val decedit: DecEdit = DecEdit.DOT,
+)

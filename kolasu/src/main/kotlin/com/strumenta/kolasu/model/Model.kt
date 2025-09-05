@@ -23,7 +23,9 @@ import kotlinx.serialization.Transient
  * The Abstract Syntax Tree will be constituted by instances of Node.
  */
 @Serializable
-open class Node(@Transient open val position: Position? = null) {
+open class Node(
+    @Transient open val position: Position? = null,
+) {
     var parent: Node? = null
 }
 
@@ -56,18 +58,18 @@ interface Named {
  * A reference associated by using a name.
  */
 @Serializable
-data class ReferenceByName<N>(val name: String, var referred: N? = null) where N : Named {
-    override fun toString(): String {
-        return if (referred == null) {
+data class ReferenceByName<N>(
+    val name: String,
+    var referred: N? = null,
+) where N : Named {
+    override fun toString(): String =
+        if (referred == null) {
             "Ref($name)[Unsolved]"
         } else {
             "Ref($name)[Solved]"
         }
-    }
 
-    override fun hashCode(): Int {
-        return name.hashCode() * (7 + if (referred == null) 1 else 2)
-    }
+    override fun hashCode(): Int = name.hashCode() * (7 + if (referred == null) 1 else 2)
 
     val resolved: Boolean
         get() = referred != null
@@ -75,25 +77,30 @@ data class ReferenceByName<N>(val name: String, var referred: N? = null) where N
 
 @Deprecated(
     message = "Deprecated for performance reasons",
-    replaceWith = ReplaceWith("tryToResolve(candidates: Map<String, N>, caseInsensitive: Boolean = false)")
+    replaceWith = ReplaceWith("tryToResolve(candidates: Map<String, N>, caseInsensitive: Boolean = false)"),
 )
-fun <N> ReferenceByName<N>.tryToResolve(candidates: List<N>, caseInsensitive: Boolean = false): Boolean where N : Named {
+fun <N> ReferenceByName<N>.tryToResolve(
+    candidates: List<N>,
+    caseInsensitive: Boolean = false,
+): Boolean where N : Named {
     val res = candidates.find { if (it.name == null) false else it.name.equals(this.name, caseInsensitive) }
     this.referred = res
     return res != null
 }
 
-fun <N> ReferenceByName<N>.tryToResolve(candidates: Map<String, N>, caseInsensitive: Boolean = false): Boolean where N : Named {
+fun <N> ReferenceByName<N>.tryToResolve(
+    candidates: Map<String, N>,
+    caseInsensitive: Boolean = false,
+): Boolean where N : Named {
     val res = if (caseInsensitive) candidates[this.name.uppercase()] else candidates[this.name]
     this.referred = res
     return res != null
 }
 
-fun <N> ReferenceByName<N>.tryToResolve(possibleValue: N?): Boolean where N : Named {
-    return if (possibleValue == null) {
+fun <N> ReferenceByName<N>.tryToResolve(possibleValue: N?): Boolean where N : Named =
+    if (possibleValue == null) {
         false
     } else {
         this.referred = possibleValue
         true
     }
-}

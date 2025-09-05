@@ -17,35 +17,28 @@
 
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
-import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.logging.ProgramUsageType
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
-import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.getContainingCompilationUnit
 import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
-import java.math.BigDecimal
-import java.math.MathContext
-import java.math.RoundingMode
 import java.util.*
 import kotlin.math.min
 import kotlin.system.measureNanoTime
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 object InterpreterConfiguration {
@@ -57,126 +50,73 @@ object InterpreterConfiguration {
 
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
-private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.prevStmtExecLine"
-
-typealias StatementReference = Pair<Int, SourceReference>
-
-class InterpreterStatus(
-    val symbolTable: ISymbolTable,
-    val indicators: HashMap<IndicatorKey, BooleanValue>,
-    var returnValue: Value? = null,
-    var params: Int = 0,
-    var callerParams: Int = params
-) {
-    var inzsrExecuted = false
-    var lastFound = false
-    var lastDBFile: DBFile? = null
-    val dbFileMap = DBFileMap()
-    var displayFiles: Map<String, DSPF>? = null
-    fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
-    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
-        val tmpValue = symbolTable[abstractDataDefinition]
-        if (tmpValue is NullValue) {
-            throw IllegalArgumentException("Void value for ${abstractDataDefinition.name}")
-        }
-        return tmpValue
-    }
-    fun getReferences(pointer: DataRefExpr) = symbolTable.getValues().filter {
-        val target = it.key.basedOn as? DataRefExpr
-        target?.variable == pointer.variable
-    }
-}
 
 open class InternalInterpreter(
     private val systemInterface: SystemInterface,
-    private val localizationContext: LocalizationContext = LocalizationContext()
+    private val localizationContext: LocalizationContext = LocalizationContext(),
 ) : InterpreterCore {
     private val configuration = MainExecutionContext.getConfiguration()
 
-    override fun getSystemInterface(): SystemInterface {
-        return systemInterface
-    }
+    override fun getConfiguration() = configuration
 
-    override fun getLocalizationContext(): LocalizationContext {
-        return localizationContext
-    }
+    override fun getSystemInterface(): SystemInterface = systemInterface
+
+    override fun getLocalizationContext(): LocalizationContext = localizationContext
 
     private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
-    override fun getGlobalSymbolTable(): ISymbolTable {
-        return globalSymbolTable
-    }
 
-    private val indicators = HashMap<IndicatorKey, BooleanValue>()
-    override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
-        return indicators
-    }
+    override fun getGlobalSymbolTable(): ISymbolTable = globalSymbolTable
+
+    override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> = getStatus().indicators
 
     /**
      * NOTE: This should never be accessed as is. Is [getInterpretationContext] to get its value.
      */
     private var _interpretationContext: InterpretationContext = DummyInterpretationContext
-    override fun getInterpretationContext(): InterpretationContext {
-        return _interpretationContext
-    }
+
+    override fun getInterpretationContext(): InterpretationContext = _interpretationContext
 
     fun setInterpretationContext(interpretationContext: InterpretationContext) {
         this._interpretationContext = interpretationContext
     }
 
-    private val klists = HashMap<String, List<String>>()
-    override fun getKlists(): HashMap<String, List<String>> {
-        return klists
-    }
+    private val status = InterpreterStatus(globalSymbolTable, HashMap<IndicatorKey, BooleanValue>(), mapOf())
 
-    private var logHandlers: List<InterpreterLogHandler> = emptyList()
+    override fun getStatus(): InterpreterStatus = status
 
-    private fun logsEnabled() = logHandlers.isNotEmpty()
-
-    private val status = InterpreterStatus(globalSymbolTable, indicators)
-    override fun getStatus(): InterpreterStatus {
-        return status
-    }
+    private val loggingContext = InterpreterLoggingContext()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override fun renderLog(producer: () -> LazyLogEntry?) = renderLogInternal(producer)
-
-    /**
-     * Internal implementation of the renderLog method
-     * This allows to inline when used internally, saving a lot of execution time
-     */
-    private inline fun renderLogInternal(producer: () -> LazyLogEntry?) {
-        if (!logsEnabled()) return
-
-        val entry = producer()
-        entry ?: return
-        doLog(entry)
-    }
-
-    private fun doLog(renderer: LazyLogEntry) {
-        logHandlers.renderLog(renderer)
-    }
+    override fun renderLog(producer: () -> LazyLogEntry?) = loggingContext.renderLog(producer)
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
     override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
     override operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
+
     override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
-    open operator fun set(data: AbstractDataDefinition, value: Value) {
+    open operator fun set(
+        data: AbstractDataDefinition,
+        value: Value,
+    ) {
         require(data.canBeAssigned(value)) {
             "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
 
         val programName = getInterpretationContext().currentProgramName
 
-        renderLogInternal {
+        renderLog {
             val logSource = { LogSourceData(programName, data.startLine()) }
-            val previous = if (data.name in globalSymbolTable) {
-                globalSymbolTable[data.name]
-            } else null
+            val previous =
+                if (data in globalSymbolTable) {
+                    globalSymbolTable[data]
+                } else {
+                    null
+                }
             LazyLogEntry.produceData(logSource, data, value, previous)
         }
 
@@ -185,16 +125,30 @@ open class InternalInterpreter(
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
                 if (data.declaredArrayInLine != null) {
-                    val dataStructValue = get(ds.name) as DataStructValue
+                    val dataStructValue: DataStructValue =
+                        get(ds.name).let {
+                            if (it is OccurableDataStructValue) {
+                                return@let it.get(it.occurrence)
+                            }
+
+                            return@let it as DataStructValue
+                        }
                     var startOffset = data.startOffset
                     val size = data.endOffset - data.startOffset
 
-                    fun assignValueToArray(value: Value, data: FieldDefinition) {
+                    fun assignValueToArray(
+                        value: Value,
+                        data: FieldDefinition,
+                    ) {
                         // Added coerce
                         val valueToAssign = coerce(value, data.type.asArray().element)
                         dataStructValue.setSubstring(
-                            startOffset, startOffset + size,
-                            data.type.asArray().element.toDataStructureValue(valueToAssign)
+                            startOffset,
+                            startOffset + data.type.elementSize(),
+                            data.type
+                                .asArray()
+                                .element
+                                .toDataStructureValue(valueToAssign),
                         )
                         startOffset += data.stepSize
                     }
@@ -232,7 +186,7 @@ open class InternalInterpreter(
                 }
             }
             else -> {
-                renderLogInternal {
+                renderLog {
                     val logSource = { LogSourceData(programName, data.startLine()) }
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
@@ -247,7 +201,7 @@ open class InternalInterpreter(
     private fun initialize(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
-        reinitialization: Boolean = true
+        reinitialization: Boolean = true,
     ) {
         val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
@@ -257,8 +211,8 @@ open class InternalInterpreter(
         callback.traceBlock(initTrace) {
             val start = System.nanoTime()
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "START") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "START") }
 
             // TODO verify if these values should be reinitialised or not
             compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
@@ -275,47 +229,50 @@ open class InternalInterpreter(
                     var value: Value? = null
                     when (it) {
                         is DataDefinition -> {
-                            value = when {
-                                it.name in initialValues -> {
-                                    val initialValue = initialValues[it.name]
-                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
-                                    if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
-                                        require(initialValue.assignableTo(it.type)) {
-                                            "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                            value =
+                                when {
+                                    it.name in initialValues -> {
+                                        val initialValue =
+                                            initialValues[it.name]
+                                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                        if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                            require(initialValue.assignableTo(it.type)) {
+                                                "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                            }
                                         }
+                                        initialValue
                                     }
-                                    initialValue
-                                }
                                 /*
                                  * In accord to documentation (see https://www.ibm.com/docs/en/i/7.5?topic=codes-plist-identify-parameter-list):
                                  *  when control transfers to called program, at the beginning, the contents of the Result field is placed in
                                  *  the Factor 1 field.
                                  */
-                                it.isInPlist(compilationUnit) -> {
-                                    val resultName = it.getResultNameByFactor1(compilationUnit)
-                                    if (resultName == null || initialValues[resultName] is NullValue) {
-                                        blankValue(it)
-                                    } else {
-                                        initialValues[resultName]
+                                    it.isInPlist(compilationUnit) -> {
+                                        val resultName = it.getResultNameByFactor1(compilationUnit)
+                                        if (resultName == null || initialValues[resultName] is NullValue) {
+                                            blankValue(it)
+                                        } else {
+                                            initialValues[resultName]
+                                        }
                                     }
+
+                                    it.initializationValue != null -> eval(it.initializationValue)
+                                    it.isCompileTimeArray() ->
+                                        toArrayValue(
+                                            compilationUnit.compileTimeArray(index++),
+                                            (it.type as ArrayType),
+                                        )
+
+                                    else -> blankValue(it)
                                 }
-
-                                it.initializationValue != null -> eval(it.initializationValue)
-                                it.isCompileTimeArray() -> toArrayValue(
-                                    compilationUnit.compileTimeArray(index++),
-                                    (it.type as ArrayType)
-                                )
-
-                                else -> blankValue(it)
-                            }
                             if (it.name !in initialValues) {
                                 blankValue(it)
                                 it.fields.forEach { field ->
                                     if (field.initializationValue != null) {
                                         val fieldValue = coerce(eval(field.initializationValue), field.type)
                                         when (value) {
-                                            is DataStructValue -> (value as DataStructValue).set(field, fieldValue)
-                                            is OccurableDataStructValue -> (value as OccurableDataStructValue).initializeField(field, fieldValue)
+                                            is DataStructValue -> value.set(field, fieldValue)
+                                            is OccurableDataStructValue -> value.initializeField(field, fieldValue)
                                             else -> throw RuntimeException("Expected value to be a DataStructure")
                                         }
                                     }
@@ -324,37 +281,42 @@ open class InternalInterpreter(
                         }
                         is FieldDefinition -> {
                             if (it.isCompileTimeArray()) {
-                                value = toArrayValue(
-                                    compilationUnit.compileTimeArray(index++),
-                                    (it.type as ArrayType)
-                                )
+                                value =
+                                    toArrayValue(
+                                        compilationUnit.compileTimeArray(index++),
+                                        (it.type as ArrayType),
+                                    )
                             }
                         }
                         is InStatementDataDefinition -> {
-                            value = if (it.parent is PlistParam) {
-                                when (it.name) {
-                                    in initialValues -> initialValues[it.name]
-                                        ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            value =
+                                if (it.parent is PlistParam) {
+                                    when (it.name) {
+                                        in initialValues ->
+                                            initialValues[it.name]
+                                                ?: throw RuntimeException("Initial values for ${it.name} not found")
 
-                                    else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
-                                        it.type.blank()
-                                    } else {
-                                        null
+                                        else ->
+                                            if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                                it.type.blank()
+                                            } else {
+                                                null
+                                            }
                                     }
+                                } else {
+                                    // TODO check this during the process of revision of DB access
+                                    if (it.type is KListType) null else it.type.blank()
                                 }
-                            } else {
-                                // TODO check this during the process of revision of DB access
-                                if (it.type is KListType) null else it.type.blank()
-                            }
                         }
                     }
                     // Fix issue on CTDATA
                     val ctdata = compilationUnit.compileTimeArray(it.name)
                     if (ctdata.name == it.name) {
-                        value = toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
-                            (it.type as ArrayType)
-                        )
+                        value =
+                            toArrayValue(
+                                compilationUnit.compileTimeArray(it.name),
+                                (it.type as ArrayType),
+                            )
                         set(it, value)
                     }
 
@@ -382,21 +344,35 @@ open class InternalInterpreter(
 
             val initElapsed = (System.nanoTime() - start).nanoseconds
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
-            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.INIT.name, initElapsed) }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLINI", "END") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLINI", "END") }
+            renderLog {
+                LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                    logSourceProducer,
+                    ProgramUsageType.SymbolTable,
+                    SymbolTableAction.INIT.name,
+                    initElapsed,
+                )
+            }
         }
 
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
         callback.traceBlock(loadTrace) {
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
             val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
 
-            renderLogInternal { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLogInternal { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
-            renderLogInternal { LazyLogEntry.producePerformanceAndUpdateAnalytics(logSourceProducer, ProgramUsageType.SymbolTable, SymbolTableAction.LOAD.name, loadElapsed) }
+            renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
+            renderLog {
+                LazyLogEntry.producePerformanceAndUpdateAnalytics(
+                    logSourceProducer,
+                    ProgramUsageType.SymbolTable,
+                    SymbolTableAction.LOAD.name,
+                    loadElapsed,
+                )
+            }
         }
     }
 
@@ -412,15 +388,17 @@ open class InternalInterpreter(
      * @return the result name associated with the matching parameter, or `null` if no match is found
      */
     private fun AbstractDataDefinition.getResultNameByFactor1(compilationUnit: CompilationUnit): String? {
-        val resultName = compilationUnit.entryPlist?.params
-            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
-            ?.firstOrNull { plistParamFiltered ->
-                (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
-                    this.name,
-                    true
-                )
-            }
-            ?.result?.name
+        val resultName =
+            compilationUnit.entryPlist
+                ?.params
+                ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
+                ?.firstOrNull { plistParamFiltered ->
+                    (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
+                        this.name,
+                        true,
+                    )
+                }?.result
+                ?.name
         return resultName
     }
 
@@ -435,39 +413,49 @@ open class InternalInterpreter(
      * @param compilationUnit the compilation unit whose entry PList is to be checked
      * @return `true` if the `AbstractDataDefinition` is present in the PList, otherwise `false`
      */
-    private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) = compilationUnit.entryPlist?.params
+    private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) =
+        compilationUnit.entryPlist
+            ?.params
             ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
             ?.any { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(this.name, true) } == true
 
-    private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
+    private fun toArrayValue(
+        compileTimeArray: CompileTimeArray,
+        arrayType: ArrayType,
+    ): Value {
         // It is not clear why the compileTimeRecordsPerLine on the array type is null
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
         val lines = arrayType.compileTimeRecordsPerLine ?: compileTimeArray.lines.size
         val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
+            compileTimeArray.lines
+                .chunkAs(lines, arrayType.element.size)
                 .map {
                     // force rpgle to zoned if is number type
-                    val elementType = if (arrayType.element is NumberType) {
-                        arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
-                    } else {
-                        arrayType.element
-                    }
+                    val elementType =
+                        if (arrayType.element is NumberType) {
+                            arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
+                        } else {
+                            arrayType.element
+                        }
                     coerce(StringValue(it), elementType)
-                }
-                .resizeTo(arrayType.nElements, arrayType.element.blank())
+                }.resizeTo(arrayType.nElements, arrayType.element.blank())
                 .toMutableList()
 
         return ConcreteArrayValue(l, arrayType.element)
     }
 
-    fun simplyInitialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+    fun simplyInitialize(
+        compilationUnit: CompilationUnit,
+        initialValues: Map<String, Value>,
+    ) {
         initialize(compilationUnit, initialValues)
     }
 
     private fun configureLogHandlers() {
-        logHandlers = systemInterface.getAllLogHandlers()
+        val logHandlers = systemInterface.getAllLogHandlers()
+        loggingContext.logHandlers = logHandlers
     }
 
     /**
@@ -476,73 +464,90 @@ open class InternalInterpreter(
      */
     private fun execute(main: MainBody) {
         // Execute the main body
-        var throwable = kotlin.runCatching {
-            execute(main.stmts)
-        }.exceptionOrNull()
+        var throwable =
+            kotlin
+                .runCatching {
+                    execute(main.stmts)
+                }.exceptionOrNull()
 
         val unwrappedStatement = main.stmts.unwrap()
 
         // Recursive deal with top level goto flow
         while (throwable is GotoTopLevelException || throwable is GotoException) {
             // We need to know the statement unwrapped in order to jump directly into a nested tag
-            val (offset, tag) = when (throwable) {
-                is GotoException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
-                is GotoTopLevelException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
-                else -> Pair(-1, "")
-            }
-            if (unwrappedStatement.size <= offset || offset < 0)
+            val (offset, tag) =
+                when (throwable) {
+                    is GotoException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
+                    is GotoTopLevelException -> Pair(throwable.indexOfTaggedStatement(unwrappedStatement), throwable.tag)
+                    else -> Pair(-1, "")
+                }
+            if (unwrappedStatement.size <= offset || offset < 0) {
                 main.error("GOTO offset $offset is not valid. Cannot find TAG '$tag'")
-            throwable = kotlin.runCatching {
-                executeUnwrappedAt(unwrappedStatement, offset)
-            }.exceptionOrNull()
+            }
+            throwable =
+                kotlin
+                    .runCatching {
+                        executeUnwrappedAt(unwrappedStatement, offset)
+                    }.exceptionOrNull()
         }
 
-        // If the GOTO-flow threw a different exception, dispatch it to the parent flow
-        throwable?.let { throw it }
+        // Deal with non GOTO exceptions
+        throwable?.let {
+            when (it) {
+                // If we got a non-caught interpreter error (missing MONITOR), convert it to a RuntimeException
+                is InterpreterProgramStatusErrorException ->
+                    throw RuntimeException(it.statement!!.errorDescription(it), it).fireErrorEvent(it.position)
+                // If the GOTO-flow threw a different exception, dispatch it to the parent flow
+                else -> throw it
+            }
+        }
     }
 
     fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true,
-        callerParams: Map<String, Value> = initialValues
+        callerParams: Map<String, Value> = initialValues,
     ) {
-        kotlin.runCatching {
-            configureLogHandlers()
+        kotlin
+            .runCatching {
+                configureLogHandlers()
 
-            this.status.displayFiles = compilationUnit.displayFiles
-            status.callerParams = callerParams.size
-            status.params = initialValues.size
-            initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
-            execINZSR(compilationUnit)
-            if (compilationUnit.minTimeOut == null) {
-                execute(compilationUnit.main)
-            } else {
-                val elapsed = measureNanoTime {
+                status.dataAreas = compilationUnit.getRelevantDataAreas()
+                status.displayFiles = compilationUnit.displayFiles
+                status.callerParams = callerParams.size
+                status.params = initialValues.size
+                initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
+                execINZSR(compilationUnit)
+                if (compilationUnit.minTimeOut == null) {
                     execute(compilationUnit.main)
-                }.nanoseconds
+                } else {
+                    val elapsed =
+                        measureNanoTime {
+                            execute(compilationUnit.main)
+                        }.nanoseconds
 
-                if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
-                    throw InterpreterTimeoutException(
-                        getInterpretationContext().currentProgramName,
-                        elapsed.inWholeMilliseconds,
-                        compilationUnit.minTimeOut!!
-                    )
-                }
-            }
-        }.onFailure {
-            if (it is ReturnException) {
-                status.returnValue = it.returnValue
-            } else {
-                if (!MainExecutionContext.getProgramStack().isEmpty()) {
-                    MainExecutionContext.getProgramStack().peek().cu.source?.apply {
-                        System.err.println(it.message)
-                        System.err.println(this.dumpSource())
+                    if (elapsed.inWholeMilliseconds > compilationUnit.minTimeOut!!) {
+                        throw InterpreterTimeoutException(
+                            getInterpretationContext().currentProgramName,
+                            elapsed.inWholeMilliseconds,
+                            compilationUnit.minTimeOut!!,
+                        )
                     }
                 }
-                throw it
+            }.onFailure {
+                if (it is ReturnException) {
+                    status.returnValue = it.returnValue
+                } else {
+                    if (!MainExecutionContext.getProgramStack().isEmpty()) {
+                        MainExecutionContext.getProgramStack().peek().cu.source?.apply {
+                            System.err.println(it.message)
+                            System.err.println(this.dumpSource())
+                        }
+                    }
+                    throw it
+                }
             }
-        }
     }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
@@ -558,7 +563,10 @@ open class InternalInterpreter(
      * @param statements The list of statements to execute.
      * @param offset The starting offset.
      */
-    private fun executeAt(statements: List<Statement>, offset: Int) {
+    private fun executeAt(
+        statements: List<Statement>,
+        offset: Int,
+    ) {
         /*
          * FIXME:
          * This method has a lot of code duplicated with [executeUnwrappedAt] because it can be called
@@ -579,7 +587,7 @@ open class InternalInterpreter(
              * Program status error not caught from MONITOR statements should end up here
              * We should treat these cases as common Jariko runtime errors
              */
-            throw e.fireErrorEvent(e.position)
+            throw e
         }
     }
 
@@ -588,7 +596,10 @@ open class InternalInterpreter(
      * @param unwrappedStatements The unwrapped list of statements. It is up to the caller to ensure statements are unwrapped.
      * @param offset Offset to start the execution from.
      */
-    override fun executeUnwrappedAt(unwrappedStatements: List<UnwrappedStatementData>, offset: Int) {
+    override fun executeUnwrappedAt(
+        unwrappedStatements: List<UnwrappedStatementData>,
+        offset: Int,
+    ) {
         var index = offset
         while (index < unwrappedStatements.size) {
             val data = unwrappedStatements[index]
@@ -597,13 +608,20 @@ open class InternalInterpreter(
         }
     }
 
+    override fun fireErrorEvent(
+        throwable: Throwable,
+        position: Position?,
+    ) {
+        throwable.fireErrorEvent(position)
+    }
+
     @Deprecated(message = "No longer used")
     open fun fireOnEnterPgmCallBackFunction() {
     }
 
     private fun executeWithMute(statement: Statement) {
         val programName = getInterpretationContext().currentProgramName
-        renderLogInternal {
+        renderLog {
             val logSource = { LogSourceData(programName, statement.position.line()) }
             LazyLogEntry.produceLine(logSource)
         }
@@ -627,27 +645,28 @@ open class InternalInterpreter(
         } catch (e: ControlFlowException) {
             throw e
         } catch (e: InterpreterProgramStatusErrorException) {
-            // If position is not set, consider it to be the statement position
+            // If statement information are unknown, inject them here
+            if (e.statement == null) e.statement = statement
             if (e.position == null) e.position = statement.position
             throw e
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
             if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+                throw IllegalArgumentException(statement.errorDescription(e), e).fireErrorEvent(statement.position)
             }
             throw e
         } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+            throw RuntimeException(statement.errorDescription(e), e).fireErrorEvent(statement.position)
         } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
+            throw RuntimeException(statement.errorDescription(e), e).fireErrorEvent(statement.position)
         } catch (t: Throwable) {
-            throw RuntimeException(errorDescription(statement, t), t).fireErrorEvent(statement.position)
+            throw RuntimeException(statement.errorDescription(t), t).fireErrorEvent(statement.position)
         } finally {
-            if (statement.muteAnnotations.size > 0) {
+            if (statement.muteAnnotations.isNotEmpty()) {
                 executeMutes(
                     statement.muteAnnotations,
                     statement.ancestor(CompilationUnit::class.java)!!,
-                    statement.position.line()
+                    statement.position.line(),
                 )
             }
         }
@@ -662,31 +681,36 @@ open class InternalInterpreter(
     }
 
     // I use a chain of names, so I am sure that this attribute name depends on program stack too
-    private fun prevStmtAttributeMame(): String {
-        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${
+    private fun prevStmtAttributeMame(): String =
+        "$PREV_STMT_EXEC_LINE_ATTRIBUTE${
             MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }
         }"
-    }
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
-        if (!MainExecutionContext.getProgramStack()
-                .empty() && configuration.options.mustCreateCopyBlocks()
+        if (!MainExecutionContext
+                .getProgramStack()
+                .empty() &&
+            configuration.options.mustCreateCopyBlocks()
         ) {
-            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
+            val copyBlocks =
+                MainExecutionContext
+                    .getProgramStack()
+                    .peek()
+                    .cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
             copyBlocks.observeTransitions(
                 from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
                 to = currentStatementLine,
                 onEnter = { copyBlock ->
                     configuration.jarikoCallback.onEnterCopy.invoke(
-                        copyBlock.copyId
+                        copyBlock.copyId,
                     )
                 },
                 onExit = { copyBlock ->
                     configuration.jarikoCallback.onExitCopy.invoke(
-                        copyBlock.copyId
+                        copyBlock.copyId,
                     )
-                }
+                },
             )
             MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
@@ -695,21 +719,22 @@ open class InternalInterpreter(
     private fun executeMutes(
         muteAnnotations: MutableList<MuteAnnotation>,
         compilationUnit: CompilationUnit,
-        line: String
+        line: String,
     ) {
         val programName = getInterpretationContext().currentProgramName
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
-                    val exp: Expression = when (it.comparison) {
-                        EQ -> EqualityExpr(it.val1, it.val2, it.position)
-                        NE -> DifferentThanExpr(it.val1, it.val2, it.position)
-                        GT -> GreaterThanExpr(it.val1, it.val2, it.position)
-                        GE -> GreaterEqualThanExpr(it.val1, it.val2, it.position)
-                        LT -> LessThanExpr(it.val1, it.val2, it.position)
-                        LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
-                    }
+                    val exp: Expression =
+                        when (it.comparison) {
+                            EQ -> EqualityExpr(it.val1, it.val2, it.position)
+                            NE -> DifferentThanExpr(it.val1, it.val2, it.position)
+                            GT -> GreaterThanExpr(it.val1, it.val2, it.position)
+                            GE -> GreaterEqualThanExpr(it.val1, it.val2, it.position)
+                            LT -> LessThanExpr(it.val1, it.val2, it.position)
+                            LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
+                        }
                     val value1 = it.val1.evalWith(expressionEvaluation)
                     val value2 = it.val2.evalWith(expressionEvaluation)
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
@@ -718,7 +743,7 @@ open class InternalInterpreter(
                         "Expected BooleanValue, but found $value"
                     }
 
-                    renderLogInternal {
+                    renderLog {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, value)
                     }
@@ -733,8 +758,8 @@ open class InternalInterpreter(
                             value,
                             value1,
                             value2,
-                            line
-                        )
+                            line,
+                        ),
                     )
                 }
 
@@ -748,14 +773,14 @@ open class InternalInterpreter(
                         MuteTimeoutAnnotationExecuted(
                             this.getInterpretationContext().currentProgramName,
                             it.timeout,
-                            line
-                        )
+                            line,
+                        ),
                     )
                 }
 
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
-                    renderLogInternal {
+                    renderLog {
                         val logSource = { LogSourceData(programName, it.startLine()) }
                         LazyLogEntry.produceMute(it, logSource, message)
                     }
@@ -764,11 +789,10 @@ open class InternalInterpreter(
                         MuteFailAnnotationExecuted(
                             this.getInterpretationContext().currentProgramName,
                             message,
-                            line
-                        )
+                            line,
+                        ),
                     )
                 }
-
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
         }
@@ -780,7 +804,11 @@ open class InternalInterpreter(
         return if (negate) !indicator else indicator
     }
 
-    data class SolvedIndicatorCondition(val key: Int, val value: Boolean, val operator: String)
+    data class SolvedIndicatorCondition(
+        val key: Int,
+        val value: Boolean,
+        val operator: String,
+    )
 
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
         this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
@@ -847,69 +875,91 @@ open class InternalInterpreter(
             { eval(expression).asInt().value }
         }
 
-    override fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
+    override fun setIndicators(
+        statement: WithRightIndicators,
+        hi: BooleanValue,
+        lo: BooleanValue,
+        eq: BooleanValue,
+    ) {
         statement.hi?.let {
-            indicators[it] = hi
+            getIndicators()[it] = hi
         }
         statement.lo?.let {
-            indicators[it] = lo
+            getIndicators()[it] = lo
         }
         statement.eq?.let {
-            indicators[it] = eq
+            getIndicators()[it] = eq
         }
     }
 
-    private fun errorDescription(statement: Statement, throwable: Throwable) =
-        "Program ${getInterpretationContext().currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
-
-    override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
+    override fun fillDataFrom(
+        dbFile: EnrichedDBFile,
+        record: Record,
+    ) {
         if (!record.isEmpty()) {
-            status.lastFound = true
+            status.lastFound.set(true)
             record.forEach { field ->
                 // dbFieldName could be different by dataDefinition name if file definition has a prefix property
-                dbFile.getDataDefinitionName(field.key)?.let { name ->
-                    dataDefinitionByName(name)
-                }?.apply {
-                    assign(this, StringValue(field.value))
-                }
-                    ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
+                dbFile
+                    .getDataDefinitionName(field.key)
+                    ?.let { name ->
+                        dataDefinitionByName(name)
+                    }?.apply {
+                        assign(this, StringValue(field.value))
+                    }
+                    ?: System.err.println(
+                        "Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required",
+                    )
             }
         } else {
-            status.lastFound = false
+            status.lastFound.set(false)
         }
     }
 
-    override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
+    override fun dbFile(
+        name: String,
+        statement: Statement,
+    ): EnrichedDBFile {
         // Name could be file name or format name
         val dbFile = status.dbFileMap[name]
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
         }
 
-        status.lastDBFile = dbFile
+        status.lastDBFile.set(dbFile)
         return dbFile
     }
 
-    override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
+    override fun toSearchValues(
+        searchArgExpression: Expression,
+        fileMetadata: FileMetadata,
+    ): List<String> {
         val kListName = searchArgExpression.render().uppercase(Locale.getDefault())
-        return klists[kListName]!!.mapIndexed { index, name ->
+        return getStatus().klists[kListName]!!.mapIndexed { index, name ->
             get(name).asString(fileMetadata.accessFieldsType[index])
         }
     }
 
-    override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+    override fun enterCondition(
+        index: Value,
+        end: Value,
+        downward: Boolean,
+    ): Boolean =
         if (downward) {
             isEqualOrGreater(index, end, localizationContext.charset)
         } else {
             isEqualOrSmaller(index, end, localizationContext.charset)
         }
 
-    override fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value {
+    override fun increment(
+        dataDefinition: AbstractDataDefinition,
+        amount: Long,
+    ): Value {
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
             val programName = this.getInterpretationContext().currentProgramName
-            renderLogInternal {
+            renderLog {
                 val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
@@ -922,69 +972,32 @@ open class InternalInterpreter(
 
     override fun rawRender(values: List<Value>) = values.joinToString("") { rawRender(it) }
 
-    private fun rawRender(value: Value): String {
-        return when (value) {
+    private fun rawRender(value: Value): String =
+        when (value) {
             is NumberValue -> if (value.isNegative()) "${value.abs().render()}-" else value.render()
             else -> value.stringRepresentation()
         }
-    }
 
     override fun eval(expression: Expression): Value {
-        val value = when (expression) {
-            is AssignmentExpr -> {
-                assign(expression.target, expression.value)
+        val value =
+            when (expression) {
+                is AssignmentExpr -> {
+                    assign(expression.target, expression.value)
+                }
+                else -> expression.evalWith(expressionEvaluation)
             }
-            else -> expression.evalWith(expressionEvaluation)
-        }
 
         val programName = this.getInterpretationContext().currentProgramName
         val sourceProvider = { LogSourceData(programName, expression.startLine()) }
-        renderLogInternal { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
+        renderLog { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
         return value
     }
 
-    override fun mult(statement: MultStmt): Value {
-        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        val rightValue = BigDecimal(eval(statement.left).render())
-        val leftValue = BigDecimal(eval(statement.right).render())
-        val result = rightValue.multiply(leftValue)
-        val type = statement.target.type()
-        require(type is NumberType)
-        return if (statement.halfAdjust) {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
-        } else {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.DOWN))
-        }
-    }
-
-    override fun div(statement: DivStmt): Value {
-        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        val dividend = BigDecimal(eval(statement.dividend).render())
-        val divisor = BigDecimal(eval(statement.divisor).render())
-        val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
-        val type = statement.target.type()
-        require(type is NumberType)
-        // calculation of rest
-        // NB. rest based on type of quotient
-        if (statement.mvrStatement != null) {
-            val restType = statement.mvrStatement.target?.type()
-            require(restType is NumberType)
-            val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
-            val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
-            assign(
-                statement.mvrStatement.target,
-                DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN))
-            )
-        }
-        return if (statement.halfAdjust) {
-            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
-        } else {
-            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.DOWN))
-        }
-    }
-
-    override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    override fun assign(
+        dataDefinition: AbstractDataDefinition,
+        value: Value,
+    ): Value {
         // if I am working with a record format
         if (dataDefinition.type is RecordFormatType) {
             // currently the only assignable value for a record format type is blank
@@ -1016,12 +1029,18 @@ open class InternalInterpreter(
         }
     }
 
-    override fun assignEachElement(target: AssignableExpression, value: Value): Value {
+    override fun assignEachElement(
+        target: AssignableExpression,
+        value: Value,
+    ): Value {
         val arrayType = target.type().asArray()
         return assign(target, value.toArray(arrayType.nElements, arrayType.element))
     }
 
-    override fun assign(target: AssignableExpression, value: Value): Value {
+    override fun assign(
+        target: AssignableExpression,
+        value: Value,
+    ): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -1042,7 +1061,7 @@ open class InternalInterpreter(
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
 
-                renderLogInternal {
+                renderLog {
                     val logSource =
                         { LogSourceData(getInterpretationContext().currentProgramName, target.array.startLine()) }
                     LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value)
@@ -1056,12 +1075,13 @@ open class InternalInterpreter(
                 val length = target.length?.let { eval(it).asInt().value.toInt() }
                 val start = eval(target.start).asInt().value.toInt() - 1
 
-                val newValue = if (length == null) {
-                    StringValue(oldValue.replaceRange(start, oldValue.length, value.asString().value))
-                } else {
-                    val paddedValue = value.asString().value.padEnd(length)
-                    StringValue(oldValue.replaceRange(start, start + length, paddedValue))
-                }
+                val newValue =
+                    if (length == null) {
+                        StringValue(oldValue.replaceRange(start, oldValue.length, value.asString().value))
+                    } else {
+                        val paddedValue = value.asString().value.padEnd(length)
+                        StringValue(oldValue.replaceRange(start, start + length, paddedValue))
+                    }
 
                 return assign(target.string as AssignableExpression, newValue)
             }
@@ -1072,11 +1092,12 @@ open class InternalInterpreter(
                 val numberOfElement: Int? =
                     if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
                 val array: ArrayValue = eval(target.array).asArray().copy()
-                val to: Int = if (numberOfElement == null) {
-                    array.arrayLength()
-                } else {
-                    (start) + numberOfElement
-                } - 1
+                val to: Int =
+                    if (numberOfElement == null) {
+                        array.arrayLength()
+                    } else {
+                        (start) + numberOfElement
+                    } - 1
                 // replace elements
                 var j = 1
                 for (i in start..to) {
@@ -1111,20 +1132,20 @@ open class InternalInterpreter(
             is IndicatorExpr -> {
                 val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
-                indicators[index] = coercedValue.asBoolean()
+                getIndicators()[index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        indicators[index] = coercedValue.asBoolean()
+                        getIndicators()[index] = coercedValue.asBoolean()
                     }
                     coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        indicators[index] = coercedValue.getElement(index).asBoolean()
+                        getIndicators()[index] = coercedValue.getElement(index).asBoolean()
                     }
                     coercedValue
                 }
@@ -1136,9 +1157,9 @@ open class InternalInterpreter(
     override fun assign(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator
-    ): Value {
-        return when (operator) {
+        operator: AssignmentOperator,
+    ): Value =
+        when (operator) {
             NORMAL_ASSIGNMENT -> {
                 if (target is DataRefExpr && value is PlusExpr && value.left.render() == target.render() && value.right is IntLiteral) {
                     val amount = (value.right as IntLiteral).value
@@ -1158,14 +1179,13 @@ open class InternalInterpreter(
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value, target.position)))
             EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value, target.position)))
         }
-    }
 
     override fun assignEachElement(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator
-    ): Value {
-        return when (operator) {
+        operator: AssignmentOperator,
+    ): Value =
+        when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
             PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value, target.position)))
             MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value, target.position)))
@@ -1173,45 +1193,11 @@ open class InternalInterpreter(
             DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value, target.position)))
             EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value, target.position)))
         }
-    }
 
-    override fun add(statement: AddStmt): Value {
-        val addend1 = eval(statement.addend1)
-        require(addend1 is NumberValue) {
-            "$addend1 should be a number"
-        }
-        val addend2 = eval(statement.right)
-        require(addend2 is NumberValue) {
-            "$addend2 should be a number"
-        }
-        return when {
-            addend1 is IntValue && addend2 is IntValue -> IntValue(addend1.asInt().value.plus(addend2.asInt().value))
-            addend1 is IntValue && addend2 is DecimalValue -> DecimalValue(addend1.asDecimal().value.plus(addend2.value))
-            addend1 is DecimalValue && addend2 is IntValue -> DecimalValue(addend1.value.plus(addend2.asDecimal().value))
-            addend1 is DecimalValue && addend2 is DecimalValue -> DecimalValue(addend1.value.plus(addend2.value))
-            else -> throw UnsupportedOperationException("I do not know how to sum $addend1 and $addend2 at ${statement.position}")
-        }
-    }
-
-    override fun sub(statement: SubStmt): Value {
-        val minuend = eval(statement.minuend)
-        require(minuend is NumberValue) {
-            "$minuend should be a number"
-        }
-        val subtrahend = eval(statement.right)
-        require(subtrahend is NumberValue) {
-            "$subtrahend should be a number"
-        }
-        return when {
-            minuend is IntValue && subtrahend is IntValue -> IntValue(minuend.asInt().value.minus(subtrahend.asInt().value))
-            minuend is IntValue && subtrahend is DecimalValue -> DecimalValue(minuend.asDecimal().value.minus(subtrahend.value))
-            minuend is DecimalValue && subtrahend is IntValue -> DecimalValue(minuend.value.minus(subtrahend.asDecimal().value))
-            minuend is DecimalValue && subtrahend is DecimalValue -> DecimalValue(minuend.value.minus(subtrahend.value))
-            else -> throw UnsupportedOperationException("I do not know how to sum $minuend and $subtrahend at ${statement.position}")
-        }
-    }
-
-    private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+    private fun blankValue(
+        dataDefinition: DataDefinition,
+        forceElement: Boolean = false,
+    ): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
             is DataStructureType -> createBlankFor(dataDefinition)
@@ -1227,18 +1213,19 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return configuration.jarikoCallback.getActivationGroup.invoke(
-                    getInterpretationContext().currentProgramName, associatedActivationGroup
-                )?.assignedName ?: activationGroup
+                return configuration.jarikoCallback.getActivationGroup
+                    .invoke(
+                        getInterpretationContext().currentProgramName,
+                        associatedActivationGroup,
+                    )?.assignedName ?: activationGroup
             }
         }
     }
 
-    open fun getMemorySliceId(): MemorySliceId? {
-        return getActivationGroupAssignedName()?.let {
+    open fun getMemorySliceId(): MemorySliceId? =
+        getActivationGroupAssignedName()?.let {
             MemorySliceId(activationGroup = it, getInterpretationContext().currentProgramName)
         }
-    }
 
     /**
      * @return an instance of MemorySliceMgr, return null to disable serialization/deserialization
@@ -1259,17 +1246,16 @@ open class InternalInterpreter(
     }
 
     private fun isExitingInRTMode(): Boolean {
-
         // LR indicator 'ON' means stateless, doesn't matter if RT is 'ON' too, LR wins!
         // RT indicator 'ON' means statefull (ONLY if LR indicator is 'OFF', as described above)
 
-        val isLROn = indicators[IndicatorType.LR.name.toIndicatorKey()]?.value
-        val isRTOn = indicators[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
+        val isLROn = getIndicators()[IndicatorType.LR.name.toIndicatorKey()]?.value
+        val isRTOn = getIndicators()[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
         return configuration.jarikoCallback.exitInRT.invoke(
-            getInterpretationContext().currentProgramName
+            getInterpretationContext().currentProgramName,
         ) ?: exitRT
     }
 
@@ -1284,23 +1270,24 @@ open class InternalInterpreter(
         if (!exitingRT) {
             globalSymbolTable.clear()
             // if I exit in LR have to mark inzsrExecuted to false
-            status.inzsrExecuted = false
+            status.inzsrExecuted.set(false)
         }
-        indicators.clearStatelessIndicators()
+        getIndicators().clearStatelessIndicators()
     }
 
     private fun execINZSR(compilationUnit: CompilationUnit) {
-        if (!status.inzsrExecuted) {
+        if (!status.inzsrExecuted.get()) {
             val name = "*INZSR"
-            status.inzsrExecuted = true
-            compilationUnit.subroutines.firstOrNull { subroutine ->
-                subroutine.name.equals(other = name, ignoreCase = true)
-            }?.let { subroutine ->
-                ExecuteSubroutine(
-                    subroutine = ReferenceByName(name, subroutine),
-                    position = subroutine.position
-                ).execute(this)
-            }
+            status.inzsrExecuted.set(true)
+            compilationUnit.subroutines
+                .firstOrNull { subroutine ->
+                    subroutine.name.equals(other = name, ignoreCase = true)
+                }?.let { subroutine ->
+                    ExecuteSubroutine(
+                        subroutine = ReferenceByName(name, subroutine),
+                        position = subroutine.position,
+                    ).execute(this)
+                }
         }
     }
 
@@ -1309,149 +1296,43 @@ open class InternalInterpreter(
      */
     private inline fun execute(statement: Statement) {
         val programName = this.getInterpretationContext().currentProgramName
-        val sourceProducer = if (logsEnabled()) {
-            { LogSourceData(programName, statement.position.line()) }
-        } else null
-
         val callback = configuration.jarikoCallback
-        val trace = statement.toTracePoint()
-        sourceProducer?.let { openLoggingScope(statement, it) }
+        val trace = toTracePoint(statement)
 
         val internalExecute = {
+            val sourceProducer =
+                if (loggingContext.logsEnabled) {
+                    { LogSourceData(programName, statement.position.line()) }
+                } else {
+                    null
+                }
+            sourceProducer?.let { loggingContext.openLoggingScope(statement, it) }
+            val attachBeforeProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToNext)
+            val attachAfterProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToPrevious)
+
+            executeProfiling(attachBeforeProfilingAnnotations)
             val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
-            sourceProducer?.let { closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            sourceProducer?.let { loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            executeProfiling(attachAfterProfilingAnnotations)
         }
-        if (trace != null) {
-            callback.traceBlock(trace) { internalExecute() }
-        } else internalExecute()
+
+        trace?.let { callback.traceBlock(it) { internalExecute() } } ?: internalExecute()
+    }
+
+    /**
+     * Produce the error description associated to this statement
+     */
+    private fun Statement.errorDescription(throwable: Throwable): String {
+        val source = this.position!!.relative().second
+        return "Program ${getInterpretationContext().currentProgramName} - Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} of $source.\n${throwable.message}"
+    }
+
+    private fun CompilationUnit.getRelevantDataAreas(): Map<String, String> {
+        if (this.isProcedure) return this.getContainingCompilationUnit()!!.getRelevantDataAreas()
+        return this.dataAreas
     }
 
     override fun onInterpretationEnd() {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext() ?: return
-        loggingContext.generateCompleteReport().forEach { entry -> renderLogInternal { entry } }
-    }
-
-    private fun Statement.toTracePoint(): JarikoTrace? {
-        return when (this) {
-            is CallStmt -> JarikoTrace(
-                kind = JarikoTraceKind.CallStmt,
-                description = eval(this.expression).asString().value.trim()
-            )
-            is ExecuteSubroutine -> JarikoTrace(
-                kind = JarikoTraceKind.ExecuteSubroutine,
-                description = this.subroutine.name
-            )
-            is CompositeStatement -> JarikoTrace(
-                kind = JarikoTraceKind.CompositeStatement,
-                description = this.loggableEntityName
-            )
-            else -> null
-        }
-    }
-
-    private fun openLoggingScope(statement: Statement, sourceProducer: LogSourceProvider) {
-        renderLogInternal { statement.getResolutionLogRenderer(sourceProducer) }
-        if (statement is CompositeStatement) {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "START") }
-        } else {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "EXEC") }
-        }
-
-        if (statement is LoopStatement) {
-            renderLogInternal {
-                LazyLogEntry.produceLoopStart(
-                    sourceProducer,
-                    statement.loggableEntityName,
-                    statement.loopSubject
-                )
-            }
-        }
-    }
-
-    private fun closeLoggingScope(
-        statement: Statement,
-        programName: String,
-        sourceProducer: LogSourceProvider,
-        executionTime: Duration
-    ) {
-        val loggingContext = MainExecutionContext.getAnalyticsLoggingContext()
-        loggingContext?.recordStatementExecution(programName, statement.loggableEntityName, executionTime)
-
-        if (statement is LoopStatement) {
-            renderLogInternal {
-                LazyLogEntry.produceLoopEnd(
-                    sourceProducer,
-                    statement.loggableEntityName,
-                    statement.loopSubject,
-                    statement.iterations
-                )
-            }
-        }
-
-        if (statement is CompositeStatement) {
-            renderLogInternal { statement.getStatementLogRenderer(sourceProducer, "END") }
-        }
-
-        renderLogInternal {
-            LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                sourceProducer,
-                ProgramUsageType.Statement,
-                statement.loggableEntityName,
-                executionTime
-            )
-        }
-    }
-}
-
-fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
-    IndicatorType.STATELESS_INDICATORS.forEach {
-        this.remove(it)
-    }
-}
-
-/**
- * @return An instance of StatementReference related to position.
- * */
-internal fun Position.relative(): StatementReference {
-    val programName =
-        if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
-    return this.relative(programName, copyBlocks)
-}
-
-/**
- * Memory slice context attribute name must to be also string representation of MemorySliceId
- * */
-internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
-
-/**
- * Restores the symbol table from a memory slice.
- *
- * This function is used to restore the state of the symbol table from a previously saved memory slice.
- * This is useful in scenarios where the state of the symbol table needs to be preserved across different
- * executions of the same program, for example in case of stateful programs.
- *
- * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
- * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
- * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
- */
-internal fun ISymbolTable.restoreFromMemorySlice(
-    memorySliceId: MemorySliceId?,
-    memorySliceMgr: MemorySliceMgr?,
-    initialValues: Map<String, Value> = emptyMap()
-) {
-    memorySliceId?.let { myMemorySliceId ->
-        memorySliceMgr?.let {
-            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
-                memorySliceId = memorySliceId,
-                symbolTable = this,
-                initSymbolTableEntry = { dataDefinition, storedValue ->
-                    // initial values have not to be overwritten
-                    if (!initialValues.containsKey(dataDefinition.name)) {
-                        this[dataDefinition] = storedValue
-                    }
-                }
-            )
-        }
+        loggingContext.emitAnalyticsReport()
     }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/com/strumenta/kolasu/model/Printing.kt">
+        <error line="7" column="19" source="standard:property-naming" />
+    </file>
+</baseline>

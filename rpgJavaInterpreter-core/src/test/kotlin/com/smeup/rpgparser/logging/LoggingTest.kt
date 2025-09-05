@@ -31,13 +31,15 @@ import java.io.PrintStream
 import kotlin.test.*
 
 class LoggingTest : AbstractTest() {
-
     private val programName = "MYPGM"
     private val varName = "MYVAR"
     private val varValue = "MYVALUE"
-    private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
+    private val logFormatRegexWhenStandardLog =
+        Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
+
     // there is no time stamp reference
-    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "\\s*DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
+    private val logFormatRegexWhenLogAsCallback =
+        Regex(pattern = "\\s*DATA\\t$programName\\t\\tASSIGN\\t$varName = $varValue\\twas: N/D\\s*")
 
     @After
     fun after() {
@@ -75,9 +77,10 @@ class LoggingTest : AbstractTest() {
     // Logging must work as before
     @Test
     fun mustWorkAsBeforeLogAsCallbackFeature() {
-        val systemInterface = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
+            }
         MainExecutionContext.execute(systemInterface = systemInterface) {
             val defaultOut = System.out
             try {
@@ -89,7 +92,7 @@ class LoggingTest : AbstractTest() {
                 val loggedOnConsole = out.toString().trim()
                 assertTrue(
                     actual = logFormatRegexWhenStandardLog.matches(loggedOnConsole),
-                    message = "'$out' must match this regexp: ${logFormatRegexWhenStandardLog.pattern}"
+                    message = "'$out' must match this regexp: ${logFormatRegexWhenStandardLog.pattern}",
                 )
                 System.setOut(defaultOut)
                 println("Logged on console: $loggedOnConsole")
@@ -101,9 +104,10 @@ class LoggingTest : AbstractTest() {
 
     @Test
     fun logAsCallBack() {
-        val systemInterface = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.DATA)
+            }
         val configuration = Configuration()
         var enteredInLogInfo = false
         var enteredInChannelLoggingEnabled = false
@@ -112,7 +116,7 @@ class LoggingTest : AbstractTest() {
             assertEquals(LogChannel.DATA.getPropertyName(), channel)
             assertTrue(
                 actual = logFormatRegexWhenLogAsCallback.matches(message),
-                message = "'$message' must match this regexp: ${logFormatRegexWhenLogAsCallback.pattern}"
+                message = "'$message' must match this regexp: ${logFormatRegexWhenLogAsCallback.pattern}",
             )
             enteredInLogInfo = true
         }
@@ -134,7 +138,7 @@ class LoggingTest : AbstractTest() {
                 val loggedOnConsole = out.toString().trim()
                 assertTrue(
                     actual = loggedOnConsole.isEmpty(),
-                    message = "'$loggedOnConsole' must be empty"
+                    message = "'$loggedOnConsole' must be empty",
                 )
                 System.setOut(defaultOut)
                 assertTrue(enteredInLogInfo)
@@ -147,10 +151,11 @@ class LoggingTest : AbstractTest() {
 
     @Test
     fun logAsCallbackAlwaysBeatsJarikoStandardLog() {
-        val systemInterface = JavaSystemInterface().apply {
-            // I ask jariko to log all in console
-            loggingConfiguration = consoleVerboseConfiguration()
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                // I ask jariko to log all in console
+                loggingConfiguration = consoleVerboseConfiguration()
+            }
         // I set configuration in order to disable all logs
         var logInfoCalled = false
         val configuration = Configuration()
@@ -171,7 +176,7 @@ class LoggingTest : AbstractTest() {
                 val loggedOnConsole = out.toString().trim()
                 assertTrue(
                     actual = loggedOnConsole.isEmpty(),
-                    message = "'$loggedOnConsole' must be empty"
+                    message = "'$loggedOnConsole' must be empty",
                 )
                 System.setOut(defaultOut)
                 assertFalse(logInfoCalled, message = "logInfo callback never must be called")
@@ -191,9 +196,10 @@ class LoggingTest : AbstractTest() {
         configuration.jarikoCallback.logInfo = { _, _ ->
             logInfCalled = true
         }
-        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
-        }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
+            }
         executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
         assertTrue(logInfCalled, "logInfo never called")
     }
@@ -207,25 +213,27 @@ class LoggingTest : AbstractTest() {
         val defaultOut = System.out
         val out = StringOutputStream()
         System.setOut(PrintStream(out))
-        val systemInterface = JavaSystemInterface().apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
-        }
-        kotlin.runCatching {
-            executePgm(programName = "ERROR02", systemInterface = systemInterface)
-        }.onSuccess {
-            System.setOut(defaultOut)
-            fail(message = "Jariko must throws an exception")
-        }.onFailure {
-            out.flush()
-            val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
-            val errorLogEntries = out.toString().trim().split(regex = Regex("\\n|\\r\\n"))
-            // Files.writeString(Paths.get("c:\\temp\\errorEventsInErrorChannel.txt"), out.toString().trim())
-            assertEquals(2, errorLogEntries.size)
-            assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
-            assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[1]} does not match $errorPattern")
-            System.setOut(defaultOut)
-            println("errorEventsInErrorChannel: ${out.toString().trim()}")
-        }
+        val systemInterface =
+            JavaSystemInterface().apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+            }
+        kotlin
+            .runCatching {
+                executePgm(programName = "ERROR02", systemInterface = systemInterface)
+            }.onSuccess {
+                System.setOut(defaultOut)
+                fail(message = "Jariko must throws an exception")
+            }.onFailure {
+                out.flush()
+                val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
+                val errorLogEntries = out.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+                // Files.writeString(Paths.get("c:\\temp\\errorEventsInErrorChannel.txt"), out.toString().trim())
+                assertEquals(2, errorLogEntries.size)
+                assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
+                assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[1]} does not match $errorPattern")
+                System.setOut(defaultOut)
+                println("errorEventsInErrorChannel: ${out.toString().trim()}")
+            }
     }
 
     /**
@@ -234,23 +242,26 @@ class LoggingTest : AbstractTest() {
     @Test
     fun errorChannelOverride() {
         var logInfoChannelParam = ""
-        val configuration = Configuration().apply {
-            // logInfo rewriting
-            jarikoCallback.logInfo = { channel, message ->
-                println(message)
-                logInfoChannelParam = channel
+        val configuration =
+            Configuration().apply {
+                // logInfo rewriting
+                jarikoCallback.logInfo = { channel, message ->
+                    println(message)
+                    logInfoChannelParam = channel
+                }
             }
-        }
-        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
-        }
-        kotlin.runCatching {
-            executePgm(programName = "ERROR02", configuration = configuration, systemInterface = systemInterface)
-        }.onSuccess {
-            fail(message = "Jariko must throws an exception")
-        }.onFailure {
-            assertEquals(LogChannel.ERROR.getPropertyName(), logInfoChannelParam)
-        }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+            }
+        kotlin
+            .runCatching {
+                executePgm(programName = "ERROR02", configuration = configuration, systemInterface = systemInterface)
+            }.onSuccess {
+                fail(message = "Jariko must throws an exception")
+            }.onFailure {
+                assertEquals(LogChannel.ERROR.getPropertyName(), logInfoChannelParam)
+            }
     }
 
     /**
@@ -281,17 +292,17 @@ class LoggingTest : AbstractTest() {
         return LazyLogEntry.produceAssignment(
             logSource,
             DataDefinition(name = varName, type = StringType(7)),
-            StringValue(varValue)
+            StringValue(varValue),
         )
     }
 
     private fun createDataLogEntry(): LazyLogEntry {
-    val logSource = { LogSourceData(programName, "") }
+        val logSource = { LogSourceData(programName, "") }
         return LazyLogEntry.produceData(
             logSource,
             DataDefinition(name = varName, type = StringType(7)),
             StringValue(varValue),
-            null
+            null,
         )
     }
 
@@ -305,11 +316,44 @@ class LoggingTest : AbstractTest() {
         configuration.jarikoCallback.logInfo = { _, _ ->
             logInfCalled = true
         }
-        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
-        }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
+            }
         executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
         assertTrue(logInfCalled, "logInfo never called")
+    }
+
+    /**
+     * Test if analytics are printed out in the appropriate format
+     * @see #LS25002960
+     */
+    @Test
+    fun analyticsFormat() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration()
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ANALYTICS)
+            }
+        executePgm(programName = "CALLSCOPE2", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tSTMT TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tEXPR TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tSYMTBL TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\tCALLSCOPE2\t\tPARS TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tPGM CALL\tCALLDEFV2") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tEXSR CALL\tCALLSR") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tLOG TIME") } }
+        assertTrue { logEntries.any { it.contains("ANALYTICS\t\t\tINTERPRETATION TIME") } }
+
+        System.setOut(defaultOut)
     }
 
     /**
@@ -329,9 +373,18 @@ class LoggingTest : AbstractTest() {
         assertEquals(3, stmtLogEntries.size)
 
         val logFormatRegexMockStatement = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKSTMT\\tMOCK01.*")
-        assertTrue(stmtLogEntries[0].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement")
-        assertTrue(stmtLogEntries[1].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[1]} does not match $logFormatRegexMockStatement")
-        assertTrue(stmtLogEntries[2].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[2]} does not match $logFormatRegexMockStatement")
+        assertTrue(
+            stmtLogEntries[0].matches(logFormatRegexMockStatement),
+            "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement",
+        )
+        assertTrue(
+            stmtLogEntries[1].matches(logFormatRegexMockStatement),
+            "Error entry: ${stmtLogEntries[1]} does not match $logFormatRegexMockStatement",
+        )
+        assertTrue(
+            stmtLogEntries[2].matches(logFormatRegexMockStatement),
+            "Error entry: ${stmtLogEntries[2]} does not match $logFormatRegexMockStatement",
+        )
 
         System.setErr(defaultErr)
     }
@@ -353,8 +406,14 @@ class LoggingTest : AbstractTest() {
         assertEquals(2, exprLogEntries.size)
 
         val logFormatRegexMockExpr = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKEXPR\\tMOCK01.*")
-        assertTrue(exprLogEntries[0].matches(logFormatRegexMockExpr), "Error entry: ${exprLogEntries[0]} does not match $logFormatRegexMockExpr")
-        assertTrue(exprLogEntries[1].matches(logFormatRegexMockExpr), "Error entry: ${exprLogEntries[1]} does not match $logFormatRegexMockExpr")
+        assertTrue(
+            exprLogEntries[0].matches(logFormatRegexMockExpr),
+            "Error entry: ${exprLogEntries[0]} does not match $logFormatRegexMockExpr",
+        )
+        assertTrue(
+            exprLogEntries[1].matches(logFormatRegexMockExpr),
+            "Error entry: ${exprLogEntries[1]} does not match $logFormatRegexMockExpr",
+        )
 
         System.setErr(defaultErr)
     }
@@ -376,7 +435,10 @@ class LoggingTest : AbstractTest() {
         assertEquals(1, stmtLogEntries.size)
 
         val logFormatRegexMockStatement = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s*\\tMOCKOPEN\\tMOCK02.*")
-        assertTrue(stmtLogEntries[0].matches(logFormatRegexMockStatement), "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement")
+        assertTrue(
+            stmtLogEntries[0].matches(logFormatRegexMockStatement),
+            "Error entry: ${stmtLogEntries[0]} does not match $logFormatRegexMockStatement",
+        )
 
         System.setErr(defaultErr)
     }
@@ -391,9 +453,10 @@ class LoggingTest : AbstractTest() {
         System.setOut(PrintStream(virtualOut))
 
         val configuration = Configuration()
-        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
-        }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.RESOLUTION)
+            }
         executePgm(programName = "FUNCLOG", configuration = configuration, systemInterface = systemInterface)
         virtualOut.flush()
 
@@ -415,9 +478,10 @@ class LoggingTest : AbstractTest() {
         System.setOut(PrintStream(virtualOut))
 
         val configuration = Configuration()
-        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
-        }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+            }
         executePgm(programName = "FUNCLOG", configuration = configuration, systemInterface = systemInterface)
         virtualOut.flush()
 
@@ -439,9 +503,10 @@ class LoggingTest : AbstractTest() {
         System.setOut(PrintStream(virtualOut))
 
         val configuration = Configuration()
-        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
-            loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
-        }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+            }
         executePgm(programName = "CALLSCOPE", configuration = configuration, systemInterface = systemInterface)
         virtualOut.flush()
 

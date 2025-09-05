@@ -13,8 +13,9 @@ import java.util.*
 
 fun MemorySliceId.fileName(ext: String = "properties") = "${this.activationGroup}.${this.programName}.$ext"
 
-class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
-
+class PropertiesFileStorage(
+    private val dir: File,
+) : IMemorySliceStorage {
     // Choose of binary serialization
     private val serializer = SerializationOption.stringSerializer
 
@@ -29,12 +30,16 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
                 properties.load(it)
             }
         }
-        return properties.map {
-            it.key as String to it.value as String
-        }.toMap()
+        return properties
+            .map {
+                it.key as String to it.value as String
+            }.toMap()
     }
 
-    private fun storeProperties(memorySliceId: MemorySliceId, properties: Properties) {
+    private fun storeProperties(
+        memorySliceId: MemorySliceId,
+        properties: Properties,
+    ) {
         if (!dir.exists()) {
             dir.mkdirs()
         }
@@ -51,9 +56,12 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
         }
     }
 
-    override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
+    override fun store(
+        memorySliceId: MemorySliceId,
+        values: Map<String, Value>,
+    ) {
         val properties = Properties()
-        values.forEach() {
+        values.forEach {
             properties.setProperty(it.key, serializer.encodeToString(it.value))
         }
         storeProperties(memorySliceId, properties)

@@ -24,7 +24,6 @@ import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
 
 class RpgLexingAcceptanceTest {
-
     @Test
     @Category(AcceptanceTest::class)
     fun lexAllDataExamples() {

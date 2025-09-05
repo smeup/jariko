@@ -35,14 +35,19 @@ class DBFileMap {
      * Register a FileDefinition and create relative DBFile object for access to database with Reload library
      */
     fun add(fileDefinition: FileDefinition) {
-
         if (!byFileName.containsKey(fileDefinition.name)) {
-            val jarikoMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name)
+            val jarikoMetadata =
+                MainExecutionContext
+                    .getConfiguration()
+                    .reloadConfig
+                    ?.metadataProducer
+                    ?.invoke(fileDefinition.name)
             require(jarikoMetadata != null)
-            val dbFile = MainExecutionContext.getDBFileFactory()?.open(
-                fileName = fileDefinition.name,
-                fileMetadata = jarikoMetadata.toReloadMetadata()
-            )
+            val dbFile =
+                MainExecutionContext.getDBFileFactory()?.open(
+                    fileName = fileDefinition.name,
+                    fileMetadata = jarikoMetadata.toReloadMetadata(),
+                )
 
             dbFile?.let {
                 val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
@@ -56,14 +61,19 @@ class DBFileMap {
             }
         }
     }
-    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat] ?: byInternalFormatName[nameOrFormat]
+
+    operator fun get(nameOrFormat: String): EnrichedDBFile? =
+        byFileName[nameOrFormat] ?: byInternalFormatName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
 /**
  * DBFile wrapper needed to add further information to DBFile
  * */
-data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition: FileDefinition, val jarikoMetadata: FileMetadata) : DBFile {
-
+data class EnrichedDBFile(
+    private val dbFile: DBFile,
+    private val fileDefinition: FileDefinition,
+    val jarikoMetadata: FileMetadata,
+) : DBFile {
     // All files are opened by default when defined in F specs.
     var open = true
 
@@ -87,9 +97,7 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
         return cacheKeys?.computeIfAbsent(keys) { op.invoke() } ?: op.invoke()
     }
 
-    override fun delete(record: Record): Result {
-        return checkOpened().delete(record).validate().apply { deleteCache() }
-    }
+    override fun delete(record: Record): Result = checkOpened().delete(record).validate().apply { deleteCache() }
 
     override fun eof() = checkOpened().eof()
 
@@ -119,13 +127,9 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
 
     override fun setll(keys: List<String>) = checkOpened().setll(keys)
 
-    override fun update(record: Record): Result {
-        return checkOpened().update(record).validate().apply { deleteCache() }
-    }
+    override fun update(record: Record): Result = checkOpened().update(record).validate().apply { deleteCache() }
 
-    override fun write(record: Record): Result {
-        return checkOpened().write(record).validate().apply { deleteCache() }
-    }
+    override fun write(record: Record): Result = checkOpened().write(record).validate().apply { deleteCache() }
 
     fun getDataDefinitionName(dbFieldName: String) = fileDefinition.getDataDefinitionName(dbFieldName)
 
@@ -145,19 +149,21 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
 /**
  * Converts a value in string as required by reload, type currently is used in HyVal LowVal conversion
  * */
-fun Value.asString(type: Type): String {
-    return if (this is HiValValue || this is LowValValue) {
+fun Value.asString(type: Type): String =
+    if (this is HiValValue || this is LowValValue) {
         coerce(this, type).asString().value
     } else {
         this.asString().value
     }
-}
 
 /**
  * Creates a keyList as required by reload
  * */
-fun Expression.createKList(fileMetadata: FileMetadata, interpreter: InterpreterCore): List<String> {
-    return if (type() is KListType) {
+fun Expression.createKList(
+    fileMetadata: FileMetadata,
+    interpreter: InterpreterCore,
+): List<String> =
+    if (type() is KListType) {
         interpreter.toSearchValues(this, fileMetadata)
     } else {
         when (val value = interpreter.eval(this)) {
@@ -165,17 +171,15 @@ fun Expression.createKList(fileMetadata: FileMetadata, interpreter: InterpreterC
             else -> listOf(value.asString(fileMetadata.accessFieldsType.first()))
         }
     }
-}
 
 /**
  * Validate the result. For now do nothing
  * */
-fun Result.validate(): Result {
-    return apply {
+fun Result.validate(): Result =
+    apply {
 //        if (record.isEmpty()) {
 //            require(indicatorEQ || indicatorHI || indicatorLO) {
 //                "record is empty bot no flag is on"
 //            }
 //        }
     }
-}

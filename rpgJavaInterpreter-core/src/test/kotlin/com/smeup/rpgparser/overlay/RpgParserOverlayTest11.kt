@@ -30,12 +30,10 @@ import java.io.File
 import kotlin.test.assertEquals
 
 open class RpgParserOverlayTest11 : AbstractTest() {
-
-    private fun createSystemInterface(): SystemInterface {
-        return JavaSystemInterface().apply {
+    private fun createSystemInterface(): SystemInterface =
+        JavaSystemInterface().apply {
             rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         }
-    }
 
     @Test
     fun parseMUTE11_11C_syntax() {

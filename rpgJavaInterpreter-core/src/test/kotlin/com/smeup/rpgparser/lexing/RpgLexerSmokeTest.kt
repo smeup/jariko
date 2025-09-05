@@ -2,18 +2,19 @@ package com.smeup.rpgparser.lexing
 
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.assertExampleCanBeLexed
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 /**
  * We just test that the original code is lexed without errors.
  */
 class RpgLexerSmokeTest {
-
     @Test
     fun lexDSEX01() {
         val tokens = assertExampleCanBeLexed("DSEX01")
-        assertEquals(listOf(RpgLexer.DS_FIXED,
+        assertEquals(
+            listOf(
+                RpgLexer.DS_FIXED,
                 RpgLexer.NAME,
                 RpgLexer.EXTERNAL_DESCRIPTION,
                 RpgLexer.DATA_STRUCTURE_TYPE,
@@ -419,7 +420,10 @@ class RpgLexerSmokeTest {
                 RpgLexer.LastRecordIndicator,
                 RpgLexer.BlankIndicator,
                 RpgLexer.BlankIndicator,
-                RpgLexer.EOF), tokens.map { it.type })
+                RpgLexer.EOF,
+            ),
+            tokens.map { it.type },
+        )
     }
 
     @Test

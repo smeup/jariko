@@ -29,18 +29,16 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 open class RpgParserWithMuteRuntimeTest : AbstractTest() {
-
     fun assertASTCanBeProduced(
         exampleName: String,
-        considerPosition: Boolean
-    ): CompilationUnit {
-        return assertASTCanBeProduced(
+        considerPosition: Boolean,
+    ): CompilationUnit =
+        assertASTCanBeProduced(
             exampleName = exampleName,
             considerPosition = considerPosition,
             withMuteSupport = true,
-            printTree = false
+            printTree = false,
         )
-    }
 
     @Test
     fun parseMUTE01_runtime() {

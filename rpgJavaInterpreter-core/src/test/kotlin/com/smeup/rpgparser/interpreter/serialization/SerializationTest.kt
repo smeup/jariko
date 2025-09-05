@@ -33,8 +33,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class SerializationTest {
-
-    private inline fun <reified T> checkValueSerialization(value: T, printValues: Boolean = false): Boolean {
+    private inline fun <reified T> checkValueSerialization(
+        value: T,
+        printValues: Boolean = false,
+    ): Boolean {
         val string = SerializationOption.serializer.encodeToString(value)
         if (printValues) println(string)
         val deserializedValue = SerializationOption.serializer.decodeFromString<T>(string)
@@ -85,7 +87,7 @@ class SerializationTest {
         val arrayValue =
             ConcreteArrayValue(
                 mutableListOf<Value>(IntValue(1), IntValue(2), IntValue(3)),
-                NumberType(3, 0, RpgType.INTEGER)
+                NumberType(3, 0, RpgType.INTEGER),
             )
         checkValueSerialization(arrayValue)
     }
@@ -123,20 +125,21 @@ class SerializationTest {
         val arrayValue =
             ConcreteArrayValue(
                 mutableListOf<Value>(IntValue(1), IntValue(2), IntValue(3)),
-                NumberType(3, 0, RpgType.INTEGER)
+                NumberType(3, 0, RpgType.INTEGER),
             )
         val dsValue = DataStructValue(" test 11233 ")
 
-        val originalMap = mapOf(
-            "one" to decimalValue,
-            "two" to intValue,
-            "three" to stringValue,
-            "four" to booleanValue,
-            "five" to timeStampValue,
-            "six" to characterValue,
-            "seven" to arrayValue,
-            "eighth" to dsValue
-        )
+        val originalMap =
+            mapOf(
+                "one" to decimalValue,
+                "two" to intValue,
+                "three" to stringValue,
+                "four" to booleanValue,
+                "five" to timeStampValue,
+                "six" to characterValue,
+                "seven" to arrayValue,
+                "eighth" to dsValue,
+            )
         checkValueSerialization(originalMap, printValues = true)
     }
 
@@ -144,7 +147,8 @@ class SerializationTest {
     fun `DataStructValue with UnlimitedStringType can be serialized to Json`() {
         val rawStringValue = " Hello world 123 "
         val dsValue = DataStructValue(rawStringValue)
-        val fieldDefinition = FieldDefinition(name = "myField", type = UnlimitedStringType, explicitStartOffset = -1, explicitEndOffset = -1)
+        val fieldDefinition =
+            FieldDefinition(name = "myField", type = UnlimitedStringType, explicitStartOffset = -1, explicitEndOffset = -1)
         val value = UnlimitedStringValue("myValue")
         dsValue.set(fieldDefinition, value)
         checkValueSerialization(dsValue, true)
@@ -208,37 +212,47 @@ class SerializationTest {
     @Test
     @Ignore("TODO: Is necessary to remove `@Transient` from `FieldDefinition.overriddenContainer` and fix `JFTCPR.rpgle` test.")
     fun `ProjectedArrayValue to Json`() {
-        val ds1Fl1Type = FieldType(
-            name = "DS1_FL1",
-            type = ArrayType(
-                element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
-                nElements = 9
+        val ds1Fl1Type =
+            FieldType(
+                name = "DS1_FL1",
+                type =
+                    ArrayType(
+                        element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
+                        nElements = 9,
+                    ),
             )
-        )
 
-        val ds1Fl1Definition = FieldDefinition(
-            name = ds1Fl1Type.name,
-            type = ArrayType(
-                element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
-                nElements = 9
-            ),
-            explicitStartOffset = 0,
-            explicitEndOffset = 1,
-            position = Position(start = Point(2, 5), end = Point(2, 85)),
-            declaredArrayInLineOnThisField = 9
-        )
-        ds1Fl1Definition.overriddenContainer = DataDefinition("DS1", type = DataStructureType(
-            fields = listOf(ds1Fl1Type),
-            elementSize = 9
-        ))
+        val ds1Fl1Definition =
+            FieldDefinition(
+                name = ds1Fl1Type.name,
+                type =
+                    ArrayType(
+                        element = NumberType(entireDigits = 1, decimalDigits = 0, rpgType = RpgType.ZONED),
+                        nElements = 9,
+                    ),
+                explicitStartOffset = 0,
+                explicitEndOffset = 1,
+                position = Position(start = Point(2, 5), end = Point(2, 85)),
+                declaredArrayInLineOnThisField = 9,
+            )
+        ds1Fl1Definition.overriddenContainer =
+            DataDefinition(
+                "DS1",
+                type =
+                    DataStructureType(
+                        fields = listOf(ds1Fl1Type),
+                        elementSize = 9,
+                    ),
+            )
 
-        val projectedArrayValue = ProjectedArrayValue(
-            container = DataStructValue("111111111"),
-            field = ds1Fl1Definition,
-            startOffset = 0,
-            step = 1,
-            arrayLength = 9
-        )
+        val projectedArrayValue =
+            ProjectedArrayValue(
+                container = DataStructValue("111111111"),
+                field = ds1Fl1Definition,
+                startOffset = 0,
+                step = 1,
+                arrayLength = 9,
+            )
 
         checkValueSerialization(projectedArrayValue)
     }

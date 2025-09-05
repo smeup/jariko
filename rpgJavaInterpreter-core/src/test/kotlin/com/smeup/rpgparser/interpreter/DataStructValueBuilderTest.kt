@@ -24,12 +24,11 @@ import kotlin.test.*
 import kotlin.time.measureTime
 
 class DataStructValueBuilderTest {
-
     private fun replaceAllFields(
         dataStructValueBuilder: DataStructValueBuilder,
         replacingChar: Char,
         fieldsLen: List<Int>,
-        iteration: Int
+        iteration: Int,
     ) {
         for (i in 0 until iteration) {
             var start = 0
@@ -49,7 +48,7 @@ class DataStructValueBuilderTest {
         val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(type.size), type = type)
         assertIs<StringBuilderWrapper>(
             value = dataStructValueBuilder,
-            message = "Data structure with total fields less than 100 uses StringBuilderWrapper"
+            message = "Data structure with total fields less than 100 uses StringBuilderWrapper",
         )
     }
 
@@ -61,7 +60,7 @@ class DataStructValueBuilderTest {
         val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(type.size), type = type)
         assertIs<StringBuilderWrapper>(
             value = dataStructValueBuilder,
-            message = "Array data structure with total fields less than 100 uses StringBuilderWrapper"
+            message = "Array data structure with total fields less than 100 uses StringBuilderWrapper",
         )
     }
 
@@ -73,7 +72,7 @@ class DataStructValueBuilderTest {
         val dataStructValueBuilder = DataStructValueBuilder.create(value = "a".repeat(type.size), type = type)
         assertIs<IndexedStringBuilder>(
             value = dataStructValueBuilder,
-            message = "Array data structure with total fields equals or greater than 100 uses IndexedStringBuilder"
+            message = "Array data structure with total fields equals or greater than 100 uses IndexedStringBuilder",
         )
     }
 
@@ -88,22 +87,24 @@ class DataStructValueBuilderTest {
         val checkBuiltString = "$replacingChar".repeat(littleDS.sum())
         val iteration = 10_000
         println("In case of little DS StringBuilderWrapper performance must be better than IndexedStringBuilder")
-        val stringBuilderWrapperDuration = measureTime {
-            replaceAllFields(
-                dataStructValueBuilder = stringBuilderWrapper,
-                replacingChar = replacingChar,
-                fieldsLen = littleDS,
-                iteration = iteration
-            )
-        }
-        val indexedStringBuilderDuration = measureTime {
-            replaceAllFields(
-                dataStructValueBuilder = indexedStringBuilder,
-                replacingChar = replacingChar,
-                fieldsLen = littleDS,
-                iteration = iteration
-            )
-        }
+        val stringBuilderWrapperDuration =
+            measureTime {
+                replaceAllFields(
+                    dataStructValueBuilder = stringBuilderWrapper,
+                    replacingChar = replacingChar,
+                    fieldsLen = littleDS,
+                    iteration = iteration,
+                )
+            }
+        val indexedStringBuilderDuration =
+            measureTime {
+                replaceAllFields(
+                    dataStructValueBuilder = indexedStringBuilder,
+                    replacingChar = replacingChar,
+                    fieldsLen = littleDS,
+                    iteration = iteration,
+                )
+            }
         println("stringBuilderWrapperDuration: $stringBuilderWrapperDuration")
         println("indexedStringBuilderDuration: $indexedStringBuilderDuration")
         assertEquals(checkBuiltString, stringBuilderWrapper.toString())
@@ -122,22 +123,24 @@ class DataStructValueBuilderTest {
         val checkBuiltString = "$replacingChar".repeat(bigDS.sum())
         val iteration = 1000
         println("In case of big DS IndexedStringBuilder performance must be better than StringBuilderWrapper")
-        val stringBuilderWrapperDuration = measureTime {
-            replaceAllFields(
-                dataStructValueBuilder = stringBuilderWrapper,
-                replacingChar = replacingChar,
-                fieldsLen = bigDS,
-                iteration = iteration
-            )
-        }
-        val indexedStringBuilderDuration = measureTime {
-            replaceAllFields(
-                dataStructValueBuilder = indexedStringBuilder,
-                replacingChar = replacingChar,
-                fieldsLen = bigDS,
-                iteration = iteration
-            )
-        }
+        val stringBuilderWrapperDuration =
+            measureTime {
+                replaceAllFields(
+                    dataStructValueBuilder = stringBuilderWrapper,
+                    replacingChar = replacingChar,
+                    fieldsLen = bigDS,
+                    iteration = iteration,
+                )
+            }
+        val indexedStringBuilderDuration =
+            measureTime {
+                replaceAllFields(
+                    dataStructValueBuilder = indexedStringBuilder,
+                    replacingChar = replacingChar,
+                    fieldsLen = bigDS,
+                    iteration = iteration,
+                )
+            }
         println("stringBuilderWrapperDuration: $stringBuilderWrapperDuration")
         println("indexedStringBuilderDuration: $indexedStringBuilderDuration")
         assertEquals(checkBuiltString, stringBuilderWrapper.toString())
@@ -155,25 +158,29 @@ class DataStructValueBuilderTest {
         val replacingChar = 'b'
         val checkBuiltString = "$replacingChar".repeat(dsWithOverlay.sum())
         val iteration = 5
-        println("In case of DS with overlay IndexedStringBuilder performance must better than StringBuilderWrapper at least one order of magnitude.\"")
+        println(
+            "In case of DS with overlay IndexedStringBuilder performance must better than StringBuilderWrapper at least one order of magnitude.\"",
+        )
         println("Measure StringBuilderWrapper performance")
-        val stringBuilderWrapperDuration = measureTime {
-            replaceAllFields(
-                dataStructValueBuilder = stringBuilderWrapper,
-                replacingChar = replacingChar,
-                fieldsLen = dsWithOverlay,
-                iteration = iteration
-            )
-        }
+        val stringBuilderWrapperDuration =
+            measureTime {
+                replaceAllFields(
+                    dataStructValueBuilder = stringBuilderWrapper,
+                    replacingChar = replacingChar,
+                    fieldsLen = dsWithOverlay,
+                    iteration = iteration,
+                )
+            }
         println("Measure IndexedStringBuilder performance")
-        val indexedStringBuilderDuration = measureTime {
-            replaceAllFields(
-                dataStructValueBuilder = indexedStringBuilder,
-                replacingChar = replacingChar,
-                fieldsLen = dsWithOverlay,
-                iteration = iteration
-            )
-        }
+        val indexedStringBuilderDuration =
+            measureTime {
+                replaceAllFields(
+                    dataStructValueBuilder = indexedStringBuilder,
+                    replacingChar = replacingChar,
+                    fieldsLen = dsWithOverlay,
+                    iteration = iteration,
+                )
+            }
         println("stringBuilderWrapperDuration: $stringBuilderWrapperDuration")
         println("indexedStringBuilderDuration: $indexedStringBuilderDuration")
         assertEquals(checkBuiltString, stringBuilderWrapper.toString())
@@ -184,7 +191,6 @@ class DataStructValueBuilderTest {
 }
 
 class IndexedStringBuilderTest {
-
     @Test
     fun replaceWithinSingleChunkFirst() {
         val builder = IndexedStringBuilder("HelloWorld", 5)

@@ -15,9 +15,9 @@ import kotlin.test.assertFailsWith
 import org.junit.Test as test
 
 open class StatementsTest : AbstractTest() {
-
     private fun statement(code: String): Statement {
-        val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")
+        val stmtContext =
+            assertStatementCanBeParsed("     C                   $code                                                          ")
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
     }
 
@@ -31,32 +31,41 @@ open class StatementsTest : AbstractTest() {
             multiLineStatement(
                 """
      C     'Z'           LOOKUP    ARRAY(N)                           706869                 
-                    """
+                    """,
             )
         }
     }
 
     @test fun gotoParsingWithIndicator() {
-        val stmt: GotoStmt = multiLineStatement("""
+        val stmt: GotoStmt =
+            multiLineStatement(
+                """
      C  N50              GOTO      START            
-                    """) as GotoStmt
+                    """,
+            ) as GotoStmt
         assertEquals("START", stmt.tag)
         assertEquals(50, stmt.indicatorCondition?.key)
         assertEquals(true, stmt.indicatorCondition?.negate)
     }
 
     @test fun gotoParsingWithoutIndicator() {
-        val stmt: GotoStmt = multiLineStatement("""
+        val stmt: GotoStmt =
+            multiLineStatement(
+                """
      C                   GOTO      START            
-                    """) as GotoStmt
+                    """,
+            ) as GotoStmt
         assertEquals("START", stmt.tag)
         assertEquals(null, stmt.indicatorCondition?.key)
     }
 
     @test fun compParsing() {
-        val stmt: CompStmt = multiLineStatement("""
-     C     A2            COMP      '01'                               50  51                    """)
-            as CompStmt
+        val stmt: CompStmt =
+            multiLineStatement(
+                """
+     C     A2            COMP      '01'                               50  51                    """,
+            )
+                as CompStmt
         assertEquals("A2", (stmt.left as DataRefExpr).variable.name)
         assertEquals("01", (stmt.right as StringLiteral).value)
         assertEquals(50, stmt.hi)
@@ -65,12 +74,16 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun kListParsing() {
-        assertEquals(KListStmt("Key", listOf("KY1TST", "KY2TST"), emptyList(), null),
-                    multiLineStatement("""
+        assertEquals(
+            KListStmt("Key", listOf("KY1TST", "KY2TST"), emptyList(), null),
+            multiLineStatement(
+                """
      C     Key           KLIST
      C                   KFLD                    KY1TST
      C                   KFLD                    KY2TST                        
-                    """))
+                    """,
+            ),
+        )
     }
 
     @test fun executeSubroutineParsing() {
@@ -78,10 +91,13 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun evalParsing() {
-        assertEquals(EvalStmt(
+        assertEquals(
+            EvalStmt(
                 dataRef("\$\$SVAR"),
-                dataRef("U\$SVARSK")),
-                statement("EVAL      \$\$SVAR=U\$SVARSK"))
+                dataRef("U\$SVARSK"),
+            ),
+            statement("EVAL      \$\$SVAR=U\$SVARSK"),
+        )
     }
 
     @test fun callParsing() {
@@ -89,81 +105,121 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun ifParsingSimple() {
-        assertEquals(IfStmt(
+        assertEquals(
+            IfStmt(
                 GreaterThanExpr(
-                        dataRef("\$X"),
-                        IntLiteral(0)
+                    dataRef("\$X"),
+                    IntLiteral(0),
                 ),
                 listOf(
-                        EvalStmt(dataRef("U\$IN35"),
-                                StringLiteral("1"))
-                )
-        ), statement("IF        \$X>0\n" +
-                "     C                   EVAL      U\$IN35='1'\n" +
-                "     C                   ENDIF"))
+                    EvalStmt(
+                        dataRef("U\$IN35"),
+                        StringLiteral("1"),
+                    ),
+                ),
+            ),
+            statement(
+                "IF        \$X>0\n" +
+                    "     C                   EVAL      U\$IN35='1'\n" +
+                    "     C                   ENDIF",
+            ),
+        )
     }
 
     @test fun ifParsingEmpty() {
-        assertEquals(IfStmt(
+        assertEquals(
+            IfStmt(
                 GreaterThanExpr(
-                        dataRef("\$X"),
-                        IntLiteral(0)
+                    dataRef("\$X"),
+                    IntLiteral(0),
                 ),
-                emptyList()
-        ), statement("IF        \$X>0\n" +
-                "     C                   ENDIF"))
+                emptyList(),
+            ),
+            statement(
+                "IF        \$X>0\n" +
+                    "     C                   ENDIF",
+            ),
+        )
     }
 
     @test fun ifParsingWithElseSimple() {
-        assertEquals(IfStmt(
+        assertEquals(
+            IfStmt(
                 GreaterThanExpr(
-                        dataRef("\$X"),
-                        IntLiteral(0)
+                    dataRef("\$X"),
+                    IntLiteral(0),
                 ),
                 listOf(
-                        EvalStmt(dataRef("U\$IN35"),
-                                StringLiteral("1"))
+                    EvalStmt(
+                        dataRef("U\$IN35"),
+                        StringLiteral("1"),
+                    ),
                 ),
                 emptyList(),
-                ElseClause(listOf(
-                        EvalStmt(dataRef("\$\$URL"),
-                                FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(dataRef("\$R")))))
-                )
-        ), statement("IF        \$X>0\n" +
-                "     C                   EVAL      U\$IN35='1'\n" +
-                "5    C                   ELSE\n" +
-                "     C                   EVAL      \$\$URL=\$\$SVARVA(\$R)\n" +
-                "     C                   ENDIF"))
+                ElseClause(
+                    listOf(
+                        EvalStmt(
+                            dataRef("\$\$URL"),
+                            FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(dataRef("\$R"))),
+                        ),
+                    ),
+                ),
+            ),
+            statement(
+                "IF        \$X>0\n" +
+                    "     C                   EVAL      U\$IN35='1'\n" +
+                    "5    C                   ELSE\n" +
+                    "     C                   EVAL      \$\$URL=\$\$SVARVA(\$R)\n" +
+                    "     C                   ENDIF",
+            ),
+        )
     }
 
     @test fun selectEmptyParsing() {
-        assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
-                "1e   C                   ENDSL"))
+        assertEquals(
+            SelectStmt(emptyList()),
+            statement(
+                "SELECT\n" +
+                    "1e   C                   ENDSL",
+            ),
+        )
     }
 
     @test fun selectSingleCaseParsing() {
-        assertEquals(SelectStmt(listOf(SelectCase(
-                EqualityExpr(dataRef("U\$FUNZ"), StringLiteral("INZ")),
-                listOf(ExecuteSubroutine(ReferenceByName("FINZ")))
-        ))), statement("SELECT\n" +
-                "      * Init\n" +
-                "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
-                "     C                   EXSR      FINZ\n" +
-                "1e   C                   ENDSL"))
+        assertEquals(
+            SelectStmt(
+                listOf(
+                    SelectCase(
+                        EqualityExpr(dataRef("U\$FUNZ"), StringLiteral("INZ")),
+                        listOf(ExecuteSubroutine(ReferenceByName("FINZ"))),
+                    ),
+                ),
+            ),
+            statement(
+                "SELECT\n" +
+                    "      * Init\n" +
+                    "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
+                    "     C                   EXSR      FINZ\n" +
+                    "1e   C                   ENDSL",
+            ),
+        )
     }
 
     @test fun selectParsingComplex() {
-        val selectStmt = statement("SELECT\n" +
-                "      * Init\n" +
-                "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
-                "     C                   EXSR      FINZ\n" +
-                "      * Invoke URL\n" +
-                "1x   C                   WHEN      U\$FUNZ='EXE'\n" +
-                "     C                   EXSR      FEXE\n" +
-                "      * Detach (empty subroutine in this case)\n" +
-                "1x   C                   WHEN      U\$FUNZ='CLO'\n" +
-                "     C                   EXSR      FCLO\n" +
-                "1e   C                   ENDSL") as SelectStmt
+        val selectStmt =
+            statement(
+                "SELECT\n" +
+                    "      * Init\n" +
+                    "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
+                    "     C                   EXSR      FINZ\n" +
+                    "      * Invoke URL\n" +
+                    "1x   C                   WHEN      U\$FUNZ='EXE'\n" +
+                    "     C                   EXSR      FEXE\n" +
+                    "      * Detach (empty subroutine in this case)\n" +
+                    "1x   C                   WHEN      U\$FUNZ='CLO'\n" +
+                    "     C                   EXSR      FCLO\n" +
+                    "1e   C                   ENDSL",
+            ) as SelectStmt
         assertEquals(3, selectStmt.cases.size)
     }
 
@@ -175,8 +231,14 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun setOnParsingSecondPlace() {
-        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(LR))), statement("SETON                                          LR"))
-        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(RT))), statement("SETON                                          RT"))
+        assertEquals(
+            SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(LR))),
+            statement("SETON                                          LR"),
+        )
+        assertEquals(
+            SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(RT))),
+            statement("SETON                                          RT"),
+        )
     }
 
     @test fun clearParsing() {
@@ -188,15 +250,17 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun doParsing() {
-        val stmt = statement(
+        val stmt =
+            statement(
                 "DO        *HIVAL        \$X\n" +
-                        "     C                   IF        \$\$SVARCD(\$X)=*BLANKS\n" +
-                        "     C                   LEAVE\n" +
-                        "     C                   ENDIF\n" +
-                        "     C                   EVAL      \$\$URL=%XLATE(\$\$SVARCD(\$X):\n" +
-                        "     C                             \$\$SVARVA(\$X):\n" +
-                        "     C                             \$\$URL)\n" +
-                        "     C                   ENDDO")
+                    "     C                   IF        \$\$SVARCD(\$X)=*BLANKS\n" +
+                    "     C                   LEAVE\n" +
+                    "     C                   ENDIF\n" +
+                    "     C                   EVAL      \$\$URL=%XLATE(\$\$SVARCD(\$X):\n" +
+                    "     C                             \$\$SVARVA(\$X):\n" +
+                    "     C                             \$\$URL)\n" +
+                    "     C                   ENDDO",
+            )
         assertEquals(true, stmt is DoStmt)
         assertEquals(2, (stmt as DoStmt).body.size)
     }
@@ -206,10 +270,13 @@ open class StatementsTest : AbstractTest() {
     }
 
     @test fun parseEvalWithPlusExpression() {
-        assertEquals(EvalStmt(
+        assertEquals(
+            EvalStmt(
                 dataRef("RESULT"),
-                PlusExpr(dataRef("A"), dataRef("B"))),
-                statement("EVAL      RESULT = A + B"))
+                PlusExpr(dataRef("A"), dataRef("B")),
+            ),
+            statement("EVAL      RESULT = A + B"),
+        )
     }
 
     @test fun parseEvalWithUnqualifiedDsAccessAndAssignmentOfLiteral() {

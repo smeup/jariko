@@ -27,7 +27,6 @@ import kotlin.test.assertTrue
 import com.smeup.rpgparser.execution.main as runnerMain
 
 class RunnerCliTest : AbstractTest() {
-
     @Test
     fun withNoArgsReplIsStarted() {
         System.setIn(ReaderInputStream(StringReader("signoff"), Charset.defaultCharset()))
