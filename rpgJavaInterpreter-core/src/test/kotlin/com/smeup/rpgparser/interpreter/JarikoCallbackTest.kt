@@ -33,9 +33,14 @@ import com.smeup.rpgparser.utils.compile
 import org.junit.Assert
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.*
-import kotlin.test.*
-import kotlin.test.DefaultAsserter.assertTrue
+import java.util.Locale
+import java.util.Stack
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Test suite to test Jariko callback features
@@ -751,8 +756,8 @@ class JarikoCallbackTest : AbstractTest() {
      * NOTE: This is error is thrown because Reload does not support '*START' and '*END' constants yet.
      * When this feature gets supported please restore it on Jariko side by following these steps:
      * - Remove this test or mark it as ignored
-     * - Remove the [@Ignore] decorator from the [MULANGT50FileAccess1Test.executeMUDRNRAPU00248] test
-     * - Remove the runtime error (it should be in [Expression.createKList] if not moved)
+     * - Remove the [@Ignore] decorator from the [com.smeup.rpgparser.smeup.MULANGT50FileAccess1Test.executeMUDRNRAPU00248] test
+     * - Remove the runtime error (it should be in [com.smeup.rpgparser.parsing.ast.Expression.createKList] if not moved)
      */
     @Test
     fun executeERROR36CallBackTest() {
@@ -774,7 +779,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     /**
      * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
-     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     * If this behaviour changes and [com.smeup.rpgparser.parsing.ast.ReallocExpr] is expanded to support every type of pointer, please remove this test
      */
     @Test
     fun executeERROR37CallBackTest() {
@@ -793,7 +798,7 @@ class JarikoCallbackTest : AbstractTest() {
 
     /**
      * NOTE: At the current state of implementation dynamic memory allocation and pointers are NOT fully supported
-     * If this behaviour changes and [ReallocExpr] is expanded to support every type of pointer, please remove this test
+     * If this behaviour changes and [com.smeup.rpgparser.parsing.ast.ReallocExpr] is expanded to support every type of pointer, please remove this test
      */
     @Test
     fun executeERROR38CallBackTest() {
@@ -1899,10 +1904,10 @@ class JarikoCallbackTest : AbstractTest() {
             }
 
         // Path to the resources directory containing the program to compile
-        val resourcePath = File({}.javaClass.getResource("/smeup/QILEGEN").file).parentFile
+        val resourcePath = File({}.javaClass.getResource("/smeup/QILEGEN")!!.file).parentFile
 
         // Attempt to compile the program, expecting an encoding error
-        {}.javaClass.getResource("/smeup/ERROR28.rpgle").openStream().use { inputStream ->
+        {}.javaClass.getResource("/smeup/ERROR28.rpgle")!!.openStream().use { inputStream ->
             val programFinders = listOf(DirRpgProgramFinder(resourcePath))
             kotlin
                 .runCatching {
@@ -1931,7 +1936,7 @@ class JarikoCallbackTest : AbstractTest() {
         var readDataArea = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     "READ"
                 }
@@ -1945,6 +1950,29 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
+     * Test data area read callback with lock.
+     */
+    @Test
+    fun testDataAreaReadLock() {
+        var readDataArea = ""
+        var isLocking = false
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.readDataArea = { dataArea, locking ->
+                    readDataArea = dataArea
+                    isLocking = locking
+                    "READ"
+                }
+            }
+
+        val expected = listOf("READ")
+        val actual = "DTAREAREADLOCK".outputOf(configuration = configuration)
+        assertEquals(expected, actual)
+        assertTrue(isLocking)
+        assertEquals("C£C£E00D", readDataArea)
+    }
+
+    /**
      * Test data area defined in subroutines read callback.
      */
     @Test
@@ -1953,7 +1981,7 @@ class JarikoCallbackTest : AbstractTest() {
         var writeDataArea = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     "READ"
                 }
@@ -1977,7 +2005,7 @@ class JarikoCallbackTest : AbstractTest() {
         var writeNewValue = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     "READ"
                 }
@@ -2013,7 +2041,7 @@ class JarikoCallbackTest : AbstractTest() {
         var readDataArea = ""
         val configuration =
             Configuration().apply {
-                jarikoCallback.readDataArea = { dataArea ->
+                jarikoCallback.readDataArea = { dataArea, _ ->
                     readDataArea = dataArea
                     throw RuntimeException("Could not find data area")
                 }
@@ -2067,9 +2095,9 @@ class JarikoCallbackTest : AbstractTest() {
         executePgm("profiling/DO_TELEMETRY_SPAN_CAPTURES", configuration = configuration)
 
         assertEquals(3, captures.size)
-        assertEquals("69", captures.get("RESULT"))
-        assertEquals("5", captures.get("A"))
-        assertEquals("8", captures.get("B"))
+        assertEquals("69", captures["RESULT"])
+        assertEquals("5", captures["A"])
+        assertEquals("8", captures["B"])
     }
 
     private fun createMockReloadConfig(): ReloadConfig {

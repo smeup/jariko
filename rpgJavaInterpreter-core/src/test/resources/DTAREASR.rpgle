@@ -10,7 +10,7 @@
      D SCAATTDS        DS           460
      C     SCRDSSCA      BEGSR
      C     *DTAARA       DEFINE    C£C£E00D      SCAATTDS
-     C     *LOCK         IN        SCAATTDS
+     C                   IN        SCAATTDS
      C                   OUT       SCAATTDS
      C                   ENDSR
      C                   EXSR      SCRDSSCA
