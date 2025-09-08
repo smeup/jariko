@@ -1803,6 +1803,7 @@ data class ClearStmt(
 data class InStmt(
     val dataReference: String,
     val rightIndicators: WithRightIndicators,
+    val isLocking: Boolean,
     override val position: Position? = null,
 ) : Statement(position),
     WithRightIndicators by rightIndicators {
@@ -1820,9 +1821,10 @@ data class InStmt(
                 interpreter.getStatus().getDataArea(dataReference)
                     ?: throw Error("Data area for definition $dataReference not found")
 
-            // Update the value
-            val newValue = callback.readDataArea(dataArea).asValue()
-            interpreter.assign(dataDefinition, newValue)
+            // Update the value if needed
+            callback.readDataArea(dataArea, isLocking)?.let {
+                interpreter.assign(dataDefinition, it.asValue())
+            }
         } catch (e: Throwable) {
             // Turn on error indicator if present
             val errorIndicator = rightIndicators.lo
