@@ -18,6 +18,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.execution.*
+import com.smeup.rpgparser.experimental.PropertiesFileStorage
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
@@ -27,6 +28,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.getRootCause
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -2860,6 +2862,24 @@ Test 6
     fun executeFUNCALLMUTABILITY() {
         val expected = listOf("ok")
         assertEquals(expected, "FUNCALLMUTABILITY".outputOf())
+    }
+
+    @Before
+    fun before() {
+        val lastPathComponent =
+            if (DEMO) {
+                "demo"
+            } else {
+                "${System.currentTimeMillis()}"
+            }
+        simpleStorageTempDir = File(System.getProperty("java.io.tmpdir"), "/teststorage/$lastPathComponent")
+    }
+
+    @Test
+    fun executeRTCALLERERR() {
+        val storage = PropertiesFileStorage(simpleStorageTempDir)
+        val config = Configuration(storage)
+        executePgm("RTCALLERERR", configuration = config)
     }
 
     @Test
