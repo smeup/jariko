@@ -1480,4 +1480,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("TRUE", "TRUE")
         assertEquals(expected, "smeup/MUDRNRAPU001152".outputOf())
     }
+
+    /**
+     * This program increments a variable previously declared with *ZEROS.
+     * @see #LS25002737
+     */
+    @Test
+    fun executeMUDRNRAPU001153() {
+        val expected = listOf("0", "1")
+        assertEquals(expected, "smeup/MUDRNRAPU001153".outputOf())
+    }
 }
