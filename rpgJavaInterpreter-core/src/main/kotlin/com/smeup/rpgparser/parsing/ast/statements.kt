@@ -1577,8 +1577,8 @@ data class IfStmt(
          * after unwrapping we need to update the offset of each 'last' statement
          */
 
-        // Update last pointer in then body
         if (thenBody.isNotEmpty()) {
+            // Update last pointer in then body
             val offsetOfLastStatement = thenBody.size
             val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
             thenBody.last().nextOperationOffset = lastStatementMustRedirectTo
