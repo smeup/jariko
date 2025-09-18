@@ -114,6 +114,8 @@ class MemorySliceMgr(
 
     fun getSize() = memorySlices.size
 
+    fun remove(memorySliceId: MemorySliceId) = memorySlices.remove(memorySliceId)
+
     private fun getDataDefinition(
         name: String,
         symbolTable: ISymbolTable,
