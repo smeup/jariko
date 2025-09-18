@@ -1226,6 +1226,10 @@ data class CallStmt(
                             }
                         }
                 } catch (e: Exception) {
+                    MainExecutionContext
+                        .getMemorySliceMgr()
+                        ?.remove(MemorySliceId(MainExecutionContext.getConfiguration().defaultActivationGroupName, programToCall))
+
                     // TODO Catch a more specific exception?
                     if (errorIndicator == null) {
                         if (program is RpgProgram) {
