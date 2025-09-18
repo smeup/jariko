@@ -112,6 +112,8 @@ class MemorySliceMgr(
         storage.open()
     }
 
+    fun getSize() = memorySlices.size
+
     private fun getDataDefinition(
         name: String,
         symbolTable: ISymbolTable,
