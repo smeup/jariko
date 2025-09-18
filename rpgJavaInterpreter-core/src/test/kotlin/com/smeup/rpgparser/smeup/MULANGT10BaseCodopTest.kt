@@ -1470,4 +1470,14 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
         val expected = listOf("LE VAL", "LE ZERO")
         assertEquals(expected, "smeup/MUDRNRAPU001151".outputOf())
     }
+
+    /**
+     * This program performs `IF` statement between a *ZEROES and integer.
+     * @see #LS25003713
+     */
+    @Test
+    fun executeMUDRNRAPU001152() {
+        val expected = listOf("TRUE", "TRUE")
+        assertEquals(expected, "smeup/MUDRNRAPU001152".outputOf())
+    }
 }
