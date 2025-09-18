@@ -190,6 +190,13 @@ open class MemorySliceStorageTest : AbstractTest() {
         assertEquals(times, x.asInt().value.toInt())
     }
 
+    @Test
+    fun executeRTCALLERERR() {
+        val storage = PropertiesFileStorage(simpleStorageTempDir)
+        val config = Configuration(storage)
+        executePgm("RTCALLERERR", configuration = config)
+    }
+
     // Test flow:
     // Step 0 - Executing ACTGRP_FIX that exits in RT
     // Step 1 - Executing ACTGRP_FIX that exits in LR (forced LR programmatically via callback)
