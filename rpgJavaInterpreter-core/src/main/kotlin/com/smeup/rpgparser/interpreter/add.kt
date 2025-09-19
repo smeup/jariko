@@ -36,7 +36,11 @@ fun add(
     position: Position? = null,
 ): Value {
     val addendOneValue: Value = interpreterCore.eval(addendOneExpr)
-    require(addendOneValue is NumberValue || (addendOneValue is ArrayValue && addendOneValue.elementType is NumberType)) {
+    require(
+        addendOneValue is NumberValue ||
+            (addendOneValue is ArrayValue && addendOneValue.elementType is NumberType) ||
+            addendOneValue is ZeroValue,
+    ) {
         "$addendOneValue should be a number"
     }
     val addendTwoValue: Value = interpreterCore.eval(addendTwoExpr)
@@ -72,6 +76,7 @@ private fun makeStandaloneValue(
     position: Position?,
 ): Value =
     when {
+        addendOneValue is ZeroValue -> addendTwoValue
         addendOneValue is IntValue && addendTwoValue is IntValue ->
             IntValue(
                 addendOneValue.asInt().value.plus(addendTwoValue.asInt().value),
