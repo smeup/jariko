@@ -1228,7 +1228,7 @@ data class CallStmt(
                 } catch (e: Exception) {
                     MainExecutionContext
                         .getMemorySliceMgr()
-                        ?.remove(MemorySliceId(MainExecutionContext.getConfiguration().defaultActivationGroupName, programToCall))
+                        ?.remove(MemorySliceId((program as RpgProgram).activationGroup.assignedName, programToCall))
 
                     // TODO Catch a more specific exception?
                     if (errorIndicator == null) {
