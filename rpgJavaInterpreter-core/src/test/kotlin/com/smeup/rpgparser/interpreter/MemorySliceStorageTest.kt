@@ -225,6 +225,39 @@ open class MemorySliceStorageTest : AbstractTest() {
         assertEquals(1, numElementsMemorySlices)
     }
 
+    @Test
+    fun ensureMemorySlicesOnCalledPgmError_usingAnotherActivationGroup() {
+        // Testing program
+        val programName = "RTCALLERERR2.rpgle"
+        val path = javaClass.getResource("/$programName")
+
+        // Here I set the path from where jariko will search for the rpg sources
+        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+
+        // Here I set configuration
+        var numElementsMemorySlices = 0
+        val configuration =
+            Configuration(
+                PropertiesFileStorage(simpleStorageTempDir),
+                JarikoCallback(
+                    onCallPgmError = { errorEvent: ErrorEvent ->
+                        numElementsMemorySlices = MainExecutionContext.getMemorySliceMgr()?.getSize() ?: 0
+                    },
+                ),
+            )
+
+        // Simulate the execution of a program that calls another that goes in error
+        println("Executing $programName")
+        executePgmWithStringArgs(
+            programName = programName,
+            programFinders = rpgProgramFinders,
+            programArgs = listOf<String>(),
+            configuration = configuration,
+        )
+
+        assertEquals(1, numElementsMemorySlices)
+    }
+
     // Test flow:
     // Step 0 - Executing ACTGRP_FIX that exits in RT
     // Step 1 - Executing ACTGRP_FIX that exits in LR (forced LR programmatically via callback)
