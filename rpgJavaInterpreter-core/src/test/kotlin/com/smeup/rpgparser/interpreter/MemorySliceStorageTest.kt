@@ -18,7 +18,9 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.JarikoCallback
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.experimental.PropertiesFileStorage
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.After
@@ -188,6 +190,72 @@ open class MemorySliceStorageTest : AbstractTest() {
         val memorySliceId = MemorySliceId(activationGroup = "MYACT", programName = programName)
         val x = configuration.memorySliceStorage!!.load(memorySliceId)["X"]!!
         assertEquals(times, x.asInt().value.toInt())
+    }
+
+    @Test
+    fun ensureMemorySlicesOnCalledPgmError() {
+        // Testing program
+        val programName = "RTCALLERERR.rpgle"
+        val path = javaClass.getResource("/$programName")
+
+        // Here I set the path from where jariko will search for the rpg sources
+        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+
+        // Here I set configuration
+        var numElementsMemorySlices = 0
+        val configuration =
+            Configuration(
+                PropertiesFileStorage(simpleStorageTempDir),
+                JarikoCallback(
+                    onCallPgmError = { errorEvent: ErrorEvent ->
+                        numElementsMemorySlices = MainExecutionContext.getMemorySliceMgr()?.getSize() ?: 0
+                    },
+                ),
+            )
+
+        // Simulate the execution of a program that calls another that goes in error
+        println("Executing $programName")
+        executePgmWithStringArgs(
+            programName = programName,
+            programFinders = rpgProgramFinders,
+            programArgs = listOf<String>(),
+            configuration = configuration,
+        )
+
+        assertEquals(1, numElementsMemorySlices)
+    }
+
+    @Test
+    fun ensureMemorySlicesOnCalledPgmError_usingAnotherActivationGroup() {
+        // Testing program
+        val programName = "RTCALLERERR2.rpgle"
+        val path = javaClass.getResource("/$programName")
+
+        // Here I set the path from where jariko will search for the rpg sources
+        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+
+        // Here I set configuration
+        var numElementsMemorySlices = 0
+        val configuration =
+            Configuration(
+                PropertiesFileStorage(simpleStorageTempDir),
+                JarikoCallback(
+                    onCallPgmError = { errorEvent: ErrorEvent ->
+                        numElementsMemorySlices = MainExecutionContext.getMemorySliceMgr()?.getSize() ?: 0
+                    },
+                ),
+            )
+
+        // Simulate the execution of a program that calls another that goes in error
+        println("Executing $programName")
+        executePgmWithStringArgs(
+            programName = programName,
+            programFinders = rpgProgramFinders,
+            programArgs = listOf<String>(),
+            configuration = configuration,
+        )
+
+        assertEquals(1, numElementsMemorySlices)
     }
 
     // Test flow:
