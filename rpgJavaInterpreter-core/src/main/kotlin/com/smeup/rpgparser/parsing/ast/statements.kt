@@ -1226,6 +1226,12 @@ data class CallStmt(
                             }
                         }
                 } catch (e: Exception) {
+                    if (program is RpgProgram) {
+                        MainExecutionContext
+                            .getMemorySliceMgr()
+                            ?.remove(MemorySliceId(program.activationGroup.assignedName, programToCall))
+                    }
+
                     // TODO Catch a more specific exception?
                     if (errorIndicator == null) {
                         if (program is RpgProgram) {
@@ -1573,8 +1579,8 @@ data class IfStmt(
          * after unwrapping we need to update the offset of each 'last' statement
          */
 
-        // Update last pointer in then body
         if (thenBody.isNotEmpty()) {
+            // Update last pointer in then body
             val offsetOfLastStatement = thenBody.size
             val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
             thenBody.last().nextOperationOffset = lastStatementMustRedirectTo
