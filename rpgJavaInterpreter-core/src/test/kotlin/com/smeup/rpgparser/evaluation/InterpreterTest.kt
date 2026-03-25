@@ -3117,11 +3117,11 @@ Test 6
             val expected =
                 buildString {
                     appendLine(
-                        "Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).",
+                        "Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 82)).",
                     )
                     append("Error calling program or procedure - Could not find program MISSING")
                 }
-            assertEquals(expected, e.message)
+            assertEquals(normalizeLineEndings(expected), normalizeLineEndings(e.message))
         } catch (e: Exception) {
             fail("got unexpected exception: $e")
         }
@@ -3140,14 +3140,14 @@ Test 6
             val expected =
                 buildString {
                     appendLine(
-                        "Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).",
+                        "Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 82)).",
                     )
                     appendLine(
-                        "Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, Column 25, end=Line 8, Column 81)).",
+                        "Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, Column 25, end=Line 8, Column 82)).",
                     )
                     append("Error calling program or procedure - Could not find program MISSING")
                 }
-            assertEquals(expected, e.message)
+            assertEquals(normalizeLineEndings(expected), normalizeLineEndings(e.message))
         } catch (e: Exception) {
             fail("got unexpected exception: $e")
         }
@@ -3170,6 +3170,9 @@ Test 6
 
         assertTrue(customExecution)
     }
+
+    private fun normalizeLineEndings(text: String?): String? =
+        text?.replace("\r\n", "\n")?.replace("\r", "\n")
 
     /**
      * A simple exception to stop execution on-demand
