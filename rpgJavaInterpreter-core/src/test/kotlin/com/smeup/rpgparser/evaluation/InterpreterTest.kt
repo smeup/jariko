@@ -1311,7 +1311,7 @@ Test 6
     }
 
     @Test
-    fun EVALwithTypeError() {
+    fun evalWithTypeError() {
         val systemInterface = JavaSystemInterface()
 
         val source =
