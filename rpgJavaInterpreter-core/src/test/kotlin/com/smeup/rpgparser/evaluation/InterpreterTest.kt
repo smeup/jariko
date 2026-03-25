@@ -3177,11 +3177,9 @@ Test 6
         assertTrue(customExecution)
     }
 
-    private fun normalizeLineEndings(text: String?): String? =
-        text?.replace("\r\n", "\n")?.replace("\r", "\n")
+    private fun normalizeLineEndings(text: String?): String? = text?.replace("\r\n", "\n")?.replace("\r", "\n")
 
-    private fun stripColumnPositions(text: String?): String? =
-        text?.replace(Regex(", Column \\d+"), "")
+    private fun stripColumnPositions(text: String?): String? = text?.replace(Regex(", Column \\d+"), "")
 
     /**
      * A simple exception to stop execution on-demand
