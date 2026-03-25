@@ -122,7 +122,7 @@ fun String?.asDouble(): Double {
 
 fun String.asBigDecimal(): BigDecimal? =
     try {
-        BigDecimal(this.trim())
+        BigDecimal(this.trim().replace(',', '.'))
     } catch (e: Exception) {
         null
     }
