@@ -124,7 +124,7 @@ fun String.asBigDecimal(): BigDecimal? =
     try {
         BigDecimal(this.trim().replace(',', '.'))
     } catch (e: Exception) {
-        null
+        error("Unable to parse $this as BigDecimal")
     }
 
 fun Int.ceilDiv(divisor: Int): Int = this / divisor + if (this % divisor > 0) 1 else 0
