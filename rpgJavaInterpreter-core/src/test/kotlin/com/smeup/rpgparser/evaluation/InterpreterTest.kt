@@ -1064,6 +1064,11 @@ Test 6
     }
 
     @Test
+    fun executeBIFDEC01() {
+        assertEquals(listOf("1.30", "1.30"), outputOf("BIFDEC01"))
+    }
+
+    @Test
     fun executeBIFEDITC() {
         // I don't know exactly what expected result should be
         // Now the important thing is that it doesn't throw an exception
@@ -1306,7 +1311,7 @@ Test 6
     }
 
     @Test
-    fun EVALwithTypeError() {
+    fun evalWithTypeError() {
         val systemInterface = JavaSystemInterface()
 
         val source =
