@@ -16,9 +16,12 @@ Read both files:
 - `docs/built_in_functions.md`
 - `docs/operation_codes.md`
 
-Look for a line of the form `_Last refreshed: YYYY-MM-DD_` near the top (or bottom) of each file. If no such line exists yet, treat the baseline date as `2021-07-30` (the date of the last known manual update) for both files.
+Look for a line of the form `_Last refreshed: YYYY-MM-DD_` near the top (or bottom) of each file.
 
-Record these two dates as `BIF_DATE` and `OC_DATE`.
+- If no such line exists, **perform a full assessment**: skip the git-log filtering in step 2 and instead read the full current state of all relevant source files listed in that step. Treat every BIF and operation code as new — analyse all of them from scratch.
+- If the line exists, treat its date as `BIF_DATE` / `OC_DATE` and proceed with the incremental git-log approach.
+
+Record the resulting dates (or the sentinel "full assessment") as `BIF_DATE` and `OC_DATE`.
 
 ### 2. Find changed source files since each date
 
@@ -40,6 +43,8 @@ git log --since="<OC_DATE>" --name-only --pretty=format: -- \
   rpgJavaInterpreter-core/src/main/kotlin/com/smeup/rpgparser/interpreter/InterpreterCore.kt \
   | grep -v '^$' | sort -u
 ```
+
+If `BIF_DATE` / `OC_DATE` is a "full assessment" sentinel (no prior `_Last refreshed_` line), read each source file in full and treat all classes as new — do not run the git-log commands.
 
 If none of the files have changed since the recorded date, output `No changes detected since <date>` for that document and skip to step 5 to update the "Last refreshed" date to today.
 
