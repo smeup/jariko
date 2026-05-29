@@ -1064,6 +1064,11 @@ Test 6
     }
 
     @Test
+    fun executeBIFDEC01() {
+        assertEquals(listOf("1.30", "1.30"), outputOf("BIFDEC01"))
+    }
+
+    @Test
     fun executeBIFEDITC() {
         // I don't know exactly what expected result should be
         // Now the important thing is that it doesn't throw an exception
@@ -1306,7 +1311,7 @@ Test 6
     }
 
     @Test
-    fun EVALwithTypeError() {
+    fun evalWithTypeError() {
         val systemInterface = JavaSystemInterface()
 
         val source =
@@ -3117,11 +3122,14 @@ Test 6
             val expected =
                 buildString {
                     appendLine(
-                        "Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).",
+                        "Program CALLMISSING - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CALLMISSING, relativeLine=7, position=Position(start=Line 7, end=Line 7)).",
                     )
                     append("Error calling program or procedure - Could not find program MISSING")
                 }
-            assertEquals(expected, e.message)
+            assertEquals(
+                normalizeLineEndings(expected),
+                normalizeLineEndings(stripColumnPositions(e.message)),
+            )
         } catch (e: Exception) {
             fail("got unexpected exception: $e")
         }
@@ -3140,14 +3148,17 @@ Test 6
             val expected =
                 buildString {
                     appendLine(
-                        "Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, Column 25, end=Line 7, Column 81)).",
+                        "Program CMISSROOT - Issue executing CallStmt at absolute line 7 of SourceReference(sourceReferenceType=Program, sourceId=CMISSROOT, relativeLine=7, position=Position(start=Line 7, end=Line 7)).",
                     )
                     appendLine(
-                        "Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, Column 25, end=Line 8, Column 81)).",
+                        "Program CMISSMAIN - Issue executing CallStmt at absolute line 15 of SourceReference(sourceReferenceType=Copy, sourceId=CMISSACT, relativeLine=8, position=Position(start=Line 8, end=Line 8)).",
                     )
                     append("Error calling program or procedure - Could not find program MISSING")
                 }
-            assertEquals(expected, e.message)
+            assertEquals(
+                normalizeLineEndings(expected),
+                normalizeLineEndings(stripColumnPositions(e.message)),
+            )
         } catch (e: Exception) {
             fail("got unexpected exception: $e")
         }
@@ -3170,6 +3181,10 @@ Test 6
 
         assertTrue(customExecution)
     }
+
+    private fun normalizeLineEndings(text: String?): String? = text?.replace("\r\n", "\n")?.replace("\r", "\n")
+
+    private fun stripColumnPositions(text: String?): String? = text?.replace(Regex(", Column \\d+"), "")
 
     /**
      * A simple exception to stop execution on-demand

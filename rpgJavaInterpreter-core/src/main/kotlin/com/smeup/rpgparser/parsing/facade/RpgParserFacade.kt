@@ -162,7 +162,7 @@ class RpgParserFacade {
         val code = inputStreamToString(inputStream)
         val lines = code.lines()
         val longLines = lines.map { it.padEnd(threshold) }
-        val paddedCode = longLines.joinToString(System.lineSeparator())
+        val paddedCode = longLines.joinToString("\n")
         return CharStreams.fromStream(paddedCode.byteInputStream(StandardCharsets.UTF_8))
     }
 
