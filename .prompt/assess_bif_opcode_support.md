@@ -119,10 +119,14 @@ For each document:
 - **Do not remove rows** even if a class is deleted — mark them `Removed` and add a note in the Rationale cell.
 - Keep the table sorted alphabetically by name.
 - Every row must have a **Rationale** column. For rows you are adding or updating, fill it with a one-sentence summary of the evidence that drove the support level (e.g. `TODO in execute branch`, `no test for negative step`, `all documented variants covered and tested`). For rows you are not touching in this run, leave the existing content unchanged (or add a `-` if the cell is missing).
+- Every row must have an **Example** column. For rows you are adding or updating:
+  - **Partial**: provide a minimal inline RPG LE snippet (1–5 lines, using a fenced code block with ` ```rpgle `) that exposes the limitation and proves why the level is not Full (i.e. the snippet triggers the unimplemented or broken path).
+  - **Full** or **Not implemented**: write `-`.
+  For rows you are not touching in this run, leave the existing content unchanged (or add a `-` if the cell is missing).
 
 Support level values to use in the table: `Full`, `Partial`, `Not implemented`.
 
-Table column order: **Name | Support level | Rationale**. If the existing table does not yet have a Rationale column, add it as the last column.
+Table column order: **Name | Support level | Rationale | Example**. If the existing table does not yet have a Rationale or Example column, add them as the last columns in that order.
 
 ### 5. Update (or add) the "Last refreshed" section
 
@@ -142,5 +146,5 @@ Use today's date (UTC).
 
 - Only look at git diff since the recorded date. Do not re-analyse the entire codebase from scratch.
 - Do not upgrade a support level without code evidence (interpreter `when` branches, `TODO(...)` markers, test presence). Domain knowledge may be used to downgrade a level when a plausible use case is clearly not covered.
-- Do not change the table structure beyond what is described above (adding the Rationale column is the one permitted structural change).
+- Do not change the table structure beyond what is described above (adding the Rationale and Example columns are the permitted structural changes).
 - Keep Rationale cells to one sentence; do not write multi-sentence prose inside table cells.
