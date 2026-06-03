@@ -1,4 +1,4 @@
-# Prompt: Update Support Level for Built-in Functions and Operation Codes
+# Prompt: Assess Support Level for Built-in Functions and Operation Codes
 
 Use this prompt with Claude Code (or a similar coding LLM) from the root of the jariko repository to incrementally refresh `docs/built_in_functions.md` and `docs/operation_codes.md`.
 
