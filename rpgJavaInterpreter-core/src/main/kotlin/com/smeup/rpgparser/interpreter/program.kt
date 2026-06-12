@@ -77,6 +77,7 @@ class RpgProgram(
 
     lateinit var activationGroup: ActivationGroup
     private var initialized = false
+    val isInitialized get() = initialized
 
     private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
         systemInterface!!.getAllLogHandlers()

@@ -18,6 +18,7 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.interpreter.Value
@@ -31,6 +32,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CallProgramHandlerTest : AbstractTest() {
@@ -165,6 +167,30 @@ class CallProgramHandlerTest : AbstractTest() {
         val result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
         assertTrue { result.parmsList[0].trim().contains("HELLO JARIKO") }
+    }
+
+    /**
+     * This test reproduces the 'CallProgramHandler' implementation in Kokos where the handleCall throws an error.
+     * The assertion is: the exception thrown inside handleCall propagates to the caller.
+     * */
+    @Test
+    fun testCallProgramHandlerErrorPropagation() {
+        val systemInterface: SystemInterface = JavaSystemInterface()
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
+        val memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        val configuration = Configuration(memorySliceStorage = memorySliceStorage)
+        val callProgramHandler =
+            CallProgramHandler(
+                handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                    throw RuntimeException("Error from handleCall")
+                },
+            )
+        configuration.options.callProgramHandler = callProgramHandler
+        val exception =
+            assertFailsWith<RuntimeException> {
+                getProgram("CALLER.rpgle", systemInterface, programFinders).singleCall(listOf(""), configuration)
+            }
+        assertTrue { exception.message!!.contains("Error from handleCall") }
     }
 
     private fun doPost(
