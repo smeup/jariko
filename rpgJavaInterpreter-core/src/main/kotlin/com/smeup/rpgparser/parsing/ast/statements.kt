@@ -1226,7 +1226,7 @@ data class CallStmt(
                             }
                         }
                 } catch (e: Exception) {
-                    if (program is RpgProgram) {
+                    if (program is RpgProgram && program.isInitialized) {
                         MainExecutionContext
                             .getMemorySliceMgr()
                             ?.remove(MemorySliceId(program.activationGroup.assignedName, programToCall))
