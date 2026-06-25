@@ -1226,6 +1226,12 @@ data class CallStmt(
                             }
                         }
                 } catch (e: Exception) {
+                    if (program is RpgProgram && program.isInitialized) {
+                        MainExecutionContext
+                            .getMemorySliceMgr()
+                            ?.remove(MemorySliceId(program.activationGroup.assignedName, programToCall))
+                    }
+
                     // TODO Catch a more specific exception?
                     if (errorIndicator == null) {
                         if (program is RpgProgram) {
@@ -1573,8 +1579,8 @@ data class IfStmt(
          * after unwrapping we need to update the offset of each 'last' statement
          */
 
-        // Update last pointer in then body
         if (thenBody.isNotEmpty()) {
+            // Update last pointer in then body
             val offsetOfLastStatement = thenBody.size
             val lastStatementMustRedirectTo = nextOperationAt - offsetOfLastStatement
             thenBody.last().nextOperationOffset = lastStatementMustRedirectTo
@@ -1803,6 +1809,7 @@ data class ClearStmt(
 data class InStmt(
     val dataReference: String,
     val rightIndicators: WithRightIndicators,
+    val isLocking: Boolean,
     override val position: Position? = null,
 ) : Statement(position),
     WithRightIndicators by rightIndicators {
@@ -1820,9 +1827,10 @@ data class InStmt(
                 interpreter.getStatus().getDataArea(dataReference)
                     ?: throw Error("Data area for definition $dataReference not found")
 
-            // Update the value
-            val newValue = callback.readDataArea(dataArea).asValue()
-            interpreter.assign(dataDefinition, newValue)
+            // Update the value if needed
+            callback.readDataArea(dataArea, isLocking)?.let {
+                interpreter.assign(dataDefinition, it.asValue())
+            }
         } catch (e: Throwable) {
             // Turn on error indicator if present
             val errorIndicator = rightIndicators.lo

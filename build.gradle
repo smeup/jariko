@@ -33,14 +33,14 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:13.1.0"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:14.2.0"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
     }
 }
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
-    id "org.ajoberstar.grgit" version "5.3.2"
+    id "org.ajoberstar.grgit" version "5.3.3"
 }
 
 project.group = jarikoGroupId

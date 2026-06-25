@@ -993,6 +993,7 @@ object ZeroValue : Value {
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is ZeroValue -> 0
+            is IntValue -> 0.compareTo(other.value)
             is DecimalValue -> other.getZero().compareTo(other.asDecimal().value)
             else -> super.compareTo(other)
         }
@@ -1060,8 +1061,8 @@ object JulValue : Value {
 
 /**
  * The container should always be a DS value
+ * TODO: Serializable decorator is deactivated. See `ProjectedArrayValue to Json` test for reason.
  */
-// @Serializable TODO: See `ProjectedArrayValue to Json` test for reason.
 class ProjectedArrayValue(
     val container: DataStructValue,
     val field: FieldDefinition,

@@ -340,11 +340,16 @@ data class JarikoCallback(
      * Returns the value that was read from the data area.
      *
      * @param dataAreaName The name of the data area to read.
-     * @param value The current value associated with the data reference.
+     * @param isLocking Whether the READ operation is locking or not.
      *
      * @see InStmt
      */
-    var readDataArea: ((dataAreaName: String) -> String) = { throw IllegalStateException("Not implemented yet") },
+    var readDataArea: ((dataAreaName: String, isLocking: Boolean) -> String?) = { _, isLocking ->
+        if (!isLocking) throw IllegalStateException("Not implemented yet")
+
+        // If locking just do nothing
+        null
+    },
     /**
      * It is invoked whenever we want to write to a data area.
      *

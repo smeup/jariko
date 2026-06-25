@@ -2293,8 +2293,14 @@ internal fun CsDEFINEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 internal fun CsINContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): InStmt {
     val dataReference = this.cspec_fixed_standard_parts().factor2.text
     val indicators = this.cspec_fixed_standard_parts().rightIndicators()
+    val isLocking =
+        this
+            .factor1Context()
+            .text
+            .trim()
+            .equals("*LOCK", ignoreCase = true)
     val position = toPosition(conf.considerPosition)
-    return InStmt(dataReference, indicators, position)
+    return InStmt(dataReference, indicators, isLocking, position)
 }
 
 internal fun CsOUTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OutStmt {
