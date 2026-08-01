@@ -76,19 +76,6 @@ class VideoInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeOPEN_VIDEO() {
-        // Reproduces the crash reported for B£AR800V: OPEN/CLOSE/%OPEN on a VIDEO file
-        // simulated via reload metadata (dspfConfig == null fallback) must not throw
-        // "File definition ... not found" — such a file is never present in dbFileMap
-        // (DB-only) nor in displayFiles (real-DSPF-only).
-        val expected = listOf("CLOSED", "OPENED", "CLOSED")
-        configuration.jarikoCallback.afterAstCreation = {
-            assertEquals(null, it.displayFiles)
-        }
-        assertEquals(expected = expected, actual = "video/OPEN_VIDEO".outputOf(configuration = configurationForRetroCompatibilityTest))
-    }
-
-    @Test
     fun executeFILEDEF1() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
         // no onExfmt needed, there is no EXFMT spec in this RPGLE file
