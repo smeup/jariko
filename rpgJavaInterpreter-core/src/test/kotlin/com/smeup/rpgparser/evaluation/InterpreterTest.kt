@@ -1775,6 +1775,27 @@ Test 6
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
     }
 
+    @Test
+    fun executeACTGRP_PARMS() {
+        // This test reproduces a bug: ACTGRP_PARMS runs in its own activation group and, when
+        // called twice with a different number of parameters, *PARMS on its Program Status Data
+        // Structure should reflect the actual number of parameters received on each call, instead
+        // of retaining the value from the previous call.
+        //
+        // Why am I using String.outputOf instead of the outputOf function: because the latter does
+        // not handle the CALL statement properly, showing a false positive runtime error.
+        val memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        assertEquals(listOf("1"), "ACTGRP_PARMS".outputOf(
+            configuration = Configuration(memorySliceStorage),
+            params = CommandLineParms(listOf("A"))
+        ))
+        assertEquals(listOf("2"), "ACTGRP_PARMS".outputOf(
+            configuration = Configuration(memorySliceStorage),
+            params = CommandLineParms(listOf("A", "B"))
+        ))
+
+    }
+
     @Test @Ignore
     fun executeACTGRP_CAL() {
         assertEquals(listOf("1", "2", "3", "1", "1", "1"), outputOf("ACTGRP_CAL"))
