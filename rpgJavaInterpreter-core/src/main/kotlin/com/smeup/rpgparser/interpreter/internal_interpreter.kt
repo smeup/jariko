@@ -1348,7 +1348,9 @@ open class InternalInterpreter(
      */
     private fun Statement.errorDescription(throwable: Throwable): String {
         val source = this.position!!.relative().second
-        return "Program ${getInterpretationContext().currentProgramName} - Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} of $source.\n${throwable.message}"
+        return "Program ${getInterpretationContext().currentProgramName} - " +
+            "Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} " +
+            "of $source.\n${throwable.message}"
     }
 
     private fun CompilationUnit.getRelevantDataAreas(): Map<String, String> {

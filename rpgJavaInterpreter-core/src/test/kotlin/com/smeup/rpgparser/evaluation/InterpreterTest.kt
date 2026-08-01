@@ -1785,15 +1785,20 @@ Test 6
         // Why am I using String.outputOf instead of the outputOf function: because the latter does
         // not handle the CALL statement properly, showing a false positive runtime error.
         val memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
-        assertEquals(listOf("1"), "ACTGRP_PARMS".outputOf(
-            configuration = Configuration(memorySliceStorage),
-            params = CommandLineParms(listOf("A"))
-        ))
-        assertEquals(listOf("2"), "ACTGRP_PARMS".outputOf(
-            configuration = Configuration(memorySliceStorage),
-            params = CommandLineParms(listOf("A", "B"))
-        ))
-
+        assertEquals(
+            listOf("1"),
+            "ACTGRP_PARMS".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("A")),
+            ),
+        )
+        assertEquals(
+            listOf("2"),
+            "ACTGRP_PARMS".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("A", "B")),
+            ),
+        )
     }
 
     @Test @Ignore
