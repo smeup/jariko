@@ -23,6 +23,8 @@ import com.smeup.rpgparser.serialization.BigDecimalSerializer
 import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
 import com.smeup.rpgparser.serialization.StringBuilderSerializer
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -150,4 +152,22 @@ object ValueSerializer {
      * */
     @JvmStatic
     fun decode(string: String): Value = SerializationOption.serializer.decodeFromString(string)
+}
+
+/**
+ * Map<String, Value> serializer helper.
+ * Exposed separately from [ValueSerializer] (rather than as an overload) because Java
+ * callers need explicit, non-reified entry points to batch-encode/decode a whole memory
+ * slice in a single call, instead of one call per entry.
+ * */
+object ValueMapSerializer {
+    private val serializer: KSerializer<Map<String, Value>> by lazy {
+        MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+    }
+
+    @JvmStatic
+    fun encode(values: Map<String, Value>): String = SerializationOption.serializer.encodeToString(serializer, values)
+
+    @JvmStatic
+    fun decode(string: String): Map<String, Value> = SerializationOption.serializer.decodeFromString(serializer, string)
 }
