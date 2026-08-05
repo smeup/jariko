@@ -103,7 +103,7 @@ class StringInterpreterSerialization(
 }
 
 // TODO read the configuration from an external source
-const val BINARY_SERIALIZATION = false
+const val BINARY_SERIALIZATION = true
 const val CLASS_DISCRIMINATOR_TAG = "#class"
 
 object SerializationOption {
@@ -143,11 +143,11 @@ object ValueSerializer {
      * Encodes value in json format
      * */
     @JvmStatic
-    fun encode(value: Value) = SerializationOption.stringSerializer.encodeToString(value)
+    fun encode(value: Value) = SerializationOption.serializer.encodeToString(value)
 
     /**
      * Decodes string in a value instance
      * */
     @JvmStatic
-    fun decode(string: String): Value = SerializationOption.stringSerializer.decodeFromString(string)
+    fun decode(string: String): Value = SerializationOption.serializer.decodeFromString(string)
 }
