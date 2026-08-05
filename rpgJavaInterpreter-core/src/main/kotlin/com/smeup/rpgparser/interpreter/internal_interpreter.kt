@@ -374,6 +374,30 @@ open class InternalInterpreter(
                 )
             }
         }
+
+        // *PARMS reflects the current invocation and must never be carried over from a
+        // previous call restored by afterInitialization/restoreFromMemorySlice above.
+        refreshParmsKeywordFields(compilationUnit)
+    }
+
+    /**
+     * Re-evaluates DS fields initialized with the `*PARMS` keyword, overriding any stale value
+     * that activation-group memory-slice restoration may have just applied to them.
+     */
+    private fun refreshParmsKeywordFields(compilationUnit: CompilationUnit) {
+        compilationUnit.allDataDefinitions.filterIsInstance<DataDefinition>().forEach { ds ->
+            ds.fields.forEach { field ->
+                val initializationValue = field.initializationValue
+                if (initializationValue is ParmsExpr) {
+                    val fieldValue = coerce(eval(initializationValue), field.type)
+                    when (val value = get(ds.name)) {
+                        is DataStructValue -> value.set(field, fieldValue)
+                        is OccurableDataStructValue -> value.initializeField(field, fieldValue)
+                        else -> Unit
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1324,7 +1348,9 @@ open class InternalInterpreter(
      */
     private fun Statement.errorDescription(throwable: Throwable): String {
         val source = this.position!!.relative().second
-        return "Program ${getInterpretationContext().currentProgramName} - Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} of $source.\n${throwable.message}"
+        return "Program ${getInterpretationContext().currentProgramName} - " +
+            "Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} " +
+            "of $source.\n${throwable.message}"
     }
 
     private fun CompilationUnit.getRelevantDataAreas(): Map<String, String> {
