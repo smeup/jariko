@@ -208,6 +208,12 @@ open class InternalInterpreter(
         val programName = getInterpretationContext().currentProgramName
         val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
 
+        // Captured once, before globalSymbolTable is possibly populated below, so the LOAD block further down
+        // can reuse the same decision: a program re-entered with reinitialization == false and a non-empty
+        // table already holds authoritative in-memory state, so reloading from storage would overwrite it with
+        // stale data (nothing can have been persisted mid-request, since store() only runs once at request end).
+        val needsReinitialization = reinitialization || globalSymbolTable.isEmpty()
+
         callback.traceBlock(initTrace) {
             val start = System.nanoTime()
 
@@ -221,9 +227,7 @@ open class InternalInterpreter(
 
             var index = 0
             // Assigning initial values received from outside and consider INZ clauses
-            // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
-            // circumstances is correct reinitialization
-            if (reinitialization || globalSymbolTable.isEmpty()) {
+            if (needsReinitialization) {
                 beforeInitialization()
                 compilationUnit.allDataDefinitions.forEach {
                     var value: Value? = null
@@ -356,12 +360,20 @@ open class InternalInterpreter(
             }
         }
 
+        // The memory slice is always (re-)associated with this request's MemorySliceMgr, whether or not the
+        // physical storage load runs - association is what makes doSomethingAfterExecution find the slice
+        // again and mark it persist-worthy for the batched store() at the end of the request. Only the
+        // physical load+overwrite (load = needsReinitialization) is skipped when the table already holds
+        // this program's authoritative in-memory state (re-entered within the same request, not cleared).
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
         callback.traceBlock(loadTrace) {
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
-            val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
+            val loadElapsed =
+                measureNanoTime {
+                    afterInitialization(initialValues = initialValues, load = needsReinitialization)
+                }.nanoseconds
 
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
@@ -375,8 +387,9 @@ open class InternalInterpreter(
             }
         }
 
-        // *PARMS reflects the current invocation and must never be carried over from a
-        // previous call restored by afterInitialization/restoreFromMemorySlice above.
+        // *PARMS must always reflect the current invocation's parameter list, whether or not the LOAD
+        // step above physically reloaded this call (e.g. it may carry a stale count from the previous call
+        // otherwise).
         refreshParmsKeywordFields(compilationUnit)
     }
 
@@ -1264,9 +1277,13 @@ open class InternalInterpreter(
 
     /**
      * This function is called after the initialization of the interpreter.
+     * @param load whether to also perform the physical storage load, see [MemorySliceMgr.associate].
      * */
-    open fun afterInitialization(initialValues: Map<String, Value>) {
-        globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues)
+    open fun afterInitialization(
+        initialValues: Map<String, Value>,
+        load: Boolean = true,
+    ) {
+        globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues, load)
     }
 
     private fun isExitingInRTMode(): Boolean {
