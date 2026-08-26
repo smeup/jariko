@@ -107,10 +107,8 @@ open class InternalInterpreter(
             "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
 
-        val programName = getInterpretationContext().currentProgramName
-
         renderLog {
-            val logSource = { LogSourceData(programName, data.startLine()) }
+            val logSource = { LogSourceData.fromNode(data) }
             val previous =
                 if (data in globalSymbolTable) {
                     globalSymbolTable[data]
@@ -187,7 +185,7 @@ open class InternalInterpreter(
             }
             else -> {
                 renderLog {
-                    val logSource = { LogSourceData(programName, data.startLine()) }
+                    val logSource = { LogSourceData.fromNode(data) }
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
                 // deny reassignment if data is a constant
@@ -205,8 +203,7 @@ open class InternalInterpreter(
     ) {
         val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
-        val programName = getInterpretationContext().currentProgramName
-        val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
+        val logSourceProducer = { LogSourceData.fromNode(compilationUnit) }
 
         // Captured once, before globalSymbolTable is possibly populated below, so the LOAD block further down
         // can reuse the same decision: a program re-entered with reinitialization == false and a non-empty
@@ -657,9 +654,8 @@ open class InternalInterpreter(
     }
 
     private fun executeWithMute(statement: Statement) {
-        val programName = getInterpretationContext().currentProgramName
         renderLog {
-            val logSource = { LogSourceData(programName, statement.position.line()) }
+            val logSource = { LogSourceData.fromNode(statement) }
             LazyLogEntry.produceLine(logSource)
         }
 
@@ -758,7 +754,6 @@ open class InternalInterpreter(
         compilationUnit: CompilationUnit,
         line: String,
     ) {
-        val programName = getInterpretationContext().currentProgramName
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -781,7 +776,7 @@ open class InternalInterpreter(
                     }
 
                     renderLog {
-                        val logSource = { LogSourceData(programName, it.startLine()) }
+                        val logSource = { LogSourceData.fromNode(it) }
                         LazyLogEntry.produceMute(it, logSource, value)
                     }
 
@@ -818,7 +813,7 @@ open class InternalInterpreter(
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
                     renderLog {
-                        val logSource = { LogSourceData(programName, it.startLine()) }
+                        val logSource = { LogSourceData.fromNode(it) }
                         LazyLogEntry.produceMute(it, logSource, message)
                     }
                     systemInterface.addExecutedAnnotation(
@@ -995,9 +990,8 @@ open class InternalInterpreter(
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
-            val programName = this.getInterpretationContext().currentProgramName
             renderLog {
-                val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
+                val logSource = { LogSourceData.fromNode(dataDefinition) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
             set(data = dataDefinition, value = newValue)
@@ -1024,8 +1018,7 @@ open class InternalInterpreter(
                 else -> expression.evalWith(expressionEvaluation)
             }
 
-        val programName = this.getInterpretationContext().currentProgramName
-        val sourceProvider = { LogSourceData(programName, expression.startLine()) }
+        val sourceProvider = { LogSourceData.fromNode(expression) }
         renderLog { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
         return value
@@ -1099,8 +1092,7 @@ open class InternalInterpreter(
                 val index = indexValue.asInt().value.toInt()
 
                 renderLog {
-                    val logSource =
-                        { LogSourceData(getInterpretationContext().currentProgramName, target.array.startLine()) }
+                    val logSource = { LogSourceData.fromNode(target.array) }
                     LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value)
                 }
 
@@ -1343,7 +1335,7 @@ open class InternalInterpreter(
         val internalExecute = {
             val sourceProducer =
                 if (loggingContext.logsEnabled) {
-                    { LogSourceData(programName, statement.position.line()) }
+                    { LogSourceData.fromNode(statement) }
                 } else {
                     null
                 }

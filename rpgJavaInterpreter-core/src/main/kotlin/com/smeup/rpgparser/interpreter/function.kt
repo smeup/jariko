@@ -277,7 +277,10 @@ private class FunctionInterpreter(
         super.beforeInitialization()
     }
 
-    override fun afterInitialization(initialValues: Map<String, Value>, load: Boolean) {
+    override fun afterInitialization(
+        initialValues: Map<String, Value>,
+        load: Boolean,
+    ) {
         super.afterInitialization(initialValues, load)
         // I restore static symbol table from memory slice only if it is the first execution.
         // This is because the current state of memory slice will be persisted at the end of execution of

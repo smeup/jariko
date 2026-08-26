@@ -94,7 +94,7 @@ internal fun InterpreterCore.executeProfiling(annotation: ProfilingAnnotation) {
         }
     }
     renderLog {
-        val logSource = { LogSourceData(programName, annotation.startLine()) }
+        val logSource = { LogSourceData.fromNode(annotation) }
         LazyLogEntry.produceProfiling(annotation, logSource)
     }
 }
