@@ -1801,6 +1801,32 @@ Test 6
         )
     }
 
+    @Test
+    fun executeACTGRP_ENTRY() {
+        // This test reproduces a bug: ACTGRP_ENTRY keeps itself activated (SETON RT) and, when
+        // called twice with a different argument, the parameter received through the *ENTRY PLIST
+        // should reflect the value passed on the current call instead of the one restored from the
+        // previous call's memory slice.
+        //
+        // Why am I using String.outputOf instead of the outputOf function: because the latter does
+        // not handle the CALL statement properly, showing a false positive runtime error.
+        val memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        assertEquals(
+            listOf("FIRST"),
+            "ACTGRP_ENTRY".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("FIRST")),
+            ),
+        )
+        assertEquals(
+            listOf("SECOND"),
+            "ACTGRP_ENTRY".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("SECOND")),
+            ),
+        )
+    }
+
     @Test @Ignore
     fun executeACTGRP_CAL() {
         assertEquals(listOf("1", "2", "3", "1", "1", "1"), outputOf("ACTGRP_CAL"))
