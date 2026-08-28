@@ -421,7 +421,7 @@ data class SelectStmt(
         val nextOperationAt = totalCasesStatementsCount + otherBody.size
         switchStmt.nextOperationOffset = nextOperationAt
 
-        /**
+        /*
          * Each branch last instruction must point to the end of the SWITCH statement
          * after unwrapping we need to update the offset of each 'last' statement
          */
