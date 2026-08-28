@@ -388,6 +388,10 @@ open class InternalInterpreter(
         // step above physically reloaded this call (e.g. it may carry a stale count from the previous call
         // otherwise).
         refreshParmsKeywordFields(compilationUnit)
+
+        // *ENTRY PLIST parameters must likewise reflect the current invocation's arguments: the LOAD
+        // step above may have restored them from the previous call within the same activation group.
+        refreshEntryPlistParams(compilationUnit, initialValues)
     }
 
     /**
@@ -408,6 +412,39 @@ open class InternalInterpreter(
                 }
             }
         }
+    }
+
+    /**
+     * Re-applies the current invocation's argument values to the data definitions listed in the
+     * program's `*ENTRY` PLIST, overriding any stale value that activation-group memory-slice
+     * restoration ([afterInitialization]) may have just applied to them.
+     *
+     * Counterpart of [refreshParmsKeywordFields]: the assignment of `initialValues` to `*ENTRY`
+     * PLIST parameters in [initialize] only runs on a full reinitialization, so when the program
+     * is re-entered within the same request the parameters would otherwise keep the previous
+     * call's values. Parameters absent from the current call are intentionally left untouched
+     * (an unpassed `*ENTRY` parameter retains its value).
+     */
+    private fun refreshEntryPlistParams(
+        compilationUnit: CompilationUnit,
+        initialValues: Map<String, Value>,
+    ) {
+        if (compilationUnit.entryPlist == null) return
+        compilationUnit.allDataDefinitions
+            .filter { it.isInPlist(compilationUnit) }
+            .forEach { dataDefinition ->
+                val value =
+                    when {
+                        dataDefinition.name in initialValues -> initialValues[dataDefinition.name]
+                        else -> {
+                            val resultName = dataDefinition.getResultNameByFactor1(compilationUnit)
+                            if (resultName != null) initialValues[resultName] else null
+                        }
+                    }
+                if (value != null && value !is NullValue) {
+                    set(dataDefinition, coerce(value, dataDefinition.type))
+                }
+            }
     }
 
     /**
