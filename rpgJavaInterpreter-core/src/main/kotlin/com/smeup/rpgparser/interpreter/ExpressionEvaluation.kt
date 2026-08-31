@@ -60,15 +60,13 @@ class ExpressionEvaluation(
     ): Value {
         if (!MainExecutionContext.isLoggingEnabled) return action()
 
-        val programName = MainExecutionContext.getExecutionProgramName()
-
         val start = System.nanoTime()
         val value = action()
         val elapsed = (System.nanoTime() - start).nanoseconds
 
         MainExecutionContext.log(
             LazyLogEntry.producePerformanceAndUpdateAnalytics(
-                { LogSourceData(programName, expression.startLine()) },
+                { LogSourceData.fromNode(expression) },
                 ProgramUsageType.Expression,
                 expression.loggableEntityName,
                 elapsed,
@@ -711,7 +709,7 @@ class ExpressionEvaluation(
             val trace = JarikoTrace(JarikoTraceKind.FunctionCall, functionToCall)
             callback.traceBlock(trace) {
                 val source: LogSourceProvider = {
-                    LogSourceData(MainExecutionContext.getExecutionProgramName(), expression.startLine())
+                    LogSourceData.fromNode(expression)
                 }
                 val entry = LogEntry(source, LogChannel.RESOLUTION.getPropertyName())
                 val logRenderer = LazyLogEntry(entry) { sep -> "FUNCTION$sep$functionToCall" }

@@ -45,6 +45,7 @@ import kotlin.test.assertTrue
 
 class MemoryStorage : IMemorySliceStorage {
     val storage = mutableMapOf<MemorySliceId, Map<String, Value>>()
+    val loadCount = mutableMapOf<MemorySliceId, Int>()
 
     /**
      * Open the storage
@@ -55,7 +56,10 @@ class MemoryStorage : IMemorySliceStorage {
     /**
      * Load memory associated to memorySliceId
      * */
-    override fun load(memorySliceId: MemorySliceId): Map<String, Value> = storage.getOrDefault(memorySliceId, mutableMapOf())
+    override fun load(memorySliceId: MemorySliceId): Map<String, Value> {
+        loadCount[memorySliceId] = loadCount.getOrDefault(memorySliceId, 0) + 1
+        return storage.getOrDefault(memorySliceId, mutableMapOf())
+    }
 
     /**
      * Notify transaction start. Is called before all memory slices storing
@@ -555,6 +559,63 @@ open class SymbolTableStoragingTest : AbstractTest() {
         assertEquals(
             expected = null,
             actual = actgrp06Vars,
+        )
+    }
+
+    @Test
+    fun rtProgramCalledTwiceWithinSameRequestDoesNotClobberInMemoryStateWithStaleStorage() {
+        // ACTGRP_01 calls ACTGRP_02 three times, all within a single root execution (one singleCall).
+        // ACTGRP_02 is RT-closing and appends "02." to STRVAR (not part of any PLIST) on each call.
+        // Here the storage is pre-populated with a "PRE." value for ACTGRP_02's slice *before* the request
+        // starts, simulating state left over from a previous, separate request. Since storage.store() only
+        // ever runs once at the very end of this request, the second and third calls to ACTGRP_02 must NOT
+        // re-read "PRE." from storage and overwrite the in-memory value accumulated by the previous call(s)
+        // within this same request - only the first call should ever see "PRE.".
+        val systemInterface: SystemInterface = JavaSystemInterface()
+        (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
+        val rpgDir = File("src/test/resources/")
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
+
+        val jariko = getProgram("ACTGRP_01", systemInterface, programFinders)
+        val memoryStorage = MemoryStorage()
+        val configuration = Configuration(memorySliceStorage = memoryStorage)
+        configuration.adaptForTestCase(this)
+        val memorySliceId = MemorySliceId(configuration.defaultActivationGroupName, programName = "ACTGRP_02")
+        memoryStorage.storage[memorySliceId] = mutableMapOf("STRVAR" to StringValue(value = "PRE.", varying = false))
+
+        jariko.singleCall(emptyList(), configuration)
+
+        val strvar = memoryStorage.storage[memorySliceId]
+        require(strvar != null)
+        assertEquals(
+            expected = "PRE.02.02.02.",
+            actual = (strvar["STRVAR"] as StringValue).value.trim(),
+        )
+    }
+
+    @Test
+    fun storageLoadIsCalledOnlyOncePerMemorySliceIdWithinSameRequest() {
+        // Same ACTGRP_01 -> ACTGRP_02 (x3) flow as playWithStaticACTGRPs, but here we assert on the number
+        // of physical storage.load() calls rather than just the resulting value: even though ACTGRP_02 is
+        // entered three times in this single request, its memory slice should only be loaded from storage once
+        // - subsequent associations within the same request must be served from the in-memory load cache.
+        val systemInterface: SystemInterface = JavaSystemInterface()
+        (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
+        val rpgDir = File("src/test/resources/")
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
+
+        val jariko = getProgram("ACTGRP_01", systemInterface, programFinders)
+        val memoryStorage = MemoryStorage()
+        val configuration = Configuration(memorySliceStorage = memoryStorage)
+        configuration.adaptForTestCase(this)
+        val memorySliceId = MemorySliceId(configuration.defaultActivationGroupName, programName = "ACTGRP_02")
+
+        jariko.singleCall(emptyList(), configuration)
+
+        assertEquals(
+            expected = 1,
+            actual = memoryStorage.loadCount.getOrDefault(memorySliceId, 0),
+            "storage.load() should be called exactly once for a program entered multiple times in the same request",
         )
     }
 

@@ -107,10 +107,8 @@ open class InternalInterpreter(
             "${value.render()} cannot be assigned to ${data.name} of type ${data.type}"
         }
 
-        val programName = getInterpretationContext().currentProgramName
-
         renderLog {
-            val logSource = { LogSourceData(programName, data.startLine()) }
+            val logSource = { LogSourceData.fromNode(data) }
             val previous =
                 if (data in globalSymbolTable) {
                     globalSymbolTable[data]
@@ -187,7 +185,7 @@ open class InternalInterpreter(
             }
             else -> {
                 renderLog {
-                    val logSource = { LogSourceData(programName, data.startLine()) }
+                    val logSource = { LogSourceData.fromNode(data) }
                     LazyLogEntry.produceAssignment(logSource, data, value)
                 }
                 // deny reassignment if data is a constant
@@ -205,8 +203,13 @@ open class InternalInterpreter(
     ) {
         val callback = configuration.jarikoCallback
         val initTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "INIT")
-        val programName = getInterpretationContext().currentProgramName
-        val logSourceProducer = { LogSourceData(programName = programName, line = compilationUnit.startLine()) }
+        val logSourceProducer = { LogSourceData.fromNode(compilationUnit) }
+
+        // Captured once, before globalSymbolTable is possibly populated below, so the LOAD block further down
+        // can reuse the same decision: a program re-entered with reinitialization == false and a non-empty
+        // table already holds authoritative in-memory state, so reloading from storage would overwrite it with
+        // stale data (nothing can have been persisted mid-request, since store() only runs once at request end).
+        val needsReinitialization = reinitialization || globalSymbolTable.isEmpty()
 
         callback.traceBlock(initTrace) {
             val start = System.nanoTime()
@@ -221,9 +224,7 @@ open class InternalInterpreter(
 
             var index = 0
             // Assigning initial values received from outside and consider INZ clauses
-            // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
-            // circumstances is correct reinitialization
-            if (reinitialization || globalSymbolTable.isEmpty()) {
+            if (needsReinitialization) {
                 beforeInitialization()
                 compilationUnit.allDataDefinitions.forEach {
                     var value: Value? = null
@@ -356,12 +357,20 @@ open class InternalInterpreter(
             }
         }
 
+        // The memory slice is always (re-)associated with this request's MemorySliceMgr, whether or not the
+        // physical storage load runs - association is what makes doSomethingAfterExecution find the slice
+        // again and mark it persist-worthy for the batched store() at the end of the request. Only the
+        // physical load+overwrite (load = needsReinitialization) is skipped when the table already holds
+        // this program's authoritative in-memory state (re-entered within the same request, not cleared).
         val loadTrace = JarikoTrace(JarikoTraceKind.SymbolTable, "LOAD")
         callback.traceBlock(loadTrace) {
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "START") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "START") }
 
-            val loadElapsed = measureNanoTime { afterInitialization(initialValues = initialValues) }.nanoseconds
+            val loadElapsed =
+                measureNanoTime {
+                    afterInitialization(initialValues = initialValues, load = needsReinitialization)
+                }.nanoseconds
 
             renderLog { LazyLogEntry.produceInformational(logSourceProducer, "SYMTBLLOAD", "END") }
             renderLog { LazyLogEntry.produceStatement(logSourceProducer, "SYMTBLLOAD", "END") }
@@ -374,6 +383,68 @@ open class InternalInterpreter(
                 )
             }
         }
+
+        // *PARMS must always reflect the current invocation's parameter list, whether or not the LOAD
+        // step above physically reloaded this call (e.g. it may carry a stale count from the previous call
+        // otherwise).
+        refreshParmsKeywordFields(compilationUnit)
+
+        // *ENTRY PLIST parameters must likewise reflect the current invocation's arguments: the LOAD
+        // step above may have restored them from the previous call within the same activation group.
+        refreshEntryPlistParams(compilationUnit, initialValues)
+    }
+
+    /**
+     * Re-evaluates DS fields initialized with the `*PARMS` keyword, overriding any stale value
+     * that activation-group memory-slice restoration may have just applied to them.
+     */
+    private fun refreshParmsKeywordFields(compilationUnit: CompilationUnit) {
+        compilationUnit.allDataDefinitions.filterIsInstance<DataDefinition>().forEach { ds ->
+            ds.fields.forEach { field ->
+                val initializationValue = field.initializationValue
+                if (initializationValue is ParmsExpr) {
+                    val fieldValue = coerce(eval(initializationValue), field.type)
+                    when (val value = get(ds.name)) {
+                        is DataStructValue -> value.set(field, fieldValue)
+                        is OccurableDataStructValue -> value.initializeField(field, fieldValue)
+                        else -> Unit
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Re-applies the current invocation's argument values to the data definitions listed in the
+     * program's `*ENTRY` PLIST, overriding any stale value that activation-group memory-slice
+     * restoration ([afterInitialization]) may have just applied to them.
+     *
+     * Counterpart of [refreshParmsKeywordFields]: the assignment of `initialValues` to `*ENTRY`
+     * PLIST parameters in [initialize] only runs on a full reinitialization, so when the program
+     * is re-entered within the same request the parameters would otherwise keep the previous
+     * call's values. Parameters absent from the current call are intentionally left untouched
+     * (an unpassed `*ENTRY` parameter retains its value).
+     */
+    private fun refreshEntryPlistParams(
+        compilationUnit: CompilationUnit,
+        initialValues: Map<String, Value>,
+    ) {
+        if (compilationUnit.entryPlist == null) return
+        compilationUnit.allDataDefinitions
+            .filter { it.isInPlist(compilationUnit) }
+            .forEach { dataDefinition ->
+                val value =
+                    when {
+                        dataDefinition.name in initialValues -> initialValues[dataDefinition.name]
+                        else -> {
+                            val resultName = dataDefinition.getResultNameByFactor1(compilationUnit)
+                            if (resultName != null) initialValues[resultName] else null
+                        }
+                    }
+                if (value != null && value !is NullValue) {
+                    set(dataDefinition, coerce(value, dataDefinition.type))
+                }
+            }
     }
 
     /**
@@ -620,9 +691,8 @@ open class InternalInterpreter(
     }
 
     private fun executeWithMute(statement: Statement) {
-        val programName = getInterpretationContext().currentProgramName
         renderLog {
-            val logSource = { LogSourceData(programName, statement.position.line()) }
+            val logSource = { LogSourceData.fromNode(statement) }
             LazyLogEntry.produceLine(logSource)
         }
 
@@ -721,7 +791,6 @@ open class InternalInterpreter(
         compilationUnit: CompilationUnit,
         line: String,
     ) {
-        val programName = getInterpretationContext().currentProgramName
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -744,7 +813,7 @@ open class InternalInterpreter(
                     }
 
                     renderLog {
-                        val logSource = { LogSourceData(programName, it.startLine()) }
+                        val logSource = { LogSourceData.fromNode(it) }
                         LazyLogEntry.produceMute(it, logSource, value)
                     }
 
@@ -781,7 +850,7 @@ open class InternalInterpreter(
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
                     renderLog {
-                        val logSource = { LogSourceData(programName, it.startLine()) }
+                        val logSource = { LogSourceData.fromNode(it) }
                         LazyLogEntry.produceMute(it, logSource, message)
                     }
                     systemInterface.addExecutedAnnotation(
@@ -958,9 +1027,8 @@ open class InternalInterpreter(
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
-            val programName = this.getInterpretationContext().currentProgramName
             renderLog {
-                val logSource = { LogSourceData(programName, dataDefinition.startLine()) }
+                val logSource = { LogSourceData.fromNode(dataDefinition) }
                 LazyLogEntry.produceData(logSource, dataDefinition, newValue, value)
             }
             set(data = dataDefinition, value = newValue)
@@ -987,8 +1055,7 @@ open class InternalInterpreter(
                 else -> expression.evalWith(expressionEvaluation)
             }
 
-        val programName = this.getInterpretationContext().currentProgramName
-        val sourceProvider = { LogSourceData(programName, expression.startLine()) }
+        val sourceProvider = { LogSourceData.fromNode(expression) }
         renderLog { LazyLogEntry.produceExpression(sourceProvider, expression, value) }
 
         return value
@@ -1062,8 +1129,7 @@ open class InternalInterpreter(
                 val index = indexValue.asInt().value.toInt()
 
                 renderLog {
-                    val logSource =
-                        { LogSourceData(getInterpretationContext().currentProgramName, target.array.startLine()) }
+                    val logSource = { LogSourceData.fromNode(target.array) }
                     LazyLogEntry.produceAssignmentOfElement(logSource, target.array, index, value)
                 }
 
@@ -1240,9 +1306,13 @@ open class InternalInterpreter(
 
     /**
      * This function is called after the initialization of the interpreter.
+     * @param load whether to also perform the physical storage load, see [MemorySliceMgr.associate].
      * */
-    open fun afterInitialization(initialValues: Map<String, Value>) {
-        globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues)
+    open fun afterInitialization(
+        initialValues: Map<String, Value>,
+        load: Boolean = true,
+    ) {
+        globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues, load)
     }
 
     private fun isExitingInRTMode(): Boolean {
@@ -1302,7 +1372,7 @@ open class InternalInterpreter(
         val internalExecute = {
             val sourceProducer =
                 if (loggingContext.logsEnabled) {
-                    { LogSourceData(programName, statement.position.line()) }
+                    { LogSourceData.fromNode(statement) }
                 } else {
                     null
                 }
@@ -1324,7 +1394,9 @@ open class InternalInterpreter(
      */
     private fun Statement.errorDescription(throwable: Throwable): String {
         val source = this.position!!.relative().second
-        return "Program ${getInterpretationContext().currentProgramName} - Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} of $source.\n${throwable.message}"
+        return "Program ${getInterpretationContext().currentProgramName} - " +
+            "Issue executing ${this.javaClass.simpleName} at absolute line ${this.position!!.start.line} " +
+            "of $source.\n${throwable.message}"
     }
 
     private fun CompilationUnit.getRelevantDataAreas(): Map<String, String> {

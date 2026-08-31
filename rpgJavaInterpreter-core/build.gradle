@@ -172,6 +172,13 @@ task testCore(type: Test) {
 
 test {
     systemProperty unlimitedStringTypeFlag, System.getProperty(unlimitedStringTypeFlag)
+    // Some RPG test sources/resources use non-ASCII characters (e.g. £) in file names.
+    // The forked test JVM does not inherit LANG/LC_* from the Gradle daemon (this is
+    // especially visible when the daemon is started by an IDE's build integration),
+    // so without this the JVM's sun.jnu.encoding falls back to ASCII and native file
+    // lookups for those names silently fail with "doesn't exist".
+    environment 'LANG', 'en_US.UTF-8'
+    environment 'LC_ALL', 'en_US.UTF-8'
     testLogging {
         events "failed"
     }
