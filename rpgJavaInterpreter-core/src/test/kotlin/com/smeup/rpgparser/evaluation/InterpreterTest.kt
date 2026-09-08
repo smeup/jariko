@@ -1019,6 +1019,7 @@ Test 6
                 "Compare uninitialized unlimited with *BLANKS",
                 "Reset an unlimited and compare with *BLANKS",
                 "Assignment from a boolean",
+                "RxATV: <ELEM ATT1=\"1\" ATT2=\"2\"/>",
             )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
