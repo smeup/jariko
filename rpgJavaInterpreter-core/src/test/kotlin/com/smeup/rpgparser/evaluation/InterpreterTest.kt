@@ -1031,6 +1031,8 @@ Test 6
                 "1234",
                 "%DEC",
                 "1.50",
+                "%LEN",
+                "4",
             )
         assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
