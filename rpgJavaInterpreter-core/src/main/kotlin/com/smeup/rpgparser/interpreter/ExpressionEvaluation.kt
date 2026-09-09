@@ -626,6 +626,9 @@ class ExpressionEvaluation(
                 is DataStructValue -> {
                     value.value.length.asValue()
                 }
+                is UnlimitedStringValue -> {
+                    value.value.length.asValue()
+                }
                 is ArrayValue -> {
                     // Incorrect data structure size calculation #28
                     when (expression.value) {

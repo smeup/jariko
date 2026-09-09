@@ -3,7 +3,7 @@
      D Msg             S             50
 
       * DS1 definition ************************************
-     D DS1             DS            70
+     D DS1             DS
       * StringType
      D Msg1                          50    inz('Msg1')
      D Msg2                          20    inz('Msg2')
@@ -19,6 +19,18 @@
      D DS2             DS                  LIKEDS(DS1)
       *****************************************************
 
+
+      * Returns the list of attributes and values of an element
+     DP_RxATV          PR           306    DIM(200)
+     D Xml_Str                    30000    VARYING
+     D  $XmlPRG                       5  0 OPTIONS(*NOPASS)
+      *****************************************************
+
+      * Working fields for the RxATV invocation ***********
+     D RxATVLst        S            306    DIM(200)
+     D XmlStr          S          30000    VARYING
+      *****************************************************
+
       * Initialization tests ***************************************************************
      C                   Dsply                   DS1.Unlimit
      C                   Dsply                   DS1.UnlInited
@@ -29,16 +41,16 @@
       * Change DS1 and DS2 field values ****************************************************
      C                   Eval      DS1.Msg1 = 'DS1.Msg1'
      C                   Dsply                   DS1.Msg1
-     
+
      C                   Eval      DS1.Unlimit = 'DS1.Unlimit'
      C                   Dsply                   DS1.Unlimit
-     
+
      C                   Eval      DS2.Msg1 = 'DS2.Msg1'
      C                   Dsply                   DS2.Msg1
-     
+
      C                   Eval      DS2.Unlimit = 'DS2.Unlimit'
-     C                   Dsply                   DS2.Unlimit     
-     
+     C                   Dsply                   DS2.Unlimit
+
      C                   If        DS1 <> DS2
      C                   Eval      Msg = 'DS1 <> DS2'
      C                   Dsply                   Msg
@@ -107,4 +119,19 @@
      C                   EndIf
       *****************************************************************************************
 
+      * Invocation of RxATV passing an unlimited where the parameter is declared as VARYING *
+     C                   Eval      Unlimit = '<ELEM ATT1="1" ATT2="2"/>'
+     C                   Eval      RxATVLst = P_RxATV(Unlimit)
+     C                   Dsply                   RxATVLst(1)
+      *****************************************************************************************
 
+
+     PP_RxATV          B
+     D P_RxATV         Pi           306    DIM(200)
+     D Xml_Str                    30000    VARYING
+     D  $XmlPRG                       5  0 OPTIONS(*NOPASS)
+     D RxRes           S            306    DIM(200)
+     C                   Eval      RxRes(1) = 'RxATV: ' + %trim(Xml_Str)
+     C                   Return    RxRes
+
+     P                 E
