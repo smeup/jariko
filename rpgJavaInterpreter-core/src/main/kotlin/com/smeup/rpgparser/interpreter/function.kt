@@ -202,7 +202,11 @@ class FunctionWrapper(
                 functionValue.variableName?.apply {
                     val functionParam = expectedParams[index]
                     if (functionParam.paramPassedBy == ParamPassedBy.Reference && functionValue.value != previousValues[index]) {
-                        interpreterStatus.symbolTable[interpreterStatus.symbolTable.dataDefinitionByName(this)!!] = functionValue.value
+                        val callerDefinition = interpreterStatus.symbolTable.dataDefinitionByName(this)!!
+                        // The value flowing back from the procedure carries the parameter type (e.g. a
+                        // VARYING StringValue). Coerce it to the caller variable type so that writing it
+                        // back into an UnlimitedStringType (or any other compatible type) does not fail.
+                        interpreterStatus.symbolTable[callerDefinition] = coerce(functionValue.value, callerDefinition.type)
                     }
                 }
             }
