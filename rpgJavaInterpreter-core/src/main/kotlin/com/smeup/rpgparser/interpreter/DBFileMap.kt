@@ -26,9 +26,18 @@ import java.util.*
 class DBFileMap {
     private val byFileName =
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
+
+    /**
+     * Alias registry for a file's record-format name(s). A RENAME'd F-spec's internal format
+     * name and the record's native format name (jarikoMetadata.recordFormat) are both aliases of
+     * the same "format name" concept, and multiple F-specs legitimately share one alias (e.g. an
+     * arrival-sequence F-spec plus several RENAME'd keyed F-specs over the same physical format).
+     * Resolution is first-registration-wins: whichever F-spec is registered first for a given
+     * alias keeps it; later F-specs sharing that alias never steal it. This makes format-name
+     * CHAIN/READ/SETLL resolution deterministic and declaration-order-driven, instead of
+     * accidental last-write-wins split across two separately-prioritized maps.
+     */
     private val byFormatName =
-        TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
-    private val byInternalFormatName =
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
 
     /**
@@ -52,18 +61,19 @@ class DBFileMap {
             dbFile?.let {
                 val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
                 // dbFile not null
-                // I consider fileDefinition.name, fileDefinition.internalFormatName and jarikoMetadata.recordFormat as alias of fileDefinition.name
+                // fileDefinition.name is unique per F-spec (guarded above); fileDefinition.internalFormatName
+                // and jarikoMetadata.recordFormat are format-name aliases that MAY be shared across F-specs
+                // (RENAME) - first registration wins, see byFormatName kdoc.
                 byFileName[fileDefinition.name] = enrichedDBFile
                 fileDefinition.internalFormatName?.let { internalFormatName ->
-                    byInternalFormatName[internalFormatName] = enrichedDBFile
+                    byFormatName.putIfAbsent(internalFormatName, enrichedDBFile)
                 }
-                byFormatName[jarikoMetadata.recordFormat] = enrichedDBFile
+                byFormatName.putIfAbsent(jarikoMetadata.recordFormat, enrichedDBFile)
             }
         }
     }
 
-    operator fun get(nameOrFormat: String): EnrichedDBFile? =
-        byFileName[nameOrFormat] ?: byInternalFormatName[nameOrFormat] ?: byFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
 /**
@@ -168,7 +178,19 @@ fun Expression.createKList(
     } else {
         when (val value = interpreter.eval(this)) {
             is StartValValue, is EndValValue -> throw NotImplementedError("$value constant not yet supported.")
-            else -> listOf(value.asString(fileMetadata.accessFieldsType.first()))
+            else -> {
+                val accessFieldType = fileMetadata.accessFieldsType.firstOrNull()
+                listOf(
+                    if (accessFieldType != null) {
+                        value.asString(accessFieldType)
+                    } else {
+                        // Unkeyed (arrival-sequence) file: this is a CHAIN/READE/READPE/SETLL/SETGT
+                        // by Relative Record Number, not by key - there is no field type to coerce
+                        // against, so stringify the raw value directly (RRN is always numeric).
+                        value.asString().value
+                    },
+                )
+            }
         }
     }
 
