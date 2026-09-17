@@ -44,6 +44,10 @@ JaRIKo is a JVM-based interpreter for the RPG programming language (IBM AS/400 R
 ./gradlew publishToMavenLocal
 ```
 
+### Before committing
+
+Always run `./gradlew ktlintCheck` before creating a commit.
+
 ### Running a single test
 
 ```bash
