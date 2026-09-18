@@ -108,6 +108,19 @@ interface InterpreterCore {
         record: Record,
     )
 
+    /**
+     * Writes [rrn] into [infdsDataDefinition]'s Relative Record Number subfield (see
+     * [EnrichedDBFile.infdsDataDefinition] / [INFDS_RRN_START_OFFSET]), called after a successful
+     * `CHAIN`/`READ`/`READP`/`READE`/`READPE`. When [rrn] is null (a backend with no RRN concept,
+     * e.g. JT400/NoSQL) the subfield is left at its previous value - the closest analogue to real
+     * IBM i's `SETLL`/`SETGT` not touching it either. When [infdsDataDefinition] declares no
+     * subfield at that offset, this is a no-op (nothing to write to).
+     */
+    fun writeInfdsRrn(
+        infdsDataDefinition: DataDefinition,
+        rrn: Long?,
+    )
+
     fun exists(dataName: String): Boolean
 
     fun dataDefinitionByName(name: String): AbstractDataDefinition?
