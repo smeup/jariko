@@ -967,9 +967,38 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(
             }
         }
         RpgType.BINARY.rpgType -> {
-            // Works like a packed or zoned
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
-            NumberType(elementSize, 0, rpgCodeType)
+            val numberOfDigits =
+                if (explicitElementSize != null) {
+                    // Explicit FROM/TO position within a DS: elementSize here is the field's
+                    // declared BYTE SPAN, not a decimal digit count - unlike INTEGER/UNSIGNED
+                    // just above, this used to pass it straight through as NumberType's digit
+                    // count. NumberType.size (typesystem.kt) then buckets that digit count back
+                    // into a storage byte length (1..4 digits -> 2 bytes, 5..9 digits -> 4
+                    // bytes), so a field spanning exactly 4 bytes - the common "4-byte binary"
+                    // case, e.g. IBM i's standard INFDS Relative Record Number subfield - fell
+                    // into the 1..4 bucket and silently got only 2 bytes of storage instead of
+                    // 4, truncating any value above 65535 with no error (see smeup/jariko#823).
+                    // A span of 1 or 2 already lands in the right (2-byte) bucket on its own and
+                    // is left alone. 8-byte storage isn't safely supported end-to-end yet
+                    // (NumberType.size has no bucket for it, and decodeBinary's size==8 branch
+                    // has its own truncation bug) - fail fast on a >4-byte span rather than
+                    // silently mis-encode it.
+                    when {
+                        elementSize <= 2 -> elementSize
+                        elementSize <= 4 -> 9
+                        else -> todo(
+                            "Binary field '$name' spans $elementSize bytes: only positional binary fields up to 4 bytes are currently supported",
+                            conf = conf,
+                        )
+                    }
+                } else {
+                    // Standalone size-only declaration (e.g. "D field 4B 0", no FROM/TO): here
+                    // elementSize is already a digit count, same convention as ZONED/PACKED just
+                    // above - not a byte span, no correction needed.
+                    elementSize
+                }
+            NumberType(numberOfDigits, 0, rpgCodeType)
         }
         RpgType.CHARACTER.rpgType -> {
             CharacterType(precision!!)
