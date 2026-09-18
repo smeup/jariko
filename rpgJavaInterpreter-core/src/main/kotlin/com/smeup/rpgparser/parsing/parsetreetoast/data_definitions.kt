@@ -987,10 +987,12 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(
                     when {
                         elementSize <= 2 -> elementSize
                         elementSize <= 4 -> 9
-                        else -> todo(
-                            "Binary field '$name' spans $elementSize bytes: only positional binary fields up to 4 bytes are currently supported",
-                            conf = conf,
-                        )
+                        else ->
+                            todo(
+                                "Binary field '$name' spans $elementSize bytes: only positional binary " +
+                                    "fields up to 4 bytes are currently supported",
+                                conf = conf,
+                            )
                     }
                 } else {
                     // Standalone size-only declaration (e.g. "D field 4B 0", no FROM/TO): here
@@ -1279,9 +1281,9 @@ class FieldsList(
                 ) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
                 val overlayingFieldsWithoutEndOffset = overlayingFields.filter { it.endOffset == null }
                 check(overlayingFieldsWithoutEndOffset.isEmpty()) {
-                    "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(
-                        separator = ", ",
-                    ) { it.name }}"
+                    val namesWithoutEndOffset = overlayingFieldsWithoutEndOffset.joinToString(separator = ", ") { it.name }
+                    "I cannot calculate the size of ${it.name} because it should be determined by the fields " +
+                        "overlaying on it, but for some I do not know the end offset. They are: $namesWithoutEndOffset"
                 }
                 val lastOffset = overlayingFields.map { it.endOffset!! }.maxOrNull()!!
                 it.calculatedElementSize = lastOffset
