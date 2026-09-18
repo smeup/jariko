@@ -1155,11 +1155,25 @@ open class MULANGT10BaseCodopTest : MULANGTTest() {
      */
     @Test
     fun executeMUDRNRAPU00285() {
-        // The magic number 8224 correspond to the deserialization of the "  " DS substring
-        // code of ' ' = 32
-        // 8224 = 8192 + 32 = (32 << 8) + 32
-        val expected = listOf("8224", "8224")
+        // X0NREC (397 400B 0) is a 4-byte-span positional binary field, never assigned - it
+        // reads back its DS's default blank ("    ", four 0x20 bytes) initialization. The magic
+        // number 538976288 is the deserialization of those 4 blank bytes: 0x20202020 =
+        // (0x20 << 24) + (0x20 << 16) + (0x20 << 8) + 0x20. Before smeup/jariko#823 was fixed,
+        // this field's byte span was mistakenly treated as a decimal digit count, giving it only
+        // 2 bytes of storage instead of 4 - this test used to assert the resulting (wrong,
+        // truncated-to-2-bytes) value, 8224 (0x2020).
+        val expected = listOf("538976288", "538976288")
         assertEquals(expected, "smeup/MUDRNRAPU00285".outputOf(configuration = smeupConfig))
+    }
+
+    /**
+     * Regression for smeup/jariko#823: a positional binary (B) DS subfield spanning 4 bytes
+     * must actually round-trip a value above 65535, not silently truncate it to the low 16 bits.
+     */
+    @Test
+    fun executeMUDRNRAPU00288() {
+        val expected = listOf("100000")
+        assertEquals(expected, "smeup/MUDRNRAPU00288".outputOf(configuration = smeupConfig))
     }
 
     /**

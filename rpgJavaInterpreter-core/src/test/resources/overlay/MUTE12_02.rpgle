@@ -281,9 +281,9 @@
      C                   EVAL      DS0011=*HIVAL
     MU* VAL1(DS0011) VAL2(-99) COMP(EQ)
      C                   EVAL      DS0011=*LOVAL
-    MU* VAL1(DS0012) VAL2(9999) COMP(EQ)
+    MU* VAL1(DS0012) VAL2(999999999) COMP(EQ)
      C                   EVAL      DS0012=*HIVAL
-    MU* VAL1(DS0012) VAL2(-9999) COMP(EQ)
+    MU* VAL1(DS0012) VAL2(-999999999) COMP(EQ)
      C                   EVAL      DS0012=*LOVAL
     MU* VAL1(DS0013) VAL2(127) COMP(EQ)
      C                   EVAL      DS0013=*HIVAL
