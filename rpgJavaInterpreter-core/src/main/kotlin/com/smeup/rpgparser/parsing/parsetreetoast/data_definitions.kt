@@ -144,6 +144,10 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
         val internalRecordFormatName = rename[0].int_format.text
         fileDefinition.internalFormatName = internalRecordFormatName
     }
+    val infds = this.fs_keyword().mapNotNull { it.keyword_infds() }
+    if (infds.isNotEmpty()) {
+        fileDefinition.infdsName = infds[0].simpleExpression().text.trim()
+    }
     return fileDefinition
 }
 

@@ -219,7 +219,7 @@ open class InternalInterpreter(
 
             // TODO verify if these values should be reinitialised or not
             compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
-                status.dbFileMap.add(it)
+                status.dbFileMap.add(it, compilationUnit)
             }
 
             var index = 0
@@ -983,6 +983,24 @@ open class InternalInterpreter(
         } else {
             status.lastFound.set(false)
         }
+    }
+
+    override fun writeInfdsRrn(
+        infdsDataDefinition: DataDefinition,
+        rrn: Long?,
+    ) {
+        rrn ?: return
+        val rrnField =
+            infdsDataDefinition.fields.firstOrNull {
+                it.explicitStartOffset == INFDS_RRN_START_OFFSET && it.explicitEndOffset == INFDS_RRN_END_OFFSET
+            } ?: return
+        // IntValue, not StringValue: assign()'s coerce() step treats a StringValue target for a
+        // NumberType as already-encoded storage bytes (the fillDataFrom convention for raw DB
+        // column text), not decimal text - passing "1" that way mis-decodes into a wrong binary
+        // value. IntValue coerces straight through, and DataStructValue.set() (via
+        // FieldDefinition.toDataStructureValue) then encodes it correctly for the field's type
+        // (binary(4) here, but this works for whatever numeric type the subfield actually has).
+        assign(rrnField, IntValue(rrn))
     }
 
     override fun dbFile(

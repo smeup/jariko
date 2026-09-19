@@ -750,6 +750,9 @@ abstract class AbstractReadEqualStmt(
         eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
 
         interpreter.fillDataFrom(dbFile, result.record)
+        dbFile.infdsDataDefinition?.let { infdsDs ->
+            interpreter.writeInfdsRrn(infdsDs, result.rrn)
+        }
     }
 
     abstract fun read(
@@ -776,6 +779,9 @@ abstract class AbstractReadStmt(
         eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
 
         interpreter.fillDataFrom(dbFile, result.record)
+        dbFile.infdsDataDefinition?.let { infdsDs ->
+            interpreter.writeInfdsRrn(infdsDs, result.rrn)
+        }
     }
 
     abstract fun readOp(dbFile: DBFile): Result

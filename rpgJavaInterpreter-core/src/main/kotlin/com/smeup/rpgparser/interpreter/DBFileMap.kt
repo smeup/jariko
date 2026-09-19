@@ -20,8 +20,16 @@ import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.Expression
 import java.util.*
+
+/** [FileDefinition.infdsName] resolves to a [DataDefinition] whose only declared field(s), if
+ *  any, must sit at this exact byte range - the well-known IBM i INFDS Relative Record Number
+ *  subfield offset (1-based 397-400, so 0-based [INFDS_RRN_START_OFFSET, INFDS_RRN_END_OFFSET)).
+ *  This plan wires up only that one subfield, not full INFDS - see [resolveInfdsDataDefinition]. */
+internal const val INFDS_RRN_START_OFFSET = 396
+internal const val INFDS_RRN_END_OFFSET = 400
 
 class DBFileMap {
     private val byFileName =
@@ -43,8 +51,19 @@ class DBFileMap {
     /**
      * Register a FileDefinition and create relative DBFile object for access to database with Reload library
      */
-    fun add(fileDefinition: FileDefinition) {
+    fun add(
+        fileDefinition: FileDefinition,
+        compilationUnit: CompilationUnit,
+    ) {
         if (!byFileName.containsKey(fileDefinition.name)) {
+            // Resolved per-F-spec (fileDefinition.infdsName), never via the shared byFormatName
+            // alias registry below: RENAME lets several F-specs share one record format while
+            // each still declares (and needs) its own independent INFDS. Resolved before opening
+            // any DB connection, so a bad INFDS(dsName) fails fast without touching reload at all.
+            val infdsDataDefinition =
+                fileDefinition.infdsName?.let { infdsName ->
+                    resolveInfdsDataDefinition(infdsName, fileDefinition, compilationUnit)
+                }
             val jarikoMetadata =
                 MainExecutionContext
                     .getConfiguration()
@@ -59,7 +78,7 @@ class DBFileMap {
                 )
 
             dbFile?.let {
-                val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
+                val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata, infdsDataDefinition)
                 // dbFile not null
                 // fileDefinition.name is unique per F-spec (guarded above); fileDefinition.internalFormatName
                 // and jarikoMetadata.recordFormat are format-name aliases that MAY be shared across F-specs
@@ -77,12 +96,50 @@ class DBFileMap {
 }
 
 /**
+ * Resolves [infdsName] (an F-spec's `INFDS(dsName)` argument) to the [DataDefinition] it names,
+ * failing fast - at file-open time, not on first read - when: the name doesn't resolve to any
+ * declared data definition, it doesn't resolve to a data structure, or that data structure
+ * declares any field outside the one subfield this plan supports (the Relative Record Number,
+ * at the fixed byte offset [INFDS_RRN_START_OFFSET]-[INFDS_RRN_END_OFFSET]). This plan wires up
+ * only that one INFDS subfield, not the full standard layout - see [INFDS_RRN_START_OFFSET]'s kdoc.
+ */
+private fun resolveInfdsDataDefinition(
+    infdsName: String,
+    fileDefinition: FileDefinition,
+    compilationUnit: CompilationUnit,
+): DataDefinition {
+    val resolved =
+        compilationUnit.allDataDefinitions.firstOrNull { it.name.equals(infdsName, ignoreCase = true) }
+            ?: error(
+                "File ${fileDefinition.name}: INFDS($infdsName) does not resolve to any declared data definition",
+            )
+    require(resolved is DataDefinition && resolved.type is DataStructureType) {
+        "File ${fileDefinition.name}: INFDS($infdsName) must name a data structure (DS), found $resolved"
+    }
+    resolved.fields.forEach { field ->
+        val start = field.explicitStartOffset ?: field.calculatedStartOffset
+        val end = field.explicitEndOffset ?: field.calculatedEndOffset
+        require(start == INFDS_RRN_START_OFFSET && end == INFDS_RRN_END_OFFSET) {
+            "File ${fileDefinition.name}: INFDS($infdsName) declares field '${field.name}' at byte offset " +
+                "${start?.plus(1)}-$end, but only the Relative Record Number subfield (byte offset " +
+                "${INFDS_RRN_START_OFFSET + 1}-$INFDS_RRN_END_OFFSET) is supported - this is a partial " +
+                "INFDS implementation, not the full standard layout"
+        }
+    }
+    return resolved
+}
+
+/**
  * DBFile wrapper needed to add further information to DBFile
  * */
 data class EnrichedDBFile(
     private val dbFile: DBFile,
     private val fileDefinition: FileDefinition,
     val jarikoMetadata: FileMetadata,
+    /** Resolved target of this F-spec's `INFDS(dsName)` keyword, or null when not declared - see
+     *  [resolveInfdsDataDefinition]. Read-execution statements write the current row's Relative
+     *  Record Number into this DS after a successful read (see [InterpreterCore.writeInfdsRrn]). */
+    val infdsDataDefinition: DataDefinition? = null,
 ) : DBFile {
     // All files are opened by default when defined in F specs.
     var open = true
