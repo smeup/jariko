@@ -91,8 +91,8 @@ open class InfdsRrnDBTest : AbstractTest() {
         // TESTF here is keyed (accessFields=["KEYTST"]): on DefaultSQLDialect/HSQLDB a keyed
         // read's Result.rrn is null (see rrn-output-support-reload.md). CHAIN must still succeed,
         // and XXNREU must stay untouched rather than crash or get overwritten with garbage.
-        // "8224" (not "0") is that untouched value: a DS's byte buffer default-initializes to
-        // blanks (0x20), and XXNREU's still-blank bytes decode as 0x2020 - this assertion exists
+        // "538976288" (not "0") is that untouched value: a DS's byte buffer default-initializes to
+        // blanks (0x20), and XXNREU's still-blank bytes decode as 0x20202020 (all 4 bytes - a positional B field spans its full byte range) - this assertion exists
         // to prove writeInfdsRrn left it exactly there, not that this particular number matters.
         val output =
             outputOfDBPgm(
@@ -104,7 +104,7 @@ open class InfdsRrnDBTest : AbstractTest() {
                     insertTestRecord("ABCDE", "FoundMe"),
                 ),
             )
-        assertEquals(listOf("Found", "8224"), output.map { it.trim() })
+        assertEquals(listOf("Found", "538976288"), output.map { it.trim() })
     }
 
     @Test
@@ -132,7 +132,9 @@ open class InfdsRrnDBTest : AbstractTest() {
                     """.trimIndent(),
                     "INSERT INTO \"TESTF\" (\"KEYTST\", \"DESTST\") VALUES ('ABCDE', 'FoundMe')",
                 ),
-                configuration = com.smeup.rpgparser.execution.Configuration(),
+                configuration =
+                    com.smeup.rpgparser.execution
+                        .Configuration(),
             )
         // "1": the single inserted row's real __RNN identity value, not a fallback/default - the
         // whole point of this test.
@@ -162,8 +164,8 @@ open class InfdsRrnDBTest : AbstractTest() {
                 ),
                 mapOf("rrn" to DecimalValue(BigDecimal.ONE)),
             )
-        // "8224" is Keyed's untouched-default value, same as keyedChainWithNullResultRrnLeavesInfdsSubfieldUnchanged.
-        assertEquals(listOf("1", "8224"), output.map { it.trim() })
+        // "538976288" is Keyed's untouched-default value, same as keyedChainWithNullResultRrnLeavesInfdsSubfieldUnchanged.
+        assertEquals(listOf("1", "538976288"), output.map { it.trim() })
     }
 
     private fun createMetadata(

@@ -60,9 +60,10 @@ private val postgresConnection: Connection? by lazy {
 fun isPostgresAvailable(): Boolean = postgresConnection != null
 
 private fun executePostgres(sqlStatements: List<String>) {
-    val connection = requireNotNull(postgresConnection) {
-        "PostgreSQL is not available - guard the caller with Assume.assumeTrue(isPostgresAvailable())"
-    }
+    val connection =
+        requireNotNull(postgresConnection) {
+            "PostgreSQL is not available - guard the caller with Assume.assumeTrue(isPostgresAvailable())"
+        }
     connection.createStatement().use { statement ->
         sqlStatements.forEach { statement.addBatch(it) }
         statement.executeBatch()

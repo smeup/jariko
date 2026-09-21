@@ -22,7 +22,7 @@ import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.Expression
-import java.util.*
+import java.util.TreeMap
 
 /** [FileDefinition.infdsName] resolves to a [DataDefinition] whose only declared field(s), if
  *  any, must sit at this exact byte range - the well-known IBM i INFDS Relative Record Number
