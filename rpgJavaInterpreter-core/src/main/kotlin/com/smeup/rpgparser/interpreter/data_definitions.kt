@@ -195,6 +195,14 @@ data class FileDefinition(
             field = value?.uppercase(Locale.getDefault())
         }
 
+    /** Name of the DS declared via this F-spec's `INFDS(dsName)` keyword, or null when not
+     *  declared. Resolved to an actual [DataDefinition] once, at [DBFileMap.add] time - see
+     *  [EnrichedDBFile.infdsDataDefinition]. */
+    var infdsName: String? = null
+        set(value) {
+            field = value?.uppercase(Locale.getDefault())
+        }
+
     private var fieldNameToDataDefinitionName = mutableMapOf<String, String>()
     private var dataDefinitionNameToFieldName = mutableMapOf<String, String>()
 
