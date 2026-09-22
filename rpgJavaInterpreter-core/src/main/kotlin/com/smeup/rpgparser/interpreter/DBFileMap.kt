@@ -22,6 +22,8 @@ import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.parsetreetoast.error
+import com.smeup.rpgparser.parsing.parsetreetoast.require
 import java.util.TreeMap
 
 /** [FileDefinition.infdsName] resolves to a [DataDefinition] whose only declared field(s), if
@@ -110,13 +112,14 @@ private fun resolveInfdsDataDefinition(
 ): DataDefinition {
     val resolved =
         compilationUnit.allDataDefinitions.firstOrNull { it.name.equals(infdsName, ignoreCase = true) }
-            ?: error(
+            ?: fileDefinition.error(
                 "File ${fileDefinition.name}: INFDS($infdsName) does not resolve to any declared data definition",
             )
-    require(resolved is DataDefinition && resolved.type is DataStructureType) {
+    fileDefinition.require(resolved is DataDefinition && resolved.type is DataStructureType) {
         "File ${fileDefinition.name}: INFDS($infdsName) must name a data structure (DS), found $resolved"
     }
-    resolved.fields.forEach { field ->
+    val dataDefinition = resolved as DataDefinition
+    dataDefinition.fields.forEach { field ->
         val start = field.explicitStartOffset ?: field.calculatedStartOffset
         val end = field.explicitEndOffset ?: field.calculatedEndOffset
         require(start == INFDS_RRN_START_OFFSET && end == INFDS_RRN_END_OFFSET) {
@@ -126,7 +129,7 @@ private fun resolveInfdsDataDefinition(
                 "INFDS implementation, not the full standard layout"
         }
     }
-    return resolved
+    return dataDefinition
 }
 
 /**
