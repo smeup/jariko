@@ -32,12 +32,11 @@ import java.sql.SQLException
 
 /**
  * Real PostgreSQL backend for DB-integration tests, alongside [outputOfDBPgm]'s default HSQLDB
- * one. Needed specifically to exercise PostgreSQLDialect's direct-RRN path (reload's `__RNN`
- * identity column) on a KEYED file - something HSQLDB cannot do at all (a keyed HSQLDB read's
- * Result.rrn is always null, by reload's own design - see the companion smeuperp workspace's
- * docs/plans/rrn-output-support-reload.md). Every test using this MUST guard itself with
- * `org.junit.Assume.assumeTrue(isPostgresAvailable())` first, so the suite is skipped - never
- * failed - when no PostgreSQL container is reachable.
+ * one. Only needed to smoke-test what is specific to PostgreSQLDialect (e.g. the explicit CAST on
+ * the RRN parameter): reload's `__RNN` identity-column RRN convention itself is shared with the
+ * Default dialect, so it is fully exercisable on HSQLDB. Every test using this MUST guard itself
+ * with `org.junit.Assume.assumeTrue(isPostgresAvailable())` first, so the suite is skipped -
+ * never failed - when no PostgreSQL container is reachable.
  */
 private fun postgresConnectionConfig(): ConnectionConfig =
     ConnectionConfig(

@@ -75,9 +75,10 @@ open class ChainUnkeyedFormatDBTest : AbstractTest() {
     private fun sqlCreateTestTable(name: String) =
         """
         CREATE TABLE $name (
+           "__RNN" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1) PRIMARY KEY,
            KEYTST CHAR(5) DEFAULT '' NOT NULL,
            DESTST CHAR(40) DEFAULT '' NOT NULL,
-           PRIMARY KEY(KEYTST) )
+           UNIQUE(KEYTST) )
         """.trimIndent()
 
     private fun recordFormatTestTable(tableName: String) = "COMMENT ON TABLE $tableName IS 'TSTFMT'"

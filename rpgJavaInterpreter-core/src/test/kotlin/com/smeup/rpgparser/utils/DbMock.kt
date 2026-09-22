@@ -15,6 +15,7 @@ interface DbMock : AutoCloseable {
     fun createTable(): String =
         """
         CREATE TABLE IF NOT EXISTS ${metadata.tableName} (
+            "__RNN" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1) PRIMARY KEY,
             ${this.buildDbColumnsFromDbFields(metadata.fields)})
         """.trimIndent()
 

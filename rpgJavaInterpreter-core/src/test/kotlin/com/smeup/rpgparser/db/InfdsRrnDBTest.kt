@@ -35,11 +35,10 @@ import kotlin.test.assertTrue
  * Result.rrn - see the companion smeuperp workspace's docs/plans/rrn-output-support-reload.md)
  * for the INFDS Relative Record Number subfield: docs/plans/infds-rrn-support-jariko.md.
  *
- * TestF is unkeyed (accessFields=emptyList()), like ChainUnkeyedFormatDBTest: reload only
- * publishes a real Result.rrn for an ordinary keyed read on DefaultSQLDialect/HSQLDB's own
- * unkeyed (Relative Record Number) CHAIN path - a keyed HSQLDB read has Result.rrn == null
- * (see rrn-output-support-reload.md's "keyed files on Default dialect" note), which would only
- * exercise this plan's null/no-op branch, not the actual write.
+ * Every table here declares reload's convention `__RNN` identity column (see
+ * SQLDialect.rrnSelectExpression's kdoc in reload), which every non-DB2 dialect - HSQLDB included -
+ * projects as Result.rrn, keyed files and unkeyed ones alike (TestF is unkeyed in some tests,
+ * accessFields=emptyList(), like ChainUnkeyedFormatDBTest, and keyed in others).
  */
 open class InfdsRrnDBTest : AbstractTest() {
     @Test
@@ -87,13 +86,11 @@ open class InfdsRrnDBTest : AbstractTest() {
     }
 
     @Test
-    open fun keyedChainWithNullResultRrnLeavesInfdsSubfieldUnchanged() {
-        // TESTF here is keyed (accessFields=["KEYTST"]): on DefaultSQLDialect/HSQLDB a keyed
-        // read's Result.rrn is null (see rrn-output-support-reload.md). CHAIN must still succeed,
-        // and XXNREU must stay untouched rather than crash or get overwritten with garbage.
-        // "538976288" (not "0") is that untouched value: a DS's byte buffer default-initializes to
-        // blanks (0x20), and XXNREU's still-blank bytes decode as 0x20202020 (all 4 bytes - a positional B field spans its full byte range) - this assertion exists
-        // to prove writeInfdsRrn left it exactly there, not that this particular number matters.
+    open fun keyedChainPopulatesInfdsRrnSubfield() {
+        // TESTF here is keyed (accessFields=["KEYTST"]): reload projects the table's __RNN as the
+        // read's Result.rrn even though CHAIN positions by the real key - the C5C5I0.rpgle/
+        // C5SER_39 production scenario (a keyed file whose INFDS RRN subfield is read back).
+        // "1" is the single inserted row's real __RNN identity value.
         val output =
             outputOfDBPgm(
                 "db/INFDSRRNKEYED",
@@ -104,17 +101,36 @@ open class InfdsRrnDBTest : AbstractTest() {
                     insertTestRecord("ABCDE", "FoundMe"),
                 ),
             )
-        assertEquals(listOf("Found", "538976288"), output.map { it.trim() })
+        assertEquals(listOf("Found", "1"), output.map { it.trim() })
+    }
+
+    @Test
+    open fun notFoundChainLeavesInfdsRrnSubfieldAtItsPreviousValue() {
+        // A CHAIN that finds nothing has no row, hence Result.rrn == null: writeInfdsRrn must
+        // ignore it - no crash, no overwrite. The program CHAINs a found key first (ABCDE, the
+        // table's second row, so RRN 2 rather than a value that could pass by coincidence) and
+        // then a missing one, and dsplys XXNREU after each: it must still read 2 after the miss,
+        // not fall back to the DS's blank-initialized default (538976288).
+        val output =
+            outputOfDBPgm(
+                "db/INFDSRRNNOTFOUND",
+                listOf(createMetadata(accessFields = listOf("KEYTST"))),
+                listOf(
+                    sqlDropTestTable(),
+                    sqlCreateTestTable(),
+                    insertTestRecord("AAAAA", "FirstRow"),
+                    insertTestRecord("ABCDE", "FoundMe"),
+                ),
+            )
+        assertEquals(listOf("2", "Not found", "2"), output.map { it.trim() })
     }
 
     @Test
     open fun keyedChainOnRealPostgresPopulatesInfdsRrnSubfield() {
-        // Closes the gap the other tests above can't: HSQLDB never gives a keyed read a real
-        // Result.rrn (see keyedChainWithNullResultRrnLeavesInfdsSubfieldUnchanged's kdoc), so
-        // nothing in this suite exercises "a keyed file gets a real RRN written into INFDS" -
-        // which is exactly the C5C5I0.rpgle/C5SER_39 production scenario this plan exists for
-        // (a keyed DB2 file, not an unkeyed one). Runs only when a real PostgreSQL is reachable
-        // (see isPostgresAvailable's kdoc) - skipped, not failed, otherwise.
+        // PostgreSQL smoke test of keyedChainPopulatesInfdsRrnSubfield: same scenario, but through
+        // PostgreSQLDialect (whose RRN parameter needs an explicit CAST) instead of the Default
+        // dialect HSQLDB uses. Runs only when a real PostgreSQL is reachable (see
+        // isPostgresAvailable's kdoc) - skipped, not failed, otherwise.
         assumeTrue("No PostgreSQL container reachable at localhost:5432 - skipping", isPostgresAvailable())
         val output =
             outputOfDBPgmPostgres(
@@ -145,8 +161,9 @@ open class InfdsRrnDBTest : AbstractTest() {
     open fun infdsResolvesPerFSpecNotPerSharedRenameFormat() {
         // Unkeyed and Keyed share record format TSTFMT via Keyed's RENAME (like
         // ChainUnkeyedFormatDBTest's C5RATER regression setup), but each declares its own INFDS.
-        // Unkeyed's CHAIN-by-RRN gets a real Result.rrn (1); Keyed's CHAIN-by-key gets null on
-        // HSQLDB - the two outputs being independent confirms per-F-spec resolution.
+        // Unkeyed's CHAIN-by-RRN and Keyed's CHAIN-by-key each get their own real Result.rrn (1,
+        // the single row inserted in each table) - the two outputs being independent confirms
+        // per-F-spec resolution.
         val output =
             outputOfDBPgm(
                 "db/INFDSRRNRENAME",
@@ -164,8 +181,7 @@ open class InfdsRrnDBTest : AbstractTest() {
                 ),
                 mapOf("rrn" to DecimalValue(BigDecimal.ONE)),
             )
-        // "538976288" is Keyed's untouched-default value, same as keyedChainWithNullResultRrnLeavesInfdsSubfieldUnchanged.
-        assertEquals(listOf("1", "538976288"), output.map { it.trim() })
+        assertEquals(listOf("1", "1"), output.map { it.trim() })
     }
 
     private fun createMetadata(
@@ -186,9 +202,10 @@ open class InfdsRrnDBTest : AbstractTest() {
     private fun sqlCreateTestTable(tableName: String = "TESTF") =
         """
         CREATE TABLE $tableName (
+           "__RNN" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1) PRIMARY KEY,
            KEYTST CHAR(5) DEFAULT '' NOT NULL,
            DESTST CHAR(40) DEFAULT '' NOT NULL,
-           PRIMARY KEY(KEYTST) )
+           UNIQUE(KEYTST) )
         """.trimIndent()
 
     // The underlying HSQLDB server (DBServer) is a singleton shared across every test method in
