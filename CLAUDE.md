@@ -118,3 +118,13 @@ RPG files can contain inline test assertions (lines starting with `MU*`). These 
 ### Feature flags
 
 Runtime feature flags are toggled via system properties or `Configuration.jarikoCallback.featureFlagIsOn`. Current flags: `jariko.features.UnlimitedStringTypeFlag`, `jariko.features.ChainCacheFlag`, `jariko.features.ZAddLegacyFlag`.
+
+### Error handling convention
+
+Do not throw errors with Kotlin's built-in `error()`, `require()`, `check()`, or `TODO()` in AST/parsing code. Instead use the equivalently-named functions defined in `parsing/parsetreetoast/errors.kt`: `Node.error`, `Node.todo`, `Node.require`, `ParserRuleContext.error`, `ParserRuleContext.todo`, `ParserRuleContext.require`. These link the error to the AST/parse-tree node's source position, giving more helpful diagnostics than the stdlib equivalents.
+
+Note: unlike `kotlin.require`/`kotlin.check`, these custom `require` functions carry no compiler contract, so passing an `is` check to them (e.g. `node.require(x is Foo) { ... }`) does **not** smart-cast `x` to `Foo` afterward — assign the cast explicitly (`val foo = x as Foo`) after the check instead.
+
+### PR descriptions
+
+When asked to write or update a pull request description, do not mention any LLM/AI reference (no "generated with", tool names, co-author lines, etc.).
