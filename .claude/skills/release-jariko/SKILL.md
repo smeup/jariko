@@ -43,8 +43,15 @@ gh api repos/smeup/reload/releases/latest --jq '.tag_name'
 Strip a leading `v` (e.g. `v2.0.0` → `2.0.0`). This is a real, non-SNAPSHOT Maven
 coordinate version consumed by `rpgJavaInterpreter-core/build.gradle` (the `io.github.smeup.reload:*`
 dependencies) — reload is not a submodule of this repo, just a remote artifact.
-Show the resolved version to the user and ask them to confirm it or provide a
-different one before continuing.
+
+**Mandatory confirmation gate.** Do not proceed to Step 3 until the user has
+explicitly confirmed the reload version. Use `AskUserQuestion` with the retrieved
+version (e.g. `2.0.0`, marked "Recommended") as the first option, plus an option to
+enter a different version via "Other". State clearly that the value was retrieved
+automatically from the latest `smeup/reload` GitHub release, and show the release
+URL (`gh api repos/smeup/reload/releases/latest --jq '.html_url'`) so the user can
+verify it. Never assume silence or a prior approval means confirmation. If the
+user supplies a different version, use that one verbatim (minus any leading `v`).
 
 ## Step 3 — Start the release branch
 
@@ -98,7 +105,7 @@ merges the release back into `develop`, and leaves the working tree on `develop`
 git checkout master
 ```
 
-Print exactly these two commands and ask the user to run them himself. **Do not
+Print exactly these two commands and ask the user to run them themselves. **Do not
 run `git push` yourself.** Wait for the user's explicit confirmation that both
 pushes are done before moving to Step 9.
 
@@ -141,7 +148,7 @@ git commit -m "bump develop-SNAPSHOT"
 
 ## Step 11 — STOP: manual push of develop
 
-Print exactly this command and ask the user to run it himself. **Do not run
+Print exactly this command and ask the user to run it themselves. **Do not run
 `git push` yourself.**
 
 ```bash
