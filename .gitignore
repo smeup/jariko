@@ -18,4 +18,5 @@ rpgJavaInterpreter-core/src/main/antlr/gen/
 lib
 *.tokens
 /rpgJavaInterpreter-core/src/main/resources/META-INF/com.smeup.jariko/version.txt
-.claude
+.claude/*
+!.claude/skills/
