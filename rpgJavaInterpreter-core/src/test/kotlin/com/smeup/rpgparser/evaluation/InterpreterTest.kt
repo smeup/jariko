@@ -1019,6 +1019,7 @@ Test 6
                 "Compare uninitialized unlimited with *BLANKS",
                 "Reset an unlimited and compare with *BLANKS",
                 "Assignment from a boolean",
+                "RxATV: <ELEM ATT1=\"1\" ATT2=\"2\"/>",
             )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
@@ -1031,6 +1032,8 @@ Test 6
                 "1234",
                 "%DEC",
                 "1.50",
+                "%LEN",
+                "4",
             )
         assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
@@ -1773,6 +1776,58 @@ Test 6
     @Test
     fun executeSUMDIVMULT() {
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
+    }
+
+    @Test
+    fun executeACTGRP_PARMS() {
+        // This test reproduces a bug: ACTGRP_PARMS runs in its own activation group and, when
+        // called twice with a different number of parameters, *PARMS on its Program Status Data
+        // Structure should reflect the actual number of parameters received on each call, instead
+        // of retaining the value from the previous call.
+        //
+        // Why am I using String.outputOf instead of the outputOf function: because the latter does
+        // not handle the CALL statement properly, showing a false positive runtime error.
+        val memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        assertEquals(
+            listOf("1"),
+            "ACTGRP_PARMS".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("A")),
+            ),
+        )
+        assertEquals(
+            listOf("2"),
+            "ACTGRP_PARMS".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("A", "B")),
+            ),
+        )
+    }
+
+    @Test
+    fun executeACTGRP_ENTRY() {
+        // This test reproduces a bug: ACTGRP_ENTRY keeps itself activated (SETON RT) and, when
+        // called twice with a different argument, the parameter received through the *ENTRY PLIST
+        // should reflect the value passed on the current call instead of the one restored from the
+        // previous call's memory slice.
+        //
+        // Why am I using String.outputOf instead of the outputOf function: because the latter does
+        // not handle the CALL statement properly, showing a false positive runtime error.
+        val memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        assertEquals(
+            listOf("FIRST"),
+            "ACTGRP_ENTRY".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("FIRST")),
+            ),
+        )
+        assertEquals(
+            listOf("SECOND"),
+            "ACTGRP_ENTRY".outputOf(
+                configuration = Configuration(memorySliceStorage),
+                params = CommandLineParms(listOf("SECOND")),
+            ),
+        )
     }
 
     @Test @Ignore

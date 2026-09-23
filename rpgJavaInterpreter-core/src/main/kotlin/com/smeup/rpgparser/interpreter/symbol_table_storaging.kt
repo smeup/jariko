@@ -108,6 +108,12 @@ class MemorySliceMgr(
 ) {
     private var memorySlices = mutableMapOf<MemorySliceId, MemorySlice>()
 
+    // storage.store() only ever runs once, at the end of the whole request (afterMainProgramInterpretation),
+    // so nothing in the backing storage can change between two loads of the same slice within one request.
+    // Caching here means repeat/nested calls to the same program reuse the first load instead of re-hitting
+    // storage each time.
+    private val loadedValues = mutableMapOf<MemorySliceId, Map<String, Value>>()
+
     init {
         storage.open()
     }
@@ -132,25 +138,35 @@ class MemorySliceMgr(
     }
 
     /**
-     * Associates a symbol table to a memory slice.
-     * In every case the association (and initialization of symbol table) is always followed by storage load invocation, for this reason, caching optimization
-     * should be handled in IMemorySliceStorage implementation.
+     * Associates a symbol table to a memory slice. This registration always happens, regardless of [load]:
+     * it is what makes the slice eligible for the batched store() at the end of the request, and what lets
+     * doSomethingAfterExecution find it again to mark it persist-worthy.
+     * When [load] is true, the association is additionally followed by a storage load - but the physical load
+     * only happens once per memorySliceId per MemorySliceMgr instance (i.e. once per request); subsequent
+     * associations for the same id reuse the first load's result. Callers pass load=false when the symbol
+     * table already holds this program's authoritative in-memory state (e.g. a program re-entered within the
+     * same request without having cleared its table), so a reload would overwrite it with stale data.
      * @param memorySliceId memory identifier
      * @param symbolTable Symbol table associated to the memory slice
+     * @param load whether to also perform (or reuse the cached result of) the physical storage load
      * @param initSymbolTableEntry Contains initialization logic for a single symbol table entry
      * */
     fun associate(
         memorySliceId: MemorySliceId,
         symbolTable: ISymbolTable,
+        load: Boolean = true,
         initSymbolTableEntry: (dataDefinition: AbstractDataDefinition, storedValue: Value) -> Unit = { dataDefinition, storedValue ->
             symbolTable[dataDefinition] = storedValue
         },
     ): MemorySlice {
         val memorySlice = MemorySlice(memorySliceId = memorySliceId, symbolTable = symbolTable)
         memorySlices[memorySliceId] = memorySlice
-        storage.load(memorySliceId).forEach { nameToValue ->
-            getDataDefinition(nameToValue.key, symbolTable).let { dataDef ->
-                initSymbolTableEntry.invoke(dataDef!!, nameToValue.value)
+        if (load) {
+            val values = loadedValues.getOrPut(memorySliceId) { storage.load(memorySliceId) }
+            values.forEach { nameToValue ->
+                getDataDefinition(nameToValue.key, symbolTable).let { dataDef ->
+                    initSymbolTableEntry.invoke(dataDef!!, nameToValue.value)
+                }
             }
         }
         return memorySlice

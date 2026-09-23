@@ -34,10 +34,11 @@ open class Chain2KeysDBTest : AbstractTest() {
         private fun sqlCreateTestTable() =
             """
             CREATE TABLE MYFILE2 (
+                "__RNN" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1) PRIMARY KEY,
                 KY1TST CHAR(5) DEFAULT '' NOT NULL,
                 KY2TST DECIMAL(2, 0) DEFAULT 0 NOT NULL,
                 DESTST CHAR(40) DEFAULT '' NOT NULL,
-                PRIMARY KEY(KY1TST, KY2TST) )
+                UNIQUE(KY1TST, KY2TST) )
             """.trimIndent()
 
         private fun insertRecords() =

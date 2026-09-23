@@ -37,6 +37,7 @@ class ChainHostsDBTest : AbstractTest() {
         private fun sqlCreateQATOCHOSTS() =
             """
             CREATE TABLE QATOCHOST (
+                "__RNN" BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1) PRIMARY KEY,
                 INTERNET CHAR(15) DEFAULT '' NOT NULL,
                 HOSTNME1 CHAR(255) DEFAULT '' NOT NULL,
                 HOSTNME2 CHAR(255) DEFAULT '' NOT NULL,
@@ -45,7 +46,7 @@ class ChainHostsDBTest : AbstractTest() {
                 IPINTGER INTEGER DEFAULT 0 NOT NULL,
                 TXTDESC CHAR(64) DEFAULT '' NOT NULL,
                 RESERVED CHAR(49) DEFAULT '' NOT NULL,
-                PRIMARY KEY(INTERNET) )
+                UNIQUE(INTERNET) )
             """.trimIndent()
 
         private fun insertRecordsQATOCHOSTS() = "INSERT INTO QATOCHOST (INTERNET, HOSTNME1) VALUES('127.0.0.1', 'LOOPBACK')"

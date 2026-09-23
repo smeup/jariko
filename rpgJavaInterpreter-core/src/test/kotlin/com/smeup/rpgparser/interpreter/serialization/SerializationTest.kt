@@ -144,6 +144,39 @@ class SerializationTest {
     }
 
     @Test
+    fun `a map with Values can be round-tripped via ValueMapSerializer`() {
+        val aLongNumber = 6969L
+        val decimalValue = DecimalValue(BigDecimal(aLongNumber))
+        val intValue = IntValue(aLongNumber)
+        val stringValue = StringValue(aLongNumber.toString())
+        val booleanValue = BooleanValue.TRUE
+        val timeStampValue = TimeStampValue.now()
+        val characterValue = CharacterValue("Hello world".toCharArray().toTypedArray())
+        val arrayValue =
+            ConcreteArrayValue(
+                mutableListOf<Value>(IntValue(1), IntValue(2), IntValue(3)),
+                NumberType(3, 0, RpgType.INTEGER),
+            )
+        val dsValue = DataStructValue(" test 11233 ")
+
+        val originalMap =
+            mapOf(
+                "one" to decimalValue,
+                "two" to intValue,
+                "three" to stringValue,
+                "four" to booleanValue,
+                "five" to timeStampValue,
+                "six" to characterValue,
+                "seven" to arrayValue,
+                "eighth" to dsValue,
+            )
+
+        val encoded = ValueMapSerializer.encode(originalMap)
+        val decoded = ValueMapSerializer.decode(encoded)
+        assertEquals(originalMap, decoded)
+    }
+
+    @Test
     fun `DataStructValue with UnlimitedStringType can be serialized to Json`() {
         val rawStringValue = " Hello world 123 "
         val dsValue = DataStructValue(rawStringValue)

@@ -25,11 +25,14 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.HttpServer
 import org.junit.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
+import java.net.InetSocketAddress
 import java.net.URL
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -131,42 +134,61 @@ class CallProgramHandlerTest : AbstractTest() {
          *
          * Behaviour 2: The main rpgle program, execute a call to 'TST_001_2.rpgle'.
          * This call is implemented by 'CallProgramHandler' that execute a POST request
-         * to 'https://jariko.smeup.cloud'.
+         * to an out-of-process HTTP endpoint (e.g. 'https://jariko.smeup.cloud' in production).
          *
          * The post will invoke the jariko interpreter through a lambda function, passing "JARIKO" string
          * as input parameter and response with a json similar to:
          * {"program-name":"TST_001_2","execution-time":"235 ms","program-params":["HELLO JARIKO        ]}
          *
-         * N.B.: set environment variable JARIKO_X_API_KEY
+         * To keep this test hermetic and independent from the availability of the real cloud
+         * endpoint (which is not always reachable, depending on the host running the tests),
+         * the POST request targets a local HTTP server started for the duration of this test,
+         * which mimics the real endpoint's response contract.
          */
-        if (null == System.getenv("JARIKO_X_API_KEY")) {
-            return
+        val responseBody =
+            "{\"program-name\":\"TST_001_2\",\"execution-time\":\"235 ms\"," +
+                "\"program-params\":[\"HELLO JARIKO" + " ".repeat(100) + "\"]}"
+
+        val server = HttpServer.create(InetSocketAddress("localhost", 0), 0)
+        server.createContext("/") { exchange: HttpExchange ->
+            exchange.requestBody.readBytes()
+            val bytes = responseBody.toByteArray(Charsets.UTF_8)
+            exchange.responseHeaders.add("Content-Type", "application/json; utf-8")
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
         }
-        val systemInterface: SystemInterface = JavaSystemInterface()
-        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
-        val configuration = Configuration()
+        server.start()
 
-        val callProgramHandler =
-            CallProgramHandler(
-                handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                    if (programName == "TST_001_2") {
-                        listOf(
-                            StringValue(
-                                doPost(programName, "JARIKO"),
-                                false,
-                            ),
-                        )
-                    } else {
-                        null
-                    }
-                },
-            )
+        try {
+            val baseUrl = "http://localhost:${server.address.port}"
+            val systemInterface: SystemInterface = JavaSystemInterface()
+            val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
+            val configuration = Configuration()
 
-        val jariko = getProgram("TST_001.rpgle", systemInterface, programFinders)
-        configuration.options.callProgramHandler = callProgramHandler
-        val result = jariko.singleCall(listOf(""), configuration)
-        require(result != null)
-        assertTrue { result.parmsList[0].trim().contains("HELLO JARIKO") }
+            val callProgramHandler =
+                CallProgramHandler(
+                    handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                        if (programName == "TST_001_2") {
+                            listOf(
+                                StringValue(
+                                    doPost(programName, "JARIKO", baseUrl),
+                                    false,
+                                ),
+                            )
+                        } else {
+                            null
+                        }
+                    },
+                )
+
+            val jariko = getProgram("TST_001.rpgle", systemInterface, programFinders)
+            configuration.options.callProgramHandler = callProgramHandler
+            val result = jariko.singleCall(listOf(""), configuration)
+            require(result != null)
+            assertTrue { result.parmsList[0].trim().contains("HELLO JARIKO") }
+        } finally {
+            server.stop(0)
+        }
     }
 
     /**
@@ -196,8 +218,9 @@ class CallProgramHandlerTest : AbstractTest() {
     private fun doPost(
         theProgram: String,
         inputParams: String,
+        baseUrl: String = "https://jariko.smeup.cloud",
     ): String {
-        val url = URL("https://jariko.smeup.cloud")
+        val url = URL(baseUrl)
         val con: HttpURLConnection = url.openConnection() as HttpURLConnection
         con.requestMethod = "POST"
         val xApiKey = System.getenv("JARIKO_X_API_KEY")

@@ -243,8 +243,7 @@ data class ExecuteSubroutine(
         get() = "EXSR"
 
     override fun execute(interpreter: InterpreterCore) {
-        val programName = interpreter.getInterpretationContext().currentProgramName
-        val logSource = { LogSourceData(programName, subroutine.referred!!.position.line()) }
+        val logSource = { LogSourceData.fromNode(subroutine.referred!!) }
 
         interpreter.renderLog { LazyLogEntry.produceSubroutineStart(logSource, subroutine.referred!!) }
 
@@ -422,7 +421,7 @@ data class SelectStmt(
         val nextOperationAt = totalCasesStatementsCount + otherBody.size
         switchStmt.nextOperationOffset = nextOperationAt
 
-        /**
+        /*
          * Each branch last instruction must point to the end of the SWITCH statement
          * after unwrapping we need to update the offset of each 'last' statement
          */
@@ -751,6 +750,9 @@ abstract class AbstractReadEqualStmt(
         eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
 
         interpreter.fillDataFrom(dbFile, result.record)
+        dbFile.infdsDataDefinition?.let { infdsDs ->
+            interpreter.writeInfdsRrn(infdsDs, result.rrn)
+        }
     }
 
     abstract fun read(
@@ -777,6 +779,9 @@ abstract class AbstractReadStmt(
         eqIndicator?.let { interpreter.getIndicators()[it] = result.indicatorEQ.asValue() }
 
         interpreter.fillDataFrom(dbFile, result.record)
+        dbFile.infdsDataDefinition?.let { infdsDs ->
+            interpreter.writeInfdsRrn(infdsDs, result.rrn)
+        }
     }
 
     abstract fun readOp(dbFile: DBFile): Result
@@ -1156,9 +1161,6 @@ data class CallStmt(
             }
 
             program ?: throw buildProgramNotFoundException(programToCall)
-            if (program is RpgProgram) {
-                MainExecutionContext.getProgramStack().push(program)
-            }
 
             // Ignore exceeding params
             val targetProgramParams = program.params()
@@ -1210,6 +1212,16 @@ data class CallStmt(
                             }
                         targetProgramParams[index].name to coerce(interpreter[resultName], targetProgramParams[index].type)
                     }.toMap(LinkedHashMap())
+
+            // Pushed only now, right before the callee actually runs: everything above this point (resolving the
+            // program, binding its PARM literals into the caller's own variables) still executes as the caller, so
+            // pushing earlier would make the callee appear as the active program - e.g. in MainExecutionContext-stack
+            // -driven logging (see LogSourceData.fromNode) - for statements that are still logically the caller's.
+            // RpgProgram.execute() requires the stack's top to be this program by the time it runs (see its own
+            // doc comment), which this still satisfies.
+            if (program is RpgProgram) {
+                MainExecutionContext.getProgramStack().push(program)
+            }
 
             val paramValuesAtTheEnd =
                 try {
@@ -3275,8 +3287,7 @@ data class OpenStmt(
         val cu = getContainingCompilationUnit()
         val isPrinter = cu?.fileDefinitions?.any { it.fileType == FileType.PRINTER && it.name.equals(name, ignoreCase = true) } ?: false
         if (isPrinter) {
-            val programName = MainExecutionContext.getExecutionProgramName()
-            val provider = { LogSourceData(programName, position?.line() ?: "") }
+            val provider = { LogSourceData.fromNode(this) }
             val entry = LazyLogEntry.produceInformational(provider, "MOCKOPEN", name)
             val rendered = entry.renderScoped()
             System.err.println(rendered)

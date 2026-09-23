@@ -20,22 +20,52 @@ import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.Expression
-import java.util.*
+import com.smeup.rpgparser.parsing.parsetreetoast.error
+import com.smeup.rpgparser.parsing.parsetreetoast.require
+import java.util.TreeMap
+
+/** [FileDefinition.infdsName] resolves to a [DataDefinition] whose only declared field(s), if
+ *  any, must sit at this exact byte range - the well-known IBM i INFDS Relative Record Number
+ *  subfield offset (1-based 397-400, so 0-based [INFDS_RRN_START_OFFSET, INFDS_RRN_END_OFFSET)).
+ *  This plan wires up only that one subfield, not full INFDS - see [resolveInfdsDataDefinition]. */
+internal const val INFDS_RRN_START_OFFSET = 396
+internal const val INFDS_RRN_END_OFFSET = 400
 
 class DBFileMap {
     private val byFileName =
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
+
+    /**
+     * Alias registry for a file's record-format name(s). A RENAME'd F-spec's internal format
+     * name and the record's native format name (jarikoMetadata.recordFormat) are both aliases of
+     * the same "format name" concept, and multiple F-specs legitimately share one alias (e.g. an
+     * arrival-sequence F-spec plus several RENAME'd keyed F-specs over the same physical format).
+     * Resolution is first-registration-wins: whichever F-spec is registered first for a given
+     * alias keeps it; later F-specs sharing that alias never steal it. This makes format-name
+     * CHAIN/READ/SETLL resolution deterministic and declaration-order-driven, instead of
+     * accidental last-write-wins split across two separately-prioritized maps.
+     */
     private val byFormatName =
-        TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
-    private val byInternalFormatName =
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
 
     /**
      * Register a FileDefinition and create relative DBFile object for access to database with Reload library
      */
-    fun add(fileDefinition: FileDefinition) {
+    fun add(
+        fileDefinition: FileDefinition,
+        compilationUnit: CompilationUnit,
+    ) {
         if (!byFileName.containsKey(fileDefinition.name)) {
+            // Resolved per-F-spec (fileDefinition.infdsName), never via the shared byFormatName
+            // alias registry below: RENAME lets several F-specs share one record format while
+            // each still declares (and needs) its own independent INFDS. Resolved before opening
+            // any DB connection, so a bad INFDS(dsName) fails fast without touching reload at all.
+            val infdsDataDefinition =
+                fileDefinition.infdsName?.let { infdsName ->
+                    resolveInfdsDataDefinition(infdsName, fileDefinition, compilationUnit)
+                }
             val jarikoMetadata =
                 MainExecutionContext
                     .getConfiguration()
@@ -50,20 +80,56 @@ class DBFileMap {
                 )
 
             dbFile?.let {
-                val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
+                val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata, infdsDataDefinition)
                 // dbFile not null
-                // I consider fileDefinition.name, fileDefinition.internalFormatName and jarikoMetadata.recordFormat as alias of fileDefinition.name
+                // fileDefinition.name is unique per F-spec (guarded above); fileDefinition.internalFormatName
+                // and jarikoMetadata.recordFormat are format-name aliases that MAY be shared across F-specs
+                // (RENAME) - first registration wins, see byFormatName kdoc.
                 byFileName[fileDefinition.name] = enrichedDBFile
                 fileDefinition.internalFormatName?.let { internalFormatName ->
-                    byInternalFormatName[internalFormatName] = enrichedDBFile
+                    byFormatName.putIfAbsent(internalFormatName, enrichedDBFile)
                 }
-                byFormatName[jarikoMetadata.recordFormat] = enrichedDBFile
+                byFormatName.putIfAbsent(jarikoMetadata.recordFormat, enrichedDBFile)
             }
         }
     }
 
-    operator fun get(nameOrFormat: String): EnrichedDBFile? =
-        byFileName[nameOrFormat] ?: byInternalFormatName[nameOrFormat] ?: byFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+}
+
+/**
+ * Resolves [infdsName] (an F-spec's `INFDS(dsName)` argument) to the [DataDefinition] it names,
+ * failing fast - at file-open time, not on first read - when: the name doesn't resolve to any
+ * declared data definition, it doesn't resolve to a data structure, or that data structure
+ * declares any field outside the one subfield this plan supports (the Relative Record Number,
+ * at the fixed byte offset [INFDS_RRN_START_OFFSET]-[INFDS_RRN_END_OFFSET]). This plan wires up
+ * only that one INFDS subfield, not the full standard layout - see [INFDS_RRN_START_OFFSET]'s kdoc.
+ */
+private fun resolveInfdsDataDefinition(
+    infdsName: String,
+    fileDefinition: FileDefinition,
+    compilationUnit: CompilationUnit,
+): DataDefinition {
+    val resolved =
+        compilationUnit.allDataDefinitions.firstOrNull { it.name.equals(infdsName, ignoreCase = true) }
+            ?: fileDefinition.error(
+                "File ${fileDefinition.name}: INFDS($infdsName) does not resolve to any declared data definition",
+            )
+    fileDefinition.require(resolved is DataDefinition && resolved.type is DataStructureType) {
+        "File ${fileDefinition.name}: INFDS($infdsName) must name a data structure (DS), found $resolved"
+    }
+    val dataDefinition = resolved as DataDefinition
+    dataDefinition.fields.forEach { field ->
+        val start = field.explicitStartOffset ?: field.calculatedStartOffset
+        val end = field.explicitEndOffset ?: field.calculatedEndOffset
+        require(start == INFDS_RRN_START_OFFSET && end == INFDS_RRN_END_OFFSET) {
+            "File ${fileDefinition.name}: INFDS($infdsName) declares field '${field.name}' at byte offset " +
+                "${start?.plus(1)}-$end, but only the Relative Record Number subfield (byte offset " +
+                "${INFDS_RRN_START_OFFSET + 1}-$INFDS_RRN_END_OFFSET) is supported - this is a partial " +
+                "INFDS implementation, not the full standard layout"
+        }
+    }
+    return dataDefinition
 }
 
 /**
@@ -73,6 +139,10 @@ data class EnrichedDBFile(
     private val dbFile: DBFile,
     private val fileDefinition: FileDefinition,
     val jarikoMetadata: FileMetadata,
+    /** Resolved target of this F-spec's `INFDS(dsName)` keyword, or null when not declared - see
+     *  [resolveInfdsDataDefinition]. Read-execution statements write the current row's Relative
+     *  Record Number into this DS after a successful read (see [InterpreterCore.writeInfdsRrn]). */
+    val infdsDataDefinition: DataDefinition? = null,
 ) : DBFile {
     // All files are opened by default when defined in F specs.
     var open = true
@@ -168,7 +238,19 @@ fun Expression.createKList(
     } else {
         when (val value = interpreter.eval(this)) {
             is StartValValue, is EndValValue -> throw NotImplementedError("$value constant not yet supported.")
-            else -> listOf(value.asString(fileMetadata.accessFieldsType.first()))
+            else -> {
+                val accessFieldType = fileMetadata.accessFieldsType.firstOrNull()
+                listOf(
+                    if (accessFieldType != null) {
+                        value.asString(accessFieldType)
+                    } else {
+                        // Unkeyed (arrival-sequence) file: this is a CHAIN/READE/READPE/SETLL/SETGT
+                        // by Relative Record Number, not by key - there is no field type to coerce
+                        // against, so stringify the raw value directly (RRN is always numeric).
+                        value.asString().value
+                    },
+                )
+            }
         }
     }
 

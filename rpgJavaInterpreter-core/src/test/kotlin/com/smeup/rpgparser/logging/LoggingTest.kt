@@ -20,7 +20,13 @@ package com.smeup.rpgparser.logging
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.LazyLogEntry
+import com.smeup.rpgparser.interpreter.LogSourceData
+import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.consoleVerboseConfiguration
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
 import org.apache.logging.log4j.LogManager
@@ -28,7 +34,13 @@ import org.junit.After
 import org.junit.Assert
 import java.io.File
 import java.io.PrintStream
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class LoggingTest : AbstractTest() {
     private val programName = "MYPGM"
@@ -486,8 +498,20 @@ class LoggingTest : AbstractTest() {
         virtualOut.flush()
 
         val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
-        val functionEntries = logEntries.filter { it.contains("FunctionInterpreter.CALL1", ignoreCase = true) }
-        // 2 * SYMTBLINI + 2 SYMTBLLOAD + 1 Func body + 1 Func return
+        val functionEntries =
+            logEntries.filter {
+                it.matches(Regex(".+\\tFUNCLOG\\t(13|18|19)\\t.+"))
+            }
+        // In my opinion was a mistake to log also FunctionInterpreter.CALL1
+        // We have to log always the program name not the function name
+        // It is the row number that identifies the function call and statements
+        // This is the logs we want to have:
+        // 16:34:32.739 	STMT	FUNCLOG	13	START	SYMTBLINI
+        // 16:34:32.741 	STMT	FUNCLOG	13	END	SYMTBLINI
+        // 16:34:32.741 	STMT	FUNCLOG	13	START	SYMTBLLOAD
+        // 16:34:32.742 	STMT	FUNCLOG	13	END	SYMTBLLOAD
+        // 16:34:32.742 	STMT	FUNCLOG	18	EXEC	EVAL	r = p + q
+        // 16:34:32.743 	STMT	FUNCLOG	19	EXEC	RETURN
         assertEquals(6, functionEntries.size)
 
         System.setOut(defaultOut)
@@ -523,6 +547,36 @@ class LoggingTest : AbstractTest() {
         // We immediately restore the correct scope
         assertTrue { logEntries.any { it.contains("STMT\tCALLSCOPE\t3\tEXEC\tEVAL\t\$A = \"T\"\t") } }
 
+        System.setOut(defaultOut)
+    }
+
+    /**
+     * Test if TSTCPY01 logs are correctly printed out
+     */
+    @Test
+    fun tstcpy01() {
+        val defaultOut = System.out
+        val virtualOut = StringOutputStream()
+        System.setOut(PrintStream(virtualOut))
+
+        val configuration = Configuration().apply { options = Options(debuggingInformation = true) }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.STATEMENT)
+            }
+        executePgm(programName = "TSTCPY01", configuration = configuration, systemInterface = systemInterface)
+        virtualOut.flush()
+
+        val logEntries = virtualOut.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+        val copyEntries =
+            logEntries.filter {
+                it.matches(Regex(".+\\tQILEGEN,TSTCPY01\\t(4|5)\\t.+"))
+            }
+        assertEquals(2, copyEntries.size, "There must be 2 copy entries ad line 4 and 5 of QILEGEN,TSTCPY01")
+        val afterIncludedEntriesRegex =
+            Regex(".+\\tTSTCPY01\\t(16\\tEXEC\\tEVAL\\tMSG = \"Copy included\"|17\\tEXEC\\tCALL\\t\"CAL01\").*")
+        val afterIncludedEntries = logEntries.filter { afterIncludedEntriesRegex.matches(it) }
+        assertEquals(2, afterIncludedEntries.size, "There must be 2 entries after copy included at line 16 and 17 of TSTCPY01")
         System.setOut(defaultOut)
     }
 }

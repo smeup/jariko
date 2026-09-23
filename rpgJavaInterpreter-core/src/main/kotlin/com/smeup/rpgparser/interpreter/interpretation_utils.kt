@@ -149,11 +149,13 @@ internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
  * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
  * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
  * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
+ * @param load whether to also perform the physical storage load, see [MemorySliceMgr.associate].
  */
 internal fun ISymbolTable.restoreFromMemorySlice(
     memorySliceId: MemorySliceId?,
     memorySliceMgr: MemorySliceMgr?,
     initialValues: Map<String, Value> = emptyMap(),
+    load: Boolean = true,
 ) {
     memorySliceId?.let { myMemorySliceId ->
         memorySliceMgr?.let {
@@ -161,6 +163,7 @@ internal fun ISymbolTable.restoreFromMemorySlice(
                 it.associate(
                     memorySliceId = memorySliceId,
                     symbolTable = this,
+                    load = load,
                     initSymbolTableEntry = { dataDefinition, storedValue ->
                         // initial values have not to be overwritten
                         if (!initialValues.containsKey(dataDefinition.name)) {

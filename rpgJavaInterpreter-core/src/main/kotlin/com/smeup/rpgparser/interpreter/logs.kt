@@ -47,6 +47,14 @@ data class LogSourceData(
         val UNKNOWN get() = LogSourceData("", "")
 
         fun fromProgram(name: String) = LogSourceData(name, "")
+
+        fun fromNode(node: Node): LogSourceData {
+            if (node.position != null) {
+                val sourceReference = node.position!!.relative().second
+                return LogSourceData(sourceReference.sourceId, sourceReference.relativeLine.toString())
+            }
+            return UNKNOWN
+        }
     }
 
     val filename get() = programName.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
@@ -178,7 +186,9 @@ class LazyLogEntry(
         ): LazyLogEntry {
             val message: String by lazy {
                 when (annotation) {
-                    is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} $result ${annotation.val1} ${annotation.comparison} ${annotation.val2} "
+                    is MuteComparisonAnnotation ->
+                        "executing MuteComparisonAnnotation: ${annotation.position} $result " +
+                            "${annotation.val1} ${annotation.comparison} ${annotation.val2} "
                     is MuteFailAnnotation -> "executing MuteFail: ${annotation.position} - ${result.render()}"
                     else -> this.toString()
                 }
@@ -247,16 +257,17 @@ class LazyLogEntry(
             return fromEntry(entry)
         }
 
-        /**
+        /*
          * Create a new LazyLogEntry for the PERF channel
          * @see LogChannel
+         *
+         * fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
+         *     val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
+         *     return LazyLogEntry(entry) {
+         *         elapsed.inWholeMicroseconds.toString()
+         *     }
+         * }
          */
-//        fun producePerformance(source: LogSourceProvider, entity: String, elapsed: Duration): LazyLogEntry {
-//            val entry = LogEntry(source, LogChannel.PERFORMANCE.getPropertyName(), entity)
-//            return LazyLogEntry(entry) {
-//                elapsed.inWholeMicroseconds.toString()
-//            }
-//        }
 
         /**
          * Create a new LazyLogEntry for the PERF channel and updates AnalyticsContext with its data
@@ -541,25 +552,26 @@ class ListLogHandler : InterpreterLogHandler {
 
 //    fun getEvaluatedExpressions() = _logs.filterIsInstance<ExpressionEvaluationLogEntry>()
     fun getAssignments() = _logs.filter { it.scope == AssignmentsLogHandler.SCOPE }
-    /**
+    /*
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
+     *
+     * fun getEvaluatedExpressionsConcise(): List<LogEntry2> {
+     *     val base = _logs.asSequence().filter { it.scope == EvalLogHandler.SCOPE}.toMutableList()
+     *     var i = 0
+     *     while (i < base.size) {
+     *         val current = base[i]
+     *         val found = base.subList(0, i).reversed().firstOrNull {
+     *             it. == current.expression
+     *         }?.value == current.value
+     *         if (found) {
+     *             base.removeAt(i)
+     *         } else {
+     *             i++
+     *         }
+     *     }
+     *     return base
+     * }
      */
-//    fun getEvaluatedExpressionsConcise(): List<LogEntry2> {
-//        val base = _logs.asSequence().filter { it.scope == EvalLogHandler.SCOPE}.toMutableList()
-//        var i = 0
-//        while (i < base.size) {
-//            val current = base[i]
-//            val found = base.subList(0, i).reversed().firstOrNull {
-//                it. == current.expression
-//            }?.value == current.value
-//            if (found) {
-//                base.removeAt(i)
-//            } else {
-//                i++
-//            }
-//        }
-//        return base
-//    }
 }
 
 fun List<InterpreterLogHandler>.renderLog(renderer: LazyLogEntry) {

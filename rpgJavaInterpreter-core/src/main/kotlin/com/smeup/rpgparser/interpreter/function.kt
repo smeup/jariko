@@ -202,7 +202,12 @@ class FunctionWrapper(
                 functionValue.variableName?.apply {
                     val functionParam = expectedParams[index]
                     if (functionParam.paramPassedBy == ParamPassedBy.Reference && functionValue.value != previousValues[index]) {
-                        interpreterStatus.symbolTable[interpreterStatus.symbolTable.dataDefinitionByName(this)!!] = functionValue.value
+                        val callerDefinition = interpreterStatus.symbolTable.dataDefinitionByName(this)!!
+                        // The caller variable and the prototype parameter may have different types
+                        // (e.g. an unlimited string passed where the parameter is declared as a fixed
+                        // VARYING string). Coerce the value back to the caller variable type so that
+                        // writing it into the symbol table does not fail.
+                        interpreterStatus.symbolTable[callerDefinition] = coerce(functionValue.value, callerDefinition.type)
                     }
                 }
             }
@@ -277,8 +282,11 @@ private class FunctionInterpreter(
         super.beforeInitialization()
     }
 
-    override fun afterInitialization(initialValues: Map<String, Value>) {
-        super.afterInitialization(initialValues)
+    override fun afterInitialization(
+        initialValues: Map<String, Value>,
+        load: Boolean,
+    ) {
+        super.afterInitialization(initialValues, load)
         // I restore static symbol table from memory slice only if it is the first execution.
         // This is because the current state of memory slice will be persisted at the end of execution of
         // the main program

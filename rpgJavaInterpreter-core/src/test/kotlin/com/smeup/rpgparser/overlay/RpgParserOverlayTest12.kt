@@ -102,9 +102,13 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         assertEquals(NumberType(2, 0, RpgType.BINARY), ds0011.type)
         assertEquals(2, ds0011.size)
 
+        // DS0012 spans 4 bytes (173-176) - before smeup/jariko#823 was fixed, that byte span was
+        // mistakenly treated as a decimal digit count, giving it only 2 bytes of storage instead
+        // of 4 (silently truncating any value above 65535). This asserted the resulting (wrong)
+        // NumberType(4, ...)/size=2 before the fix.
         val ds0012 = ds.getFieldByName("DS0012")
-        assertEquals(NumberType(4, 0, RpgType.BINARY), ds0012.type)
-        assertEquals(2, ds0012.size)
+        assertEquals(NumberType(9, 0, RpgType.BINARY), ds0012.type)
+        assertEquals(4, ds0012.size)
 
         val ds0013 = ds.getFieldByName("DS0013")
         assertEquals(NumberType(3, 0, RpgType.INTEGER), ds0013.type)
