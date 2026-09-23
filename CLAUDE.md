@@ -46,7 +46,7 @@ JaRIKo is a JVM-based interpreter for the RPG programming language (IBM AS/400 R
 
 ### Before committing
 
-Always run `./gradlew ktlintCheck` before creating a commit.
+Run `./gradlew ktlintCheck` before creating a commit only if the staged changes include `.kt` files (check with `git diff --cached --name-only`). Skip it for commits that touch no Kotlin files.
 
 ### Running a single test
 
