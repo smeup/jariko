@@ -755,6 +755,15 @@ class RpgParserFacade {
         val mutes = if (muteSupport) findMutes(code, errors) else null
         val profiling = if (profilingSupport) findProfiling(code, errors) else null
         verifyParseTree(parser, errors, root)
+        if (code.trimStart('﻿').startsWith("**FREE", ignoreCase = true)) {
+            errors.add(
+                Error(
+                    ErrorType.SYNTACTIC,
+                    "Fully free-format sources (**FREE) are not supported",
+                    Point(1, 0).asPosition,
+                ),
+            )
+        }
         parserResult =
             RpgParserResult(
                 errors,
