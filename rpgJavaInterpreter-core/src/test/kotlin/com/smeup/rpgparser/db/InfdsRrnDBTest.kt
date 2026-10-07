@@ -208,7 +208,7 @@ open class InfdsRrnDBTest : AbstractTest() {
            UNIQUE(KEYTST) )
         """.trimIndent()
 
-    // The underlying HSQLDB server (DBServer) is a singleton shared across every test method in
+    // The underlying embedded HSQLDB is a singleton shared across every test method in
     // this class, so a table created by an earlier test is still there - drop it first.
     private fun sqlDropTestTable(tableName: String = "TESTF") = "DROP TABLE IF EXISTS $tableName"
 

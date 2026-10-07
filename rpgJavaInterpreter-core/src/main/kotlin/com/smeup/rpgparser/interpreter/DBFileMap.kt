@@ -25,6 +25,7 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.require
 import java.util.TreeMap
+import java.util.TreeSet
 
 /** [FileDefinition.infdsName] resolves to a [DataDefinition] whose only declared field(s), if
  *  any, must sit at this exact byte range - the well-known IBM i INFDS Relative Record Number
@@ -46,9 +47,16 @@ class DBFileMap {
      * alias keeps it; later F-specs sharing that alias never steal it. This makes format-name
      * CHAIN/READ/SETLL resolution deterministic and declaration-order-driven, instead of
      * accidental last-write-wins split across two separately-prioritized maps.
+     *
+     * One exception: a RENAME'd F-spec only gets the record's native format name as a fallback
+     * (on IBM i that name no longer designates its format), so an F-spec that really declares
+     * that name - i.e. is not renamed - takes it over, see [nativeAliasOfRenamedFile].
      */
     private val byFormatName =
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
+
+    /** Aliases in [byFormatName] currently held by a RENAME'd F-spec through the native format name only. */
+    private val nativeAliasOfRenamedFile = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
 
     /**
      * Register a FileDefinition and create relative DBFile object for access to database with Reload library
@@ -86,11 +94,30 @@ class DBFileMap {
                 // and jarikoMetadata.recordFormat are format-name aliases that MAY be shared across F-specs
                 // (RENAME) - first registration wins, see byFormatName kdoc.
                 byFileName[fileDefinition.name] = enrichedDBFile
-                fileDefinition.internalFormatName?.let { internalFormatName ->
-                    byFormatName.putIfAbsent(internalFormatName, enrichedDBFile)
+                val internalFormatName = fileDefinition.internalFormatName
+                internalFormatName?.let { registerFormatName(it, enrichedDBFile) }
+                val renamed = internalFormatName != null && !internalFormatName.equals(jarikoMetadata.recordFormat, ignoreCase = true)
+                if (renamed) {
+                    if (!byFormatName.containsKey(jarikoMetadata.recordFormat)) {
+                        byFormatName[jarikoMetadata.recordFormat] = enrichedDBFile
+                        nativeAliasOfRenamedFile.add(jarikoMetadata.recordFormat)
+                    }
+                } else {
+                    registerFormatName(jarikoMetadata.recordFormat, enrichedDBFile)
                 }
-                byFormatName.putIfAbsent(jarikoMetadata.recordFormat, enrichedDBFile)
             }
+        }
+    }
+
+    /** First registration wins, unless the current holder only has [alias] as a renamed file's native name. */
+    private fun registerFormatName(
+        alias: String,
+        enrichedDBFile: EnrichedDBFile,
+    ) {
+        if (nativeAliasOfRenamedFile.remove(alias)) {
+            byFormatName[alias] = enrichedDBFile
+        } else {
+            byFormatName.putIfAbsent(alias, enrichedDBFile)
         }
     }
 

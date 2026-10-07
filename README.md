@@ -99,6 +99,7 @@ The following list shows all the implemented features:
 - [/COPY](docs/copy.md)  
 - [/API](docs/api.md)   
 - [AST Serialization](docs/ast_serialization.md)
+- [File access and name resolution](docs/file_access.md)
 
 ## Logging
 

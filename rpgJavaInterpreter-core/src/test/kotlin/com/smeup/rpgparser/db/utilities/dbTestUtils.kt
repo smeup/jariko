@@ -25,31 +25,16 @@ import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
-import org.hsqldb.Server
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
 
-object DBServer : Server() {
-    var running = false
-
-    fun startDB() {
-        setDatabaseName(0, "mainDb")
-        setDatabasePath(0, "mem:mainDb")
-        port = 9001
-        running = true
-        start()
-    }
-
-    fun stopDB() {
-        running = false
-        signalCloseAllServerConnections()
-        stop()
-        shutdown()
-    }
-
-    fun isRunning(): Boolean = running
-}
+/**
+ * Test DB: embedded in-memory HSQLDB, like reload's own tests. A `mem:` database is shared by every
+ * connection opened in this JVM (the helper connection below and the ones reload opens), and lives
+ * until the JVM ends, so tables created by a test are still there for the next ones.
+ */
+const val TEST_DB_URL = "jdbc:hsqldb:mem:mainDb"
 
 private val connection: Connection by lazy {
     DriverManager.getConnection(getConnectionConfig().url, getConnectionConfig().user, getConnectionConfig().password)
@@ -58,7 +43,7 @@ private val connection: Connection by lazy {
 private fun getConnectionConfig(): ConnectionConfig =
     ConnectionConfig(
         fileName = "*",
-        url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+        url = TEST_DB_URL,
         user = "SA",
         password = "",
         driver = "org.hsqldb.jdbc.JDBCDriver",
@@ -73,10 +58,6 @@ private fun setSQLLog(on: Boolean) {
 }
 
 fun execute(sqlStatements: List<String>) {
-    if (DBServer.isRunning() == false) {
-        DBServer.startDB()
-    }
-
     val statement = connection.createStatement()
     statement.use {
         sqlStatements.forEach { statement.addBatch(it) }

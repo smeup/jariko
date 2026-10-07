@@ -18,7 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.model.FileMetadata
 import com.smeup.dbnative.sql.SQLDBFile
-import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.db.utilities.TEST_DB_URL
 import java.sql.DriverManager
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -32,11 +32,8 @@ class InterpreterStatusTest {
 
     @BeforeTest
     fun setup() {
-        if (!DBServer.isRunning()) {
-            DBServer.startDB()
-        }
         Class.forName("org.hsqldb.jdbc.JDBCDriver")
-        connection = DriverManager.getConnection("jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb", "SA", "")
+        connection = DriverManager.getConnection(TEST_DB_URL, "SA", "")
         mainSymbolTable = SymbolTable()
         interpreterStatus = InterpreterStatus(symbolTable = mainSymbolTable, indicators = HashMap(), mapOf())
         functionStatus =
