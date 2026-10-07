@@ -1,7 +1,14 @@
-      * A RENAME'd F-spec (Renamed, rename(TSTFMT:TSTFM2)) is declared BEFORE the F-spec that really
-      * owns the format name TSTFMT (Plain, no RENAME). The record is read through Plain (by file name)
-      * and written back with UPDATE TSTFMT (by format name): it must resolve to Plain, not to Renamed,
-      * which only has TSTFMT as the record's native name and has no current record (production case).
+      * Regression for C5C6M0 (see UpdateRenamedFirstDBTest).
+      *
+      * Renamed and Plain are two files whose record format has the same native name, TSTFMT. In RPG
+      * IV two files cannot share a format name in the same program, so Renamed gives its format a
+      * new name, TSTFM2. From then on TSTFMT no longer designates Renamed's format: it can only mean
+      * Plain's. Renamed is deliberately declared FIRST.
+      *
+      * The record is read through Plain (CHAIN by file name) and written back with UPDATE TSTFMT
+      * (by format name). UPDATE must act on Plain, the file that has a current record. If TSTFMT
+      * wrongly resolved to Renamed (which was never read) it would fail with "Positioning required
+      * before update".
      FRenamed   uf   e           k disk    rename(TSTFMT:TSTFM2)
      FPlain     uf   e           k disk
      C     'ABCDE'       chain     Plain

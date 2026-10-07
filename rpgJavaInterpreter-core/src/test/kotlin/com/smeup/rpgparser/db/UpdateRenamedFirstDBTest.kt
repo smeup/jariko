@@ -8,12 +8,21 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 /**
- * Regression for C5C6M0: an F-spec `RENAME(TSTFMT:TSTFM2)` declared before the F-spec that owns
- * the format name TSTFMT. The record is read through the owner (CHAIN by file name) and written
- * back with `UPDATE TSTFMT` (by format name), which must resolve to the owner and not to the
- * renamed F-spec that registered TSTFMT first only as the record's native name (it had no current
- * record: "Positioning required before update"). See [DBFileMap]. The two files sit on different
- * tables to tell them apart.
+ * Regression for C5C6M0.
+ *
+ * Two F-spec files share the native record format name TSTFMT; the first one declares
+ * `RENAME(TSTFMT:TSTFM2)`, so in RPG IV `TSTFMT` can only refer to the second one. The program
+ * reads a record through the second file (CHAIN by file name) and writes it back with
+ * `UPDATE TSTFMT` (by format name).
+ *
+ * [DBFileMap] used to register the native name `TSTFMT` for the renamed (first) file as well, and
+ * as the first registration wins, `UPDATE TSTFMT` resolved to the renamed file, which had never
+ * read anything: "Positioning required before update". Now the file that really declares the
+ * name takes the alias over.
+ *
+ * The two files sit on different tables (RENAMED, PLAIN) only to make it observable which one is
+ * updated: the test passes when the row of PLAIN is the one changed. Without the fix it fails with
+ * the error above.
  */
 open class UpdateRenamedFirstDBTest : AbstractTest() {
     @Test
