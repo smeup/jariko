@@ -18,7 +18,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.db.utilities.DBServer
+import com.smeup.rpgparser.db.utilities.TEST_DB_URL
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.execution.SimpleReloadConfig
@@ -42,17 +42,13 @@ open class ProfilingAnnotationTest : AbstractTest() {
 
     @BeforeTest
     open fun setUp() {
-        if (!DBServer.isRunning()) {
-            DBServer.startDB()
-        }
-
         smeupConfig = Configuration()
         val path = javaClass.getResource("/smeup/metadata")!!.path
         val connectionConfigs =
             listOf(
                 ConnectionConfig(
                     fileName = "*",
-                    url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+                    url = TEST_DB_URL,
                     user = "SA",
                     password = "",
                     driver = "org.hsqldb.jdbc.JDBCDriver",

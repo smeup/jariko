@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.smeup
 
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.rpgparser.db.utilities.TEST_DB_URL
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ConnectionConfig
@@ -33,7 +34,7 @@ abstract class MULANGTTest : AbstractTest() {
             listOf(
                 ConnectionConfig(
                     fileName = "*",
-                    url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+                    url = TEST_DB_URL,
                     user = "SA",
                     password = "",
                     driver = "org.hsqldb.jdbc.JDBCDriver",

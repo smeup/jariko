@@ -9,16 +9,17 @@ import kotlin.test.assertEquals
 
 /**
  * Regression for C5C6M0: an F-spec `RENAME(TSTFMT:TSTFM2)` declared before the F-spec that owns
- * the format name TSTFMT. A statement by bare format name (UPDATE TSTFMT in the real case; CHAIN
- * here, as UPDATE isn't testable on the test DB, see StoreTest.testUpdate) must resolve to the
- * owner, not to the renamed F-spec that registered TSTFMT first only as the record's native
- * name. See [DBFileMap]. The two files sit on different tables to tell them apart.
+ * the format name TSTFMT. The record is read through the owner (CHAIN by file name) and written
+ * back with `UPDATE TSTFMT` (by format name), which must resolve to the owner and not to the
+ * renamed F-spec that registered TSTFMT first only as the record's native name (it had no current
+ * record: "Positioning required before update"). See [DBFileMap]. The two files sit on different
+ * tables to tell them apart.
  */
 open class UpdateRenamedFirstDBTest : AbstractTest() {
     @Test
     open fun executeUPDATERENAMEDFIRST() {
         assertEquals(
-            listOf("FromPlain"),
+            listOf("Updated"),
             outputOfDBPgm(
                 "db/UPDATERENAMEDFIRST",
                 listOf(createMetadata("RENAMED"), createMetadata("PLAIN")),

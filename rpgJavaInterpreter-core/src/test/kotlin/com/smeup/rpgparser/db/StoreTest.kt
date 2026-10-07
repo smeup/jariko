@@ -66,7 +66,8 @@ open class StoreTest : AbstractTest() {
         )
     }
 
-    // TODO Waiting for evaluation about reload potential issue
+    // The update itself works now (see UpdateRenamedFirstDBTest), but this program's second READE
+    // does not reposition on the updated record, so its mute assertion (FIRSTNME == PETER) fails.
     @Ignore
     @Test
     fun testUpdate() {

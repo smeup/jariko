@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.smeup
 
-import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructureType
@@ -11,24 +10,6 @@ import org.junit.Test
 import kotlin.test.*
 
 open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
-    @BeforeTest
-    override fun setUp() {
-        if (!DBServer.isRunning()) {
-            DBServer.startDB()
-        }
-
-        super.setUp()
-    }
-
-    @AfterTest()
-    override fun tearDown() {
-        /*
-         * This causes `connection exception: connection failure: java.net.SocketException: Pipe interrotta (Write failed)`
-         *  during `./gradle check`
-         */
-//        DBServer.stopDB()
-    }
-
     /**
      * /COPY recognized in CTDATA
      * @see #268

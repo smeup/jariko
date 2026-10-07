@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.db.utilities.TEST_DB_URL
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.db.utilities.execute
@@ -27,7 +28,7 @@ interface DbMock : AutoCloseable {
     fun createConnectionConfig(): ConnectionConfig =
         ConnectionConfig(
             fileName = "*",
-            url = "jdbc:hsqldb:hsql://127.0.0.1:9001/mainDb",
+            url = TEST_DB_URL,
             user = "SA",
             password = "",
             driver = "org.hsqldb.jdbc.JDBCDriver",

@@ -1,24 +1,13 @@
 package com.smeup.rpgparser.smeup
 
-import com.smeup.rpgparser.db.utilities.DBServer
 import com.smeup.rpgparser.smeup.dbmock.C5RREG1LDbMock
 import com.smeup.rpgparser.smeup.dbmock.MULANGTLDbMock
 import com.smeup.rpgparser.smeup.dbmock.ST02DbMock
 import org.junit.Test
-import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 open class MULANGT50FileAccess1Test : MULANGTTest() {
-    @BeforeTest
-    override fun setUp() {
-        if (!DBServer.isRunning()) {
-            DBServer.startDB()
-        }
-
-        super.setUp()
-    }
-
     /**
      * Data Reference to DS
      * @see #280
