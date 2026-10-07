@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.utils
 
-import com.smeup.rpgparser.db.utilities.TEST_DB_URL
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.rpgparser.db.utilities.TEST_DB_URL
 import com.smeup.rpgparser.db.utilities.execute
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.interpreter.*
