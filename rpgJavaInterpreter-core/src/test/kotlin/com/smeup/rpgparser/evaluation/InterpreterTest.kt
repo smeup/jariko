@@ -458,6 +458,18 @@ open class InterpreterTest : AbstractTest() {
         )
     }
 
+    /**
+     * MOVE/MOVEL from an alphanumeric source with blanks to a numeric target: as in RPG each blank
+     * is moved as digit 0 (no exception).
+     */
+    @Test
+    fun executeMOVEL08_blanksInAlphaToNumeric() {
+        assertEquals(
+            listOf("31231000", "1204", "123", "1230.00"),
+            outputOf("MOVEL08"),
+        )
+    }
+
     @Test
     fun executeMOVELDEF1_variable_definition_after_first_usage() {
         assertEquals(listOf("02"), outputOf("MOVELDEF1"))

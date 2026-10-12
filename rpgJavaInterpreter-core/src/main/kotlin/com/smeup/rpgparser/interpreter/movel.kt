@@ -380,13 +380,15 @@ private fun stringToValue(
         is CharacterType -> return StringValue(value)
 
         is NumberType -> {
+            // As in RPG, a blank moved into a numeric field is its digit part, that is 0
+            val digits = value.replace(' ', '0')
             return if (type.integer) {
                 // integer
-                if (value.isBlank()) IntValue.ZERO else value.toLong().asValue()
+                if (value.isBlank()) IntValue.ZERO else digits.toLong().asValue()
             } else {
                 // decimal
-                val integerPart = value.substring(0, type.entireDigits)
-                val decimalPart = value.substring(type.entireDigits, value.length)
+                val integerPart = digits.substring(0, type.entireDigits)
+                val decimalPart = digits.substring(type.entireDigits, digits.length)
                 if (value.isBlank()) DecimalValue.ZERO else DecimalValue(BigDecimal("$integerPart.$decimalPart"))
             }
         }
