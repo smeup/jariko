@@ -1,3 +1,11 @@
+     V* ==============================================================
+     V* Purpose: RESET of data structure subfields.
+     V* Checks that RESET restores a subfield (also an array one, with
+     V* OVERLAY subfields) to its INZ value, or to blank/zero when it
+     V* has none, leaving the rest of the data structure untouched.
+     V* Expected output: ARR_OK, F1_OK, F2_OK, F3_OK
+     V* ==============================================================
+
      D MSGOK           S             50          VARYING
      D MSGKO           S             50          VARYING
 
