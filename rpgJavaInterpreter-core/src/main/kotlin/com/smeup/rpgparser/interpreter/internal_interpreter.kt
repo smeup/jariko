@@ -880,10 +880,10 @@ open class InternalInterpreter(
     )
 
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
-        this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
-            val indicator = status.indicator(indicatorKey).value
+        this.continuedIndicators.map { continuedIndicator ->
+            val indicator = status.indicator(continuedIndicator.key).value
             val condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
-            val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
+            val solvedIndicatorCondition = SolvedIndicatorCondition(continuedIndicator.key, condition, continuedIndicator.level)
             solvedIndicatorCondition
         }
 
