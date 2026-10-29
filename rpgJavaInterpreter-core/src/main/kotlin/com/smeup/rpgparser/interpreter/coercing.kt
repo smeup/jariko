@@ -514,9 +514,9 @@ private fun computeLowValue(type: NumberType): Value {
     TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
 
-private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type.size))
+private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type.length))
 
-private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type.size))
+private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type.length))
 
 // TODO
 private fun hiValueString(size: Int) = "\uFFFF".repeat(size)
