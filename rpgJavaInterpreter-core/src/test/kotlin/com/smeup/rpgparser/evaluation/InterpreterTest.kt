@@ -2745,6 +2745,12 @@ Test 6
     }
 
     @Test
+    fun executeRESET02() {
+        val expected = listOf("ARR_OK", "F1_OK", "F2_OK", "F3_OK")
+        assertEquals(expected, "RESET02".outputOf())
+    }
+
+    @Test
     fun executeMOVEAIN() {
         val expected =
             listOf(
