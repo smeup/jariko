@@ -3402,6 +3402,15 @@ data class ResetStmt(
                 interpreter.assign(dataDefinition, dataDefinition.type.blank())
             }
 
+            // Subfield of a data structure (also an array one): restored to its INZ value or, if missing, to the blank value
+            is FieldDefinition -> {
+                val initialValue = dataDefinition.initializationValue
+                interpreter.assign(
+                    dataDefinition,
+                    if (initialValue != null) interpreter.eval(initialValue) else dataDefinition.type.blank(),
+                )
+            }
+
             else -> this.error("Data definition $name is not a valid instance of DataDefinition")
         }
     }
