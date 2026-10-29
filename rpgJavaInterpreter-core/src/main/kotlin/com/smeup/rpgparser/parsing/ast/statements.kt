@@ -156,6 +156,7 @@ abstract class Statement(
     }
 
     var indicatorCondition: IndicatorCondition? = null
+
     // Kept in source order: AND/OR relations between indicators depend on it
     var continuedIndicators: MutableList<ContinuedIndicator> = mutableListOf()
 
