@@ -1038,4 +1038,13 @@ open class MULANGT02ConstAndDSpecTest : MULANGTTest() {
         val expected = listOf("5.2", "52", "7", ".7")
         assertEquals(expected, "smeup/MUDRNRAPU001124".outputOf())
     }
+
+    /**
+     * INZ(*HIVAL) and INZ(*LOVAL) on VARYING strings must fill only the declared length (no 2 bytes length prefix).
+     */
+    @Test
+    fun executeMUDRNRAPU01106() {
+        val expected = listOf("10", "10")
+        assertEquals(expected, "smeup/MUDRNRAPU01106".outputOf(configuration = smeupConfig))
+    }
 }
