@@ -2751,6 +2751,12 @@ Test 6
     }
 
     @Test
+    fun executeINDCONT01() {
+        val expected = listOf("1:A_", "2:_B", "3:A_", "4:_B")
+        assertEquals(expected, "INDCONT01".outputOf())
+    }
+
+    @Test
     fun executeMOVEAIN() {
         val expected =
             listOf(

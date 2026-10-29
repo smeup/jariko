@@ -156,7 +156,8 @@ abstract class Statement(
     }
 
     var indicatorCondition: IndicatorCondition? = null
-    var continuedIndicators: HashMap<IndicatorKey, ContinuedIndicator> = HashMap<IndicatorKey, ContinuedIndicator>()
+    // Kept in source order: AND/OR relations between indicators depend on it
+    var continuedIndicators: MutableList<ContinuedIndicator> = mutableListOf()
 
     @Throws(
         ControlFlowException::class,

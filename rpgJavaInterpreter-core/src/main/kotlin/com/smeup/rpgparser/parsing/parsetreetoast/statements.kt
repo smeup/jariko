@@ -174,9 +174,9 @@ private fun ParserRuleContext.toIndicatorCondition(
  * Populates the current `HashMap` with a set of continued indicators and their related conditions.
  * This function processes a list of `Cspec_continuedIndicatorsContext` objects, extracts the relevant information
  * such as indicator keys, on/off states, and control levels (e.g., "AND", "OR"), and inserts them into the
- * `HashMap`. Additionally, it handles inline indicators by processing a `children` list of `ParseTree` nodes.
+ * list. Additionally, it handles inline indicators by processing a `children` list of `ParseTree` nodes.
  *
- * @receiver A `HashMap` where keys are `IndicatorKey` objects, and values are `ContinuedIndicator` instances
+ * @receiver A `MutableList` of `ContinuedIndicator` instances, kept in source order
  *           representing indicators with their conditions (e.g., on/off state, control level).
  * @param continuedIndicators A list of `Cspec_continuedIndicatorsContext` objects representing the indicators
  *                            to be processed. These indicators do not include inline indicators.
@@ -184,7 +184,7 @@ private fun ParserRuleContext.toIndicatorCondition(
  *                 and indicator states) for inline indicators. By default, an empty list is passed if no children are
  *                 provided.
  */
-private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
+private fun MutableList<ContinuedIndicator>.populate(
     continuedIndicators: List<Cspec_continuedIndicatorsContext>,
     children: List<ParseTree> = emptyList(),
 ) {
@@ -210,7 +210,7 @@ private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
                 else -> ""
             }
         val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-        this.put(indicator, continuedIndicator)
+        this.add(continuedIndicator)
     }
 
     // Add indicatorCondition (inline indicator) also
@@ -233,7 +233,7 @@ private fun HashMap<IndicatorKey, ContinuedIndicator>.populate(
             .toString()
             .toIndicatorKey()
     val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-    this.put(indicator, continuedIndicator)
+    this.add(continuedIndicator)
 }
 
 internal fun RpgParser.CsDOWxxContext.toAst(
