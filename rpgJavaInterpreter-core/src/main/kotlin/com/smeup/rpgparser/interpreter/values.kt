@@ -1402,6 +1402,15 @@ data class DataStructValue(
         if (field.type is UnlimitedStringType) {
             unlimitedStringField[field.name] = value
         } else {
+            if (value is ArrayValue && field.declaredArrayInLine != null && field.stepSize != field.elementSize()) {
+                // The elements of an array overlaying a DIM field are not contiguous in the DS (as in the IBM i):
+                // each element lives at the beginning of the corresponding element of the overlaid field
+                val projectedArray = ProjectedArrayValue.forData(this, field)
+                for (i in 1..minOf(projectedArray.arrayLength(), value.arrayLength())) {
+                    projectedArray.setElement(i, value.getElement(i))
+                }
+                return
+            }
             val v = field.toDataStructureValue(value)
             val startIndex = field.startOffset
             val endIndex = field.startOffset + field.size

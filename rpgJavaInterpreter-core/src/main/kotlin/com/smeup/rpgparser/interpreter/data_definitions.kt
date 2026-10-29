@@ -462,6 +462,12 @@ data class FieldDefinition(
 
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
 
+    /**
+     * True if this field overlays [other], directly or through other overlaying fields
+     */
+    fun isOverlayingOn(other: FieldDefinition): Boolean =
+        generateSequence(overlayingOn as? FieldDefinition) { it.overlayingOn as? FieldDefinition }.any { it.name == other.name }
+
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
     /**
