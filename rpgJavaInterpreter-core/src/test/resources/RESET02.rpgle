@@ -1,8 +1,10 @@
      V* ==============================================================
      V* Purpose: RESET of data structure subfields.
-     V* Checks that RESET restores a subfield (also an array one, with
-     V* OVERLAY subfields) to its INZ value, or to blank/zero when it
-     V* has none, leaving the rest of the data structure untouched.
+     V* Checks that RESET restores a subfield to its INZ value, or to
+     V* blank/zero when it has none, leaving the rest of the data
+     V* structure untouched. RESET of an array field also restores the
+     V* INZ values of the subfields overlaying it (verified on IBM i,
+     V* see RESET03).
      V* Expected output: ARR_OK, F1_OK, F2_OK, F3_OK
      V* ==============================================================
 
@@ -32,8 +34,9 @@
 
      C                   EVAL      MSGOK='ARR_OK'
      C                   EVAL      MSGKO='ARR_KO'
-     C     ARR(1)        IFEQ      *BLANKS
-     C     ARR(2)        ANDEQ     *BLANKS
+     C     SUB1(1)       IFEQ      'XXX'
+     C     SUB1(2)       ANDEQ     'XXX'
+     C     SUB2(1)       ANDEQ     *BLANKS
      C     MSGOK         DSPLY
      C                   ELSE
      C     MSGKO         DSPLY

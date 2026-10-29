@@ -2757,6 +2757,42 @@ Test 6
     }
 
     @Test
+    fun executeRESET03() {
+        // Expected output verified on a real IBM i (see docs/ibmi-proof/RESULTS.md in the smeuperp workspace)
+        val expected =
+            listOf(
+                "T1a CODRIO(1) is *HIVAL at start: YES",
+                "T1b CODRIO(3) is *HIVAL at start: YES",
+                "T1c SUB1(3) is XXX at start: YES",
+                "T2a after RESET LISATT CODRIO(1)=HIVAL: YES",
+                "T2b after RESET LISATT CODRIO(3)=HIVAL: YES",
+                "T2c after RESET LISATT PNTDAT(1)=blank: YES",
+                "T2d after RESET LISATT PNTDAT(3)=blank: YES",
+                "T3a after RESET ARR SUB1(1)=XXX: YES",
+                "T3b after RESET ARR SUB1(2)=XXX: YES",
+                "T3c after RESET ARR SUB2(1)=blank: YES",
+                "T3d ARR(1)=[XXX   ]",
+            )
+        assertEquals(expected, "RESET03".outputOf())
+    }
+
+    @Test
+    fun executeSUBARR_SCALAR01() {
+        // Expected output verified on a real IBM i (see docs/ibmi-proof/RESULTS.md in the smeuperp workspace)
+        val expected =
+            listOf(
+                "T4a elements 1-2 untouched: YES",
+                "T4b elements 3-4 blank: YES",
+                "T4c LAST element (5) blank: YES",
+                "T5a elements 1 and 4 untouched: YES",
+                "T5b elements 2-3 blank: YES",
+                "T6a element 3 untouched: YES",
+                "T6b elements 4-5 zero: YES",
+            )
+        assertEquals(expected, "SUBARR_SCALAR01".outputOf())
+    }
+
+    @Test
     fun executeMOVEAIN() {
         val expected =
             listOf(

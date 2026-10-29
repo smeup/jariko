@@ -3404,13 +3404,17 @@ data class ResetStmt(
                 interpreter.assign(dataDefinition, dataDefinition.type.blank())
             }
 
-            // Subfield of a data structure (also an array one): restored to its INZ value or, if missing, to the blank value
+            // Subfield of a data structure (also an array one): restored to its INZ value or, if missing, to the blank value.
+            // As in the IBM i, the initial value of a subfield includes the INZ values of the subfields overlaying it
             is FieldDefinition -> {
                 val initialValue = dataDefinition.initializationValue
                 interpreter.assign(
                     dataDefinition,
                     if (initialValue != null) interpreter.eval(initialValue) else dataDefinition.type.blank(),
                 )
+                dataDefinition.container.fields
+                    .filter { it.initializationValue != null && it.isOverlayingOn(dataDefinition) }
+                    .forEach { interpreter.assign(it, interpreter.eval(it.initializationValue!!)) }
             }
 
             else -> this.error("Data definition $name is not a valid instance of DataDefinition")

@@ -1170,22 +1170,27 @@ open class InternalInterpreter(
                 return assign(target.string as AssignableExpression, newValue)
             }
             is SubarrExpr -> {
-                require(value is ArrayValue)
-                // replace portion of array with another array
+                // replace portion of array with another array or with a scalar value (e.g. *BLANKS, *ZEROS),
+                // which is assigned to every element of the portion
                 val start: Int = eval(target.start).asInt().value.toInt()
                 val numberOfElement: Int? =
                     if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
                 val array: ArrayValue = eval(target.array).asArray().copy()
-                val to: Int =
-                    if (numberOfElement == null) {
-                        array.arrayLength()
-                    } else {
-                        (start) + numberOfElement
-                    } - 1
+                // without the number of elements the portion goes up to the last element
+                val to: Int = if (numberOfElement == null) array.arrayLength() else start + numberOfElement - 1
                 // replace elements
+                val elementType = target.type().asArray().element
                 var j = 1
                 for (i in start..to) {
-                    array.setElement(i, coerce(value.getElement(j), target.type().asArray().element))
+                    val element =
+                        when {
+                            value is ArrayValue -> value.getElement(j)
+                            // coerce() leaves *ZEROS as it is, so we build the zero of the element type here
+                            value is ZeroValue && elementType is NumberType -> DecimalValue.ZERO
+                            value is ZeroValue && elementType is StringType -> StringValue("0".repeat(elementType.length))
+                            else -> value
+                        }
+                    array.setElement(i, coerce(element, elementType))
                     j++
                 }
                 return assign(target.array as AssignableExpression, array)
