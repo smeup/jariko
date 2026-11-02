@@ -38,4 +38,19 @@ open class RpgEvalTest : AbstractTest() {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
+
+    @Test
+    fun MULT_overflow_truncates_high_order_digits() {
+        val cu = assertASTCanBeProduced("overlay/MULTOVF", considerPosition = true, withMuteSupport = true)
+        cu.resolveAndValidate()
+
+        val interpreter = InternalInterpreter(JavaSystemInterface())
+        interpreter.execute(cu, mapOf())
+
+        val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
+        val failed: Int = executeAnnotations(annotations)
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+    }
 }
