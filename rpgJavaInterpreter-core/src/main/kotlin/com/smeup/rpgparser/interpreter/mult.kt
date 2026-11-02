@@ -49,9 +49,16 @@ fun mult(
 
     require(targetType is NumberType)
 
-    return if (isHalfAdjust) {
-        DecimalValue(result.setScale(targetType.decimalDigits, RoundingMode.HALF_UP))
-    } else {
-        DecimalValue(result.setScale(targetType.decimalDigits, RoundingMode.DOWN))
-    }
+    val scaled =
+        if (isHalfAdjust) {
+            result.setScale(targetType.decimalDigits, RoundingMode.HALF_UP)
+        } else {
+            result.setScale(targetType.decimalDigits, RoundingMode.DOWN)
+        }
+
+    // On IBM i fixed-form arithmetic opcodes do not raise an error when the result does not fit
+    // the result field: the high-order digits are lost (verified in docs/ibmi-proof/RPGPROOF3.rpgle).
+    // The remainder keeps the sign and the decimals.
+    val truncated = scaled.remainder(BigDecimal.TEN.pow(targetType.entireDigits))
+    return DecimalValue(truncated.setScale(targetType.decimalDigits))
 }
