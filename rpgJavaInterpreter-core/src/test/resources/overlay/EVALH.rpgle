@@ -17,5 +17,9 @@
      C                   EVAL(H)   RESULT = A/B
     MU* VAL1(RESULT) VAL2(19.86) COMP(EQ)
      C                   DSPLY                   RESULT
+      * Left operand with more decimals than the target (used to throw "Rounding necessary")
+     C                   EVAL(H)   RESULT = (A/3)*A/B
+    MU* VAL1(RESULT) VAL2(920.05) COMP(EQ)
+     C                   DSPLY                   RESULT
       *
      C                   SETON                                        RT

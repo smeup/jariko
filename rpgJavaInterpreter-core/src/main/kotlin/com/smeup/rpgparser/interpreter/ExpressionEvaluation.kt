@@ -876,9 +876,8 @@ class ExpressionEvaluation(
                     when {
                         // EVAL(H)
                         parent.flags.halfAdjust -> {
-                            v1.bigDecimal
-                                .setScale(decimalDigits)
-                                .divide(v2.bigDecimal.setScale(decimalDigits), RoundingMode.HALF_UP)
+                            // Divide at full operand precision and round half up once, at the result scale
+                            v1.bigDecimal.divide(v2.bigDecimal, decimalDigits, RoundingMode.HALF_UP)
                         }
                         // Eval(M)
                         parent.flags.maximumNumberOfDigitsRule -> {
