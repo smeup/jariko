@@ -2671,6 +2671,16 @@ Test 6
         assertEquals(expected, "MVR".outputOf())
     }
 
+    /**
+     * Fixed-form MULT drops the high-order digits when the result does not fit the result field
+     * (no error, as on IBM i).
+     */
+    @Test
+    fun executeMULTOverflow() {
+        val expected = listOf("47029157646336.00000000", "34570", "-34570", "34570", "1234570.00")
+        assertEquals(expected, "MULTOVERFLOW".outputOf())
+    }
+
     @Test
     fun executeXLATEOP() {
         assertEquals(
