@@ -132,7 +132,7 @@ private fun FunctionCall.tryReplaceWithArrayAccess(cu: CompilationUnit): Optiona
     if (this.args.size != 1) return Optional.empty()
 
     // Replacement can only happen when there is a DataDefinition named like this 'FunctionCall'
-    val data = cu.allDataDefinitions.firstOrNull { it.name == this.function.name }
+    val data = cu.allDataDefinitions.firstOrNull { it.name.equals(this.function.name, ignoreCase = true) }
     data ?: return Optional.empty()
 
     // Recursively try to process inner expressions
