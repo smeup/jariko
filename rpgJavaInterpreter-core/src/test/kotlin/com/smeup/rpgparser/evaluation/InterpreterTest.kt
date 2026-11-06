@@ -2755,6 +2755,11 @@ Test 6
     }
 
     @Test
+    fun executeARRAYCASE01() {
+        assertEquals(listOf("AB DXYGHIJ"), "ARRAYCASE01".outputOf())
+    }
+
+    @Test
     fun executeRESET02() {
         val expected = listOf("ARR_OK", "F1_OK", "F2_OK", "F3_OK")
         assertEquals(expected, "RESET02".outputOf())
