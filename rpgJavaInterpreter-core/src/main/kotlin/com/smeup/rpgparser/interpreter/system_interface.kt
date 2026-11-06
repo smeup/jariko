@@ -20,6 +20,16 @@ typealias LoggingConfiguration = Properties
 
 fun Collection<InterpreterLogHandler>.isErrorChannelConfigured(): Boolean = find { it is ErrorLogHandler } != null
 
+/**
+ * True when at least one handler is configured for a channel fed by the interpreter's hot path
+ * (statements, expressions, symbol table, performance, analytics, ...).
+ *
+ * The ERROR channel is deliberately excluded: errors are logged through a dedicated, unguarded path
+ * ([com.smeup.rpgparser.execution.MainExecutionContext.log]), so having only the ERROR handler must not turn on
+ * the per-statement / per-expression log machinery, which would be pure overhead (entries built, timed and discarded).
+ */
+fun Collection<InterpreterLogHandler>.hasHotPathHandlers(): Boolean = any { it !is ErrorLogHandler }
+
 fun consoleVerboseConfiguration(): LoggingConfiguration {
     val props = Properties()
     props.setProperty("logger.data.separator", "\t")

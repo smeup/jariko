@@ -249,7 +249,11 @@ data class Context(
         logHandlers.renderLog(renderer)
     }
 
-    val isLoggingEnabled get() = logHandlers.isNotEmpty()
+    /**
+     * True when the interpreter hot-path logging (statements, expressions, symbol table, performance, analytics)
+     * has to run. Not true when only the ERROR channel is configured: see [hasHotPathHandlers].
+     */
+    val isLoggingEnabled by lazy { logHandlers.hasHotPathHandlers() }
 }
 
 data class ParsingProgram(

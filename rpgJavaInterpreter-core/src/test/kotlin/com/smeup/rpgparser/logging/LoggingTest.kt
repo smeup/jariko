@@ -22,11 +22,13 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.InterpreterLogHandler
 import com.smeup.rpgparser.interpreter.LazyLogEntry
 import com.smeup.rpgparser.interpreter.LogSourceData
 import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.consoleVerboseConfiguration
+import com.smeup.rpgparser.interpreter.hasHotPathHandlers
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
 import org.apache.logging.log4j.LogManager
@@ -273,6 +275,51 @@ class LoggingTest : AbstractTest() {
                 fail(message = "Jariko must throws an exception")
             }.onFailure {
                 assertEquals(LogChannel.ERROR.getPropertyName(), logInfoChannelParam)
+            }
+    }
+
+    /**
+     * Having only the ERROR channel configured must not turn on the interpreter hot-path logging
+     * (per statement / per expression / symbol table entries that nobody would render).
+     */
+    @Test
+    fun onlyErrorChannelDoesNotEnableHotPathLogging() {
+        val sep = "\t"
+        val errorOnly = listOf(LogHandlerFactory.produce(LogChannel.ERROR, LogLevel.ALL, sep))
+        assertFalse(errorOnly.hasHotPathHandlers(), "ERROR handler alone must not enable hot-path logging")
+        assertFalse(emptyList<InterpreterLogHandler>().hasHotPathHandlers())
+        LogChannel.values().filter { it != LogChannel.ERROR }.forEach { channel ->
+            val handlers = errorOnly + LogHandlerFactory.produce(channel, LogLevel.ALL, sep)
+            assertTrue(handlers.hasHotPathHandlers(), "Channel $channel must enable hot-path logging")
+        }
+    }
+
+    /**
+     * With only the ERROR channel configured the interpreter must not run the hot-path logging, yet errors are still logged.
+     */
+    @Test
+    fun errorChannelOnlyKeepsHotPathLoggingOffButStillLogsErrors() {
+        var hotPathLoggingSeen = false
+        var errorLogged = false
+        val configuration =
+            Configuration().apply {
+                jarikoCallback.logInfo = { channel, _ ->
+                    if (channel == LogChannel.ERROR.getPropertyName()) errorLogged = true
+                }
+                jarikoCallback.onEnterPgm = { _, _ -> hotPathLoggingSeen = hotPathLoggingSeen || MainExecutionContext.isLoggingEnabled }
+            }
+        val systemInterface =
+            JavaSystemInterface(configuration = configuration).apply {
+                loggingConfiguration = consoleLoggingConfiguration(LogChannel.ERROR)
+            }
+        kotlin
+            .runCatching {
+                executePgm(programName = "ERROR02", configuration = configuration, systemInterface = systemInterface)
+            }.onSuccess {
+                fail(message = "Jariko must throws an exception")
+            }.onFailure {
+                assertFalse(hotPathLoggingSeen, "hot-path logging must stay off with only the ERROR channel")
+                assertTrue(errorLogged, "the error must still be logged on the ERROR channel")
             }
     }
 

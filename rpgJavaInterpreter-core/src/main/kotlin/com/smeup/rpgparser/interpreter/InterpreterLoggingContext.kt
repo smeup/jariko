@@ -32,8 +32,9 @@ data class InterpreterLoggingContext(
 ) {
     /**
      * Determine whether logs are enabled or not.
+     * Having only the ERROR handler does not count: errors do not go through this context (see [hasHotPathHandlers]).
      */
-    val logsEnabled get() = logHandlers.isNotEmpty()
+    val logsEnabled get() = logHandlers.hasHotPathHandlers()
 
     /**
      * Log a [LazyLogEntry].
