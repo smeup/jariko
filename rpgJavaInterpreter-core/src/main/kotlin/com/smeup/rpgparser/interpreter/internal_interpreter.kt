@@ -1410,8 +1410,13 @@ open class InternalInterpreter(
             val attachAfterProfilingAnnotations = statement.getProfilingAnnotations(ProfilingAnnotationAttachStrategy.AttachToPrevious)
 
             executeProfiling(attachBeforeProfilingAnnotations)
-            val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
-            sourceProducer?.let { loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime) }
+            if (sourceProducer != null) {
+                val executionTime = measureNanoTime { statement.execute(this) }.nanoseconds
+                loggingContext.closeLoggingScope(statement, programName, sourceProducer, executionTime)
+            } else {
+                // Nobody will read the elapsed time: avoid reading the clock twice for every statement
+                statement.execute(this)
+            }
             executeProfiling(attachAfterProfilingAnnotations)
         }
 
