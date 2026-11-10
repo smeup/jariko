@@ -525,8 +525,14 @@ open class InternalInterpreter(
     }
 
     private fun configureLogHandlers() {
-        val logHandlers = systemInterface.getAllLogHandlers()
-        loggingContext.logHandlers = logHandlers
+        // The handlers are stateless and already built once per execution context: rebuilding them at every
+        // program/function call (configureLog + log4j channel setup) is pure overhead on the hot path.
+        loggingContext.logHandlers =
+            if (MainExecutionContext.isCreated()) {
+                MainExecutionContext.logHandlers
+            } else {
+                systemInterface.getAllLogHandlers()
+            }
     }
 
     /**
