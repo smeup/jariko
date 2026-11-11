@@ -267,7 +267,6 @@ open class InternalInterpreter(
                                     else -> blankValue(it)
                                 }
                             if (it.name !in initialValues) {
-                                blankValue(it)
                                 it.fields.forEach { field ->
                                     if (field.initializationValue != null) {
                                         val fieldValue = coerce(eval(field.initializationValue), field.type)
@@ -310,9 +309,10 @@ open class InternalInterpreter(
                                 }
                         }
                     }
-                    // Fix issue on CTDATA
-                    val ctdata = compilationUnit.compileTimeArray(it.name)
-                    if (ctdata.name == it.name) {
+                    // Fix issue on CTDATA (without compile-time arrays the lookup can never match: skip it)
+                    val ctdata =
+                        if (compilationUnit.compileTimeArrays.isEmpty()) null else compilationUnit.compileTimeArray(it.name)
+                    if (ctdata != null && ctdata.name == it.name) {
                         value =
                             toArrayValue(
                                 compilationUnit.compileTimeArray(it.name),
@@ -471,7 +471,7 @@ open class InternalInterpreter(
      * @return `true` if the `AbstractDataDefinition` is present in the PList, otherwise `false`
      */
     private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) =
-        compilationUnit.entryPlistResultNameByFactor1.containsKey(this.name.uppercase())
+        compilationUnit.entryPlistResultNameByFactor1.let { it.isNotEmpty() && it.containsKey(this.name.uppercase()) }
 
     private fun toArrayValue(
         compileTimeArray: CompileTimeArray,
