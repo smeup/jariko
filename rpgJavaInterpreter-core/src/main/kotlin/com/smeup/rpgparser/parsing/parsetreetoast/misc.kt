@@ -899,11 +899,27 @@ internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
             )
     }
 
-internal fun String.isInt() = this.matches(Regex("^-?[0-9]+$"))
+/**
+ * Same result as matching `^-?[0-9]+$`, without a regular expression: it runs at every indicator lookup
+ * ([com.smeup.rpgparser.parsing.ast.toIndicatorKey]), and compiling the pattern at each call was a large share of
+ * the interpreter CPU and allocations.
+ */
+internal fun String.isInt(): Boolean {
+    val start = if (this.startsWith('-')) 1 else 0
+    if (this.length == start) return false
+    for (i in start until this.length) {
+        if (this[i] !in '0'..'9') return false
+    }
+    return true
+}
 
-internal fun String.isDecimal() = this.matches(Regex("^-?[0-9]*.[0-9]+$"))
+// Compiled once: these checks run while interpreting (coercions, MOVEL), not only while parsing.
+private val DECIMAL_PATTERN = Regex("^-?[0-9]*.[0-9]+$")
+private val FLOATING_POINT_PATTERN = Regex("[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)")
 
-internal fun String.isFloatingPointNumber() = this.matches(Regex("[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)"))
+internal fun String.isDecimal() = this.matches(DECIMAL_PATTERN)
+
+internal fun String.isFloatingPointNumber() = this.matches(FLOATING_POINT_PATTERN)
 
 internal fun String.toDecimal() = this.toDouble()
 

@@ -450,6 +450,9 @@ data class PointerValue(
     operator fun times(other: IntValue) = PointerValue(address * other.value)
 }
 
+// Compiled once: DecimalValue.render runs at every decimal-to-string conversion while interpreting.
+private val LEADING_ZEROS_PATTERN = Regex("^(-)?0+")
+
 @Serializable
 data class DecimalValue(
     @Contextual val value: BigDecimal,
@@ -489,7 +492,7 @@ data class DecimalValue(
         // zeros followed by decimal point has not be rendered
         return value.toPlainString().let {
             if ((it.startsWith("0") || it.startsWith("-0")) && it.indexOf('.') != -1) {
-                it.replace(Regex("^(-)?0+"), "$1")
+                it.replace(LEADING_ZEROS_PATTERN, "$1")
             } else {
                 it
             }
