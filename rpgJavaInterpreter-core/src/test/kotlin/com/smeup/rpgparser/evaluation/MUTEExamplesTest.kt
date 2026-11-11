@@ -24,8 +24,9 @@ open class MUTEExamplesTest : AbstractTest() {
     }
 
     /**
-     * Interpreter cost of RPG procedure calls (see [com.smeup.rpgparser.performance.ProcedureCallBenchmark]):
-     * fails if the program exceeds its `MU* TIMEOUT` or computes a different checksum.
+     * Interpreter cost of RPG procedure calls (see [com.smeup.rpgparser.performance.ProcedureCallBenchmark]).
+     * `MU* TIMEOUT(20)` is a target, not a regression threshold: the same program takes about 40 ms on IBM i 7.5 and
+     * much longer in jariko today, so this test fails until the interpreter gets there. The checksum must not change.
      */
     @Test
     @Category(PerformanceTest::class)

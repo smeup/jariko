@@ -162,7 +162,7 @@
      C                   ENDFOR
      C                   EVAL      TotChar = %CHAR(Tot)
      C     TotChar       DSPLY
-    MU* TIMEOUT(5000)
+    MU* TIMEOUT(20)
      C                   SETON                                        LR
      C     SCRREC        BEGSR
      C                   EVAL      MNUMR += 1
