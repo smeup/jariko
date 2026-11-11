@@ -399,17 +399,12 @@ open class InternalInterpreter(
      * that activation-group memory-slice restoration may have just applied to them.
      */
     private fun refreshParmsKeywordFields(compilationUnit: CompilationUnit) {
-        compilationUnit.allDataDefinitions.filterIsInstance<DataDefinition>().forEach { ds ->
-            ds.fields.forEach { field ->
-                val initializationValue = field.initializationValue
-                if (initializationValue is ParmsExpr) {
-                    val fieldValue = coerce(eval(initializationValue), field.type)
-                    when (val value = get(ds.name)) {
-                        is DataStructValue -> value.set(field, fieldValue)
-                        is OccurableDataStructValue -> value.initializeField(field, fieldValue)
-                        else -> Unit
-                    }
-                }
+        compilationUnit.parmsKeywordFields.forEach { (ds, field) ->
+            val fieldValue = coerce(eval(field.initializationValue as ParmsExpr), field.type)
+            when (val value = get(ds.name)) {
+                is DataStructValue -> value.set(field, fieldValue)
+                is OccurableDataStructValue -> value.initializeField(field, fieldValue)
+                else -> Unit
             }
         }
     }
@@ -460,16 +455,7 @@ open class InternalInterpreter(
      */
     private fun AbstractDataDefinition.getResultNameByFactor1(compilationUnit: CompilationUnit): String? {
         val resultName =
-            compilationUnit.entryPlist
-                ?.params
-                ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
-                ?.firstOrNull { plistParamFiltered ->
-                    (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(
-                        this.name,
-                        true,
-                    )
-                }?.result
-                ?.name
+            compilationUnit.entryPlistResultNameByFactor1[this.name.uppercase()]
         return resultName
     }
 
@@ -485,10 +471,7 @@ open class InternalInterpreter(
      * @return `true` if the `AbstractDataDefinition` is present in the PList, otherwise `false`
      */
     private fun AbstractDataDefinition.isInPlist(compilationUnit: CompilationUnit) =
-        compilationUnit.entryPlist
-            ?.params
-            ?.filter { plistParam -> plistParam.factor1 is DataRefExpr }
-            ?.any { plistParamFiltered -> (plistParamFiltered.factor1 as DataRefExpr).variable.name.equals(this.name, true) } == true
+        compilationUnit.entryPlistResultNameByFactor1.containsKey(this.name.uppercase())
 
     private fun toArrayValue(
         compileTimeArray: CompileTimeArray,

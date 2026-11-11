@@ -20,12 +20,17 @@ import com.smeup.dspfparser.linesclassifier.DSPF
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.AbstractDataStructureType
 import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.FieldDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
-import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.model.Derived
+import com.strumenta.kolasu.model.Link
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 
 // This file contains the AST nodes at the highest level:
@@ -103,10 +108,40 @@ data class CompilationUnit(
             )
     }
 
-    val entryPlist: PlistStmt?
-        get() =
-            main.stmts.plist()
-                ?: subroutines.firstNotNullOfOrNull { it.stmts.plist() }
+    /**
+     * The `*ENTRY` PLIST. Computed once: it is read for every data definition at every call of the program.
+     */
+    val entryPlist: PlistStmt? by lazy {
+        main.stmts.plist()
+            ?: subroutines.firstNotNullOfOrNull { it.stmts.plist() }
+    }
+
+    /**
+     * For each data reference used as factor 1 of an `*ENTRY` PLIST parameter (key: upper-cased name),
+     * the name of the result field of the first parameter with that factor 1 (null when it has no result).
+     * Same lookup as scanning [entryPlist] parameters one by one, done once.
+     */
+    internal val entryPlistResultNameByFactor1: Map<String, String?> by lazy {
+        val map = LinkedHashMap<String, String?>()
+        entryPlist?.params?.forEach { param ->
+            val factor1 = param.factor1
+            if (factor1 is DataRefExpr) {
+                val key = factor1.variable.name.uppercase()
+                if (!map.containsKey(key)) map[key] = param.result?.name
+            }
+        }
+        map
+    }
+
+    /**
+     * The fields (with their data structure) initialized with the `*PARMS` keyword. Computed once: it is read at
+     * every call of the program.
+     */
+    internal val parmsKeywordFields: List<Pair<DataDefinition, FieldDefinition>> by lazy {
+        allDataDefinitions.filterIsInstance<DataDefinition>().flatMap { ds ->
+            ds.fields.filter { it.initializationValue is ParmsExpr }.map { ds to it }
+        }
+    }
 
     private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
 

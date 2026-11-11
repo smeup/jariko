@@ -126,8 +126,10 @@ class SymbolTable : ISymbolTable {
                 }
             }
         } else {
-            names[data.name.uppercase()] = data
-            return values.put(data, value.forType(data.type))
+            val previous = values.put(data, value.forType(data.type))
+            // On an update the name is already indexed: only the first assignment has to register it
+            if (previous == null) names[data.name.uppercase()] = data
+            return previous
         }
     }
 
