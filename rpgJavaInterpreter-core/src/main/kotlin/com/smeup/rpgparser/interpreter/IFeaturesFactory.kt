@@ -179,7 +179,12 @@ enum class FeatureFlag(
                 .jarikoCallback.featureFlagIsOn
                 .invoke(this)
         val property = System.getProperty(getPropertyName(), isOn.toString())
-        return property.lowercase().matches(Regex("1|on|true"))
+        return property.lowercase().matches(ON_PATTERN)
+    }
+
+    private companion object {
+        // Compiled once: isOn runs while interpreting.
+        val ON_PATTERN = Regex("1|on|true")
     }
 }
 
