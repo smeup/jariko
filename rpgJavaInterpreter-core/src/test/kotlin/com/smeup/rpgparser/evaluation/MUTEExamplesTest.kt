@@ -23,6 +23,17 @@ open class MUTEExamplesTest : AbstractTest() {
         assertMuteOK("MUTE10_01")
     }
 
+    /**
+     * Interpreter cost of RPG procedure calls (see [com.smeup.rpgparser.performance.ProcedureCallBenchmark]):
+     * fails if the program exceeds its `MU* TIMEOUT` or computes a different checksum.
+     */
+    @Test
+    @Category(PerformanceTest::class)
+    fun executePERFPROC01() {
+        // the checksum is displayed from a 30-character field
+        assertMuteOK("PERFPROC01", withOutput = listOf("-3272339.834212".padEnd(30)))
+    }
+
     @Test
     @Category(PerformanceTest::class)
     fun executeMUTE10_04() {
