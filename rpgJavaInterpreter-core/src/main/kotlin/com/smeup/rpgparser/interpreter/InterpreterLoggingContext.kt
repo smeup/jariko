@@ -34,7 +34,19 @@ data class InterpreterLoggingContext(
      * Determine whether logs are enabled or not.
      * Having only the ERROR handler does not count: errors do not go through this context (see [hasHotPathHandlers]).
      */
-    val logsEnabled get() = logHandlers.hasHotPathHandlers()
+    val logsEnabled: Boolean
+        get() {
+            // Read for every statement: scan the handlers only when the list has been replaced
+            val handlers = logHandlers
+            if (handlers !== logsEnabledFor) {
+                logsEnabledValue = handlers.hasHotPathHandlers()
+                logsEnabledFor = handlers
+            }
+            return logsEnabledValue
+        }
+
+    private var logsEnabledFor: List<InterpreterLogHandler>? = null
+    private var logsEnabledValue = false
 
     /**
      * Log a [LazyLogEntry].

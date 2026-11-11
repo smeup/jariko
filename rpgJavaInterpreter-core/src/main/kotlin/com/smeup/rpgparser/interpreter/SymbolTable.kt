@@ -62,7 +62,9 @@ class SymbolTable : ISymbolTable {
         data: AbstractDataDefinition,
         value: Value,
     ): Value? {
-        val start = System.nanoTime()
+        // Timing is only needed for the performance log: do not read the clock when logging is off
+        val loggingEnabled = MainExecutionContext.isLoggingEnabled
+        val start = if (loggingEnabled) System.nanoTime() else 0L
 
         val output =
             when (data.scope.visibility) {
@@ -71,8 +73,8 @@ class SymbolTable : ISymbolTable {
                 Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).setLocal(data, value)
             }
 
-        val elapsed = System.nanoTime() - start
-        if (MainExecutionContext.isLoggingEnabled) {
+        if (loggingEnabled) {
+            val elapsed = System.nanoTime() - start
             val programName = MainExecutionContext.getExecutionProgramName()
             MainExecutionContext.log(
                 LazyLogEntry.producePerformanceAndUpdateAnalytics(

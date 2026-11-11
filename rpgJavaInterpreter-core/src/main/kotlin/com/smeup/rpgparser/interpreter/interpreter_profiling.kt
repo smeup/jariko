@@ -32,19 +32,28 @@ import com.smeup.rpgparser.utils.peekOrNull
 /**
  * Get profiling annotations attached to the following statement.
  */
-internal fun Statement.getAttachedBeforeAnnotations() =
-    this.profilingAnnotations.filter {
-        it.attachStrategy ==
-            ProfilingAnnotationAttachStrategy.AttachToNext
+internal fun Statement.getAttachedBeforeAnnotations(): List<ProfilingAnnotation> =
+    // Most statements have no annotation: avoid allocating a list at every execution
+    if (this.profilingAnnotations.isEmpty()) {
+        emptyList()
+    } else {
+        this.profilingAnnotations.filter {
+            it.attachStrategy ==
+                ProfilingAnnotationAttachStrategy.AttachToNext
+        }
     }
 
 /**
  * Get profiling annotations attached to the previous statement.
  */
-internal fun Statement.getAttachedAfterAnnotations() =
-    this.profilingAnnotations.filter {
-        it.attachStrategy ==
-            ProfilingAnnotationAttachStrategy.AttachToPrevious
+internal fun Statement.getAttachedAfterAnnotations(): List<ProfilingAnnotation> =
+    if (this.profilingAnnotations.isEmpty()) {
+        emptyList()
+    } else {
+        this.profilingAnnotations.filter {
+            it.attachStrategy ==
+                ProfilingAnnotationAttachStrategy.AttachToPrevious
+        }
     }
 
 /**
