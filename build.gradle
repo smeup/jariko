@@ -28,7 +28,6 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
-        jcenter()
     }
 
     dependencies {
@@ -66,7 +65,6 @@ subprojects {
         // the repo inclusion allows to work with the reload snapshot version
         maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
-        jcenter()
     }
 
     // project.group and project.version are used to identify jariko maven coordinates
