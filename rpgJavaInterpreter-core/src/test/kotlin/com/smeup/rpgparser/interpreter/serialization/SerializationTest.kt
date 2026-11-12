@@ -23,11 +23,17 @@ import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.Position
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToHexString
 import kotlinx.serialization.encodeToString
 import java.math.BigDecimal
 import java.time.ZoneId
-import java.util.*
+import java.util.Calendar
+import java.util.GregorianCalendar
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -174,6 +180,20 @@ class SerializationTest {
         val encoded = ValueMapSerializer.encode(originalMap)
         val decoded = ValueMapSerializer.decode(encoded)
         assertEquals(originalMap, decoded)
+    }
+
+    @Test
+    fun `binary serialization keeps the kotlinx hex text and decodes it in either case`() {
+        val binary = SerializationOption.binarySerializer
+        val serializer: KSerializer<Map<String, Value>> =
+            MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+        val map: Map<String, Value> =
+            mapOf("a" to IntValue(42), "b" to StringValue("hello"), "c" to DataStructValue(" ds 1 "))
+
+        val encoded = binary.encodeToString(serializer, map)
+        assertEquals(binary.implementer.encodeToHexString(serializer, map), encoded)
+        assertEquals(map, binary.decodeFromString(serializer, encoded))
+        assertEquals(map, binary.decodeFromString(serializer, encoded.uppercase()))
     }
 
     @Test

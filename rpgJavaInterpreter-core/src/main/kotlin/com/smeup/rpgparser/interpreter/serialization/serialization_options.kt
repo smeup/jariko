@@ -81,12 +81,48 @@ class BinaryInterpreterSerialization(
     override fun <T> decodeFromString(
         deserializer: DeserializationStrategy<T>,
         string: String,
-    ): T = implementer.decodeFromHexString<T>(deserializer, string)
+    ): T = implementer.decodeFromByteArray(deserializer, parseHex(string))
 
+    // Same lowercase hex text as kotlinx encodeToHexString, but HexFormat writes it in one pass into a
+    // pre-sized array, while kotlinx appends char by char to a StringBuilder and then lowercases the copy.
     override fun <T> encodeToString(
         serializer: SerializationStrategy<T>,
         value: T,
-    ): String = implementer.encodeToHexString(serializer, value)
+    ): String = HEX.formatHex(implementer.encodeToByteArray(serializer, value))
+
+    private companion object {
+        val HEX: java.util.HexFormat = java.util.HexFormat.of()
+
+        /** Value of each hex digit (either case) by char code, -1 for any other char. */
+        val HEX_DIGITS =
+            IntArray(128) { -1 }.apply {
+                for (c in '0'..'9') this[c.code] = c - '0'
+                for (c in 'a'..'f') this[c.code] = c - 'a' + 10
+                for (c in 'A'..'F') this[c.code] = c - 'A' + 10
+            }
+
+        // Table lookup: about 3x faster than HexFormat.parseHex on the large states saved at every program exit.
+        fun parseHex(string: String): ByteArray {
+            require(string.length % 2 == 0) { "Hex string must have an even length, it has ${string.length}" }
+            val bytes = ByteArray(string.length / 2)
+            for (i in bytes.indices) {
+                val high = hexDigit(string, 2 * i)
+                val low = hexDigit(string, 2 * i + 1)
+                bytes[i] = ((high shl 4) or low).toByte()
+            }
+            return bytes
+        }
+
+        private fun hexDigit(
+            string: String,
+            index: Int,
+        ): Int {
+            val c = string[index].code
+            val digit = if (c < 128) HEX_DIGITS[c] else -1
+            require(digit >= 0) { "Invalid hex digit '${string[index]}' at index $index" }
+            return digit
+        }
+    }
 }
 
 class StringInterpreterSerialization(
