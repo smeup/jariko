@@ -3,6 +3,12 @@
 
 This document contains information for developers who want to contribute to the the project.
 
+## Requirements
+
+* **JDK 21 or later** is required to build the project. Gradle 9 itself needs JVM 17+, and the build targets Java 21 bytecode (`jvmVersion=21` in `gradle.properties`), so the resulting artifacts need a Java 21+ runtime.
+* CI (`.github/workflows`) builds with JDK 21 (`zulu`). When you change the required JDK, update `gradle.properties` and the `java-version` of every workflow in `.github/workflows` together.
+* Gradle is provided by the wrapper (currently 9.7.1): do not install it separately.
+
 ## How to compile the code
 
 The project uses gradle and a gradle wrapper is included. That means that you can simply execute `./gradlew` (on Mac/Linux) or `gradlew.bat` (on Windows) to run it.  
@@ -255,14 +261,14 @@ See also this animation:
 
 If you omit the program name, you will be able to call programs in a [simple shell](https://youtu.be/uNd6h5H2wTM).
 
-The default JVM target for the project is 1.8, but if you want to do some experiments with different JVM targets, you can try to run the gradle build task setting the jvmVersion property.
+The default JVM target for the project is 21 (see [Requirements](#requirements)), but if you want to do some experiments with different JVM targets, you can try to run the gradle build task setting the jvmVersion property.
 For example:
 
 ```
-./gradlew -PjvmVersion=1.6 fatJar
+./gradlew -PjvmVersion=17 fatJar
 ```
 
-(Hint: the project is not fully compatible with JVM 1.6 :-)
+(Hint: targets older than the default are not guaranteed to work, and the build JDK must be at least the target version.)
 
 ## Autoformatting
 

@@ -37,14 +37,11 @@ dependencies {
 
 }
 
-compileTestKotlin {
-    sourceCompatibility = "$jvmVersion"
-    targetCompatibility = "$jvmVersion"
-}
 
-compileKotlin {
-    sourceCompatibility = "$jvmVersion"
-    targetCompatibility = "$jvmVersion"
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("$jvmVersion")
+    targetCompatibility = JavaVersion.toVersion("$jvmVersion")
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
