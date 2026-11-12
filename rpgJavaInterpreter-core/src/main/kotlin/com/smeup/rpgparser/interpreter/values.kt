@@ -293,13 +293,21 @@ data class UnlimitedStringValue(
 data class IntValue(
     val value: Long,
 ) : NumberValue() {
-    val digits: Int by lazy {
-        // Maybe not the most efficient way but the simplest. Should be called very rarely anyway.
-        val length = value.toString().length
-        if (value < 0) length - 1 else length
-    }
+    // IntValue is created for almost every numeric result: `by lazy` would allocate two delegates and two
+    // lambdas per instance, so `digits` is computed on demand and `bigDecimal` is cached in a plain field.
+    val digits: Int
+        get() {
+            // Maybe not the most efficient way but the simplest. Should be called very rarely anyway.
+            val length = value.toString().length
+            return if (value < 0) length - 1 else length
+        }
 
-    override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
+    // Benign race: BigDecimal is immutable, so two threads at worst build two equal instances
+    @kotlinx.serialization.Transient
+    private var bigDecimalCache: BigDecimal? = null
+
+    override val bigDecimal: BigDecimal
+        get() = bigDecimalCache ?: BigDecimal(value).also { bigDecimalCache = it }
 
     override fun negate(): NumberValue = IntValue(-value)
 
