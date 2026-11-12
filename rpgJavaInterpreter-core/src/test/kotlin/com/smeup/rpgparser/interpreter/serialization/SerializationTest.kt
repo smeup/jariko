@@ -40,6 +40,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SerializationTest {
+    private val valueMapSerializer: KSerializer<Map<String, Value>> =
+        MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+
+    private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
+
     private inline fun <reified T> checkValueSerialization(
         value: T,
         printValues: Boolean = false,
@@ -211,6 +216,32 @@ class SerializationTest {
             MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
         val plainHex = SerializationOption.binarySerializer.encodeToString(serializer, map)
         assertEquals(map, ValueMapSerializer.decode(plainHex))
+    }
+
+    @Test
+    fun `IndexedStringBuilder is serialized once with its current content`() {
+        val builder = IndexedStringBuilder("AAAAAAAAAABBBBBBBBBB", 8)
+        builder.replace(2, 5, "xyz")
+        val map: Map<String, Value> = mapOf("ds" to DataStructValue(builder))
+
+        val encoded = SerializationOption.binarySerializer.encodeToString(valueMapSerializer, map)
+        assertTrue("AAAAAAAAAABBBBBBBBBB".toByteArray().toHex() !in encoded, "the stale initial content must not be written")
+        val decoded = SerializationOption.binarySerializer.decodeFromString(valueMapSerializer, encoded)
+        assertEquals("AAxyzAAAAABBBBBBBBBB", (decoded["ds"] as DataStructValue).value.toString())
+        assertEquals(map, decoded)
+        assertEquals(map, ValueMapSerializer.decode(ValueMapSerializer.encode(map)))
+    }
+
+    @Test
+    fun `IndexedStringBuilder serialized with value and chunks reads the chunks`() {
+        // Written by the generated serializer before IndexedStringBuilderSerializer: stale 'value' plus current 'chunks'
+        val oldFormat =
+            "bf6264739f782f636f6d2e736d6575702e7270677061727365722e696e7465727072657465722e4461746153747275637456616c7565" +
+                "bf6576616c75659f7834636f6d2e736d6575702e7270677061727365722e696e7465727072657465722e496e646578656453747269" +
+                "6e674275696c646572bf6576616c75657441414141414141414141424242424242424242426a6368756e6b7353697a6508666368756e" +
+                "6b739f68414178797a4141416841414242424242426442424242ffffffffffff"
+        val decoded = ValueMapSerializer.decode(oldFormat)
+        assertEquals("AAxyzAAAAABBBBBBBBBB", (decoded["ds"] as DataStructValue).value.toString())
     }
 
     @Test
