@@ -78,6 +78,13 @@ abstract class AbstractDataDefinition(
         },
 ) : Node(position),
     Named {
+    // Name used as key of the symbol tables: computed once instead of at every assignment
+    @Transient
+    private var upperCaseNameCache: String? = null
+
+    internal val upperCaseName: String
+        get() = upperCaseNameCache ?: name.uppercase().also { upperCaseNameCache = it }
+
     fun numberOfElements() = type.numberOfElements()
 
     open fun elementSize() = type.elementSize()
