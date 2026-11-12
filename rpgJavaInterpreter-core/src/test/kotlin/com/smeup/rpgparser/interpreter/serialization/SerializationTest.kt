@@ -233,6 +233,23 @@ class SerializationTest {
     }
 
     @Test
+    fun `IndexedStringBuilder trailing blanks are not serialized but restored`() {
+        val builder = IndexedStringBuilder(" ".repeat(100_000), 500)
+        builder.replace(10, 13, "abc")
+        val map: Map<String, Value> =
+            mapOf(
+                "ds" to DataStructValue(builder),
+                "blank" to DataStructValue(IndexedStringBuilder(" ".repeat(50_000), 500)),
+            )
+
+        val encoded = SerializationOption.binarySerializer.encodeToString(valueMapSerializer, map)
+        assertTrue(encoded.length < 1_000, "trailing blanks must not be written, got ${encoded.length} hex chars")
+        val decoded = SerializationOption.binarySerializer.decodeFromString(valueMapSerializer, encoded)
+        assertEquals(100_000, (decoded["ds"] as DataStructValue).value.length)
+        assertEquals(map, decoded)
+    }
+
+    @Test
     fun `IndexedStringBuilder serialized with value and chunks reads the chunks`() {
         // Written by the generated serializer before IndexedStringBuilderSerializer: stale 'value' plus current 'chunks'
         val oldFormat =

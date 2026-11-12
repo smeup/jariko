@@ -300,7 +300,9 @@ class IndexedStringBuilder(
 }
 
 /**
- * Serializes an [IndexedStringBuilder] as its current content and chunk size.
+ * Serializes an [IndexedStringBuilder] as its current content without trailing blanks, its length and chunk size.
+ * Data structures are mostly blanks (fields and arrays never written), so the trailing blanks were most of
+ * the serialized program state.
  *
  * The generated serializer wrote the constructor `value` (the initial content, stale after any replace)
  * together with the `chunks` (the current content): every data structure was saved twice. The `chunks`
@@ -315,6 +317,7 @@ object IndexedStringBuilderSerializer : KSerializer<IndexedStringBuilder> {
             element<String>("value")
             element<Int>("chunksSize")
             element("chunks", chunksSerializer.descriptor, isOptional = true)
+            element<Int>("length", isOptional = true)
         }
 
     override fun serialize(
@@ -322,8 +325,10 @@ object IndexedStringBuilderSerializer : KSerializer<IndexedStringBuilder> {
         value: IndexedStringBuilder,
     ) {
         encoder.encodeStructure(descriptor) {
-            encodeStringElement(descriptor, 0, value.toString())
+            val content = value.toString()
+            encodeStringElement(descriptor, 0, content.trimEnd(' '))
             encodeIntElement(descriptor, 1, value.chunksSize)
+            encodeIntElement(descriptor, 3, content.length)
         }
     }
 
@@ -332,17 +337,22 @@ object IndexedStringBuilderSerializer : KSerializer<IndexedStringBuilder> {
             var value: String? = null
             var chunksSize: Int? = null
             var chunks: List<String>? = null
+            var length: Int? = null
             while (true) {
                 when (val index = decodeElementIndex(descriptor)) {
                     0 -> value = decodeStringElement(descriptor, 0)
                     1 -> chunksSize = decodeIntElement(descriptor, 1)
                     2 -> chunks = decodeSerializableElement(descriptor, 2, chunksSerializer)
+                    3 -> length = decodeIntElement(descriptor, 3)
                     CompositeDecoder.DECODE_DONE -> break
                     else -> throw SerializationException("Unexpected element index $index")
                 }
             }
             val content = chunks?.joinToString(separator = "") ?: value ?: throw SerializationException("Missing 'value'")
-            IndexedStringBuilder(content, chunksSize ?: throw SerializationException("Missing 'chunksSize'"))
+            IndexedStringBuilder(
+                if (length != null) content.padEnd(length) else content,
+                chunksSize ?: throw SerializationException("Missing 'chunksSize'"),
+            )
         }
 }
 
