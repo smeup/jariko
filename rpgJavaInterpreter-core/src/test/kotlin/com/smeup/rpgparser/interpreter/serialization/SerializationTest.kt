@@ -250,6 +250,34 @@ class SerializationTest {
     }
 
     @Test
+    fun `StringValue trailing blanks are not serialized but restored`() {
+        val map: Map<String, Value> =
+            mapOf(
+                "fixed" to StringValue("abc" + " ".repeat(5_000)),
+                "blank" to StringValue(" ".repeat(5_000)),
+                "varying" to StringValue("ab  ", varying = true),
+                "plain" to StringValue("xyz"),
+            )
+
+        val encoded = SerializationOption.binarySerializer.encodeToString(valueMapSerializer, map)
+        assertTrue(encoded.length < 1_000, "trailing blanks must not be written, got ${encoded.length} hex chars")
+        assertEquals(map, SerializationOption.binarySerializer.decodeFromString(valueMapSerializer, encoded))
+        assertEquals(
+            map,
+            SerializationOption.stringSerializer.decodeFromString(
+                valueMapSerializer,
+                SerializationOption.stringSerializer.encodeToString(valueMapSerializer, map),
+            ),
+        )
+    }
+
+    @Test
+    fun `StringValue serialized without length is read as it is`() {
+        val json = """{"#class":"com.smeup.rpgparser.interpreter.StringValue","value":"ab  ","varying":true}"""
+        assertEquals(StringValue("ab  ", varying = true), SerializationOption.stringSerializer.decodeFromString<Value>(json))
+    }
+
+    @Test
     fun `IndexedStringBuilder serialized with value and chunks reads the chunks`() {
         // Written by the generated serializer before IndexedStringBuilderSerializer: stale 'value' plus current 'chunks'
         val oldFormat =

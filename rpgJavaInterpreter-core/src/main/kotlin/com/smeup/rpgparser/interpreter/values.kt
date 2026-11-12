@@ -24,14 +24,25 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toInt
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.repeatWithMaxSize
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
 
 const val PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
@@ -106,7 +117,7 @@ interface AbstractStringValue : Value {
     fun isBlank(): Boolean = getWrappedString().isBlank()
 }
 
-@Serializable
+@Serializable(with = StringValueSerializer::class)
 data class StringValue(
     var value: String,
     var varying: Boolean = false,
@@ -266,6 +277,50 @@ data class StringValue(
     internal fun trimEndIfVarying() = if (varying) value.trimEnd() else value
 
     override fun getWrappedString() = value
+}
+
+/**
+ * Serializes a [StringValue] without its trailing blanks, plus its length when some were dropped.
+ * Fixed-length fields and array elements are mostly blanks, and they were most of a saved program state.
+ * Values serialized without `length` are read as they are.
+ */
+object StringValueSerializer : KSerializer<StringValue> {
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("com.smeup.rpgparser.interpreter.StringValue") {
+            element<String>("value")
+            element<Boolean>("varying", isOptional = true)
+            element<Int>("length", isOptional = true)
+        }
+
+    override fun serialize(
+        encoder: Encoder,
+        value: StringValue,
+    ) {
+        encoder.encodeStructure(descriptor) {
+            val trimmed = value.value.trimEnd(' ')
+            encodeStringElement(descriptor, 0, trimmed)
+            if (value.varying) encodeBooleanElement(descriptor, 1, true)
+            if (trimmed.length != value.value.length) encodeIntElement(descriptor, 2, value.value.length)
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): StringValue =
+        decoder.decodeStructure(descriptor) {
+            var value: String? = null
+            var varying = false
+            var length: Int? = null
+            while (true) {
+                when (val index = decodeElementIndex(descriptor)) {
+                    0 -> value = decodeStringElement(descriptor, 0)
+                    1 -> varying = decodeBooleanElement(descriptor, 1)
+                    2 -> length = decodeIntElement(descriptor, 2)
+                    CompositeDecoder.DECODE_DONE -> break
+                    else -> throw SerializationException("Unexpected element index $index")
+                }
+            }
+            val content = value ?: throw SerializationException("Missing 'value'")
+            StringValue(if (length != null) content.padEnd(length) else content, varying)
+        }
 }
 
 @Serializable
