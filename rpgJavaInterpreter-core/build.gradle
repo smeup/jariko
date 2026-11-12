@@ -145,6 +145,10 @@ idea {
 }
 
 tasks.withType(Test) {
+    // Gradle 9 no longer defaults testClassesDirs/classpath for Test tasks registered by hand
+    // (testCore, testPerformance, testDBPerformance, testAll): without them they are NO-SOURCE
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
     testLogging {
         exceptionFormat "full"
         showCauses true
