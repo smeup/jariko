@@ -37,6 +37,7 @@ import java.util.GregorianCalendar
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SerializationTest {
     private inline fun <reified T> checkValueSerialization(
@@ -194,6 +195,22 @@ class SerializationTest {
         assertEquals(binary.implementer.encodeToHexString(serializer, map), encoded)
         assertEquals(map, binary.decodeFromString(serializer, encoded))
         assertEquals(map, binary.decodeFromString(serializer, encoded.uppercase()))
+    }
+
+    @Test
+    fun `ValueMapSerializer compresses a mostly blank state and still reads the plain hex format`() {
+        val map: Map<String, Value> =
+            mapOf("big" to DataStructValue(" ".repeat(500_000)), "n" to IntValue(7), "s" to StringValue("abc"))
+
+        val encoded = ValueMapSerializer.encode(map)
+        assertTrue(encoded.startsWith("~"), "expected the deflated format")
+        assertTrue(encoded.length < 10_000, "500 KB of blanks should deflate to a few KB, got ${encoded.length} chars")
+        assertEquals(map, ValueMapSerializer.decode(encoded))
+
+        val serializer: KSerializer<Map<String, Value>> =
+            MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+        val plainHex = SerializationOption.binarySerializer.encodeToString(serializer, map)
+        assertEquals(map, ValueMapSerializer.decode(plainHex))
     }
 
     @Test

@@ -31,6 +31,10 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import java.io.ByteArrayOutputStream
+import java.util.Base64
+import java.util.zip.Deflater
+import java.util.zip.Inflater
 
 private val module =
     SerializersModule {
@@ -197,13 +201,70 @@ object ValueSerializer {
  * slice in a single call, instead of one call per entry.
  * */
 object ValueMapSerializer {
+    /**
+     * Marks a value map serialized as deflate-compressed CBOR in Base64. It is not a hex digit nor a JSON start,
+     * so [decode] still reads the plain text produced before compression was introduced.
+     */
+    private const val DEFLATED_PREFIX = "~"
+
     private val serializer: KSerializer<Map<String, Value>> by lazy {
         MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
     }
 
+    /**
+     * Program states are mostly blanks (large data structures and arrays never written), so the CBOR of
+     * a single program can be MBs. Deflating it shrinks it by orders of magnitude, which makes both
+     * the text encoding and the round trip to the session storage cheap.
+     */
     @JvmStatic
-    fun encode(values: Map<String, Value>): String = SerializationOption.serializer.encodeToString(serializer, values)
+    fun encode(values: Map<String, Value>): String {
+        val format = SerializationOption.serializer
+        if (format !is BinaryInterpreterSerialization) return format.encodeToString(serializer, values)
+        val bytes = format.implementer.encodeToByteArray(serializer, values)
+        return DEFLATED_PREFIX + Base64.getEncoder().encodeToString(deflate(bytes))
+    }
 
     @JvmStatic
-    fun decode(string: String): Map<String, Value> = SerializationOption.serializer.decodeFromString(serializer, string)
+    fun decode(string: String): Map<String, Value> {
+        if (string.startsWith(DEFLATED_PREFIX)) {
+            val bytes = inflate(Base64.getDecoder().decode(string.substring(DEFLATED_PREFIX.length)))
+            return SerializationOption.binarySerializer.implementer.decodeFromByteArray(serializer, bytes)
+        }
+        return SerializationOption.serializer.decodeFromString(serializer, string)
+    }
+
+    private fun deflate(bytes: ByteArray): ByteArray {
+        val deflater = Deflater(Deflater.BEST_SPEED)
+        try {
+            deflater.setInput(bytes)
+            deflater.finish()
+            val out = ByteArrayOutputStream(maxOf(64, bytes.size / 64))
+            val buffer = ByteArray(64 * 1024)
+            while (!deflater.finished()) {
+                out.write(buffer, 0, deflater.deflate(buffer))
+            }
+            return out.toByteArray()
+        } finally {
+            deflater.end()
+        }
+    }
+
+    private fun inflate(bytes: ByteArray): ByteArray {
+        val inflater = Inflater()
+        try {
+            inflater.setInput(bytes)
+            val out = ByteArrayOutputStream(bytes.size * 64)
+            val buffer = ByteArray(64 * 1024)
+            while (!inflater.finished()) {
+                val n = inflater.inflate(buffer)
+                if (n == 0 && (inflater.needsInput() || inflater.needsDictionary())) {
+                    throw IllegalArgumentException("Truncated deflated value map")
+                }
+                out.write(buffer, 0, n)
+            }
+            return out.toByteArray()
+        } finally {
+            inflater.end()
+        }
+    }
 }
