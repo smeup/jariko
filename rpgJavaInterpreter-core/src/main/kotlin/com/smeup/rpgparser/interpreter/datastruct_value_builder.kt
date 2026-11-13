@@ -122,9 +122,11 @@ sealed interface DataStructValueBuilder {
 /**
  * A wrapper class for StringBuilder that implements the DataStructValueBuilder interface.
  *
+ * It is serialized with its current content (see [StringBuilderWrapperSerializer]).
+ *
  * @param value The initial value of the string builder.
  */
-@Serializable
+@Serializable(with = StringBuilderWrapperSerializer::class)
 class StringBuilderWrapper(
     private val value: String,
 ) : DataStructValueBuilder {
@@ -180,6 +182,42 @@ class StringBuilderWrapper(
      * @return The string representation of the string builder.
      */
     override fun toString(): String = sb.toString()
+}
+
+/**
+ * Serializes a [StringBuilderWrapper] as its current content.
+ *
+ * The generated serializer wrote the constructor `value`, the initial content, while every change goes into the
+ * transient builder: a data structure modified after its creation was restored with its initial content.
+ * Serial name and `value` element are unchanged, so values serialized before can still be read.
+ */
+object StringBuilderWrapperSerializer : KSerializer<StringBuilderWrapper> {
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("com.smeup.rpgparser.interpreter.StringBuilderWrapper") {
+            element<String>("value")
+        }
+
+    override fun serialize(
+        encoder: Encoder,
+        value: StringBuilderWrapper,
+    ) {
+        encoder.encodeStructure(descriptor) {
+            encodeStringElement(descriptor, 0, value.toString())
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): StringBuilderWrapper =
+        decoder.decodeStructure(descriptor) {
+            var value: String? = null
+            while (true) {
+                when (val index = decodeElementIndex(descriptor)) {
+                    0 -> value = decodeStringElement(descriptor, 0)
+                    CompositeDecoder.DECODE_DONE -> break
+                    else -> throw SerializationException("Unexpected element index $index")
+                }
+            }
+            StringBuilderWrapper(value ?: throw SerializationException("Missing 'value'"))
+        }
 }
 
 /**
