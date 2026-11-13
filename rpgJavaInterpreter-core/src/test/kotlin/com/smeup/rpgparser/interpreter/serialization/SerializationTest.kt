@@ -23,16 +23,28 @@ import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.Position
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToHexString
 import kotlinx.serialization.encodeToString
 import java.math.BigDecimal
 import java.time.ZoneId
-import java.util.*
+import java.util.Calendar
+import java.util.GregorianCalendar
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SerializationTest {
+    private val valueMapSerializer: KSerializer<Map<String, Value>> =
+        MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+
+    private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
+
     private inline fun <reified T> checkValueSerialization(
         value: T,
         printValues: Boolean = false,
@@ -174,6 +186,107 @@ class SerializationTest {
         val encoded = ValueMapSerializer.encode(originalMap)
         val decoded = ValueMapSerializer.decode(encoded)
         assertEquals(originalMap, decoded)
+    }
+
+    @Test
+    fun `binary serialization keeps the kotlinx hex text and decodes it in either case`() {
+        val binary = SerializationOption.binarySerializer
+        val serializer: KSerializer<Map<String, Value>> =
+            MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+        val map: Map<String, Value> =
+            mapOf("a" to IntValue(42), "b" to StringValue("hello"), "c" to DataStructValue(" ds 1 "))
+
+        val encoded = binary.encodeToString(serializer, map)
+        assertEquals(binary.implementer.encodeToHexString(serializer, map), encoded)
+        assertEquals(map, binary.decodeFromString(serializer, encoded))
+        assertEquals(map, binary.decodeFromString(serializer, encoded.uppercase()))
+    }
+
+    @Test
+    fun `ValueMapSerializer compresses a mostly blank state and still reads the plain hex format`() {
+        val map: Map<String, Value> =
+            mapOf("big" to DataStructValue(" ".repeat(500_000)), "n" to IntValue(7), "s" to StringValue("abc"))
+
+        val encoded = ValueMapSerializer.encode(map)
+        assertTrue(encoded.startsWith("~"), "expected the deflated format")
+        assertTrue(encoded.length < 10_000, "500 KB of blanks should deflate to a few KB, got ${encoded.length} chars")
+        assertEquals(map, ValueMapSerializer.decode(encoded))
+
+        val serializer: KSerializer<Map<String, Value>> =
+            MapSerializer(String.serializer(), PolymorphicSerializer(Value::class))
+        val plainHex = SerializationOption.binarySerializer.encodeToString(serializer, map)
+        assertEquals(map, ValueMapSerializer.decode(plainHex))
+    }
+
+    @Test
+    fun `IndexedStringBuilder is serialized once with its current content`() {
+        val builder = IndexedStringBuilder("AAAAAAAAAABBBBBBBBBB", 8)
+        builder.replace(2, 5, "xyz")
+        val map: Map<String, Value> = mapOf("ds" to DataStructValue(builder))
+
+        val encoded = SerializationOption.binarySerializer.encodeToString(valueMapSerializer, map)
+        assertTrue("AAAAAAAAAABBBBBBBBBB".toByteArray().toHex() !in encoded, "the stale initial content must not be written")
+        val decoded = SerializationOption.binarySerializer.decodeFromString(valueMapSerializer, encoded)
+        assertEquals("AAxyzAAAAABBBBBBBBBB", (decoded["ds"] as DataStructValue).value.toString())
+        assertEquals(map, decoded)
+        assertEquals(map, ValueMapSerializer.decode(ValueMapSerializer.encode(map)))
+    }
+
+    @Test
+    fun `IndexedStringBuilder trailing blanks are not serialized but restored`() {
+        val builder = IndexedStringBuilder(" ".repeat(100_000), 500)
+        builder.replace(10, 13, "abc")
+        val map: Map<String, Value> =
+            mapOf(
+                "ds" to DataStructValue(builder),
+                "blank" to DataStructValue(IndexedStringBuilder(" ".repeat(50_000), 500)),
+            )
+
+        val encoded = SerializationOption.binarySerializer.encodeToString(valueMapSerializer, map)
+        assertTrue(encoded.length < 1_000, "trailing blanks must not be written, got ${encoded.length} hex chars")
+        val decoded = SerializationOption.binarySerializer.decodeFromString(valueMapSerializer, encoded)
+        assertEquals(100_000, (decoded["ds"] as DataStructValue).value.length)
+        assertEquals(map, decoded)
+    }
+
+    @Test
+    fun `StringValue trailing blanks are not serialized but restored`() {
+        val map: Map<String, Value> =
+            mapOf(
+                "fixed" to StringValue("abc" + " ".repeat(5_000)),
+                "blank" to StringValue(" ".repeat(5_000)),
+                "varying" to StringValue("ab  ", varying = true),
+                "plain" to StringValue("xyz"),
+            )
+
+        val encoded = SerializationOption.binarySerializer.encodeToString(valueMapSerializer, map)
+        assertTrue(encoded.length < 1_000, "trailing blanks must not be written, got ${encoded.length} hex chars")
+        assertEquals(map, SerializationOption.binarySerializer.decodeFromString(valueMapSerializer, encoded))
+        assertEquals(
+            map,
+            SerializationOption.stringSerializer.decodeFromString(
+                valueMapSerializer,
+                SerializationOption.stringSerializer.encodeToString(valueMapSerializer, map),
+            ),
+        )
+    }
+
+    @Test
+    fun `StringValue serialized without length is read as it is`() {
+        val json = """{"#class":"com.smeup.rpgparser.interpreter.StringValue","value":"ab  ","varying":true}"""
+        assertEquals(StringValue("ab  ", varying = true), SerializationOption.stringSerializer.decodeFromString<Value>(json))
+    }
+
+    @Test
+    fun `IndexedStringBuilder serialized with value and chunks reads the chunks`() {
+        // Written by the generated serializer before IndexedStringBuilderSerializer: stale 'value' plus current 'chunks'
+        val oldFormat =
+            "bf6264739f782f636f6d2e736d6575702e7270677061727365722e696e7465727072657465722e4461746153747275637456616c7565" +
+                "bf6576616c75659f7834636f6d2e736d6575702e7270677061727365722e696e7465727072657465722e496e646578656453747269" +
+                "6e674275696c646572bf6576616c75657441414141414141414141424242424242424242426a6368756e6b7353697a6508666368756e" +
+                "6b739f68414178797a4141416841414242424242426442424242ffffffffffff"
+        val decoded = ValueMapSerializer.decode(oldFormat)
+        assertEquals("AAxyzAAAAABBBBBBBBBB", (decoded["ds"] as DataStructValue).value.toString())
     }
 
     @Test

@@ -18,8 +18,20 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Transient
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
 
 /**
  * Interface representing a value of a data structure string.
@@ -178,7 +190,7 @@ class StringBuilderWrapper(
  * @param value The initial value of the string builder
  * @param chunksSize The size of the chunks
  */
-@Serializable
+@Serializable(with = IndexedStringBuilderSerializer::class)
 class IndexedStringBuilder(
     private val value: String,
     val chunksSize: Int,
@@ -285,6 +297,63 @@ class IndexedStringBuilder(
     }
 
     override fun toString(): String = chunks.joinToString(separator = "") { it.toString() }
+}
+
+/**
+ * Serializes an [IndexedStringBuilder] as its current content without trailing blanks, its length and chunk size.
+ * Data structures are mostly blanks (fields and arrays never written), so the trailing blanks were most of
+ * the serialized program state.
+ *
+ * The generated serializer wrote the constructor `value` (the initial content, stale after any replace)
+ * together with the `chunks` (the current content): every data structure was saved twice. The `chunks`
+ * element is still accepted when decoding, and wins over `value`, so values serialized before keep their
+ * current content.
+ */
+object IndexedStringBuilderSerializer : KSerializer<IndexedStringBuilder> {
+    private val chunksSerializer = ListSerializer(String.serializer())
+
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("com.smeup.rpgparser.interpreter.IndexedStringBuilder") {
+            element<String>("value")
+            element<Int>("chunksSize")
+            element("chunks", chunksSerializer.descriptor, isOptional = true)
+            element<Int>("length", isOptional = true)
+        }
+
+    override fun serialize(
+        encoder: Encoder,
+        value: IndexedStringBuilder,
+    ) {
+        encoder.encodeStructure(descriptor) {
+            val content = value.toString()
+            encodeStringElement(descriptor, 0, content.trimEnd(' '))
+            encodeIntElement(descriptor, 1, value.chunksSize)
+            encodeIntElement(descriptor, 3, content.length)
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): IndexedStringBuilder =
+        decoder.decodeStructure(descriptor) {
+            var value: String? = null
+            var chunksSize: Int? = null
+            var chunks: List<String>? = null
+            var length: Int? = null
+            while (true) {
+                when (val index = decodeElementIndex(descriptor)) {
+                    0 -> value = decodeStringElement(descriptor, 0)
+                    1 -> chunksSize = decodeIntElement(descriptor, 1)
+                    2 -> chunks = decodeSerializableElement(descriptor, 2, chunksSerializer)
+                    3 -> length = decodeIntElement(descriptor, 3)
+                    CompositeDecoder.DECODE_DONE -> break
+                    else -> throw SerializationException("Unexpected element index $index")
+                }
+            }
+            val content = chunks?.joinToString(separator = "") ?: value ?: throw SerializationException("Missing 'value'")
+            IndexedStringBuilder(
+                if (length != null) content.padEnd(length) else content,
+                chunksSize ?: throw SerializationException("Missing 'chunksSize'"),
+            )
+        }
 }
 
 /**
