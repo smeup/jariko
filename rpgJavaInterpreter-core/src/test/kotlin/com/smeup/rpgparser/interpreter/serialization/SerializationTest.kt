@@ -126,6 +126,15 @@ class SerializationTest {
     }
 
     @Test
+    fun `modified DataStructValue with StringBuilderWrapper keeps its current content after serialization`() {
+        val ds = DataStructValue(value = StringBuilderWrapper("AAAA      "))
+        ds.setSubstring(0, 4, StringValue("BBBB"))
+        val restored = ValueMapSerializer.decode(ValueMapSerializer.encode(mapOf("DS" to ds)))["DS"] as DataStructValue
+        assertEquals(ds.value.toString(), restored.value.toString())
+        assertEquals("BBBB      ", restored.value.toString())
+    }
+
+    @Test
     fun `a map with Values can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
