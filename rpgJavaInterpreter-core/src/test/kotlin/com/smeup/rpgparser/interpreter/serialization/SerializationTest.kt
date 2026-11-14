@@ -135,6 +135,17 @@ class SerializationTest {
     }
 
     @Test
+    fun `DataStructValue with StringBuilderWrapper is serialized without trailing blanks and keeps its length`() {
+        val ds = DataStructValue(value = StringBuilderWrapper(" ".repeat(10000)))
+        ds.setSubstring(0, 4, StringValue("BBBB"))
+        val encoded = ValueMapSerializer.encode(mapOf("DS" to ds))
+        assertTrue(encoded.length < 1000, "trailing blanks must not be serialized, size was ${encoded.length}")
+        val restored = ValueMapSerializer.decode(encoded)["DS"] as DataStructValue
+        assertEquals(10000, restored.value.length)
+        assertEquals(ds.value.toString(), restored.value.toString())
+    }
+
+    @Test
     fun `a map with Values can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))

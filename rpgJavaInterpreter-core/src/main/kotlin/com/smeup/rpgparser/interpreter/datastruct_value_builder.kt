@@ -185,7 +185,8 @@ class StringBuilderWrapper(
 }
 
 /**
- * Serializes a [StringBuilderWrapper] as its current content.
+ * Serializes a [StringBuilderWrapper] as its current content without trailing blanks, plus its length.
+ * Data structures are mostly blanks: writing them all made the serialized program state much bigger and slower.
  *
  * The generated serializer wrote the constructor `value`, the initial content, while every change goes into the
  * transient builder: a data structure modified after its creation was restored with its initial content.
@@ -195,6 +196,7 @@ object StringBuilderWrapperSerializer : KSerializer<StringBuilderWrapper> {
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("com.smeup.rpgparser.interpreter.StringBuilderWrapper") {
             element<String>("value")
+            element<Int>("length", isOptional = true)
         }
 
     override fun serialize(
@@ -202,21 +204,26 @@ object StringBuilderWrapperSerializer : KSerializer<StringBuilderWrapper> {
         value: StringBuilderWrapper,
     ) {
         encoder.encodeStructure(descriptor) {
-            encodeStringElement(descriptor, 0, value.toString())
+            val content = value.toString()
+            encodeStringElement(descriptor, 0, content.trimEnd(' '))
+            encodeIntElement(descriptor, 1, content.length)
         }
     }
 
     override fun deserialize(decoder: Decoder): StringBuilderWrapper =
         decoder.decodeStructure(descriptor) {
             var value: String? = null
+            var length: Int? = null
             while (true) {
                 when (val index = decodeElementIndex(descriptor)) {
                     0 -> value = decodeStringElement(descriptor, 0)
+                    1 -> length = decodeIntElement(descriptor, 1)
                     CompositeDecoder.DECODE_DONE -> break
                     else -> throw SerializationException("Unexpected element index $index")
                 }
             }
-            StringBuilderWrapper(value ?: throw SerializationException("Missing 'value'"))
+            val content = value ?: throw SerializationException("Missing 'value'")
+            StringBuilderWrapper(if (length != null) content.padEnd(length) else content)
         }
 }
 
