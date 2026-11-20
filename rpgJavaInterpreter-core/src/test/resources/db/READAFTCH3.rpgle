@@ -3,9 +3,9 @@
      D OP              S              1
       *
      C                   EVAL      OP = 'C'
-     C                   CALL      'READAFTCHC'
+     C                   CALL      'db/RDAFTCHC'
      C                   PARM                    OP
      C                   EVAL      OP = 'R'
-     C                   CALL      'READAFTCHC'
+     C                   CALL      'db/RDAFTCHC'
      C                   PARM                    OP
      C                   SETON                                        LR
