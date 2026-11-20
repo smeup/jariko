@@ -1341,6 +1341,14 @@ open class InternalInterpreter(
         ) ?: exitRT
     }
 
+    /**
+     * Called when the program exits without keeping its state: puts its files back to what the next activation expects.
+     * Procedures don't own the files (they share the ones of the program that called them), so they override it.
+     */
+    protected open fun releaseFiles() {
+        status.dbFileMap.resetForNewActivation()
+    }
+
     // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
     // could make failing RpgProgram.execute.
     // The failure depends on whether that the initialvalues are searched in symboltable
@@ -1351,6 +1359,8 @@ open class InternalInterpreter(
         }
         if (!exitingRT) {
             globalSymbolTable.clear()
+            // files are closed at exit: the next activation of this program finds them at their first record
+            releaseFiles()
             // if I exit in LR have to mark inzsrExecuted to false
             status.inzsrExecuted.set(false)
         }
