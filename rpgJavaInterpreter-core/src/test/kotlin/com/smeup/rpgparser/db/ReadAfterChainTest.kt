@@ -29,9 +29,10 @@ import kotlin.test.assertEquals
 
 /**
  * READ after CHAIN, and file state after CLOSE/OPEN and across calls.
- * IBM i semantics followed (NOT yet proved on IBM i, see docs/ibmi-proof): READ after a successful CHAIN returns the
- * record following the chained one; CLOSE+OPEN, or the end of a program that exits with LR, resets the file position
- * so the next READ returns the first record.
+ * IBM i semantics followed (proved on IBM i V7R5M0, RPGPROOF5 in docs/ibmi-proof of the smeuperp workspace):
+ * READ after a successful CHAIN returns the record following the chained one; a CHAIN that finds nothing leaves the
+ * position unchanged; CLOSE+OPEN, or the end of a program that exits with LR, resets the file position so the next
+ * READ returns the first record.
  */
 open class ReadAfterChainTest : AbstractTest() {
     companion object {
@@ -63,5 +64,15 @@ open class ReadAfterChainTest : AbstractTest() {
     @Test
     fun chainOfPreviousCallDoesNotLeakIntoNextCall() {
         assertEquals(listOf("000030", "000010"), run("db/READAFTCH3"))
+    }
+
+    @Test
+    fun chainNotFoundOnFreshFileThenReadReturnsFirstRecord() {
+        assertEquals(listOf("000010"), run("db/READAFTCH4"))
+    }
+
+    @Test
+    fun chainNotFoundLeavesThePositionUnchanged() {
+        assertEquals(listOf("000050", "000060"), run("db/READAFTCH5"))
     }
 }
