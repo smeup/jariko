@@ -3319,7 +3319,7 @@ data class CloseStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
-        dbFile.open = false
+        dbFile.closeFile()
     }
 }
 

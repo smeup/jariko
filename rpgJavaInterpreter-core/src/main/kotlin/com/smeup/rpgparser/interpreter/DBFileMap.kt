@@ -122,6 +122,15 @@ class DBFileMap {
     }
 
     operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+
+    /**
+     * The program is exiting without keeping its state (LR on, or not in RT mode): on IBM i its files are closed, so
+     * the next activation finds them open at their first record. The interpreter instance (and so this map) outlives
+     * the activation, so the files are put back to that state here.
+     */
+    fun resetForNewActivation() {
+        byFileName.values.forEach { it.resetForNewActivation() }
+    }
 }
 
 /**
@@ -184,14 +193,57 @@ data class EnrichedDBFile(
 
     override var logger = dbFile.logger
 
+    /**
+     * A CHAIN answered by the cache does not reach reload, which then does not know the file is positioned on the
+     * chained record: the CHAIN is replayed (once) if a sequential read follows, see [syncChain].
+     */
+    private var pendingChain: (() -> Unit)? = null
+
     override fun chain(key: String): Result {
         val op = { checkOpened().chain(key).validate() }
-        return cacheKey?.computeIfAbsent(key) { op.invoke() } ?: op.invoke()
+        val cached = cacheKey?.get(key)
+        if (cached != null) {
+            pendingChain = { checkOpened().chain(key) }
+            return cached
+        }
+        pendingChain = null
+        return op.invoke().also { cacheKey?.put(key, it) }
     }
 
     override fun chain(keys: List<String>): Result {
         val op = { checkOpened().chain(keys).validate() }
-        return cacheKeys?.computeIfAbsent(keys) { op.invoke() } ?: op.invoke()
+        val cached = cacheKeys?.get(keys)
+        if (cached != null) {
+            pendingChain = { checkOpened().chain(keys) }
+            return cached
+        }
+        pendingChain = null
+        return op.invoke().also { cacheKeys?.put(keys, it) }
+    }
+
+    private fun syncChain(): DBFile {
+        val dbFile = checkOpened()
+        pendingChain?.let {
+            pendingChain = null
+            it.invoke()
+        }
+        return dbFile
+    }
+
+    /** CLOSE: the file can't be accessed until the next OPEN, which finds it at its first record. */
+    fun closeFile() {
+        open = false
+        resetPosition()
+    }
+
+    fun resetForNewActivation() {
+        open = true
+        resetPosition()
+    }
+
+    override fun resetPosition() {
+        pendingChain = null
+        dbFile.resetPosition()
     }
 
     override fun delete(record: Record): Result = checkOpened().delete(record).validate().apply { deleteCache() }
@@ -200,21 +252,21 @@ data class EnrichedDBFile(
 
     override fun equal() = checkOpened().equal()
 
-    override fun read() = checkOpened().read().validate()
+    override fun read() = syncChain().read().validate()
 
-    override fun readEqual() = checkOpened().readEqual().validate()
+    override fun readEqual() = syncChain().readEqual().validate()
 
-    override fun readEqual(key: String) = checkOpened().readEqual(key).validate()
+    override fun readEqual(key: String) = syncChain().readEqual(key).validate()
 
-    override fun readEqual(keys: List<String>) = checkOpened().readEqual(keys).validate()
+    override fun readEqual(keys: List<String>) = syncChain().readEqual(keys).validate()
 
-    override fun readPrevious() = checkOpened().readPrevious().validate()
+    override fun readPrevious() = syncChain().readPrevious().validate()
 
-    override fun readPreviousEqual() = checkOpened().readPreviousEqual().validate()
+    override fun readPreviousEqual() = syncChain().readPreviousEqual().validate()
 
-    override fun readPreviousEqual(key: String) = checkOpened().readPreviousEqual(key).validate()
+    override fun readPreviousEqual(key: String) = syncChain().readPreviousEqual(key).validate()
 
-    override fun readPreviousEqual(keys: List<String>) = checkOpened().readPreviousEqual(keys).validate()
+    override fun readPreviousEqual(keys: List<String>) = syncChain().readPreviousEqual(keys).validate()
 
     override fun setgt(key: String) = checkOpened().setgt(key)
 

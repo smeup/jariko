@@ -314,6 +314,9 @@ private class FunctionInterpreter(
         }
     }
 
+    /** The files belong to the program that called the procedure: they must stay as they are when it returns. */
+    override fun releaseFiles() {}
+
     override fun doSomethingAfterExecution() {
         super.doSomethingAfterExecution()
         MainExecutionContext.getAttributes()[staticMemorySliceId.getAttributeKey()]?.let {
