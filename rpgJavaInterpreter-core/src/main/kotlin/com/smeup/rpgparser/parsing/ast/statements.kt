@@ -997,6 +997,9 @@ data class SetllStmt(
     override val searchArg: Expression,
     override val name: String,
     override val position: Position?,
+    // EQ indicator (columns 75-76): on when a record with a key equal to the search argument exists.
+    // The probe query (DBFile.equal()) runs only when the indicator is specified.
+    val eqIndicator: IndicatorKey? = null,
 ) : AbstractSetStmt(
         searchArg = searchArg,
         name = name,
@@ -1004,6 +1007,13 @@ data class SetllStmt(
     ) {
     override val loggableEntityName: String
         get() = "SETLL"
+
+    override fun execute(interpreter: InterpreterCore) {
+        super.execute(interpreter)
+        eqIndicator?.let {
+            interpreter.getIndicators()[it] = interpreter.dbFile(name, this).equal().asValue()
+        }
+    }
 
     override fun set(
         dbFile: DBFile,
