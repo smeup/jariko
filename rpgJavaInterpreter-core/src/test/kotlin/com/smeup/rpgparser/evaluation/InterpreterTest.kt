@@ -3330,4 +3330,9 @@ Test 6
     fun executeBIFERROR01() {
         assertEquals(listOf("OPEN PRT=OK", "CALL NOPROG=ERR"), "BIFERROR01".outputOf())
     }
+
+    @Test
+    fun executeBIFERROR02() {
+        assertEquals(listOf("10", "CALL N=1 ERR=N", "CALL N=0 ERR=Y"), "BIFERROR02".outputOf())
+    }
 }
