@@ -154,6 +154,10 @@ interface Evaluator {
 
     fun eval(expression: RemExpr): Value
 
+    fun eval(expression: DivFunctionExpr): Value
+
+    fun eval(expression: ErrorExpr): Value
+
     fun eval(expression: QualifiedAccessExpr): Value
 
     fun eval(expression: ReplaceExpr): Value

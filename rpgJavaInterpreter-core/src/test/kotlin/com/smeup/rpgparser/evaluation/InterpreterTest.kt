@@ -3320,4 +3320,19 @@ Test 6
      * A simple exception to stop execution on-demand
      */
     class StopExecutionException : Exception()
+
+    @Test
+    fun executeBIFDIV01() {
+        assertEquals(listOf("R1=3", "R2=-3", "R3=6"), "BIFDIV01".outputOf())
+    }
+
+    @Test
+    fun executeBIFERROR01() {
+        assertEquals(listOf("OPEN PRT=OK", "CALL NOPROG=ERR"), "BIFERROR01".outputOf())
+    }
+
+    @Test
+    fun executeBIFERROR02() {
+        assertEquals(listOf("10", "CALL N=1 ERR=N", "CALL N=0 ERR=Y"), "BIFERROR02".outputOf())
+    }
 }

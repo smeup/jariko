@@ -2408,6 +2408,7 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         this.csPARM().map { it.toAst(conf) },
         this.cspec_fixed_standard_parts().lo.asIndex(),
         toPosition(conf.considerPosition),
+        operationExtender = this.operationExtender?.text,
     )
 }
 

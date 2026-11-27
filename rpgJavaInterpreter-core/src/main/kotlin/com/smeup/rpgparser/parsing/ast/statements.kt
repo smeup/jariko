@@ -1138,10 +1138,17 @@ data class CallStmt(
     val params: List<PlistParam>,
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null,
+    val operationExtender: String? = null,
 ) : Statement(position),
     StatementThatCanDefineData {
     override val loggableEntityName: String
         get() = "CALL"
+
+    init {
+        require(operationExtender.isNullOrErrorExtender()) {
+            "Operation extender not supported"
+        }
+    }
 
     override fun dataDefinition(): List<InStatementDataDefinition> =
         params.mapNotNull {
@@ -1161,14 +1168,16 @@ data class CallStmt(
         val start = System.nanoTime()
         try {
             val program: Program?
+            if (operationExtender != null) interpreter.getStatus().lastError.set(false)
             try {
                 program = interpreter.getSystemInterface().findProgram(programToCall)
                 if (errorIndicator != null) {
                     interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
                 }
             } catch (e: Exception) {
-                errorIndicator ?: throw buildProgramNotFoundException(programToCall)
-                interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                if (errorIndicator == null && operationExtender == null) throw buildProgramNotFoundException(programToCall)
+                if (errorIndicator != null) interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                if (operationExtender != null) interpreter.getStatus().lastError.set(true)
                 return
             }
 
@@ -1257,7 +1266,7 @@ data class CallStmt(
                     }
 
                     // TODO Catch a more specific exception?
-                    if (errorIndicator == null) {
+                    if (errorIndicator == null && operationExtender == null) {
                         if (program is RpgProgram) {
                             MainExecutionContext.getProgramStack().pop()
                         }
@@ -1271,7 +1280,8 @@ data class CallStmt(
                         throw e
                     }
 
-                    interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                    if (errorIndicator != null) interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                    if (operationExtender != null) interpreter.getStatus().lastError.set(true)
 
                     // If event is not in jariko runtime error stack it means the error originated externally
                     // In this case we need to report it first.
@@ -3278,6 +3288,34 @@ fun OccurableDataStructValue.pos(
     }
 }
 
+/** The only extender accepted by the operations that support it is E (error handling, sets %ERROR). */
+private fun String?.isNullOrErrorExtender(): Boolean {
+    if (this == null) return true
+    val extender = this.uppercase().filter { it != '(' && it != ')' && !it.isWhitespace() }
+    return extender == "E"
+}
+
+/**
+ * Runs [block]. With the (E) extender, resets %ERROR before and sets it if [block] throws,
+ * without propagating the exception. Without the extender the behavior is unchanged.
+ */
+private fun executeCatchingError(
+    interpreter: InterpreterCore,
+    operationExtender: String?,
+    block: () -> Unit,
+) {
+    if (operationExtender == null) {
+        block()
+        return
+    }
+    interpreter.getStatus().lastError.set(false)
+    try {
+        block()
+    } catch (e: Exception) {
+        interpreter.getStatus().lastError.set(true)
+    }
+}
+
 @Serializable
 data class OpenStmt(
     val name: String = "", // Factor 2
@@ -3289,7 +3327,7 @@ data class OpenStmt(
         get() = "OPEN"
 
     init {
-        require(operationExtender == null) {
+        require(operationExtender.isNullOrErrorExtender()) {
             "Operation extender not supported"
         }
     }
@@ -3306,8 +3344,10 @@ data class OpenStmt(
             return
         }
 
-        val dbFile = interpreter.dbFile(name, this)
-        dbFile.open = true
+        executeCatchingError(interpreter, operationExtender) {
+            val dbFile = interpreter.dbFile(name, this)
+            dbFile.open = true
+        }
     }
 }
 
@@ -3322,14 +3362,16 @@ data class CloseStmt(
         get() = "CLOSE"
 
     init {
-        require(operationExtender == null) {
+        require(operationExtender.isNullOrErrorExtender()) {
             "Operation extender not supported"
         }
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        val dbFile = interpreter.dbFile(name, this)
-        dbFile.closeFile()
+        executeCatchingError(interpreter, operationExtender) {
+            val dbFile = interpreter.dbFile(name, this)
+            dbFile.closeFile()
+        }
     }
 }
 

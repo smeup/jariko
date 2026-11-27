@@ -279,6 +279,30 @@ data class RemExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %DIV
+@Serializable
+data class DivFunctionExpr(
+    val dividend: Expression,
+    val divisor: Expression,
+    override val position: Position? = null,
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%DIV"
+
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %ERROR
+@Serializable
+data class ErrorExpr(
+    override val position: Position? = null,
+) : Expression(position) {
+    override val loggableEntityName: String
+        get() = "%ERROR"
+
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // Abstract %DEC definition
 @Serializable
 abstract class DecExpr(
