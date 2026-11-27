@@ -192,6 +192,8 @@ private val modules =
             subclass(RealLiteral::class)
             subclass(ReallocExpr::class)
             subclass(RemExpr::class)
+            subclass(DivFunctionExpr::class)
+            subclass(ErrorExpr::class)
             subclass(ReplaceExpr::class)
             subclass(ScanExpr::class)
             subclass(SqrtExpr::class)
