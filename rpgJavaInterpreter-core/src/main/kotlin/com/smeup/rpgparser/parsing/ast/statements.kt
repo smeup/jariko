@@ -1256,7 +1256,7 @@ data class CallStmt(
                     }
 
                     // TODO Catch a more specific exception?
-                    if (errorIndicator == null) {
+                    if (errorIndicator == null && operationExtender == null) {
                         if (program is RpgProgram) {
                             MainExecutionContext.getProgramStack().pop()
                         }
@@ -1270,7 +1270,8 @@ data class CallStmt(
                         throw e
                     }
 
-                    interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                    if (errorIndicator != null) interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                    if (operationExtender != null) interpreter.getStatus().lastError.set(true)
 
                     // If event is not in jariko runtime error stack it means the error originated externally
                     // In this case we need to report it first.
