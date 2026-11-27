@@ -1025,6 +1025,19 @@ class ExpressionEvaluation(
             IntValue(n % m)
         }
 
+    override fun eval(expression: DivFunctionExpr): Value =
+        proxyLogging(expression) {
+            // Integer quotient, truncated toward zero (as the RPG %DIV does)
+            val n = evalAsLong(expression.dividend)
+            val m = evalAsLong(expression.divisor)
+            IntValue(n / m)
+        }
+
+    override fun eval(expression: ErrorExpr): Value =
+        proxyLogging(expression) {
+            BooleanValue(interpreterStatus.lastError.get())
+        }
+
     override fun eval(expression: QualifiedAccessExpr): Value =
         proxyLogging(expression) {
             val dataStringValue =

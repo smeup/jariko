@@ -35,6 +35,9 @@ class InterpreterStatus(
 ) {
     var inzsrExecuted: AtomicBoolean = AtomicBoolean(false)
     var lastFound: AtomicBoolean = AtomicBoolean(false)
+
+    // Set by the operations with the (E) extender, read by %ERROR
+    var lastError: AtomicBoolean = AtomicBoolean(false)
     var lastDBFile: AtomicReference<DBFile?> = AtomicReference(null)
 
     var dbFileMap = DBFileMap()
