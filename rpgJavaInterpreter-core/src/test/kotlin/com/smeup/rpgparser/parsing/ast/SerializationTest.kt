@@ -42,6 +42,19 @@ class SerializationTest {
     private fun String.timestampName() = "${timestamp}_$this"
 
     @Test
+    fun serializeAstOfBifDivAndBifError() {
+        listOf("BIFDIV01", "BIFERROR01", "BIFERROR02").forEach { name ->
+            javaClass.getResourceAsStream("/$name.rpgle")!!.use { inputStream ->
+                MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+                    val compilationUnit = createAstFromSource(name, inputStream)
+                    // Throws SerializationException if a class is not registered in the polymorphic scope
+                    compilationUnit.encodeToString()
+                }
+            }
+        }
+    }
+
+    @Test
     @Ignore
     fun probeSerializationForAllPerformanceMuteAst() {
         val errors = mutableSetOf<String?>()
