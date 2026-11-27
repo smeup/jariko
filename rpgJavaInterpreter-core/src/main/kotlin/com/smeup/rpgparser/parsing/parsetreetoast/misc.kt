@@ -1847,7 +1847,8 @@ internal fun CsREADPEContext.toAst(conf: ToAstConfiguration): Statement {
 
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    // TODO implement indicators handling
+    // Only the EQ indicator (75-76) is handled. TODO the not found indicator (71-72) needs a DBFile API, see
+    // https://github.com/smeup/jariko/issues/859. The 73-74 position is the error indicator (E extender), not a LO.
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: this.factor1Context()?.constant?.toAst(conf)
     require(factor1 != null) {
         "SETLL operation requires factor 1: ${this.text} - ${position.atLine()}"
@@ -1855,7 +1856,8 @@ internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     val factor2 =
         this.cspec_fixed_standard_parts().factor2.text
             ?: throw UnsupportedOperationException("SETLL operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return SetllStmt(factor1, factor2, position)
+    val eq = this.cspec_fixed_standard_parts().eq.toIndicatorKey()
+    return SetllStmt(factor1, factor2, position, eq)
 }
 
 internal fun CsSETGTContext.toAst(conf: ToAstConfiguration): Statement {
